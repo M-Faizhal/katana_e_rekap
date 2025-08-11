@@ -1,39 +1,47 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
 
 
-// Dashboard Routes
-Route::get('/dashboard', function () {
-    return view('pages.dashboard');
-})->name('dashboard');
+// Auth routes
+Route::middleware('guest')->group(function () {
+    Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+    Route::get('/login', [AuthController::class, 'showLogin']);
+    Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
+});
 
-Route::get('/laporan', function () {
-    return view('pages.laporan');
-})->name('laporan');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-Route::get('/marketing', function () {
-    return view('pages.marketing');
-})->name('marketing');
+// Protected pages
+Route::middleware('auth')->group(function () {
+    // Dashboard Routes
+    Route::get('/dashboard', function () {
+        return view('pages.dashboard');
+    })->name('dashboard');
 
-Route::get('/purchasing', function () {
-    return view('pages.purchasing');
-})->name('purchasing');
+    Route::get('/laporan', function () {
+        return view('pages.laporan');
+    })->name('laporan');
 
-Route::get('/keuangan', function () {
-    return view('pages.keuangan');
-})->name('keuangan');
+    Route::get('/marketing', function () {
+        return view('pages.marketing');
+    })->name('marketing');
 
-Route::get('/produk', function () {
-    return view('pages.produk');
-})->name('produk');
+    Route::get('/purchasing', function () {
+        return view('pages.purchasing');
+    })->name('purchasing');
 
-Route::get('/pengaturan', function () {
-    return view('pages.pengaturan');
-})->name('pengaturan');
+    Route::get('/keuangan', function () {
+        return view('pages.keuangan');
+    })->name('keuangan');
 
-// Dummy logout route (implement proper authentication later)
-Route::post('/logout', function () {
-    return redirect('/');
-})->name('logout');
+    Route::get('/produk', function () {
+        return view('pages.produk');
+    })->name('produk');
+
+    Route::get('/pengaturan', function () {
+        return view('pages.pengaturan');
+    })->name('pengaturan');
+});
