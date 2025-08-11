@@ -8,7 +8,7 @@
             <div class="text-white">
                 <h1 class="text-lg font-bold">Dashboard PT. Kamil Trio Niaga</h1>
                 <p class="text-sm text-red-200">(KATANA)</p>
-                <p class="text-xs text-red-200">Halo & Menager, selamat datang 🔥</p>
+                <p class="text-xs text-red-200">Halo {{ auth()->user()->name ?? 'Tamu' }}, selamat datang 🔥</p>
             </div>
         </div>
     </div>

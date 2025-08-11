@@ -38,12 +38,12 @@
             </button>
 
             <!-- User Menu -->
-            <div class="relative">
+        <div class="relative">
                 <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors duration-200" onclick="toggleUserMenu()">
                     <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
                         <i class="fas fa-user text-white text-sm"></i>
                     </div>
-                    <span class="font-medium">Admin</span>
+            <span class="font-medium">{{ auth()->user()->name ?? 'User' }}</span>
                     <i class="fas fa-chevron-down"></i>
                 </button>
 
