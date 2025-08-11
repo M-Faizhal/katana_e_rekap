@@ -15,9 +15,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        .sidebar-gradient {
-            background: linear-gradient(180deg, #8B0000 0%, #DC143C 100%);
-        }
+     
         .card-placeholder {
             background: rgba(220, 20, 60, 0.1);
             border: 2px solid #DC143C;
@@ -28,22 +26,33 @@
             background-size: cover;
             background-position: center;
         }
+   
+   
+        
+        /* Glass effect */
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        /* Smooth animations */
+        .smooth-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-    <div id="app" class="min-h-screen flex">
+    <div id="app" class="min-h-screen">
         {{-- Sidebar --}}
         @include('components.sidebar')
 
-        <div class="flex-1 flex flex-col">
-            {{-- Header --}}
-            @include('components.header')
+        {{-- Header --}}
+        @include('components.header')
 
-            {{-- Content --}}
-            <main class="ml-64 pt-[64px] p-6">
-                @yield('content')
-            </main>
-        </div>
+        {{-- Content --}}
+        <main class="ml-64 pt-30 p-8 bg-gray-50 min-h-screen">
+            @yield('content')
+        </main>
     </div>
 
     @stack('scripts')
