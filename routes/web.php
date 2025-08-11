@@ -2,10 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Redirect root to dashboard
-Route::get('/', function () {
-    return redirect('/dashboard');
-});
+
 
 // Dashboard Routes
 Route::get('/dashboard', function () {

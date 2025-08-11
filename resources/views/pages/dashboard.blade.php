@@ -1,6 +1,6 @@
-@extends('layouts.dashboard')
+@extends('layouts.app')
 
-@section('page-content')
+@section('content')
 <!-- Stats Cards Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     <!-- Card 1 - Penjualan -->

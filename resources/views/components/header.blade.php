@@ -1,5 +1,4 @@
-<!-- Header -->
-<header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+<header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4 relative">
     <div class="flex items-center justify-between">
         <!-- Search Bar -->
         <div class="flex items-center space-x-4">
@@ -70,65 +69,41 @@
 
     <!-- Month Filter Dropdown -->
     <div id="monthFilter" class="absolute right-20 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden z-50">
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Januari')">Januari</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Februari')">Februari</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Maret')">Maret</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('April')">April</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Mei')">Mei</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Juni')">Juni</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Juli')">Juli</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Agustus')">Agustus</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('September')">September</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Oktober')">Oktober</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('November')">November</a>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('Desember')">Desember</a>
+        @foreach (['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'] as $month)
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="selectMonth('{{ $month }}')">{{ $month }}</a>
+        @endforeach
     </div>
 </header>
 
+@push('scripts')
 <script>
 function toggleUserMenu() {
-    const menu = document.getElementById('userMenu');
-    menu.classList.toggle('hidden');
+    document.getElementById('userMenu').classList.toggle('hidden');
 }
-
 function toggleMonthFilter() {
-    const filter = document.getElementById('monthFilter');
-    filter.classList.toggle('hidden');
+    document.getElementById('monthFilter').classList.toggle('hidden');
 }
-
 function selectMonth(month) {
     document.getElementById('monthText').textContent = month;
     document.getElementById('monthFilter').classList.add('hidden');
 }
-
 function toggleFilter() {
-    // Implement filter functionality
     alert('Filter functionality to be implemented');
 }
-
 function performSearch() {
     const searchTerm = document.getElementById('searchInput').value;
     if (searchTerm.trim() !== '') {
-        // Implement search functionality
         alert('Mencari: ' + searchTerm);
     }
 }
-
-// Close dropdowns when clicking outside
 document.addEventListener('click', function(event) {
-    const userMenu = document.getElementById('userMenu');
-    const monthFilter = document.getElementById('monthFilter');
-
     if (!event.target.closest('.relative')) {
-        userMenu.classList.add('hidden');
-        monthFilter.classList.add('hidden');
+        document.getElementById('userMenu').classList.add('hidden');
+        document.getElementById('monthFilter').classList.add('hidden');
     }
 });
-
-// Search on Enter key
 document.getElementById('searchInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        performSearch();
-    }
+    if (e.key === 'Enter') performSearch();
 });
 </script>
+@endpush

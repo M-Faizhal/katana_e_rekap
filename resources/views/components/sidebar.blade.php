@@ -1,4 +1,3 @@
-<!-- Sidebar -->
 <div class="w-64 sidebar-gradient shadow-lg relative">
     <!-- Logo/Header -->
     <div class="p-6 border-b border-red-400">
@@ -17,42 +16,22 @@
     <!-- Navigation Menu -->
     <nav class="mt-6 pb-32">
         <ul class="space-y-2 px-4">
+            @foreach([
+                ['route'=>'dashboard','icon'=>'tachometer-alt','label'=>'Dashboard'],
+                ['route'=>'laporan','icon'=>'file-alt','label'=>'Laporan'],
+                ['route'=>'marketing','icon'=>'bullhorn','label'=>'Marketing'],
+                ['route'=>'purchasing','icon'=>'shopping-cart','label'=>'Purchasing'],
+                ['route'=>'keuangan','icon'=>'coins','label'=>'Keuangan'],
+                ['route'=>'produk','icon'=>'box','label'=>'Produk']
+            ] as $item)
             <li>
-                <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 text-white hover:bg-red-500 rounded-lg px-4 py-3 transition-colors duration-200 {{ request()->routeIs('dashboard') ? 'bg-red-500' : '' }}">
-                    <i class="fas fa-tachometer-alt w-5"></i>
-                    <span class="font-medium">Dashboard</span>
+                <a href="{{ route($item['route']) }}"
+                   class="flex items-center space-x-3 text-white hover:bg-red-500 rounded-lg px-4 py-3 transition-colors duration-200 {{ request()->routeIs($item['route']) ? 'bg-red-500' : '' }}">
+                    <i class="fas fa-{{ $item['icon'] }} w-5"></i>
+                    <span class="font-medium">{{ $item['label'] }}</span>
                 </a>
             </li>
-            <li>
-                <a href="{{ route('laporan') }}" class="flex items-center space-x-3 text-white hover:bg-red-500 rounded-lg px-4 py-3 transition-colors duration-200 {{ request()->routeIs('laporan') ? 'bg-red-500' : '' }}">
-                    <i class="fas fa-file-alt w-5"></i>
-                    <span class="font-medium">Laporan</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('marketing') }}" class="flex items-center space-x-3 text-white hover:bg-red-500 rounded-lg px-4 py-3 transition-colors duration-200 {{ request()->routeIs('marketing') ? 'bg-red-500' : '' }}">
-                    <i class="fas fa-bullhorn w-5"></i>
-                    <span class="font-medium">Marketing</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('purchasing') }}" class="flex items-center space-x-3 text-white hover:bg-red-500 rounded-lg px-4 py-3 transition-colors duration-200 {{ request()->routeIs('purchasing') ? 'bg-red-500' : '' }}">
-                    <i class="fas fa-shopping-cart w-5"></i>
-                    <span class="font-medium">Purchasing</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('keuangan') }}" class="flex items-center space-x-3 text-white hover:bg-red-500 rounded-lg px-4 py-3 transition-colors duration-200 {{ request()->routeIs('keuangan') ? 'bg-red-500' : '' }}">
-                    <i class="fas fa-coins w-5"></i>
-                    <span class="font-medium">Keuangan</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('produk') }}" class="flex items-center space-x-3 text-white hover:bg-red-500 rounded-lg px-4 py-3 transition-colors duration-200 {{ request()->routeIs('produk') ? 'bg-red-500' : '' }}">
-                    <i class="fas fa-box w-5"></i>
-                    <span class="font-medium">Produk</span>
-                </a>
-            </li>
+            @endforeach
         </ul>
     </nav>
 
