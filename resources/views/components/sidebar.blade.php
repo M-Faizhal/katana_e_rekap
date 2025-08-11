@@ -46,7 +46,7 @@
                     </a>
                 </li>
                 <li>
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    <form method="POST" action="" class="w-full">
                         @csrf
                         <button type="submit" class="flex items-center space-x-3 text-gray-800 hover:text-red-800  rounded-xl px-4 py-3 transition-all group">
                             <i class="fas fa-sign-out-alt w-5 text-lg group-hover:translate-x-1 transition-transform duration-300"></i>

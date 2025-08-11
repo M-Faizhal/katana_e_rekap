@@ -12,7 +12,7 @@
         <div class="flex items-center space-x-6">
             <!-- Quick Stats -->
             <div class="hidden lg:flex items-center space-x-6 text-sm">
-                
+
             </div>
 
             <!-- Divider -->
@@ -55,7 +55,7 @@
                         <i class="fas fa-question-circle mr-3 w-4"></i>Bantuan
                     </a>
                     <div class="border-t border-gray-100 mt-2"></div>
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="">
                         @csrf
                         <button type="submit" class="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200">
                             <i class="fas fa-sign-out-alt mr-3 w-4"></i>Keluar

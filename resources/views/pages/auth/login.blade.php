@@ -27,21 +27,11 @@
             </div>
 
             <!-- Status Message (Show when needed) -->
-            @if(session('status'))
-                <div class="status-message">
-                    {{ session('status') }}
-                </div>
-            @endif
+            <div class="status-message" style="display: none;">
+                Status message akan muncul di sini
+            </div>
 
-            @if($errors->any())
-                <div class="status-message" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                    <i class="fas fa-exclamation-circle"></i>
-                    {{ $errors->first() }}
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('login.attempt') }}" id="loginForm" class="space-y-4">
-                @csrf
+            <form id="loginForm" class="space-y-4">
                 <div class="form-group">
                     <label for="email" class="form-label">Email</label>
                     <div class="input-wrapper">
@@ -52,18 +42,15 @@
                             required
                             autofocus
                             autocomplete="username"
-                            class="form-input @error('email') border-red-500 @enderror"
+                            class="form-input"
                             placeholder="Masukkan email Anda"
-                            value="{{ old('email') }}"
                         >
                         <i class="fas fa-envelope input-icon"></i>
                     </div>
-                    @error('email')
-                        <div class="error-message" style="display: flex;">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>{{ $message }}</span>
-                        </div>
-                    @enderror
+                    <div class="error-message" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Pesan error akan muncul di sini</span>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -75,7 +62,7 @@
                             type="password"
                             required
                             autocomplete="current-password"
-                            class="form-input @error('password') border-red-500 @enderror"
+                            class="form-input"
                             placeholder="Masukkan password Anda"
                         >
                         <i class="fas fa-lock input-icon"></i>
@@ -83,12 +70,10 @@
                             <i id="eye" class="fas fa-eye"></i>
                         </button>
                     </div>
-                    @error('password')
-                        <div class="error-message" style="display: flex;">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>{{ $message }}</span>
-                        </div>
-                    @enderror
+                    <div class="error-message" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Pesan error akan muncul di sini</span>
+                    </div>
                 </div>
 
                 <div class="form-options">
@@ -124,16 +109,7 @@
             }
         }
 
-        // Add form submission handling
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            // Add loading state
-            const form = this;
-            const button = form.querySelector('.login-button');
-            const buttonText = button.querySelector('span');
-
-            form.classList.add('loading');
-            buttonText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-        });
+        // Login functionality removed for easier data modification
 
         // Add input focus effects
         document.querySelectorAll('.form-input').forEach(input => {
@@ -147,7 +123,7 @@
         });
 
         // Add some interactive elements
-        document.querySelector('.login-logo').addEventListener('click', function() {
+        document.querySelector('.logo').addEventListener('click', function() {
             this.style.animation = 'none';
             setTimeout(() => {
                 this.style.animation = 'pulse 2s infinite';
