@@ -358,7 +358,7 @@ document.getElementById('formTambahPenawaran').addEventListener('submit', functi
         closeModal('modalTambahPenawaran');
         
         // Show success message
-        alert('Penawaran berhasil ditambahkan!');
+        showSuccessModal('Penawaran berhasil ditambahkan!');
         
         // Reset form
         this.reset();

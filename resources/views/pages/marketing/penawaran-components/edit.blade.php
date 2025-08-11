@@ -420,7 +420,7 @@ document.getElementById('formEditPenawaran').addEventListener('submit', function
         closeModal('modalEditPenawaran');
         
         // Show success message
-        alert('Penawaran berhasil diupdate!');
+        showSuccessModal('Penawaran berhasil diupdate!');
     }, 2000);
 });
 </script>

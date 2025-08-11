@@ -480,6 +480,7 @@
 @include('pages.marketing.penawaran-components.edit')
 @include('pages.marketing.penawaran-components.detail')
 @include('pages.marketing.penawaran-components.hapus')
+@include('components.success-modal')
 
 <!-- Include Modal Functions -->
 <script src="{{ asset('js/modal-functions.js') }}"></script>
@@ -556,5 +557,275 @@
     }
 }
 </style>
+
+<script>
+// Function to view detail penawaran
+function viewDetail(id) {
+    // Sample data - replace with actual data from backend
+    const sampleData = {
+        1: {
+            id: 1,
+            kode: 'PNW-2024-001',
+            instansi: 'Dinas Pendidikan DKI',
+            kabupaten: 'Jakarta Pusat',
+            jenis_pengadaan: 'Pelelangan Umum',
+            tanggal: '15 Sep 2024',
+            deadline: '30 Sep 2024',
+            status: 'Diterima',
+            admin_marketing: 'Budi Santoso',
+            admin_purchasing: 'Sari Indah',
+            nilai_penawaran: 'Rp 850.000.000',
+            catatan: 'Penawaran sistem informasi manajemen pendidikan'
+        },
+        2: {
+            id: 2,
+            kode: 'PNW-2024-002',
+            instansi: 'RSUD Kota Bogor',
+            kabupaten: 'Bogor',
+            jenis_pengadaan: 'Penunjukan Langsung',
+            tanggal: '20 Sep 2024',
+            deadline: '05 Oct 2024',
+            status: 'Pending',
+            admin_marketing: 'Andi Pratama',
+            admin_purchasing: 'Maya Sari',
+            nilai_penawaran: 'Rp 650.000.000',
+            catatan: 'Sistem informasi rumah sakit'
+        },
+        3: {
+            id: 3,
+            kode: 'PNW-2024-003',
+            instansi: 'Dinas Kominfo Depok',
+            kabupaten: 'Depok',
+            jenis_pengadaan: 'Tender',
+            tanggal: '25 Sep 2024',
+            deadline: '10 Oct 2024',
+            status: 'Pending',
+            admin_marketing: 'Rini Wahyuni',
+            admin_purchasing: 'Agus Setiawan',
+            nilai_penawaran: 'Rp 450.000.000',
+            catatan: 'Portal informasi publik'
+        },
+        4: {
+            id: 4,
+            kode: 'PNW-2024-004',
+            instansi: 'Bappeda Tangerang',
+            kabupaten: 'Tangerang',
+            jenis_pengadaan: 'Pelelangan Umum',
+            tanggal: '28 Sep 2024',
+            deadline: '15 Oct 2024',
+            status: 'Ditolak',
+            admin_marketing: 'Dedi Kurniawan',
+            admin_purchasing: 'Nina Kartika',
+            nilai_penawaran: 'Rp 750.000.000',
+            catatan: 'Sistem perencanaan pembangunan'
+        },
+        5: {
+            id: 5,
+            kode: 'PNW-2024-005',
+            instansi: 'Pemkot Bekasi',
+            kabupaten: 'Bekasi',
+            jenis_pengadaan: 'Pemilihan Langsung',
+            tanggal: '01 Oct 2024',
+            deadline: '15 Nov 2024',
+            status: 'Pending',
+            admin_marketing: 'Agus Setiawan',
+            admin_purchasing: 'Nina Kartika',
+            nilai_penawaran: 'Rp 920.000.000',
+            catatan: 'Sistem administrasi kependudukan'
+        }
+    };
+
+    const data = sampleData[id];
+    if (data) {
+        // Populate detail modal
+        document.getElementById('detailKode').textContent = data.kode;
+        document.getElementById('detailNamaInstansi').textContent = data.instansi;
+        document.getElementById('detailKabupatenKota').textContent = data.kabupaten;
+        document.getElementById('detailJenisPengadaan').textContent = data.jenis_pengadaan;
+        document.getElementById('detailTanggal').textContent = data.tanggal;
+        document.getElementById('detailDeadline').textContent = data.deadline;
+        
+        // Update status badge
+        const statusBadge = document.getElementById('detailStatusBadge');
+        statusBadge.textContent = data.status;
+        // Set status badge color based on status
+        statusBadge.className = 'inline-flex px-4 py-2 text-sm font-medium rounded-full';
+        if (data.status === 'Diterima') {
+            statusBadge.classList.add('bg-green-100', 'text-green-800');
+        } else if (data.status === 'Pending') {
+            statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+        } else if (data.status === 'Ditolak') {
+            statusBadge.classList.add('bg-red-100', 'text-red-800');
+        }
+        
+        document.getElementById('detailAdminMarketing').textContent = data.admin_marketing;
+        document.getElementById('detailAdminPurchasing').textContent = data.admin_purchasing;
+        document.getElementById('detailTotalKeseluruhan').textContent = data.nilai_penawaran;
+        
+        // Show catatan section if exists
+        if (data.catatan && data.catatan !== '-') {
+            document.getElementById('detailCatatan').textContent = data.catatan;
+            document.getElementById('detailCatatanSection').style.display = 'block';
+        } else {
+            document.getElementById('detailCatatanSection').style.display = 'none';
+        }
+        
+        // Show modal
+        openModal('modalDetailPenawaran');
+    }
+}
+
+// Function to edit penawaran
+function editPenawaran(id) {
+    // Sample data - replace with actual data from backend
+    const sampleData = {
+        1: {
+            id: 1,
+            kode: 'PNW-2024-001',
+            kabupaten_kota: 'Jakarta Pusat',
+            nama_instansi: 'Dinas Pendidikan DKI',
+            jenis_pengadaan: 'Pelelangan Umum',
+            deadline_penawaran: '2024-09-30',
+            admin_purchasing: 'Sari Indah',
+            catatan: 'Penawaran sistem informasi manajemen pendidikan'
+        },
+        2: {
+            id: 2,
+            kode: 'PNW-2024-002',
+            kabupaten_kota: 'Bogor',
+            nama_instansi: 'RSUD Kota Bogor',
+            jenis_pengadaan: 'Penunjukan Langsung',
+            deadline_penawaran: '2024-10-05',
+            admin_purchasing: 'Maya Sari',
+            catatan: 'Sistem informasi rumah sakit'
+        },
+        3: {
+            id: 3,
+            kode: 'PNW-2024-003',
+            kabupaten_kota: 'Depok',
+            nama_instansi: 'Dinas Kominfo Depok',
+            jenis_pengadaan: 'Tender',
+            deadline_penawaran: '2024-10-10',
+            admin_purchasing: 'Agus Setiawan',
+            catatan: 'Portal informasi publik'
+        },
+        4: {
+            id: 4,
+            kode: 'PNW-2024-004',
+            kabupaten_kota: 'Tangerang',
+            nama_instansi: 'Bappeda Tangerang',
+            jenis_pengadaan: 'Pelelangan Umum',
+            deadline_penawaran: '2024-10-15',
+            admin_purchasing: 'Nina Kartika',
+            catatan: 'Sistem perencanaan pembangunan'
+        },
+        5: {
+            id: 5,
+            kode: 'PNW-2024-005',
+            kabupaten_kota: 'Bekasi',
+            nama_instansi: 'Pemkot Bekasi',
+            jenis_pengadaan: 'Pemilihan Langsung',
+            deadline_penawaran: '2024-11-15',
+            admin_purchasing: 'Nina Kartika',
+            catatan: 'Sistem administrasi kependudukan'
+        }
+    };
+
+    const data = sampleData[id];
+    if (data) {
+        // Populate edit form
+        document.getElementById('editId').value = data.id;
+        document.getElementById('editKode').value = data.kode;
+        document.getElementById('editKabupatenKota').value = data.kabupaten_kota;
+        document.getElementById('editNamaInstansi').value = data.nama_instansi;
+        document.getElementById('editJenisPengadaan').value = data.jenis_pengadaan;
+        document.getElementById('editDeadline').value = data.deadline_penawaran;
+        document.getElementById('editAdminPurchasing').value = data.admin_purchasing;
+        document.getElementById('editCatatan').value = data.catatan;
+        
+        // Show modal
+        openModal('modalEditPenawaran');
+    }
+}
+
+// Function to delete penawaran
+function deletePenawaran(id) {
+    // Sample data - replace with actual data from backend
+    const sampleData = {
+        1: {
+            id: 1,
+            kode: 'PNW-2024-001',
+            instansi: 'Dinas Pendidikan DKI',
+            kabupaten: 'Jakarta Pusat',
+            status: 'Diterima'
+        },
+        2: {
+            id: 2,
+            kode: 'PNW-2024-002',
+            instansi: 'RSUD Kota Bogor',
+            kabupaten: 'Bogor',
+            status: 'Pending'
+        },
+        3: {
+            id: 3,
+            kode: 'PNW-2024-003',
+            instansi: 'Dinas Kominfo Depok',
+            kabupaten: 'Depok',
+            status: 'Pending'
+        },
+        4: {
+            id: 4,
+            kode: 'PNW-2024-004',
+            instansi: 'Bappeda Tangerang',
+            kabupaten: 'Tangerang',
+            status: 'Ditolak'
+        },
+        5: {
+            id: 5,
+            kode: 'PNW-2024-005',
+            instansi: 'Pemkot Bekasi',
+            kabupaten: 'Bekasi',
+            status: 'Pending'
+        }
+    };
+
+    const data = sampleData[id];
+    if (data) {
+        // Store data globally for deletion process
+        window.hapusData = data;
+        
+        // Populate hapus modal
+        document.getElementById('hapusKode').textContent = data.kode;
+        document.getElementById('hapusInstansi').textContent = data.instansi;
+        document.getElementById('hapusKabupaten').textContent = data.kabupaten;
+        document.getElementById('hapusStatus').textContent = data.status;
+        
+        // Show modal
+        openModal('modalHapusPenawaran');
+    }
+}
+
+// Function to open modal (if not already defined)
+if (typeof openModal === 'undefined') {
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+}
+
+// Function to close modal (if not already defined)
+if (typeof closeModal === 'undefined') {
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+}
+</script>
 
 @endsection

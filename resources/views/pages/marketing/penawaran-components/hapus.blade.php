@@ -257,28 +257,8 @@ function executeHapus() {
 }
 
 function showSuccessMessage() {
-    // Create and show success notification
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center space-x-3';
-    notification.innerHTML = `
-        <i class="fas fa-check-circle text-xl"></i>
-        <div>
-            <p class="font-medium">Berhasil Dihapus</p>
-            <p class="text-sm text-green-100">Penawaran ${hapusData.kode} telah dihapus dari sistem</p>
-        </div>
-        <button onclick="this.parentElement.remove()" class="text-white hover:text-green-200">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.remove();
-        }
-    }, 5000);
+    // Show success modal
+    showSuccessModal(`Penawaran ${hapusData.kode} berhasil dihapus dari sistem!`);
 }
 
 // Close modal when clicking outside
