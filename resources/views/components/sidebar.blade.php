@@ -1,15 +1,13 @@
 <div class="fixed left-0 top-0 w-64 h-full bg-white shadow-xl z-40">
     <!-- Logo/Header -->
-    <div class="p-6 border-b border-red-400">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <i class="fas fa-sword text-red-600 text-xl"></i>
-            </div>
-            <div class="text-white">
-                <h1 class="text-lg font-bold">Dashboard PT. Kamil Trio Niaga</h1>
-                <p class="text-sm text-red-200">(KATANA)</p>
-                <p class="text-xs text-red-200">Halo {{ auth()->user()->name ?? 'Tamu' }}, selamat datang 🔥</p>
-            </div>
+    <div class="p-6 border-b border-red-500">
+    <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 bg-white backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+            <img src="{{ asset('images/logo.png') }}" alt="Logo Katana" class="w-full h-full object-contain">
+        </div>
+        <div class="text-gray-800">
+            <h1 class="text-xl font-bold tracking-wide">KATANA</h1>
+            <p class="text-sm text-red-700">PT. Kamil Trio Niaga</p>
         </div>
     </div>
 </div>

@@ -27,13 +27,16 @@
             </div>
 
             <!-- User Menu -->
-        <div class="relative">
-                <button class="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors duration-200" onclick="toggleUserMenu()">
-                    <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+            <div class="relative">
+                <button class="flex items-center space-x-3 text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-2 transition-all duration-200" onclick="toggleUserMenu()">
+                    <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-user text-white text-sm"></i>
                     </div>
-            <span class="font-medium">{{ auth()->user()->name ?? 'User' }}</span>
-                    <i class="fas fa-chevron-down"></i>
+                    <div class="hidden md:block text-left">
+                        <p class="font-semibold text-sm">Admin</p>
+                        <p class="text-xs text-gray-500">Manager</p>
+                    </div>
+                    <i class="fas fa-chevron-down text-sm"></i>
                 </button>
 
                 <!-- User Dropdown Menu -->
