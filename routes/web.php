@@ -22,9 +22,20 @@ use App\Http\Controllers\AuthController;
         return view('pages.laporan');
     })->name('laporan');
 
-    Route::get('/marketing', function () {
-        return view('pages.marketing');
-    })->name('marketing');
+// Marketing Routes
+Route::prefix('marketing')->group(function () {
+    Route::get('/penawaran', function () {
+        return view('pages.marketing.penawaran');
+    })->name('marketing.penawaran');
+
+    Route::get('/wilayah', function () {
+        return view('pages.marketing.wilayah');
+    })->name('marketing.wilayah');
+
+    Route::get('/potensi', function () {
+        return view('pages.marketing.potensi');
+    })->name('marketing.potensi');
+});
 
     Route::get('/purchasing', function () {
         return view('pages.purchasing');
