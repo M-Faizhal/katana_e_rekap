@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KATANA Dashboard - Testing Links</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #DC143C;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .link-card {
+            background: #f8f9fa;
+            border: 2px solid #DC143C;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .link-card:hover {
+            background: #DC143C;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .link-card a {
+            text-decoration: none;
+            color: inherit;
+            font-weight: bold;
+        }
+        .link-card i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .features {
+            background: #f1f8e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-sword"></i> KATANA E-Rekap Dashboard</h1>
+
+        <div class="info">
+            <h3><i class="fas fa-info-circle"></i> Informasi</h3>
+            <p><strong>PT. Kamil Trio Niaga (KATANA)</strong> - Dashboard sistem manajemen bisnis terintegrasi</p>
+            <p>Server Laravel berjalan di: <strong>http://127.0.0.1:8000</strong></p>
+        </div>
+
+        <h2>🔗 Testing Links - Semua Halaman</h2>
+        <div class="links">
+            <div class="link-card">
+                <a href="http://127.0.0.1:8000/dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </div>
+            <div class="link-card">
+                <a href="http://127.0.0.1:8000/laporan">
+                    <i class="fas fa-file-alt"></i>
+                    Laporan
+                </a>
+            </div>
+            <div class="link-card">
+                <a href="http://127.0.0.1:8000/marketing">
+                    <i class="fas fa-bullhorn"></i>
+                    Marketing
+                </a>
+            </div>
+            <div class="link-card">
+                <a href="http://127.0.0.1:8000/purchasing">
+                    <i class="fas fa-shopping-cart"></i>
+                    Purchasing
+                </a>
+            </div>
+            <div class="link-card">
+                <a href="http://127.0.0.1:8000/keuangan">
+                    <i class="fas fa-coins"></i>
+                    Keuangan
+                </a>
+            </div>
+            <div class="link-card">
+                <a href="http://127.0.0.1:8000/produk">
+                    <i class="fas fa-box"></i>
+                    Produk
+                </a>
+            </div>
+            <div class="link-card">
+                <a href="http://127.0.0.1:8000/pengaturan">
+                    <i class="fas fa-cog"></i>
+                    Pengaturan
+                </a>
+            </div>
+        </div>
+
+        <div class="features">
+            <h3><i class="fas fa-star"></i> Fitur Utama</h3>
+            <ul>
+                <li><strong>Dashboard Utama:</strong> Statistik real-time, grafik, peta Indonesia interaktif</li>
+                <li><strong>Laporan:</strong> 6 jenis laporan lengkap dengan export options</li>
+                <li><strong>Marketing:</strong> Campaign management, analytics, content calendar</li>
+                <li><strong>Purchasing:</strong> PO management, supplier tracking, analytics</li>
+                <li><strong>Keuangan:</strong> Cash flow, transactions, budget analysis</li>
+                <li><strong>Produk:</strong> Inventory management, stock alerts, sales tracking</li>
+                <li><strong>Pengaturan:</strong> System configuration, user management, security</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3><i class="fas fa-mobile-alt"></i> Responsive Design</h3>
+            <p>Dashboard ini fully responsive dan dapat diakses dari:</p>
+            <ul>
+                <li>💻 Desktop/Laptop</li>
+                <li>📱 Tablet</li>
+                <li>📲 Mobile Phone</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #DC143C;">
+            <p><strong>KATANA E-Rekap Dashboard</strong></p>
+            <p style="color: #666;">Memudahkan pengelolaan bisnis dengan teknologi modern</p>
+        </div>
+    </div>
+</body>
+</html>
