@@ -235,11 +235,24 @@
 
     <!-- Pagination -->
     <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-        <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-700">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
+            <div class="text-sm text-gray-700 text-center sm:text-left">
                 Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">10</span> dari <span class="font-medium">25</span> hasil
             </div>
-            <div class="flex space-x-2">
+            
+            <!-- Mobile Pagination (Simple) -->
+            <div class="flex sm:hidden items-center justify-center space-x-3">
+                <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px] flex items-center" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="text-sm font-medium text-gray-700 px-3 py-2">1 / 3</span>
+                <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 min-h-[44px] flex items-center">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Desktop Pagination (Full) -->
+            <div class="hidden sm:flex space-x-2">
                 <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
                     <i class="fas fa-chevron-left"></i>
                 </button>

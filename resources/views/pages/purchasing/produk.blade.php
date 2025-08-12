@@ -2,96 +2,96 @@
 
 @section('content')
 <!-- Header Section -->
-<div class="bg-red-800 rounded-2xl p-8 mb-8 text-white shadow-lg">
+<div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold mb-2">Manajemen Produk</h1>
-            <p class="text-red-100 text-lg">Kelola dan pantau semua produk</p>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Manajemen Produk</h1>
+            <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola dan pantau semua produk</p>
         </div>
-        <div class="hidden lg:block">
-            <i class="fas fa-box text-6xl "></i>
+        <div class="hidden sm:block lg:block">
+            <i class="fas fa-box text-3xl sm:text-4xl lg:text-6xl"></i>
         </div>
     </div>
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-xl bg-red-100 mr-4">
-                <i class="fas fa-box text-red-600 text-xl"></i>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-box text-red-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Total Produk</h3>
-                <p class="text-2xl font-bold text-red-600">45</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-xl bg-blue-100 mr-4">
-                <i class="fas fa-microchip text-blue-600 text-xl"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Elektronik</h3>
-                <p class="text-2xl font-bold text-blue-600">18</p>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Produk</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">45</p>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-xl bg-green-100 mr-4">
-                <i class="fas fa-cogs text-green-600 text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-microchip text-blue-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Mesin</h3>
-                <p class="text-2xl font-bold text-green-600">15</p>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Elektronik</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">18</p>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-xl bg-yellow-100 mr-4">
-                <i class="fas fa-chair text-yellow-600 text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-cogs text-green-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Meubel</h3>
-                <p class="text-2xl font-bold text-yellow-600">12</p>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Mesin</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">15</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-chair text-yellow-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Meubel</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">12</p>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Main Content -->
-<div class="bg-white rounded-2xl shadow-lg border border-gray-100 mb-20">
+<div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-20">
     <!-- Header -->
-    <div class="p-8 border-b border-gray-200">
+    <div class="p-4 sm:p-6 lg:p-8 border-b border-gray-200">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800">Daftar Produk</h2>
-                <p class="text-gray-600 mt-1">Kelola semua data produk dan informasinya</p>
+                <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Daftar Produk</h2>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Kelola semua data produk dan informasinya</p>
             </div>
         </div>
     </div>
 
     <!-- Filter & Search -->
-    <div class="p-6 border-b border-gray-200 bg-gray-50">
+    <div class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50">
         <div class="flex flex-col lg:flex-row gap-4">
             <div class="flex-1">
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input type="text" placeholder="Cari nama barang atau spesifikasi..." 
-                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                           class="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
                 </div>
             </div>
-            <div class="flex gap-3">
-                <select class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <select class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
                     <option>Semua Jenis</option>
                     <option>Elektronik</option>
                     <option>Mesin</option>
                     <option>Meubel</option>
                 </select>
-                <select class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <select class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
                     <option>Urutkan</option>
                     <option>Nama A-Z</option>
                     <option>Nama Z-A</option>
@@ -102,62 +102,62 @@
         </div>
     </div>
 
-    <!-- Product Table -->
-    <div class="overflow-x-auto">
+    <!-- Desktop Table View -->
+    <div class="hidden md:block overflow-x-auto">
         <table class="w-full">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="text-left py-4 px-6 font-semibold text-gray-800">No</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-800">Gambar</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-800">Nama Barang</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-800">Spesifikasi</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-800">Jenis Barang</th>
-                    <th class="text-left py-4 px-6 font-semibold text-gray-800">Nilai TKDN</th>
-                    <th class="text-center py-4 px-6 font-semibold text-gray-800">Aksi</th>
+                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">No</th>
+                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Gambar</th>
+                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Nama Barang</th>
+                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Spesifikasi</th>
+                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Jenis Barang</th>
+                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Nilai TKDN</th>
+                    <th class="text-center py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
                 <!-- Product Row 1 -->
                 <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-4 px-6">
-                        <span class="font-medium text-gray-800">PRD-001</span>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-001</span>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                             <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
                         </div>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div>
-                            <p class="font-semibold text-gray-800">Laptop Dell Latitude 7420</p>
+                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Laptop Dell Latitude 7420</p>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <p class="text-gray-600 text-sm">Intel i7, 16GB RAM, 512GB SSD</p>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <p class="text-gray-600 text-xs lg:text-sm">Intel i7, 16GB RAM, 512GB SSD</p>
                     </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                             Elektronik
                         </span>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-20">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
                                 <div class="bg-green-500 h-2 rounded-full" style="width: 25%"></div>
                             </div>
-                            <span class="text-sm font-medium text-green-600">25%</span>
+                            <span class="text-xs lg:text-sm font-medium text-green-600">25%</span>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="flex items-center justify-center space-x-2">
-                            <button onclick="viewDetailProduk(1)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
+                            <button onclick="viewDetailProduk(1)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="editProduk(1)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit"></i>
+                            <button onclick="editProduk(1)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
+                                <i class="fas fa-edit text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="deleteProduk(1)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
+                            <button onclick="deleteProduk(1)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash text-sm lg:text-base"></i>
                             </button>
                         </div>
                     </td>
@@ -165,45 +165,45 @@
 
                 <!-- Product Row 2 -->
                 <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-4 px-6">
-                        <span class="font-medium text-gray-800">PRD-002</span>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-002</span>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                             <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
                         </div>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div>
-                            <p class="font-semibold text-gray-800">Mesin Bubut CNC</p>
+                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Mesin Bubut CNC</p>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <p class="text-gray-600 text-sm">3 Axis, Max 200mm chuck</p>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <p class="text-gray-600 text-xs lg:text-sm">3 Axis, Max 200mm chuck</p>
                     </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                             Mesin
                         </span>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-20">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
                                 <div class="bg-green-500 h-2 rounded-full" style="width: 60%"></div>
                             </div>
-                            <span class="text-sm font-medium text-green-600">60%</span>
+                            <span class="text-xs lg:text-sm font-medium text-green-600">60%</span>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="flex items-center justify-center space-x-2">
-                            <button onclick="viewDetailProduk(2)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
+                            <button onclick="viewDetailProduk(2)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="editProduk(2)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit"></i>
+                            <button onclick="editProduk(2)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
+                                <i class="fas fa-edit text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="deleteProduk(2)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
+                            <button onclick="deleteProduk(2)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash text-sm lg:text-base"></i>
                             </button>
                         </div>
                     </td>
@@ -211,45 +211,45 @@
 
                 <!-- Product Row 3 -->
                 <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-4 px-6">
-                        <span class="font-medium text-gray-800">PRD-003</span>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-003</span>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                             <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
                         </div>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div>
-                            <p class="font-semibold text-gray-800">Meja Kerja Kayu Jati</p>
+                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Meja Kerja Kayu Jati</p>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <p class="text-gray-600 text-sm">120x60x75cm, Kayu Jati Grade A</p>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <p class="text-gray-600 text-xs lg:text-sm">120x60x75cm, Kayu Jati Grade A</p>
                     </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
                             Meubel
                         </span>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-20">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
                                 <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
                             </div>
-                            <span class="text-sm font-medium text-green-600">85%</span>
+                            <span class="text-xs lg:text-sm font-medium text-green-600">85%</span>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="flex items-center justify-center space-x-2">
-                            <button onclick="viewDetailProduk(3)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
+                            <button onclick="viewDetailProduk(3)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="editProduk(3)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit"></i>
+                            <button onclick="editProduk(3)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
+                                <i class="fas fa-edit text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="deleteProduk(3)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
+                            <button onclick="deleteProduk(3)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash text-sm lg:text-base"></i>
                             </button>
                         </div>
                     </td>
@@ -257,45 +257,45 @@
 
                 <!-- Product Row 4 -->
                 <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-4 px-6">
-                        <span class="font-medium text-gray-800">PRD-004</span>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-004</span>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                             <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
                         </div>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div>
-                            <p class="font-semibold text-gray-800">Server HP ProLiant DL380</p>
+                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Server HP ProLiant DL380</p>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <p class="text-gray-600 text-sm">Intel Xeon, 32GB RAM, 2TB HDD</p>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <p class="text-gray-600 text-xs lg:text-sm">Intel Xeon, 32GB RAM, 2TB HDD</p>
                     </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                             Elektronik
                         </span>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-20">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
                                 <div class="bg-green-500 h-2 rounded-full" style="width: 30%"></div>
                             </div>
-                            <span class="text-sm font-medium text-green-600">30%</span>
+                            <span class="text-xs lg:text-sm font-medium text-green-600">30%</span>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="flex items-center justify-center space-x-2">
-                            <button onclick="viewDetailProduk(4)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
+                            <button onclick="viewDetailProduk(4)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="editProduk(4)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit"></i>
+                            <button onclick="editProduk(4)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
+                                <i class="fas fa-edit text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="deleteProduk(4)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
+                            <button onclick="deleteProduk(4)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash text-sm lg:text-base"></i>
                             </button>
                         </div>
                     </td>
@@ -303,55 +303,297 @@
 
                 <!-- Product Row 5 -->
                 <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-4 px-6">
-                        <span class="font-medium text-gray-800">PRD-005</span>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-005</span>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                             <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
                         </div>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div>
-                            <p class="font-semibold text-gray-800">Kursi Kantor Ergonomis</p>
+                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Kursi Kantor Ergonomis</p>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <p class="text-gray-600 text-sm">Bahan kulit sintetis, adjustable height</p>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <p class="text-gray-600 text-xs lg:text-sm">Bahan kulit sintetis, adjustable height</p>
                     </td>
-                    <td class="py-4 px-6">
-                        <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
                             Meubel
                         </span>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
                         <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-20">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
                                 <div class="bg-green-500 h-2 rounded-full" style="width: 70%"></div>
                             </div>
-                            <span class="text-sm font-medium text-green-600">70%</span>
+                            <span class="text-xs lg:text-sm font-medium text-green-600">70%</span>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
-                        <div class="flex items-center justify-center space-x-2">
-                            <button onclick="viewDetailProduk(5)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
+                    <td class="py-3 lg:py-4 px-4 lg:px-6">
+                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
+                            <button onclick="viewDetailProduk(5)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="editProduk(5)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit"></i>
+                            <button onclick="editProduk(5)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
+                                <i class="fas fa-edit text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="deleteProduk(5)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
+                            <button onclick="deleteProduk(5)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash text-sm lg:text-base"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
             </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="block md:hidden">
+        <div class="p-4 space-y-4">
+            <!-- Card 1 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div class="p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Laptop">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-semibold text-gray-900 truncate">Laptop Dell Latitude 7420</h3>
+                                <span class="text-xs font-medium text-gray-500">PRD-001</span>
+                            </div>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-700">Intel i7, 16GB RAM, 512GB SSD</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Elektronik
+                                    </span>
+                                    <div class="flex items-center">
+                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 25%"></div>
+                                        </div>
+                                        <span class="ml-2 text-xs font-medium text-gray-900">25%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <button onclick="viewDetailProduk(1)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
+                                        <i class="fas fa-eye text-lg"></i>
+                                    </button>
+                                    <button onclick="editProduk(1)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
+                                        <i class="fas fa-edit text-lg"></i>
+                                    </button>
+                                    <button onclick="deleteProduk(1)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
+                                        <i class="fas fa-trash text-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div class="p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Mesin">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-semibold text-gray-900 truncate">Mesin Bubut CNC</h3>
+                                <span class="text-xs font-medium text-gray-500">PRD-002</span>
+                            </div>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-700">3 Axis, Max 200mm chuck</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Mesin
+                                    </span>
+                                    <div class="flex items-center">
+                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 60%"></div>
+                                        </div>
+                                        <span class="ml-2 text-xs font-medium text-gray-900">60%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <button onclick="viewDetailProduk(2)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
+                                        <i class="fas fa-eye text-lg"></i>
+                                    </button>
+                                    <button onclick="editProduk(2)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
+                                        <i class="fas fa-edit text-lg"></i>
+                                    </button>
+                                    <button onclick="deleteProduk(2)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
+                                        <i class="fas fa-trash text-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div class="p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Meja">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-semibold text-gray-900 truncate">Meja Kerja Kayu Jati</h3>
+                                <span class="text-xs font-medium text-gray-500">PRD-003</span>
+                            </div>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-700">120x60x75cm, Kayu Jati Grade A</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Meubel
+                                    </span>
+                                    <div class="flex items-center">
+                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 85%"></div>
+                                        </div>
+                                        <span class="ml-2 text-xs font-medium text-gray-900">85%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <button onclick="viewDetailProduk(3)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
+                                        <i class="fas fa-eye text-lg"></i>
+                                    </button>
+                                    <button onclick="editProduk(3)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
+                                        <i class="fas fa-edit text-lg"></i>
+                                    </button>
+                                    <button onclick="deleteProduk(3)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
+                                        <i class="fas fa-trash text-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div class="p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Server">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-semibold text-gray-900 truncate">Server HP ProLiant DL380</h3>
+                                <span class="text-xs font-medium text-gray-500">PRD-004</span>
+                            </div>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-700">Intel Xeon, 32GB RAM, 2TB HDD</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Elektronik
+                                    </span>
+                                    <div class="flex items-center">
+                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 30%"></div>
+                                        </div>
+                                        <span class="ml-2 text-xs font-medium text-gray-900">30%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <button onclick="viewDetailProduk(4)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
+                                        <i class="fas fa-eye text-lg"></i>
+                                    </button>
+                                    <button onclick="editProduk(4)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
+                                        <i class="fas fa-edit text-lg"></i>
+                                    </button>
+                                    <button onclick="deleteProduk(4)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
+                                        <i class="fas fa-trash text-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div class="p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Kursi">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-semibold text-gray-900 truncate">Kursi Kantor Ergonomis</h3>
+                                <span class="text-xs font-medium text-gray-500">PRD-005</span>
+                            </div>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-700">Bahan kulit sintetis, adjustable height</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Meubel
+                                    </span>
+                                    <div class="flex items-center">
+                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
+                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 70%"></div>
+                                        </div>
+                                        <span class="ml-2 text-xs font-medium text-gray-900">70%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <button onclick="viewDetailProduk(5)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
+                                        <i class="fas fa-eye text-lg"></i>
+                                    </button>
+                                    <button onclick="editProduk(5)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
+                                        <i class="fas fa-edit text-lg"></i>
+                                    </button>
+                                    <button onclick="deleteProduk(5)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
+                                        <i class="fas fa-trash text-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Pagination -->
-    <div class="p-6">
-        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+    <div class="p-4 sm:p-6">
+        <!-- Mobile Pagination -->
+        <div class="flex md:hidden items-center justify-between pt-4 sm:pt-6 border-t border-gray-200">
+            <div class="text-sm text-gray-500">
+                1 / 9
+            </div>
+            <div class="flex items-center space-x-2">
+                <button class="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Desktop Pagination -->
+        <div class="hidden md:flex items-center justify-between pt-6 border-t border-gray-200">
             <div class="text-sm text-gray-500">
                 Menampilkan 1-5 dari 45 produk
             </div>
@@ -371,8 +613,8 @@
 </div>
 
 <!-- Floating Add Button -->
-<button onclick="openModal('modalTambahProduk')" class="fixed bottom-16 right-16 bg-red-600 text-white w-16 h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
-    <i class="fas fa-plus text-xl group-hover:rotate-90 transition-transform duration-200"></i>
+<button onclick="openModal('modalTambahProduk')" class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 lg:bottom-16 lg:right-16 bg-red-600 text-white w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
+    <i class="fas fa-plus text-lg sm:text-xl group-hover:rotate-90 transition-transform duration-200"></i>
     <div class="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
         Tambah Produk
     </div>

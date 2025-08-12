@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Pengaturan Akun</h1>
-    <p class="text-gray-600">Kelola informasi akun dan data pribadi Anda</p>
+<div class="mb-4 sm:mb-6">
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Pengaturan Akun</h1>
+    <p class="text-sm sm:text-base text-gray-600">Kelola informasi akun dan data pribadi Anda</p>
 </div>
 
 <!-- Account Settings -->
 <div class="bg-white rounded-lg shadow-md">
-    <div class="p-6">
-        <form action="" method="POST" enctype="multipart/form-data" class="space-y-8">
+    <div class="p-4 sm:p-6">
+        <form action="" method="POST" enctype="multipart/form-data" class="space-y-6 sm:space-y-8">
             @csrf
             @method('PUT')
             
             <!-- Profile Photo Section -->
             <div class="text-center">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Foto Profil</h3>
-                <div class="flex flex-col items-center space-y-4">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Foto Profil</h3>
+                <div class="flex flex-col items-center space-y-3 sm:space-y-4">
                     <div class="relative">
                         @php
                             // Dummy data untuk testing
@@ -30,55 +30,55 @@
                             ];
                         @endphp
                         <img id="preview-image" src="{{ $user->profile_photo ? asset('storage/' . $user->profile_photo) : 'https://via.placeholder.com/120x120/ef4444/ffffff?text=' . substr($user->name, 0, 1) }}" 
-                             alt="Profile Photo" class="w-32 h-32 rounded-full object-cover border-4 border-gray-200">
-                        <label for="profile_photo" class="absolute bottom-0 right-0 bg-red-600 text-white p-2 rounded-full cursor-pointer hover:bg-red-700 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             alt="Profile Photo" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-gray-200">
+                        <label for="profile_photo" class="absolute bottom-0 right-0 bg-red-600 text-white p-1.5 sm:p-2 rounded-full cursor-pointer hover:bg-red-700 transition-colors">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
                         </label>
                         <input type="file" id="profile_photo" name="profile_photo" accept="image/*" class="hidden">
                     </div>
-                    <p class="text-sm text-gray-500">Klik ikon kamera untuk mengubah foto profil</p>
+                    <p class="text-xs sm:text-sm text-gray-500 text-center px-4">Klik ikon kamera untuk mengubah foto profil</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
                 <!-- Account Information -->
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Akun</h3>
-                    <div class="space-y-4">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Informasi Akun</h3>
+                    <div class="space-y-3 sm:space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nama Lengkap</label>
                             <input type="text" name="name" value="{{ $user->name }}" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" required>
+                                   class="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" required>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Email</label>
                             <input type="email" value="{{ $user->email }}" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 cursor-not-allowed" readonly>
+                                   class="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md bg-gray-50 cursor-not-allowed text-sm sm:text-base" readonly>
                             <p class="text-xs text-gray-500 mt-1">Email tidak dapat diubah</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Role</label>
                             <input type="text" value="{{ $user->role ?? 'User' }}" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 cursor-not-allowed" readonly>
+                                   class="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md bg-gray-50 cursor-not-allowed text-sm sm:text-base" readonly>
                             <p class="text-xs text-gray-500 mt-1">Role tidak dapat diubah</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">No. Telepon</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">No. Telepon</label>
                             <input type="tel" name="phone" value="{{ $user->phone ?? '' }}" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" 
+                                   class="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" 
                                    placeholder="Contoh: +62 812 3456 7890">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Alamat</label>
                             <textarea name="address" rows="3" 
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" 
+                                      class="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm sm:text-base resize-none" 
                                       placeholder="Masukkan alamat lengkap">{{ $user->address ?? '' }}</textarea>
                         </div>
                     </div>
@@ -86,33 +86,33 @@
 
                 <!-- Password Change Section -->
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Ubah Password</h3>
-                    <div class="space-y-4">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Ubah Password</h3>
+                    <div class="space-y-3 sm:space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Password Saat Ini</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Password Saat Ini</label>
                             <input type="password" name="current_password" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" 
+                                   class="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" 
                                    placeholder="Masukkan password saat ini">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Password Baru</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Password Baru</label>
                             <input type="password" name="password" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" 
+                                   class="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" 
                                    placeholder="Masukkan password baru">
                             <p class="text-xs text-gray-500 mt-1">Minimal 8 karakter</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Konfirmasi Password Baru</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Konfirmasi Password Baru</label>
                             <input type="password" name="password_confirmation" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" 
+                                   class="w-full px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" 
                                    placeholder="Ulangi password baru">
                         </div>
 
                         <div class="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                            <div class="flex">
-                                <svg class="w-5 h-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="flex flex-col sm:flex-row">
+                                <svg class="w-5 h-5 text-yellow-400 mr-0 sm:mr-2 mb-2 sm:mb-0 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                                 </svg>
                                 <div class="text-sm text-yellow-700">
@@ -126,11 +126,11 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
-                <button type="button" onclick="resetForm()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+            <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+                <button type="button" onclick="resetForm()" class="w-full sm:w-auto px-4 py-2 sm:py-2.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-[40px]">
                     Reset
                 </button>
-                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                <button type="submit" class="w-full sm:w-auto px-4 py-2 sm:py-2.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-[40px]">
                     Simpan Perubahan
                 </button>
             </div>

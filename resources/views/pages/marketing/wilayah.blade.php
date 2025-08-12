@@ -285,11 +285,24 @@
             </div>
 
             <!-- Pagination -->
-            <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
-                <div class="text-sm text-gray-600">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mt-8 pt-6 border-t border-gray-200 space-y-3 sm:space-y-0">
+                <div class="text-sm text-gray-600 text-center sm:text-left">
                     Menampilkan 1-4 dari 15 data wilayah
                 </div>
-                <div class="flex items-center space-x-2">
+                
+                <!-- Mobile Pagination (Simple) -->
+                <div class="flex sm:hidden items-center justify-center space-x-3">
+                    <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px] flex items-center" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="text-sm font-medium text-gray-700 px-3 py-2">1 / 4</span>
+                    <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 min-h-[44px] flex items-center">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <!-- Desktop Pagination (Full) -->
+                <div class="hidden sm:flex items-center space-x-2">
                     <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
                         <i class="fas fa-chevron-left mr-1"></i> Sebelumnya
                     </button>
