@@ -37,9 +37,28 @@ Route::prefix('marketing')->group(function () {
     })->name('marketing.potensi');
 });
 
-    Route::get('/purchasing', function () {
-        return view('pages.purchasing');
-    })->name('purchasing');
+// Purchasing Routes
+Route::prefix('purchasing')->group(function () {
+    Route::get('/produk', function () {
+        return view('pages.purchasing.produk');
+    })->name('purchasing.produk');
+
+    Route::get('/vendor', function () {
+        return view('pages.purchasing.vendor');
+    })->name('purchasing.vendor');
+
+    Route::get('/kalkulasi', function () {
+        return view('pages.purchasing.kalkulasi');
+    })->name('purchasing.kalkulasi');
+
+    Route::get('/pembayaran', function () {
+        return view('pages.purchasing.pembayaran');
+    })->name('purchasing.pembayaran');
+
+    Route::get('/pengiriman', function () {
+        return view('pages.purchasing.pengiriman');
+    })->name('purchasing.pengiriman');
+});
 
     Route::get('/keuangan', function () {
         return view('pages.keuangan.keuangan');

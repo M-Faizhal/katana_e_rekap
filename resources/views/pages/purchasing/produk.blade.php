@@ -347,7 +347,6 @@
                     </td>
                 </tr>
             </tbody>
-        </table>
     </div>
 
     <!-- Pagination -->
@@ -380,10 +379,10 @@
 </button>
 
 <!-- Include Modal Components -->
-@include('pages.produk-components.tambah')
-@include('pages.produk-components.edit')
-@include('pages.produk-components.detail')
-@include('pages.produk-components.hapus')
+@include('pages.purchasing.produk-components.tambah')
+@include('pages.purchasing.produk-components.edit')
+@include('pages.purchasing.produk-components.detail')
+@include('pages.purchasing.produk-components.hapus')
 
 <!-- Include Success Modal -->
 @include('components.success-modal')

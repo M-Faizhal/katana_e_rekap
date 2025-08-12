@@ -13,7 +13,7 @@
     </div>
     
     <!-- Navigation Menu -->
-    <nav class="mt-6 pb-32 overflow-y-auto" style="height: calc(100vh - 200px);">
+    <nav class="mt-6 pb-20 overflow-y-auto" style="height: calc(100vh - 200px);">
         <ul class="space-y-1 px-4">
             <!-- Dashboard -->
             <li>
@@ -70,13 +70,55 @@
                 </ul>
             </li>
             
-            <!-- Purchasing -->
-            <li>
-                <a href="{{ route('purchasing') }}"
-                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('purchasing') ? 'bg-red-200 text-red-800' : '' }}">
-                    <i class="fas fa-shopping-cart w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
-                    <span class="font-medium">Purchasing</span>
-                </a>
+            <!-- Purchasing Dropdown -->
+            <li x-data="{ open: {{ request()->routeIs('purchasing*') ? 'true' : 'false' }} }">
+                <button @click="open = !open" 
+                        class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('purchasing*') ? 'bg-red-200 text-red-800' : '' }}">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-shopping-cart w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                        <span class="font-medium">Purchasing</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-sm transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
+                </button>
+                
+                <!-- Submenu -->
+                <ul x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-2 ml-6 space-y-1">
+                    <li>
+                        <a href="{{ route('purchasing.produk') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('purchasing.produk') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-box w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Produk</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('purchasing.vendor') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('purchasing.vendor') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-truck w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Vendor</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('purchasing.kalkulasi') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('purchasing.kalkulasi') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-calculator w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Kalkulasi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('purchasing.pembayaran') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('purchasing.pembayaran') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-credit-card w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Pembayaran</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('purchasing.pengiriman') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('purchasing.pengiriman') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-shipping-fast w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Pengiriman</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
             
             <!-- Keuangan -->
@@ -100,8 +142,8 @@
     </nav>
     
     <!-- Bottom Menu -->
-    <div class="absolute bottom-0 w-64 px-4 pb-6">
-        <div class="border-t border-white/20 pt-4">
+    <div class="absolute bottom-0 w-64 px-4 pb-6  z-50 bg-white">
+        <div class="border-t border-white/20 pt-6">
             <ul class="space-y-1">
                 <li>
                     <a href="{{ route('pengaturan') }}" class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengaturan') ? 'bg-red-200 text-red-800' : '' }}">
