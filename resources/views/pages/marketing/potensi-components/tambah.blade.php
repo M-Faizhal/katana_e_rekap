@@ -1,35 +1,35 @@
 <!-- Modal Tambah Potensi -->
-<div id="modalTambahPotensi" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-screen overflow-hidden my-4 mx-auto">
+<div id="modalTambahPotensi" class="fixed inset-0 backdrop-blur-xs bg-black/30 modal-backdrop hidden items-center justify-center z-50 p-2 sm:p-4">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-4xl max-h-screen overflow-hidden my-2 sm:my-4 mx-auto">
         <!-- Modal Header -->
-        <div class="bg-red-800 text-white p-6 flex items-center justify-between flex-shrink-0">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-10 h-10 object-contain">
+        <div class="bg-red-800 text-white p-4 sm:p-6 flex items-center justify-between flex-shrink-0 modal-header">
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-8 h-8 sm:w-10 sm:h-10 object-contain">
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold">Tambah Potensi Proyek</h3>
-                    <p class="text-red-100 text-sm">Assign proyek ke vendor yang sesuai</p>
+                    <h3 class="text-base sm:text-xl font-bold">Tambah Potensi Proyek</h3>
+                    <p class="text-red-100 text-xs sm:text-sm">Assign proyek ke vendor yang sesuai</p>
                 </div>
             </div>
-            <button onclick="closeModal('modalTambahPotensi')" class="text-white hover:bg-white hover:text-red-800 p-2 rounded-lg transition-colors duration-200">
-                <i class="fas fa-times text-2xl"></i>
+            <button onclick="closeModal('modalTambahPotensi')" class="text-white hover:bg-white hover:text-red-800 p-1 sm:p-2 rounded-lg transition-colors duration-200">
+                <i class="fas fa-times text-lg sm:text-2xl"></i>
             </button>
         </div>
 
         <!-- Modal Body -->
-        <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(100vh - 200px);">
+        <div class="p-3 sm:p-6 overflow-y-auto flex-1 modal-form" style="max-height: calc(100vh - 160px);">
             <form id="formTambahPotensi">
                 <!-- Pilih Proyek -->
-                <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-project-diagram text-red-600 mr-2"></i>
+                <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-6 mb-4 sm:mb-6">
+                    <h4 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                        <i class="fas fa-project-diagram text-red-600 mr-2 text-sm sm:text-base"></i>
                         Pilih Proyek Potensi
                     </h4>
-                    <div class="grid grid-cols-1 gap-4">
+                    <div class="grid grid-cols-1 gap-3 sm:gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Proyek yang Berpotensi <span class="text-red-500">*</span></label>
-                            <select id="tambahProyekId" name="proyek_id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" required onchange="loadProyekDetails()">
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Proyek yang Berpotensi <span class="text-red-500">*</span></label>
+                            <select id="tambahProyekId" name="proyek_id" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm sm:text-base" required onchange="loadProyekDetails()">
                                 <option value="">Pilih Proyek...</option>
                                 <option value="PNW-20240810-143052">PNW-20240810-143052 - Sistem Informasi Sekolah</option>
                                 <option value="PNW-20240715-120034">PNW-20240715-120034 - Aplikasi E-Learning</option>
@@ -41,12 +41,12 @@
                 </div>
 
                 <!-- Detail Proyek (Auto-filled) -->
-                <div id="detailProyekSection" class="bg-blue-50 rounded-xl p-6 mb-6 hidden">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                <div id="detailProyekSection" class="bg-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-6 mb-4 sm:mb-6 hidden">
+                    <h4 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-blue-600 mr-2 text-sm sm:text-base"></i>
                         Detail Proyek Terpilih
                     </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nama Proyek</label>
                             <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
@@ -168,12 +168,12 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3 border-t border-gray-200 flex-shrink-0">
-            <button type="button" onclick="closeModal('modalTambahPotensi')" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                <i class="fas fa-times mr-2"></i>Batal
+        <div class="bg-gray-50 px-3 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 border-t border-gray-200 flex-shrink-0">
+            <button type="button" onclick="closeModal('modalTambahPotensi')" class="w-full sm:w-auto px-4 py-2 sm:px-6 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-[40px]">
+                <i class="fas fa-times mr-1 sm:mr-2"></i>Batal
             </button>
-            <button type="button" onclick="submitTambahPotensi()" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                <i class="fas fa-save mr-2"></i>Simpan Potensi
+            <button type="button" onclick="submitTambahPotensi()" class="w-full sm:w-auto px-4 py-2 sm:px-6 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-[40px]">
+                <i class="fas fa-save mr-1 sm:mr-2"></i>Simpan Potensi
             </button>
         </div>
     </div>

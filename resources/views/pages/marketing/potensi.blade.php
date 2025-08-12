@@ -2,52 +2,52 @@
 
 @section('content')
 <!-- Header Section -->
-<div class="bg-red-800 rounded-2xl p-8 mb-8 text-white shadow-lg">
+<div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold mb-2">Potensi Proyek</h1>
-            <p class="text-red-100">Kelola data potensi proyek dan pencocokan vendor</p>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Potensi Proyek</h1>
+            <p class="text-red-100 text-sm sm:text-base">Kelola data potensi proyek dan pencocokan vendor</p>
         </div>
-        <div class="hidden lg:block">
+        <div class="hidden sm:block lg:block">
             <div class="flex items-center space-x-4">
-              
+              <i class="fas fa-chart-line text-3xl sm:text-4xl lg:text-5xl"></i>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-                <i class="fas fa-list-ul text-xl"></i>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-full bg-blue-100 text-blue-600 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-list-ul text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div>
-                <p class="text-sm font-medium text-gray-600">Total Potensi</p>
-                <p class="text-2xl font-bold text-gray-900">25</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
-                <i class="fas fa-clock text-xl"></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-600">Pending</p>
-                <p class="text-2xl font-bold text-gray-900">15</p>
+            <div class="min-w-0">
+                <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Potensi</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">25</p>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                <i class="fas fa-check-circle text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-full bg-yellow-100 text-yellow-600 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-clock text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div>
-                <p class="text-sm font-medium text-gray-600">Sukses</p>
-                <p class="text-2xl font-bold text-gray-900">8</p>
+            <div class="min-w-0">
+                <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Pending</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">15</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-full bg-green-100 text-green-600 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-check-circle text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Sukses</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">8</p>
             </div>
         </div>
     </div>
@@ -255,11 +255,12 @@
 </div>
 
 <!-- Floating Action Button -->
-<button onclick="openModal('modalTambahPotensi')" class="fixed bottom-16 right-16 bg-red-600 text-white w-16 h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
-    <i class="fas fa-plus text-xl group-hover:rotate-180 transition-transform duration-300"></i>
-    <span class="absolute right-full mr-3 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+<button onclick="openModal('modalTambahPotensi')" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-16 lg:right-16 bg-red-600 text-white w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
+    <i class="fas fa-plus text-sm sm:text-base lg:text-lg group-hover:rotate-180 transition-transform duration-300"></i>
+    <div class="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
         Tambah Potensi
-    </span>
+        <div class="absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
 </button>
 
 <!-- Include Modal Components -->
@@ -279,19 +280,51 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 1rem;
+    padding: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .modal-container {
+        padding: 1rem;
+    }
 }
 
 /* Ensure modal content doesn't exceed viewport */
 .modal-content {
-    max-height: calc(100vh - 2rem);
+    max-height: calc(100vh - 1rem);
     overflow-y: auto;
     width: 100%;
+    max-width: 100%;
+}
+
+@media (min-width: 640px) {
+    .modal-content {
+        max-height: calc(100vh - 2rem);
+        max-width: 32rem; /* 512px */
+    }
+}
+
+@media (min-width: 768px) {
+    .modal-content {
+        max-width: 42rem; /* 672px */
+    }
+}
+
+@media (min-width: 1024px) {
+    .modal-content {
+        max-width: 48rem; /* 768px */
+    }
 }
 
 /* Smooth scrollbar for modal content */
 .modal-content::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
+}
+
+@media (min-width: 768px) {
+    .modal-content::-webkit-scrollbar {
+        width: 6px;
+    }
 }
 
 .modal-content::-webkit-scrollbar-track {
@@ -313,23 +346,78 @@
     overflow: hidden;
 }
 
-/* Responsive list adjustments */
-@media (max-width: 768px) {
+/* Responsive modal adjustments */
+@media (max-width: 639px) {
     .modal-container {
-        padding: 0.5rem;
+        padding: 0;
+        align-items: flex-start;
     }
-    
+
     .modal-content {
         max-height: 100vh;
         border-radius: 0;
+        margin: 0;
+        min-height: 100vh;
     }
     
+    /* Make modal headers sticky on mobile */
+    .modal-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Adjust form spacing on mobile */
+    .modal-form .space-y-4 > * + * {
+        margin-top: 0.75rem;
+    }
+    
+    .modal-form .space-y-6 > * + * {
+        margin-top: 1rem;
+    }
+    
+    /* Make inputs more touch-friendly */
+    .modal-form input,
+    .modal-form select,
+    .modal-form textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Adjust button sizes for touch */
+    .modal-form button {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Grid adjustments for mobile */
     .grid.grid-cols-1.md\\:grid-cols-12 {
         display: block;
     }
     
     .grid.grid-cols-1.md\\:grid-cols-12 > div {
         margin-bottom: 0.5rem;
+    }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+    /* Tablet specific adjustments */
+    .modal-content {
+        margin: 1rem;
+        border-radius: 0.75rem;
+    }
+    
+    /* Slightly larger touch targets for tablets */
+    .modal-form input,
+    .modal-form select,
+    .modal-form textarea {
+        min-height: 40px;
+    }
+    
+    .modal-form button {
+        min-height: 40px;
     }
 }
 
@@ -345,7 +433,7 @@
 @keyframes modalFadeIn {
     from {
         opacity: 0;
-        transform: scale(0.9);
+        transform: scale(0.95);
     }
     to {
         opacity: 1;
@@ -360,7 +448,7 @@
     }
     to {
         opacity: 0;
-        transform: scale(0.9);
+        transform: scale(0.95);
     }
 }
 
@@ -368,6 +456,17 @@
 .border.border-gray-200.rounded-lg:hover {
     border-color: #e5e7eb;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Mobile-first modal backdrop */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 639px) {
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.75);
+    }
 }
 </style>
 

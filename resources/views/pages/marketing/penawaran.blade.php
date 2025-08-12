@@ -2,96 +2,96 @@
 
 @section('content')
 <!-- Header Section -->
-<div class="bg-red-800 rounded-2xl p-8 mb-8 text-white shadow-lg">
+<div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold mb-2">Manajemen Proyek</h1>
-            <p class="text-red-100 text-lg">Kelola dan pantau semua penawaran proyek Anda</p>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Manajemen Proyek</h1>
+            <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola dan pantau semua penawaran proyek Anda</p>
         </div>
-        <div class="hidden lg:block">
-            <i class="fas fa-handshake text-6xl "></i>
+        <div class="hidden sm:block lg:block">
+            <i class="fas fa-handshake text-3xl sm:text-4xl lg:text-6xl"></i>
         </div>
     </div>
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-xl bg-red-100 mr-4">
-                <i class="fas fa-file-alt text-red-600 text-xl"></i>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-file-alt text-red-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Total Penawaran</h3>
-                <p class="text-2xl font-bold text-red-600">24</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-xl bg-green-100 mr-4">
-                <i class="fas fa-check-circle text-green-600 text-xl"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Diterima</h3>
-                <p class="text-2xl font-bold text-green-600">18</p>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Penawaran</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">24</p>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-xl bg-yellow-100 mr-4">
-                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-check-circle text-green-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Pending</h3>
-                <p class="text-2xl font-bold text-yellow-600">4</p>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Diterima</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">18</p>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="flex items-center">
-            <div class="p-3 rounded-xl bg-red-100 mr-4">
-                <i class="fas fa-times-circle text-red-600 text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-clock text-yellow-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Ditolak</h3>
-                <p class="text-2xl font-bold text-red-600">2</p>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Pending</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">4</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-times-circle text-red-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Ditolak</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">2</p>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Main Content -->
-<div class="bg-white rounded-2xl shadow-lg border border-gray-100 mb-20">
+<div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-20">
     <!-- Header -->
-    <div class="p-8 border-b border-gray-200">
+    <div class="p-4 sm:p-6 lg:p-8 border-b border-gray-200">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800">Daftar Penawaran Proyek</h2>
-                <p class="text-gray-600 mt-1">Kelola semua penawaran dan proposal proyek</p>
+                <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Daftar Penawaran Proyek</h2>
+                <p class="text-gray-600 mt-1 text-sm sm:text-base">Kelola semua penawaran dan proposal proyek</p>
             </div>
         </div>
     </div>
 
     <!-- Filter & Search -->
-    <div class="p-6 border-b border-gray-200 bg-gray-50">
-        <div class="flex flex-col lg:flex-row gap-4">
+    <div class="p-3 sm:p-4 lg:p-6 border-b border-gray-200 bg-gray-50">
+        <div class="flex flex-col lg:flex-row gap-3 sm:gap-4">
             <div class="flex-1">
                 <div class="relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" placeholder="Cari nama instansi atau kabupaten/kota..." 
-                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Cari nama instansi atau kabupaten/kota..."
+                           class="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                 </div>
             </div>
-            <div class="flex gap-3">
-                <select class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <select class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option>Semua Status</option>
                     <option>Pending</option>
                     <option>Diterima</option>
                     <option>Ditolak</option>
                 </select>
-                <select class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <select class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option>Urutkan</option>
                     <option>Terbaru</option>
                     <option>Deadline</option>
@@ -102,152 +102,152 @@
     </div>
 
     <!-- Cards Layout -->
-    <div class="p-6">
-        <div class="grid grid-cols-1 gap-6">
+    <div class="p-3 sm:p-4 lg:p-6">
+        <div class="grid grid-cols-1 gap-4 sm:gap-6">
             <!-- Card 1 -->
-            <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                            <span class="text-red-600 font-bold text-lg">1</span>
+            <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                    <div class="flex items-center space-x-3 mb-3 sm:mb-0">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-red-600 font-bold text-sm sm:text-lg">1</span>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800">Sistem Informasi Manajemen</h3>
-                            <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-base sm:text-lg font-bold text-gray-800 truncate">Sistem Informasi Manajemen</h3>
+                            <span class="inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 mt-1">
                                 Diterima
                             </span>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-1 sm:space-x-2 self-start">
                         <button onclick="viewDetail(1)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye text-sm"></i>
                         </button>
                         <button onclick="editPenawaran(1)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-edit text-sm"></i>
                         </button>
                         <button onclick="deletePenawaran(1)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash text-sm"></i>
                         </button>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Tanggal</p>
-                        <p class="font-medium text-gray-800">15 Sep 2024</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Tanggal</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">15 Sep 2024</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Kabupaten/Kota</p>
-                        <p class="font-medium text-gray-800">Jakarta Pusat</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Kabupaten/Kota</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">Jakarta Pusat</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Nama Instansi</p>
-                        <p class="font-medium text-gray-800">Dinas Pendidikan DKI</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Nama Instansi</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">Dinas Pendidikan DKI</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Deadline</p>
-                        <p class="font-medium text-red-600">30 Sep 2024</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Deadline</p>
+                        <p class="font-medium text-red-600 text-sm sm:text-base">30 Sep 2024</p>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Admin Marketing</p>
                         <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-red-600 text-sm"></i>
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-red-600 text-xs sm:text-sm"></i>
                             </div>
-                            <p class="font-medium text-gray-800">Andi Prasetyo</p>
+                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">Andi Prasetyo</p>
                         </div>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Admin Purchasing</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Admin Purchasing</p>
                         <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-blue-600 text-sm"></i>
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-blue-600 text-xs sm:text-sm"></i>
                             </div>
-                            <p class="font-medium text-gray-800">Sari Wijaya</p>
+                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">Sari Wijaya</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Card 2 -->
-            <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                            <span class="text-red-600 font-bold text-lg">2</span>
+            <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                    <div class="flex items-center space-x-3 mb-3 sm:mb-0">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-red-600 font-bold text-sm sm:text-lg">2</span>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800">Website Portal Layanan</h3>
-                            <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-base sm:text-lg font-bold text-gray-800 truncate">Website Portal Layanan</h3>
+                            <span class="inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 mt-1">
                                 Pending
                             </span>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center space-x-1 sm:space-x-2 self-start">
                         <button onclick="viewDetail(2)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye text-sm"></i>
                         </button>
                         <button onclick="editPenawaran(2)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-edit text-sm"></i>
                         </button>
                         <button onclick="deletePenawaran(2)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash text-sm"></i>
                         </button>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Tanggal</p>
-                        <p class="font-medium text-gray-800">20 Sep 2024</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Tanggal</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">20 Sep 2024</p>
                         </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Kabupaten/Kota</p>
-                        <p class="font-medium text-gray-800">Bandung</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Kabupaten/Kota</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">Bandung</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Nama Instansi</p>
-                        <p class="font-medium text-gray-800">Pemkot Bandung</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Nama Instansi</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">Pemkot Bandung</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Deadline</p>
-                        <p class="font-medium text-red-600">05 Okt 2024</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Deadline</p>
+                        <p class="font-medium text-red-600 text-sm sm:text-base">05 Okt 2024</p>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Admin Marketing</p>
                         <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-red-600 text-sm"></i>
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-red-600 text-xs sm:text-sm"></i>
                             </div>
-                            <p class="font-medium text-gray-800">Budi Santoso</p>
+                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">Budi Santoso</p>
                         </div>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Admin Purchasing</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Admin Purchasing</p>
                         <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-blue-600 text-sm"></i>
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-blue-600 text-xs sm:text-sm"></i>
                             </div>
-                            <p class="font-medium text-gray-800">Maya Indah</p>
+                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">Maya Indah</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Card 3 -->
-            <div class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                            <span class="text-red-600 font-bold text-lg">3</span>
+            <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                    <div class="flex items-center space-x-3 mb-3 sm:mb-0">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                            <span class="text-red-600 font-bold text-sm sm:text-lg">3</span>
                         </div>
-                        <div>
+                        <div class="min-w-0 flex-1">
                             <h3 class="text-lg font-bold text-gray-800">Aplikasi Mobile E-Government</h3>
                             <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
                                 Expired
@@ -266,7 +266,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Tanggal</p>
@@ -285,7 +285,7 @@
                         <p class="font-medium text-red-600">15 Sep 2024</p>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
@@ -334,7 +334,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Tanggal</p>
@@ -353,7 +353,7 @@
                         <p class="font-medium text-red-600">25 Okt 2024</p>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
@@ -402,7 +402,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Tanggal</p>
@@ -421,7 +421,7 @@
                         <p class="font-medium text-red-600">15 Nov 2024</p>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                         <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
@@ -447,30 +447,48 @@
     </div>
 
     <!-- Pagination -->
-    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-        <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-700">
+    <div class="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50">
+        <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+            <div class="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
                 Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">5</span> dari <span class="font-medium">24</span> penawaran
             </div>
-            <div class="flex items-center space-x-2">
-                <button class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
-                    <i class="fas fa-chevron-left mr-1"></i>Previous
-                </button>
-                <button class="px-3 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg">1</button>
-                <button class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">2</button>
-                <button class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">3</button>
-                <button class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                    Next<i class="fas fa-chevron-right ml-1"></i>
-                </button>
+            <div class="flex items-center justify-center sm:justify-end">
+                <!-- Mobile Pagination (Simple) -->
+                <div class="flex items-center space-x-1 sm:hidden">
+                    <button class="px-2 py-2 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
+                        1 / 5
+                    </span>
+                    <button class="px-2 py-2 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <!-- Tablet & Desktop Pagination (Full) -->
+                <div class="hidden sm:flex items-center space-x-1 md:space-x-2">
+                    <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fas fa-chevron-left mr-0 md:mr-1"></i>
+                        <span class="hidden md:inline">Previous</span>
+                    </button>
+                    <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg">1</button>
+                    <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">2</button>
+                    <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">3</button>
+                    <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <span class="hidden md:inline">Next</span>
+                        <i class="fas fa-chevron-right ml-0 md:ml-1"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Floating Action Button -->
-<button onclick="openModal('modalTambahPenawaran')" class="fixed bottom-16 right-16 bg-red-600 text-white w-16 h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
-    <i class="fas fa-plus text-xl group-hover:rotate-180 transition-transform duration-300"></i>
-    <span class="absolute right-full mr-3 bg-gray-800 text-white text-sm px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+<button onclick="openModal('modalTambahPenawaran')" class="fixed bottom-4 right-4 sm:bottom-16 sm:right-16 bg-red-600 text-white w-12 h-12 sm:w-16 sm:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
+    <i class="fas fa-plus text-lg sm:text-xl group-hover:rotate-180 transition-transform duration-300"></i>
+    <span class="absolute right-full mr-2 sm:mr-3 bg-gray-800 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap hidden sm:block">
         Tambah Penawaran
     </span>
 </button>
@@ -493,21 +511,66 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 1rem;
+    padding: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .modal-container {
+        padding: 1rem;
+    }
 }
 
 /* Ensure modal content doesn't exceed viewport */
 .modal-content {
-    max-height: calc(100vh - 2rem);
+    max-height: calc(100vh - 1rem);
     overflow-y: auto;
     width: 100%;
+    max-width: 100%;
+}
+
+@media (min-width: 640px) {
+    .modal-content {
+        max-height: calc(100vh - 2rem);
+        max-width: 32rem; /* 512px */
+    }
+}
+
+@media (min-width: 768px) {
+    .modal-content {
+        max-width: 42rem; /* 672px */
+    }
+}
+
+@media (min-width: 1024px) {
+    .modal-content {
+        max-width: 48rem; /* 768px */
+    }
 }
 
 /* Smooth scrollbar for modal content */
 .modal-content::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
 }
 
+@media (min-width: 768px) {
+    .modal-content::-webkit-scrollbar {
+        width: 6px;
+    }
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
 
 /* Prevent body scroll when modal is open */
 .modal-open {
@@ -525,14 +588,68 @@
 }
 
 /* Responsive modal adjustments */
-@media (max-width: 768px) {
+@media (max-width: 639px) {
     .modal-container {
-        padding: 0.5rem;
+        padding: 0;
+        align-items: flex-start;
     }
-    
+
     .modal-content {
         max-height: 100vh;
         border-radius: 0;
+        margin: 0;
+        min-height: 100vh;
+    }
+    
+    /* Make modal headers sticky on mobile */
+    .modal-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Adjust form spacing on mobile */
+    .modal-form .space-y-4 > * + * {
+        margin-top: 0.75rem;
+    }
+    
+    .modal-form .space-y-6 > * + * {
+        margin-top: 1rem;
+    }
+    
+    /* Make inputs more touch-friendly */
+    .modal-form input,
+    .modal-form select,
+    .modal-form textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Adjust button sizes for touch */
+    .modal-form button {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+    /* Tablet specific adjustments */
+    .modal-content {
+        margin: 1rem;
+        border-radius: 0.75rem;
+    }
+    
+    /* Slightly larger touch targets for tablets */
+    .modal-form input,
+    .modal-form select,
+    .modal-form textarea {
+        min-height: 40px;
+    }
+    
+    .modal-form button {
+        min-height: 40px;
     }
 }
 
@@ -548,7 +665,7 @@
 @keyframes modalFadeIn {
     from {
         opacity: 0;
-        transform: scale(0.9);
+        transform: scale(0.95);
     }
     to {
         opacity: 1;
@@ -563,7 +680,18 @@
     }
     to {
         opacity: 0;
-        transform: scale(0.9);
+        transform: scale(0.95);
+    }
+}
+
+/* Mobile-first modal backdrop */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 639px) {
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.75);
     }
 }
 </style>
@@ -664,7 +792,7 @@ function viewDetail(id) {
         document.getElementById('detailJenisPengadaan').textContent = data.jenis_pengadaan;
         document.getElementById('detailTanggal').textContent = data.tanggal;
         document.getElementById('detailDeadline').textContent = data.deadline;
-        
+
         // Update status badge
         const statusBadge = document.getElementById('detailStatusBadge');
         statusBadge.textContent = data.status;
@@ -677,15 +805,15 @@ function viewDetail(id) {
         } else if (data.status === 'Ditolak') {
             statusBadge.classList.add('bg-red-100', 'text-red-800');
         }
-        
+
         document.getElementById('detailAdminMarketing').textContent = data.admin_marketing;
         document.getElementById('detailAdminPurchasing').textContent = data.admin_purchasing;
         document.getElementById('detailTotalKeseluruhan').textContent = data.nilai_penawaran;
-        
+
         // Update new fields
         document.getElementById('detailPotensi').textContent = data.potensi || '-';
         document.getElementById('detailTahunPotensi').textContent = data.tahun_potensi || '-';
-        
+
         // Show catatan section if exists
         if (data.catatan && data.catatan !== '-') {
             document.getElementById('detailCatatan').textContent = data.catatan;
@@ -693,7 +821,7 @@ function viewDetail(id) {
         } else {
             document.getElementById('detailCatatanSection').style.display = 'none';
         }
-        
+
         // Show modal
         openModal('modalDetailPenawaran');
     }
@@ -786,10 +914,10 @@ function editPenawaran(id) {
             tahun_potensi: data.tahun_potensi,
             status: data.status
         };
-        
+
         // Load data into edit form using the loadEditData function
         loadEditData(editData);
-        
+
         // Show modal
         openModal('modalEditPenawaran');
     }
@@ -840,13 +968,13 @@ function deletePenawaran(id) {
     if (data) {
         // Store data globally for deletion process
         window.hapusData = data;
-        
+
         // Populate hapus modal
         document.getElementById('hapusKode').textContent = data.kode;
         document.getElementById('hapusInstansi').textContent = data.instansi;
         document.getElementById('hapusKabupaten').textContent = data.kabupaten;
         document.getElementById('hapusStatus').textContent = data.status;
-        
+
         // Show modal
         openModal('modalHapusPenawaran');
     }
@@ -869,7 +997,7 @@ function loadEditData(data) {
             document.getElementById('editDeadline').value = data.deadline;
             document.getElementById('editAdminPurchasing').value = data.admin_purchasing;
             document.getElementById('editCatatan').value = data.catatan;
-            
+
             // Populate new fields
             if (data.potensi) {
                 togglePotensiEdit(data.potensi);
@@ -885,13 +1013,13 @@ function togglePotensiEdit(value) {
     const yaBtn = document.getElementById('editPotensiYa');
     const tidakBtn = document.getElementById('editPotensiTidak');
     const hiddenInput = document.getElementById('editPotensiValue');
-    
+
     // Reset all buttons
     yaBtn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
     tidakBtn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
     yaBtn.classList.add('border-gray-300', 'text-gray-700');
     tidakBtn.classList.add('border-gray-300', 'text-gray-700');
-    
+
     if (value === 'ya') {
         yaBtn.classList.remove('border-gray-300', 'text-gray-700');
         yaBtn.classList.add('bg-green-500', 'text-white', 'border-green-500');

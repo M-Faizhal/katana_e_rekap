@@ -2,50 +2,50 @@
 
     @section('content')
     <!-- Header Section -->
-    <div class="bg-red-800 rounded-2xl p-8 mb-8 text-white shadow-lg">
+    <div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold mb-2">Manajemen Wilayah</h1>
-                <p class="text-red-100 text-lg">Kelola data wilayah dan kontak pejabat instansi</p>
+                <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Manajemen Wilayah</h1>
+                <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola data wilayah dan kontak pejabat instansi</p>
             </div>
-            <div class="hidden lg:block">
-                <i class="fas fa-map-marked-alt text-6xl"></i>
+            <div class="hidden sm:block lg:block">
+                <i class="fas fa-map-marked-alt text-3xl sm:text-4xl lg:text-6xl"></i>
             </div>
         </div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex items-center">
-                <div class="p-3 rounded-xl bg-red-100 mr-4">
-                    <i class="fas fa-map text-red-600 text-xl"></i>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+            <div class="flex flex-col sm:flex-row sm:items-center">
+                <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                    <i class="fas fa-map text-red-600 text-sm sm:text-lg lg:text-xl"></i>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Total Wilayah</h3>
-                    <p class="text-2xl font-bold text-red-600">15</p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex items-center">
-                <div class="p-3 rounded-xl bg-green-100 mr-4">
-                    <i class="fas fa-building text-green-600 text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Instansi Aktif</h3>
-                    <p class="text-2xl font-bold text-green-600">45</p>
+                <div class="min-w-0">
+                    <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Wilayah</h3>
+                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">15</p>
                 </div>
             </div>
         </div>
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex items-center">
-                <div class="p-3 rounded-xl bg-blue-100 mr-4">
-                    <i class="fas fa-user-tie text-blue-600 text-xl"></i>
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+            <div class="flex flex-col sm:flex-row sm:items-center">
+                <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                    <i class="fas fa-building text-green-600 text-sm sm:text-lg lg:text-xl"></i>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Kontak Pejabat</h3>
-                    <p class="text-2xl font-bold text-blue-600">67</p>
+                <div class="min-w-0">
+                    <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Instansi Aktif</h3>
+                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">45</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+            <div class="flex flex-col sm:flex-row sm:items-center">
+                <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                    <i class="fas fa-user-tie text-blue-600 text-sm sm:text-lg lg:text-xl"></i>
+                </div>
+                <div class="min-w-0">
+                    <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Kontak Pejabat</h3>
+                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">67</p>
                 </div>
             </div>
         </div>

@@ -431,14 +431,14 @@
         <div class="absolute bottom-1 sm:bottom-6 left-1 sm:left-6 z-50">
             <div class="bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg border border-gray-200">
                 <!-- Legend Button Header -->
-                <button 
-                    onclick="toggleLegend()" 
+                <button
+                    onclick="toggleLegend()"
                     class="w-full flex items-center justify-between p-2 sm:p-3 hover:bg-gray-50 transition-colors duration-200 rounded-lg sm:rounded-xl"
                 >
                     <h4 class="font-bold text-gray-800 text-xs sm:text-base">Legenda</h4>
                     <i id="legendIcon" class="fas fa-chevron-up text-gray-600 text-xs sm:text-sm transition-transform duration-200"></i>
                 </button>
-                
+
                 <!-- Legend Content (Collapsible) -->
                 <div id="legendContent" class="px-2 pb-2 sm:px-3 sm:pb-3 border-t border-gray-200">
                     <div class="space-y-0.5 sm:space-y-2 pt-1 sm:pt-2">
@@ -471,14 +471,14 @@
         <div class="absolute top-1 sm:top-6 right-1 sm:right-6 z-50">
             <div class="bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg border border-gray-200">
                 <!-- Statistics Button Header -->
-                <button 
-                    onclick="toggleStats()" 
+                <button
+                    onclick="toggleStats()"
                     class="w-full flex items-center justify-between p-2 sm:p-3 hover:bg-gray-50 transition-colors duration-200 rounded-lg sm:rounded-xl"
                 >
                     <h4 class="font-bold text-gray-800 text-xs sm:text-base">Total Penjualan</h4>
                     <i id="statsIcon" class="fas fa-chevron-up text-gray-600 text-xs sm:text-sm transition-transform duration-200"></i>
                 </button>
-                
+
                 <!-- Statistics Content (Collapsible) -->
                 <div id="statsContent" class="px-2 pb-2 sm:px-3 sm:pb-3 border-t border-gray-200">
                     <div class="space-y-0.5 sm:space-y-2 text-xs sm:text-sm pt-1 sm:pt-2">
@@ -740,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function toggleLegend() {
     const content = document.getElementById('legendContent');
     const icon = document.getElementById('legendIcon');
-    
+
     if (content.style.display === 'none') {
         content.style.display = 'block';
         icon.classList.remove('fa-chevron-down');
@@ -757,7 +757,7 @@ function toggleLegend() {
 function toggleStats() {
     const content = document.getElementById('statsContent');
     const icon = document.getElementById('statsIcon');
-    
+
     if (content.style.display === 'none') {
         content.style.display = 'block';
         icon.classList.remove('fa-chevron-down');
