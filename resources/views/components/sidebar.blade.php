@@ -122,13 +122,34 @@
                 </ul>
             </li>
 
-            <!-- Keuangan -->
-            <li>
-                <a href="{{ route('keuangan') }}"
-                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('keuangan') ? 'bg-red-200 text-red-800' : '' }}">
-                    <i class="fas fa-coins w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
-                    <span class="font-medium">Keuangan</span>
-                </a>
+            <!-- Keuangan Dropdown -->
+            <li x-data="{ open: {{ request()->routeIs('keuangan*') ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                        class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('keuangan*') ? 'bg-red-200 text-red-800' : '' }}">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-coins w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                        <span class="font-medium">Keuangan</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-sm transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
+                </button>
+
+                <!-- Submenu -->
+                <ul x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-2 ml-6 space-y-1">
+                    <li>
+                        <a href="{{ route('keuangan.approval') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.approval') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-check-circle w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Approval Pembayaran</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('keuangan.penagihan') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.penagihan') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-file-invoice-dollar w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Penagihan Dinas</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
             <!-- Produk -->
@@ -296,13 +317,34 @@
                 </ul>
             </li>
 
-            <!-- Keuangan -->
-            <li>
-                <a href="{{ route('keuangan') }}" onclick="closeMobileMenu()"
-                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('keuangan') ? 'bg-red-200 text-red-800' : '' }}">
-                    <i class="fas fa-coins w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
-                    <span class="font-medium">Keuangan</span>
-                </a>
+            <!-- Keuangan Dropdown -->
+            <li x-data="{ open: {{ request()->routeIs('keuangan*') ? 'true' : 'false' }} }">
+                <button @click="open = !open"
+                        class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('keuangan*') ? 'bg-red-200 text-red-800' : '' }}">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-coins w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                        <span class="font-medium">Keuangan</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-sm transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
+                </button>
+
+                <!-- Submenu -->
+                <ul x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-2 ml-6 space-y-1">
+                    <li>
+                        <a href="{{ route('keuangan.approval') }}" onclick="closeMobileMenu()"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.approval') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-check-circle w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Approval Pembayaran</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('keuangan.penagihan') }}" onclick="closeMobileMenu()"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.penagihan') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-file-invoice-dollar w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Penagihan Dinas</span>
+                        </a>
+                    </li>
+                </ul>
             </li>
 
             <!-- Produk -->

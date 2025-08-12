@@ -60,9 +60,20 @@ Route::prefix('purchasing')->group(function () {
     })->name('purchasing.pengiriman');
 });
 
-    Route::get('/keuangan', function () {
+// Keuangan Routes
+Route::prefix('keuangan')->group(function () {
+    Route::get('/', function () {
         return view('pages.keuangan.keuangan');
     })->name('keuangan');
+
+    Route::get('/approval', function () {
+        return view('pages.keuangan.approval');
+    })->name('keuangan.approval');
+
+    Route::get('/penagihan', function () {
+        return view('pages.keuangan.penagihan');
+    })->name('keuangan.penagihan');
+});
 
     Route::get('/produk', function () {
         return view('pages.produk');
