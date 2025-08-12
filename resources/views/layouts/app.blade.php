@@ -15,7 +15,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-     
+
         .card-placeholder {
             background: rgba(220, 20, 60, 0.1);
             border: 2px solid #DC143C;
@@ -26,15 +26,15 @@
             background-size: cover;
             background-position: center;
         }
-   
-   
-        
+
+
+
         /* Glass effect */
         .glass-effect {
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-        
+
         /* Smooth animations */
         .smooth-transition {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -50,7 +50,7 @@
         @include('components.header')
 
         {{-- Content --}}
-        <main class="ml-64 pt-30 p-8 bg-gray-50 min-h-screen">
+        <main class="lg:ml-64 pt-16 lg:pt-24 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
             @yield('content')
         </main>
     </div>
