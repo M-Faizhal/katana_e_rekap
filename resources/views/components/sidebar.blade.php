@@ -14,7 +14,7 @@
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="mt-6 pb-32 overflow-y-auto" style="height: calc(100vh - 200px);">
+    <nav class="mt-6 pb-24 overflow-y-auto" style="height: calc(100vh - 200px);">
         <ul class="space-y-1 px-4">
             <!-- Dashboard -->
             <li>
@@ -143,7 +143,7 @@
     </nav>
 
     <!-- Bottom Menu -->
-    <div class="absolute bottom-0 w-64 px-4 pb-6">
+    <div class="absolute bottom-0 w-64 px-4 pb-6 bg-white">
         <div class="border-t border-white/20 pt-4">
             <ul class="space-y-1">
                 <li>
