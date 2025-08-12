@@ -416,7 +416,7 @@
 <!-- Indonesia Map Section -->
 <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 mb-6 sm:mb-8">
     <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
-        <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Distribusi Geografis Proyek</h3>
+        <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Distribusi Geografis Penjualan</h3>
         <div class="flex space-x-2">
             <button class="px-3 sm:px-4 py-2 bg-red-800 text-white rounded-xl text-xs sm:text-sm font-medium hover:bg-red-900 transition-colors duration-200">Real-time</button>
             <button class="px-3 sm:px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-200 transition-colors duration-200">Historical</button>
@@ -424,109 +424,352 @@
     </div>
 
     <div class="h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-blue-50 via-white to-green-50 rounded-2xl relative overflow-hidden shadow-inner border border-gray-100">
-        <!-- SVG Indonesia Map -->
-        <svg viewBox="0 0 800 400" class="w-full h-full">
-            <!-- Background water -->
-            <defs>
-                <linearGradient id="waterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#EBF8FF;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#DBEAFE;stop-opacity:1" />
-                </linearGradient>
-                <linearGradient id="landGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#10B981;stop-opacity:0.9" />
-                    <stop offset="100%" style="stop-color:#059669;stop-opacity:0.9" />
-                </linearGradient>
-            </defs>
+        <!-- Leaflet Map Container -->
+        <div id="indonesiaMap" class="w-full h-full rounded-2xl z-10"></div>
 
-            <rect width="800" height="400" fill="url(#waterGradient)"/>
-
-            <!-- Simplified Indonesia archipelago shape with enhanced styling -->
-            <g fill="url(#landGradient)" stroke="#065F46" stroke-width="1.5">
-                <!-- Sumatra -->
-                <ellipse cx="120" cy="180" rx="60" ry="120" opacity="0.95"/>
-                <!-- Java -->
-                <ellipse cx="280" cy="280" rx="140" ry="30" opacity="0.95"/>
-                <!-- Kalimantan -->
-                <ellipse cx="350" cy="150" rx="100" ry="80" opacity="0.95"/>
-                <!-- Sulawesi -->
-                <path d="M450 120 Q480 140 470 180 Q460 200 480 220 Q500 200 520 180 Q510 140 540 120 Q520 100 480 110 Q460 100 450 120" opacity="0.95"/>
-                <!-- Papua -->
-                <ellipse cx="650" cy="200" rx="120" ry="80" opacity="0.95"/>
-                <!-- Smaller islands -->
-                <circle cx="200" cy="320" r="20" opacity="0.95"/>
-                <circle cx="380" cy="320" r="15" opacity="0.95"/>
-                <circle cx="500" cy="280" r="25" opacity="0.95"/>
-                <circle cx="580" cy="140" r="18" opacity="0.95"/>
-            </g>
-
-            <!-- Enhanced location markers -->
-            <g>
-                <!-- Jakarta -->
-                <circle cx="280" cy="280" r="10" fill="#DC2626" stroke="#FFF" stroke-width="2"/>
-                <circle cx="280" cy="280" r="15" fill="#DC2626" opacity="0.3"/>
-                <text x="295" y="285" fill="#1F2937" font-size="12" font-weight="bold" class="hidden sm:block">Jakarta: 8 proyek</text>
-
-                <!-- Surabaya -->
-                <circle cx="360" cy="290" r="8" fill="#DC2626" stroke="#FFF" stroke-width="2"/>
-                <circle cx="360" cy="290" r="12" fill="#DC2626" opacity="0.3"/>
-                <text x="375" y="295" fill="#1F2937" font-size="11" font-weight="bold" class="hidden sm:block">Surabaya: 6 proyek</text>
-
-                <!-- Medan -->
-                <circle cx="120" cy="120" r="6" fill="#DC2626" stroke="#FFF" stroke-width="2"/>
-                <circle cx="120" cy="120" r="10" fill="#DC2626" opacity="0.3"/>
-                <text x="135" y="125" fill="#1F2937" font-size="11" font-weight="bold" class="hidden sm:block">Medan: 4 proyek</text>
-
-                <!-- Bandung -->
-                <circle cx="260" cy="290" r="5" fill="#DC2626" stroke="#FFF" stroke-width="2"/>
-                <circle cx="260" cy="290" r="8" fill="#DC2626" opacity="0.3"/>
-                <text x="275" y="295" fill="#1F2937" font-size="10" font-weight="bold" class="hidden md:block">Bandung: 3 proyek</text>
-
-                <!-- Makassar -->
-                <circle cx="500" cy="220" r="5" fill="#DC2626" stroke="#FFF" stroke-width="2"/>
-                <circle cx="500" cy="220" r="8" fill="#DC2626" opacity="0.3"/>
-                <text x="515" y="225" fill="#1F2937" font-size="10" font-weight="bold" class="hidden md:block">Makassar: 3 proyek</text>
-            </g>
-        </svg>
-
-        <!-- Enhanced Map Legend -->
-        <div class="absolute bottom-3 sm:bottom-6 left-3 sm:left-6 bg-white/95 backdrop-blur-sm rounded-xl p-3 sm:p-4 shadow-lg border border-gray-200">
-            <h4 class="font-bold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">Legenda</h4>
-            <div class="space-y-1 sm:space-y-2">
-                <div class="flex items-center space-x-2 sm:space-x-3">
-                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-red-600 rounded-full shadow-sm flex-shrink-0"></div>
-                    <span class="text-xs sm:text-sm text-gray-700 font-medium">Lokasi proyek aktif</span>
-                </div>
-                <div class="flex items-center space-x-2 sm:space-x-3">
-                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-sm shadow-sm flex-shrink-0"></div>
-                    <span class="text-xs sm:text-sm text-gray-700 font-medium">Wilayah Indonesia</span>
+        <!-- Collapsible Map Legend -->
+        <div class="absolute bottom-1 sm:bottom-6 left-1 sm:left-6 z-50">
+            <div class="bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg border border-gray-200">
+                <!-- Legend Button Header -->
+                <button 
+                    onclick="toggleLegend()" 
+                    class="w-full flex items-center justify-between p-2 sm:p-3 hover:bg-gray-50 transition-colors duration-200 rounded-lg sm:rounded-xl"
+                >
+                    <h4 class="font-bold text-gray-800 text-xs sm:text-base">Legenda</h4>
+                    <i id="legendIcon" class="fas fa-chevron-up text-gray-600 text-xs sm:text-sm transition-transform duration-200"></i>
+                </button>
+                
+                <!-- Legend Content (Collapsible) -->
+                <div id="legendContent" class="px-2 pb-2 sm:px-3 sm:pb-3 border-t border-gray-200">
+                    <div class="space-y-0.5 sm:space-y-2 pt-1 sm:pt-2">
+                        <div class="flex items-center space-x-1 sm:space-x-3">
+                            <div class="w-2 h-2 sm:w-4 sm:h-4 bg-blue-500 rounded-sm shadow-sm flex-shrink-0"></div>
+                            <span class="text-xs sm:text-sm text-gray-700 font-medium">> 100M (Sangat Tinggi)</span>
+                        </div>
+                        <div class="flex items-center space-x-1 sm:space-x-3">
+                            <div class="w-2 h-2 sm:w-4 sm:h-4 bg-green-500 rounded-sm shadow-sm flex-shrink-0"></div>
+                            <span class="text-xs sm:text-sm text-gray-700 font-medium">50M - 100M (Tinggi)</span>
+                        </div>
+                        <div class="flex items-center space-x-1 sm:space-x-3">
+                            <div class="w-2 h-2 sm:w-4 sm:h-4 bg-orange-500 rounded-sm shadow-sm flex-shrink-0"></div>
+                            <span class="text-xs sm:text-sm text-gray-700 font-medium">20M - 50M (Sedang)</span>
+                        </div>
+                        <div class="flex items-center space-x-1 sm:space-x-3">
+                            <div class="w-2 h-2 sm:w-4 sm:h-4 bg-red-300 rounded-sm shadow-sm flex-shrink-0"></div>
+                            <span class="text-xs sm:text-sm text-gray-700 font-medium">< 20M (Rendah)</span>
+                        </div>
+                        <div class="flex items-center space-x-1 sm:space-x-3">
+                            <div class="w-2 h-2 sm:w-4 sm:h-4 bg-red-800 rounded-full shadow-sm flex-shrink-0 animate-none city-pulse-legend"></div>
+                            <span class="text-xs sm:text-sm text-gray-700 font-medium">Kota Utama</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Enhanced Statistics Box -->
-        <div class="absolute top-3 sm:top-6 right-3 sm:right-6 bg-white/95 backdrop-blur-sm rounded-xl p-3 sm:p-4 shadow-lg border border-gray-200">
-            <h4 class="font-bold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">Distribusi Proyek</h4>
-            <div class="space-y-1 sm:space-y-2 text-xs sm:text-sm">
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-600">Jawa:</span>
-                    <span class="font-bold text-gray-800">17 proyek</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-600">Sumatra:</span>
-                    <span class="font-bold text-gray-800">4 proyek</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-600">Lainnya:</span>
-                    <span class="font-bold text-gray-800">3 proyek</span>
-                </div>
-                <hr class="border-gray-200 my-1 sm:my-2">
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-700 font-medium">Total:</span>
-                    <span class="font-bold text-red-600">24 proyek</span>
+        <!-- Collapsible Statistics Box -->
+        <div class="absolute top-1 sm:top-6 right-1 sm:right-6 z-50">
+            <div class="bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg border border-gray-200">
+                <!-- Statistics Button Header -->
+                <button 
+                    onclick="toggleStats()" 
+                    class="w-full flex items-center justify-between p-2 sm:p-3 hover:bg-gray-50 transition-colors duration-200 rounded-lg sm:rounded-xl"
+                >
+                    <h4 class="font-bold text-gray-800 text-xs sm:text-base">Total Penjualan</h4>
+                    <i id="statsIcon" class="fas fa-chevron-up text-gray-600 text-xs sm:text-sm transition-transform duration-200"></i>
+                </button>
+                
+                <!-- Statistics Content (Collapsible) -->
+                <div id="statsContent" class="px-2 pb-2 sm:px-3 sm:pb-3 border-t border-gray-200">
+                    <div class="space-y-0.5 sm:space-y-2 text-xs sm:text-sm pt-1 sm:pt-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Jawa:</span>
+                            <span class="font-bold text-blue-600">Rp 125.5M</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Sumatra:</span>
+                            <span class="font-bold text-green-600">Rp 45.8M</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Kalimantan:</span>
+                            <span class="font-bold text-orange-600">Rp 28.3M</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Lainnya:</span>
+                            <span class="font-bold text-gray-600">Rp 62.1M</span>
+                        </div>
+                        <hr class="border-gray-200 my-0.5 sm:my-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 font-medium">Total:</span>
+                            <span class="font-bold text-red-600">Rp 261.7M</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Include Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+.city-pulse-legend {
+    background-color: #991b1b !important;
+}
+
+.leaflet-popup-content-wrapper {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    border-radius: 8px;
+    padding: 0;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    padding: 12px;
+    font-size: 13px;
+}
+
+.leaflet-popup-tip {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.city-marker {
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.city-marker:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    animation: pulse-on-hover 0.6s ease-in-out;
+}
+
+@keyframes pulse-on-hover {
+    0%, 100% {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    }
+    50% {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.4), 0 0 0 10px rgba(255,255,255,0.3);
+    }
+}
+
+/* Custom marker colors based on sales performance */
+.marker-very-high { background-color: #3182CE; }
+.marker-high { background-color: #48BB78; }
+.marker-medium { background-color: #ED8936; }
+.marker-low { background-color: #F56565; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the map centered on Indonesia
+    const map = L.map('indonesiaMap').setView([-2.5, 118], 5);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+    }).addTo(map);
+
+    // Sales data for Indonesian cities
+    const salesData = [
+        {
+            name: 'Jakarta',
+            position: [-6.2088, 106.8456],
+            sales: 125.5,
+            projects: 28,
+            growth: 25,
+            level: 'very-high'
+        },
+        {
+            name: 'Surabaya',
+            position: [-7.2575, 112.7521],
+            sales: 45.8,
+            projects: 12,
+            growth: 18,
+            level: 'high'
+        },
+        {
+            name: 'Medan',
+            position: [3.5952, 98.6722],
+            sales: 28.3,
+            projects: 8,
+            growth: 12,
+            level: 'medium'
+        },
+        {
+            name: 'Bandung',
+            position: [-6.9175, 107.6191],
+            sales: 22.7,
+            projects: 6,
+            growth: 8,
+            level: 'medium'
+        },
+        {
+            name: 'Makassar',
+            position: [-5.1477, 119.4327],
+            sales: 15.3,
+            projects: 4,
+            growth: 15,
+            level: 'medium'
+        },
+        {
+            name: 'Palembang',
+            position: [-2.9761, 104.7754],
+            sales: 12.4,
+            projects: 3,
+            growth: 7,
+            level: 'low'
+        },
+        {
+            name: 'Semarang',
+            position: [-6.9667, 110.4167],
+            sales: 8.2,
+            projects: 3,
+            growth: 5,
+            level: 'low'
+        },
+        {
+            name: 'Balikpapan',
+            position: [-1.2379, 116.8529],
+            sales: 5.8,
+            projects: 2,
+            growth: 3,
+            level: 'low'
+        },
+        {
+            name: 'Jayapura',
+            position: [-2.5489, 140.7197],
+            sales: 3.2,
+            projects: 1,
+            growth: 2,
+            level: 'low'
+        }
+    ];
+
+    // Create custom divIcon for each city
+    salesData.forEach(city => {
+        const markerSize = city.level === 'very-high' ? 16 :
+                          city.level === 'high' ? 14 :
+                          city.level === 'medium' ? 12 : 10;
+
+        const customIcon = L.divIcon({
+            className: `city-marker marker-${city.level}`,
+            html: '',
+            iconSize: [markerSize, markerSize],
+            iconAnchor: [markerSize/2, markerSize/2]
+        });
+
+        // Create marker
+        const marker = L.marker(city.position, { icon: customIcon }).addTo(map);
+
+        // Create popup content
+        const popupContent = `
+            <div style="color: white; font-family: system-ui;">
+                <div style="font-weight: bold; margin-bottom: 4px; color: #FFF;">${city.name}</div>
+                <div style="font-size: 12px; color: #D1D5DB;">Penjualan: Rp ${city.sales}M</div>
+                <div style="font-size: 12px; color: #D1D5DB;">Proyek: ${city.projects} aktif</div>
+                <div style="font-size: 12px; color: #86EFAC;">Pertumbuhan: +${city.growth}%</div>
+            </div>
+        `;
+
+        // Bind popup to marker
+        marker.bindPopup(popupContent, {
+            offset: [0, -markerSize/2],
+            closeButton: false,
+            className: 'custom-popup'
+        });
+
+        // Show popup on hover, hide on mouseout
+        marker.on('mouseover', function() {
+            this.openPopup();
+        });
+
+        marker.on('mouseout', function() {
+            this.closePopup();
+        });
+    });
+
+    // Disable zoom on scroll to prevent accidental zooming
+    map.scrollWheelZoom.disable();
+
+    // Add zoom control back
+    map.addControl(L.control.zoom({
+        position: 'topright'
+    }));
+
+    // Custom control for enabling/disabling scroll zoom
+    const scrollControl = L.control({position: 'topright'});
+    scrollControl.onAdd = function(map) {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        div.style.backgroundColor = 'white';
+        div.style.backgroundImage = 'none';
+        div.style.width = '30px';
+        div.style.height = '30px';
+        div.style.cursor = 'pointer';
+        div.style.fontSize = '16px';
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.justifyContent = 'center';
+        div.innerHTML = '🔒';
+        div.title = 'Toggle scroll zoom';
+
+        div.onclick = function() {
+            if (map.scrollWheelZoom.enabled()) {
+                map.scrollWheelZoom.disable();
+                div.innerHTML = '🔒';
+                div.title = 'Enable scroll zoom';
+            } else {
+                map.scrollWheelZoom.enable();
+                div.innerHTML = '🔓';
+                div.title = 'Disable scroll zoom';
+            }
+        };
+
+        return div;
+    };
+    scrollControl.addTo(map);
+});
+
+// Toggle functions for collapsible boxes
+function toggleLegend() {
+    const content = document.getElementById('legendContent');
+    const icon = document.getElementById('legendIcon');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        icon.style.transform = 'rotate(0deg)';
+    } else {
+        content.style.display = 'none';
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+        icon.style.transform = 'rotate(180deg)';
+    }
+}
+
+function toggleStats() {
+    const content = document.getElementById('statsContent');
+    const icon = document.getElementById('statsIcon');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        icon.style.transform = 'rotate(0deg)';
+    } else {
+        content.style.display = 'none';
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+        icon.style.transform = 'rotate(180deg)';
+    }
+}
+</script>
 </div>
 @endsection
