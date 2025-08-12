@@ -57,6 +57,14 @@
                         <label class="text-sm font-medium text-gray-500">Deadline</label>
                         <p id="detailDeadline" class="text-lg font-semibold text-red-600">-</p>
                     </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Potensi</label>
+                        <p id="detailPotensi" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Tahun Potensi</label>
+                        <p id="detailTahunPotensi" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
                 </div>
             </div>
 

@@ -35,15 +35,15 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kabupaten/Kota</label>
-                            <input type="text" name="kabupaten_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota" required>
+                            <input type="text" name="kabupaten_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nama Instansi</label>
-                            <input type="text" name="nama_instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi" required>
+                            <input type="text" name="nama_instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Pengadaan</label>
-                            <select name="jenis_pengadaan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                            <select name="jenis_pengadaan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih jenis pengadaan</option>
                                 <option value="Pelelangan Umum">Pelelangan Umum</option>
                                 <option value="Pelelangan Terbatas">Pelelangan Terbatas</option>
@@ -54,7 +54,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
-                            <select name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                            <select name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih admin purchasing</option>
                                 <option value="Sari Wijaya">Sari Wijaya</option>
                                 <option value="Maya Indah">Maya Indah</option>
@@ -65,7 +65,38 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Deadline</label>
-                            <input type="date" name="deadline" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                            <input type="date" name="deadline" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Fields -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Potensi</label>
+                            <div class="flex gap-2">
+                                <button type="button" id="potensiYa" onclick="togglePotensi('ya')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-gray-50 transition-colors duration-200 potensi-btn">
+                                    <i class="fas fa-thumbs-up mr-2"></i>Ya
+                                </button>
+                                <button type="button" id="potensiTidak" onclick="togglePotensi('tidak')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-gray-50 transition-colors duration-200 potensi-btn">
+                                    <i class="fas fa-thumbs-down mr-2"></i>Tidak
+                                </button>
+                            </div>
+                            <input type="hidden" name="potensi" id="potensiValue">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Potensi</label>
+                            <input type="number" name="tahun_potensi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="2024" min="2020" max="2030">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Pilih status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Diterima">Diterima</option>
+                                <option value="Ditolak">Ditolak</option>
+                                <option value="Review">Review</option>
+                                <option value="Expired">Expired</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -73,10 +104,10 @@
                     <div class="mt-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-file-upload text-red-600 mr-1"></i>
-                            Surat Pesanan <span class="text-red-500">*</span>
+                            Surat Pesanan
                         </label>
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors duration-200">
-                            <input type="file" name="surat_pesanan" id="suratPesanan" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required onchange="handleFileUpload(this)">
+                            <input type="file" name="surat_pesanan" id="suratPesanan" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleFileUpload(this)">
                             <label for="suratPesanan" class="cursor-pointer">
                                 <div id="uploadArea">
                                     <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
@@ -121,15 +152,15 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
-                                    <input type="text" name="barang[0][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Nama barang/jasa" required>
+                                    <input type="text" name="barang[0][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Nama barang/jasa">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
-                                    <input type="number" name="barang[0][jumlah]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm jumlah-input" placeholder="0" min="1" required onchange="hitungTotal(this)">
+                                    <input type="number" name="barang[0][jumlah]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm jumlah-input" placeholder="0" min="1" onchange="hitungTotal(this)">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
-                                    <select name="barang[0][satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" required>
+                                    <select name="barang[0][satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
                                         <option value="">Pilih satuan</option>
                                         <option value="Unit">Unit</option>
                                         <option value="Set">Set</option>
@@ -141,7 +172,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Satuan</label>
-                                    <input type="number" name="barang[0][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input" placeholder="0" min="0" required onchange="hitungTotal(this)">
+                                    <input type="number" name="barang[0][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input" placeholder="0" min="0" onchange="hitungTotal(this)">
                                 </div>
                             </div>
                             <div class="mt-3">
@@ -186,6 +217,29 @@
 
 <script>
 let itemCounter = 1;
+
+// Toggle potensi buttons
+function togglePotensi(value) {
+    const yaBtn = document.getElementById('potensiYa');
+    const tidakBtn = document.getElementById('potensiTidak');
+    const hiddenInput = document.getElementById('potensiValue');
+    
+    // Reset all buttons
+    yaBtn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+    tidakBtn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+    yaBtn.classList.add('border-gray-300', 'text-gray-700');
+    tidakBtn.classList.add('border-gray-300', 'text-gray-700');
+    
+    if (value === 'ya') {
+        yaBtn.classList.remove('border-gray-300', 'text-gray-700');
+        yaBtn.classList.add('bg-green-500', 'text-white', 'border-green-500');
+        hiddenInput.value = 'ya';
+    } else if (value === 'tidak') {
+        tidakBtn.classList.remove('border-gray-300', 'text-gray-700');
+        tidakBtn.classList.add('bg-red-500', 'text-white', 'border-red-500');
+        hiddenInput.value = 'tidak';
+    }
+}
 
 // Generate kode penawaran otomatis saat modal dibuka
 function generateKodePenawaran() {
@@ -363,6 +417,13 @@ document.getElementById('formTambahPenawaran').addEventListener('submit', functi
         // Reset form
         this.reset();
         removeFile(); // Reset file upload
+        
+        // Reset potensi buttons
+        document.getElementById('potensiYa').classList.remove('bg-green-500', 'text-white', 'border-green-500');
+        document.getElementById('potensiTidak').classList.remove('bg-red-500', 'text-white', 'border-red-500');
+        document.getElementById('potensiYa').classList.add('border-gray-300', 'text-gray-700');
+        document.getElementById('potensiTidak').classList.add('border-gray-300', 'text-gray-700');
+        document.getElementById('potensiValue').value = '';
         
         // Reset items to 1
         const container = document.getElementById('daftarBarang');

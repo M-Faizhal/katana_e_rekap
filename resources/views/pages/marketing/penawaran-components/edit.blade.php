@@ -37,15 +37,15 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kabupaten/Kota</label>
-                            <input type="text" id="editKabupatenKota" name="kabupaten_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota" required>
+                            <input type="text" id="editKabupatenKota" name="kabupaten_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nama Instansi</label>
-                            <input type="text" id="editNamaInstansi" name="nama_instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi" required>
+                            <input type="text" id="editNamaInstansi" name="nama_instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Pengadaan</label>
-                            <select id="editJenisPengadaan" name="jenis_pengadaan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                            <select id="editJenisPengadaan" name="jenis_pengadaan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih jenis pengadaan</option>
                                 <option value="Pelelangan Umum">Pelelangan Umum</option>
                                 <option value="Pelelangan Terbatas">Pelelangan Terbatas</option>
@@ -56,7 +56,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
-                            <select id="editAdminPurchasing" name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                            <select id="editAdminPurchasing" name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih admin purchasing</option>
                                 <option value="Sari Wijaya">Sari Wijaya</option>
                                 <option value="Maya Indah">Maya Indah</option>
@@ -67,7 +67,38 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Deadline</label>
-                            <input type="date" id="editDeadline" name="deadline" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                            <input type="date" id="editDeadline" name="deadline" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Fields -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Potensi</label>
+                            <div class="flex gap-2">
+                                <button type="button" id="editPotensiYa" onclick="togglePotensiEdit('ya')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-gray-50 transition-colors duration-200 potensi-btn-edit">
+                                    <i class="fas fa-thumbs-up mr-2"></i>Ya
+                                </button>
+                                <button type="button" id="editPotensiTidak" onclick="togglePotensiEdit('tidak')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-gray-50 transition-colors duration-200 potensi-btn-edit">
+                                    <i class="fas fa-thumbs-down mr-2"></i>Tidak
+                                </button>
+                            </div>
+                            <input type="hidden" name="potensi" id="editPotensiValue">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Potensi</label>
+                            <input type="number" id="editTahunPotensi" name="tahun_potensi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="2024" min="2020" max="2030">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select id="editStatus" name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Pilih status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Diterima">Diterima</option>
+                                <option value="Ditolak">Ditolak</option>
+                                <option value="Review">Review</option>
+                                <option value="Expired">Expired</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -75,7 +106,7 @@
                     <div class="mt-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-file-upload text-red-600 mr-1"></i>
-                            Surat Pesanan <span class="text-red-500">*</span>
+                            Surat Pesanan
                         </label>
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors duration-200">
                             <input type="file" name="surat_pesanan" id="editSuratPesanan" class="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleFileUploadEdit(this)">
@@ -165,6 +196,29 @@
 <script>
 let editItemCounter = 0;
 
+// Toggle potensi buttons for edit modal
+function togglePotensiEdit(value) {
+    const yaBtn = document.getElementById('editPotensiYa');
+    const tidakBtn = document.getElementById('editPotensiTidak');
+    const hiddenInput = document.getElementById('editPotensiValue');
+    
+    // Reset all buttons
+    yaBtn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+    tidakBtn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+    yaBtn.classList.add('border-gray-300', 'text-gray-700');
+    tidakBtn.classList.add('border-gray-300', 'text-gray-700');
+    
+    if (value === 'ya') {
+        yaBtn.classList.remove('border-gray-300', 'text-gray-700');
+        yaBtn.classList.add('bg-green-500', 'text-white', 'border-green-500');
+        hiddenInput.value = 'ya';
+    } else if (value === 'tidak') {
+        tidakBtn.classList.remove('border-gray-300', 'text-gray-700');
+        tidakBtn.classList.add('bg-red-500', 'text-white', 'border-red-500');
+        hiddenInput.value = 'tidak';
+    }
+}
+
 function loadEditData(data) {
     // Load basic information
     document.getElementById('editId').value = data.id;
@@ -175,6 +229,13 @@ function loadEditData(data) {
     document.getElementById('editAdminPurchasing').value = data.admin_purchasing;
     document.getElementById('editDeadline').value = data.deadline;
     document.getElementById('editCatatan').value = data.catatan || '';
+    
+    // Load additional fields
+    if (data.potensi) {
+        togglePotensiEdit(data.potensi);
+    }
+    document.getElementById('editTahunPotensi').value = data.tahun_potensi || '';
+    document.getElementById('editStatus').value = data.status || '';
     
     // Load items
     const container = document.getElementById('daftarBarangEdit');
@@ -206,15 +267,15 @@ function addEditItem(itemData = null) {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
-                    <input type="text" name="barang[${editItemCounter}][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm" placeholder="Nama barang/jasa" value="${itemData ? itemData.nama : ''}" required>
+                    <input type="text" name="barang[${editItemCounter}][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm" placeholder="Nama barang/jasa" value="${itemData ? itemData.nama : ''}">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
-                    <input type="number" name="barang[${editItemCounter}][jumlah]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm jumlah-input-edit" placeholder="0" min="1" value="${itemData ? itemData.jumlah : ''}" required onchange="hitungTotalEdit(this)">
+                    <input type="number" name="barang[${editItemCounter}][jumlah]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm jumlah-input-edit" placeholder="0" min="1" value="${itemData ? itemData.jumlah : ''}" onchange="hitungTotalEdit(this)">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
-                    <select name="barang[${editItemCounter}][satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm" required>
+                    <select name="barang[${editItemCounter}][satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
                         <option value="">Pilih satuan</option>
                         <option value="Unit" ${itemData && itemData.satuan === 'Unit' ? 'selected' : ''}>Unit</option>
                         <option value="Set" ${itemData && itemData.satuan === 'Set' ? 'selected' : ''}>Set</option>
@@ -226,7 +287,7 @@ function addEditItem(itemData = null) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Satuan</label>
-                    <input type="number" name="barang[${editItemCounter}][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm harga-satuan-input-edit" placeholder="0" min="0" value="${itemData ? itemData.harga_satuan : ''}" required onchange="hitungTotalEdit(this)">
+                    <input type="number" name="barang[${editItemCounter}][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm harga-satuan-input-edit" placeholder="0" min="0" value="${itemData ? itemData.harga_satuan : ''}" onchange="hitungTotalEdit(this)">
                 </div>
             </div>
             <div class="mt-3">

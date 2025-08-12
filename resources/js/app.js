@@ -173,24 +173,24 @@ function toggleTheme() {
     saveUserPreferences('theme', newTheme);
 }
 
-// Initialize everything when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Load saved theme
-    const savedTheme = getUserPreferences('theme');
-    if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-    }
+// // Initialize everything when DOM is loaded
+// document.addEventListener('DOMContentLoaded', function() {
+//     // Load saved theme
+//     const savedTheme = getUserPreferences('theme');
+//     if (savedTheme === 'dark') {
+//         document.documentElement.classList.add('dark');
+//     }
 
-    // Initialize components
-    animateCards();
-    initializeCharts();
-    simulateRealTimeUpdates();
+//     // Initialize components
+//     animateCards();
+//     initializeCharts();
+//     simulateRealTimeUpdates();
 
-    // Show welcome notification
-    setTimeout(() => {
-        showNotification('Selamat datang di KATANA Dashboard!', 'success');
-    }, 1000);
-});
+//     // Show welcome notification
+//     setTimeout(() => {
+//         showNotification('Selamat datang di KATANA Dashboard!', 'success');
+//     }, 1000);
+// });
 
 // Export functions for global use
 window.performSearch = performSearch;

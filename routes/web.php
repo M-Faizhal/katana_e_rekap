@@ -42,7 +42,7 @@ Route::prefix('marketing')->group(function () {
     })->name('purchasing');
 
     Route::get('/keuangan', function () {
-        return view('pages.keuangan');
+        return view('pages.keuangan.keuangan');
     })->name('keuangan');
 
     Route::get('/produk', function () {

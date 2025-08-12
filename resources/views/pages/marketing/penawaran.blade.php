@@ -5,7 +5,7 @@
 <div class="bg-red-800 rounded-2xl p-8 mb-8 text-white shadow-lg">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold mb-2">Manajemen Penawaran</h1>
+            <h1 class="text-3xl font-bold mb-2">Manajemen Proyek</h1>
             <p class="text-red-100 text-lg">Kelola dan pantau semua penawaran proyek Anda</p>
         </div>
         <div class="hidden lg:block">
@@ -514,6 +514,16 @@
     overflow: hidden;
 }
 
+/* Potensi button styling */
+.potensi-btn, .potensi-btn-edit {
+    transition: all 0.2s ease-in-out;
+}
+
+.potensi-btn:hover, .potensi-btn-edit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 /* Responsive modal adjustments */
 @media (max-width: 768px) {
     .modal-container {
@@ -575,7 +585,9 @@ function viewDetail(id) {
             admin_marketing: 'Budi Santoso',
             admin_purchasing: 'Sari Indah',
             nilai_penawaran: 'Rp 850.000.000',
-            catatan: 'Penawaran sistem informasi manajemen pendidikan'
+            catatan: 'Penawaran sistem informasi manajemen pendidikan',
+            potensi: 'Ya',
+            tahun_potensi: 2024
         },
         2: {
             id: 2,
@@ -589,7 +601,9 @@ function viewDetail(id) {
             admin_marketing: 'Andi Pratama',
             admin_purchasing: 'Maya Sari',
             nilai_penawaran: 'Rp 650.000.000',
-            catatan: 'Sistem informasi rumah sakit'
+            catatan: 'Sistem informasi rumah sakit',
+            potensi: 'Tidak',
+            tahun_potensi: 2025
         },
         3: {
             id: 3,
@@ -603,7 +617,9 @@ function viewDetail(id) {
             admin_marketing: 'Rini Wahyuni',
             admin_purchasing: 'Agus Setiawan',
             nilai_penawaran: 'Rp 450.000.000',
-            catatan: 'Portal informasi publik'
+            catatan: 'Portal informasi publik',
+            potensi: 'Ya',
+            tahun_potensi: 2024
         },
         4: {
             id: 4,
@@ -617,7 +633,9 @@ function viewDetail(id) {
             admin_marketing: 'Dedi Kurniawan',
             admin_purchasing: 'Nina Kartika',
             nilai_penawaran: 'Rp 750.000.000',
-            catatan: 'Sistem perencanaan pembangunan'
+            catatan: 'Sistem perencanaan pembangunan',
+            potensi: 'Tidak',
+            tahun_potensi: 2025
         },
         5: {
             id: 5,
@@ -631,7 +649,9 @@ function viewDetail(id) {
             admin_marketing: 'Agus Setiawan',
             admin_purchasing: 'Nina Kartika',
             nilai_penawaran: 'Rp 920.000.000',
-            catatan: 'Sistem administrasi kependudukan'
+            catatan: 'Sistem administrasi kependudukan',
+            potensi: 'Ya',
+            tahun_potensi: 2024
         }
     };
 
@@ -662,6 +682,10 @@ function viewDetail(id) {
         document.getElementById('detailAdminPurchasing').textContent = data.admin_purchasing;
         document.getElementById('detailTotalKeseluruhan').textContent = data.nilai_penawaran;
         
+        // Update new fields
+        document.getElementById('detailPotensi').textContent = data.potensi || '-';
+        document.getElementById('detailTahunPotensi').textContent = data.tahun_potensi || '-';
+        
         // Show catatan section if exists
         if (data.catatan && data.catatan !== '-') {
             document.getElementById('detailCatatan').textContent = data.catatan;
@@ -687,7 +711,10 @@ function editPenawaran(id) {
             jenis_pengadaan: 'Pelelangan Umum',
             deadline_penawaran: '2024-09-30',
             admin_purchasing: 'Sari Indah',
-            catatan: 'Penawaran sistem informasi manajemen pendidikan'
+            catatan: 'Penawaran sistem informasi manajemen pendidikan',
+            potensi: 'ya',
+            tahun_potensi: 2024,
+            status: 'Diterima'
         },
         2: {
             id: 2,
@@ -697,7 +724,10 @@ function editPenawaran(id) {
             jenis_pengadaan: 'Penunjukan Langsung',
             deadline_penawaran: '2024-10-05',
             admin_purchasing: 'Maya Sari',
-            catatan: 'Sistem informasi rumah sakit'
+            catatan: 'Sistem informasi rumah sakit',
+            potensi: 'tidak',
+            tahun_potensi: 2025,
+            status: 'Pending'
         },
         3: {
             id: 3,
@@ -707,7 +737,10 @@ function editPenawaran(id) {
             jenis_pengadaan: 'Tender',
             deadline_penawaran: '2024-10-10',
             admin_purchasing: 'Agus Setiawan',
-            catatan: 'Portal informasi publik'
+            catatan: 'Portal informasi publik',
+            potensi: 'ya',
+            tahun_potensi: 2024,
+            status: 'Pending'
         },
         4: {
             id: 4,
@@ -717,7 +750,10 @@ function editPenawaran(id) {
             jenis_pengadaan: 'Pelelangan Umum',
             deadline_penawaran: '2024-10-15',
             admin_purchasing: 'Nina Kartika',
-            catatan: 'Sistem perencanaan pembangunan'
+            catatan: 'Sistem perencanaan pembangunan',
+            potensi: 'tidak',
+            tahun_potensi: 2025,
+            status: 'Ditolak'
         },
         5: {
             id: 5,
@@ -727,21 +763,32 @@ function editPenawaran(id) {
             jenis_pengadaan: 'Pemilihan Langsung',
             deadline_penawaran: '2024-11-15',
             admin_purchasing: 'Nina Kartika',
-            catatan: 'Sistem administrasi kependudukan'
+            catatan: 'Sistem administrasi kependudukan',
+            potensi: 'ya',
+            tahun_potensi: 2024,
+            status: 'Pending'
         }
     };
 
     const data = sampleData[id];
     if (data) {
-        // Populate edit form
-        document.getElementById('editId').value = data.id;
-        document.getElementById('editKode').value = data.kode;
-        document.getElementById('editKabupatenKota').value = data.kabupaten_kota;
-        document.getElementById('editNamaInstansi').value = data.nama_instansi;
-        document.getElementById('editJenisPengadaan').value = data.jenis_pengadaan;
-        document.getElementById('editDeadline').value = data.deadline_penawaran;
-        document.getElementById('editAdminPurchasing').value = data.admin_purchasing;
-        document.getElementById('editCatatan').value = data.catatan;
+        // Create data object for loadEditData function
+        const editData = {
+            id: data.id,
+            kode: data.kode,
+            kabupaten_kota: data.kabupaten_kota,
+            nama_instansi: data.nama_instansi,
+            jenis_pengadaan: data.jenis_pengadaan,
+            deadline: data.deadline_penawaran,
+            admin_purchasing: data.admin_purchasing,
+            catatan: data.catatan,
+            potensi: data.potensi,
+            tahun_potensi: data.tahun_potensi,
+            status: data.status
+        };
+        
+        // Load data into edit form using the loadEditData function
+        loadEditData(editData);
         
         // Show modal
         openModal('modalEditPenawaran');
@@ -802,6 +849,57 @@ function deletePenawaran(id) {
         
         // Show modal
         openModal('modalHapusPenawaran');
+    }
+}
+
+// Function to load edit data (called from edit modal)
+function loadEditData(data) {
+    // This function is defined in the edit modal component
+    // We need to ensure it's called after the modal is loaded
+    setTimeout(() => {
+        if (typeof window.loadEditData === 'function') {
+            window.loadEditData(data);
+        } else {
+            // Fallback: directly populate fields
+            document.getElementById('editId').value = data.id;
+            document.getElementById('editKode').value = data.kode;
+            document.getElementById('editKabupatenKota').value = data.kabupaten_kota;
+            document.getElementById('editNamaInstansi').value = data.nama_instansi;
+            document.getElementById('editJenisPengadaan').value = data.jenis_pengadaan;
+            document.getElementById('editDeadline').value = data.deadline;
+            document.getElementById('editAdminPurchasing').value = data.admin_purchasing;
+            document.getElementById('editCatatan').value = data.catatan;
+            
+            // Populate new fields
+            if (data.potensi) {
+                togglePotensiEdit(data.potensi);
+            }
+            document.getElementById('editTahunPotensi').value = data.tahun_potensi || '';
+            document.getElementById('editStatus').value = data.status || '';
+        }
+    }, 100);
+}
+
+// Toggle potensi buttons for edit modal
+function togglePotensiEdit(value) {
+    const yaBtn = document.getElementById('editPotensiYa');
+    const tidakBtn = document.getElementById('editPotensiTidak');
+    const hiddenInput = document.getElementById('editPotensiValue');
+    
+    // Reset all buttons
+    yaBtn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+    tidakBtn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+    yaBtn.classList.add('border-gray-300', 'text-gray-700');
+    tidakBtn.classList.add('border-gray-300', 'text-gray-700');
+    
+    if (value === 'ya') {
+        yaBtn.classList.remove('border-gray-300', 'text-gray-700');
+        yaBtn.classList.add('bg-green-500', 'text-white', 'border-green-500');
+        hiddenInput.value = 'ya';
+    } else if (value === 'tidak') {
+        tidakBtn.classList.remove('border-gray-300', 'text-gray-700');
+        tidakBtn.classList.add('bg-red-500', 'text-white', 'border-red-500');
+        hiddenInput.value = 'tidak';
     }
 }
 
