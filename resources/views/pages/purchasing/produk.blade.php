@@ -74,530 +74,355 @@
         </div>
     </div>
 
-    <!-- Filter & Search -->
-    <div class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50">
-        <div class="flex flex-col lg:flex-row gap-4">
-            <div class="flex-1">
+    <!-- Product Cards Grid -->
+    <div class="p-4 sm:p-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
+            <!-- Product Card 1 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(1)">
                 <div class="relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" placeholder="Cari nama barang atau spesifikasi..." 
-                           class="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
-                </div>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <select class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
-                    <option>Semua Jenis</option>
-                    <option>Elektronik</option>
-                    <option>Mesin</option>
-                    <option>Meubel</option>
-                </select>
-                <select class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
-                    <option>Urutkan</option>
-                    <option>Nama A-Z</option>
-                    <option>Nama Z-A</option>
-                    <option>TKDN Tertinggi</option>
-                    <option>TKDN Terendah</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- Desktop Table View -->
-    <div class="hidden md:block overflow-x-auto">
-        <table class="w-full">
-            <thead>
-                <tr class="bg-gray-50 border-b border-gray-200">
-                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">No</th>
-                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Gambar</th>
-                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Nama Barang</th>
-                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Spesifikasi</th>
-                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Jenis Barang</th>
-                    <th class="text-left py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Nilai TKDN</th>
-                    <th class="text-center py-3 lg:py-4 px-4 lg:px-6 font-semibold text-gray-800 text-xs lg:text-sm">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                <!-- Product Row 1 -->
-                <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-001</span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                            <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div>
-                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Laptop Dell Latitude 7420</p>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <p class="text-gray-600 text-xs lg:text-sm">Intel i7, 16GB RAM, 512GB SSD</p>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Laptop Dell Latitude 7420" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                             Elektronik
                         </span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 25%"></div>
-                            </div>
-                            <span class="text-xs lg:text-sm font-medium text-green-600">25%</span>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
-                            <button onclick="viewDetailProduk(1)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="editProduk(1)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="deleteProduk(1)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash text-sm lg:text-base"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-001</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Laptop Dell Latitude 7420</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Intel i7, 16GB RAM, 512GB SSD</p>
+                </div>
+            </div>
 
-                <!-- Product Row 2 -->
-                <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-002</span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                            <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div>
-                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Mesin Bubut CNC</p>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <p class="text-gray-600 text-xs lg:text-sm">3 Axis, Max 200mm chuck</p>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+            <!-- Product Card 2 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(2)">
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Mesin Bubut CNC" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                             Mesin
                         </span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 60%"></div>
-                            </div>
-                            <span class="text-xs lg:text-sm font-medium text-green-600">60%</span>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
-                            <button onclick="viewDetailProduk(2)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="editProduk(2)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="deleteProduk(2)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash text-sm lg:text-base"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-002</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Mesin Bubut CNC</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">3 Axis, Max 200mm chuck</p>
+                </div>
+            </div>
 
-                <!-- Product Row 3 -->
-                <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-003</span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                            <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div>
-                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Meja Kerja Kayu Jati</p>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <p class="text-gray-600 text-xs lg:text-sm">120x60x75cm, Kayu Jati Grade A</p>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+            <!-- Product Card 3 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(3)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Meja Kerja Kayu Jati" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
                             Meubel
                         </span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 85%"></div>
-                            </div>
-                            <span class="text-xs lg:text-sm font-medium text-green-600">85%</span>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
-                            <button onclick="viewDetailProduk(3)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="editProduk(3)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="deleteProduk(3)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash text-sm lg:text-base"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-003</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Meja Kerja Kayu Jati</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">120x60x75cm, Kayu Jati Grade A</p>
+                </div>
+            </div>
 
-                <!-- Product Row 4 -->
-                <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-004</span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                            <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div>
-                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Server HP ProLiant DL380</p>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <p class="text-gray-600 text-xs lg:text-sm">Intel Xeon, 32GB RAM, 2TB HDD</p>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+            <!-- Product Card 4 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(4)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Server HP ProLiant DL380" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                             Elektronik
                         </span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 30%"></div>
-                            </div>
-                            <span class="text-xs lg:text-sm font-medium text-green-600">30%</span>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
-                            <button onclick="viewDetailProduk(4)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="editProduk(4)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="deleteProduk(4)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash text-sm lg:text-base"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-004</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Server HP ProLiant DL380</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Intel Xeon, 32GB RAM, 2TB HDD</p>
+                </div>
+            </div>
 
-                <!-- Product Row 5 -->
-                <tr class="hover:bg-gray-50 transition-colors duration-200">
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="font-medium text-gray-800 text-sm lg:text-base">PRD-005</span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                            <img src="https://via.placeholder.com/48" alt="Produk" class="w-full h-full object-cover">
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div>
-                            <p class="font-semibold text-gray-800 text-sm lg:text-base">Kursi Kantor Ergonomis</p>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <p class="text-gray-600 text-xs lg:text-sm">Bahan kulit sintetis, adjustable height</p>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <span class="inline-flex px-2 lg:px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+            <!-- Product Card 5 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(5)">
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Kursi Kantor Ergonomis" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
                             Meubel
                         </span>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 w-16 lg:w-20">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 70%"></div>
-                            </div>
-                            <span class="text-xs lg:text-sm font-medium text-green-600">70%</span>
-                        </div>
-                    </td>
-                    <td class="py-3 lg:py-4 px-4 lg:px-6">
-                        <div class="flex items-center justify-center space-x-1 lg:space-x-2">
-                            <button onclick="viewDetailProduk(5)" class="p-1.5 lg:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="editProduk(5)" class="p-1.5 lg:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                                <i class="fas fa-edit text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="deleteProduk(5)" class="p-1.5 lg:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash text-sm lg:text-base"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Mobile Card View -->
-    <div class="block md:hidden">
-        <div class="p-4 space-y-4">
-            <!-- Card 1 -->
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="p-4">
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0">
-                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Laptop">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-base font-semibold text-gray-900 truncate">Laptop Dell Latitude 7420</h3>
-                                <span class="text-xs font-medium text-gray-500">PRD-001</span>
-                            </div>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-700">Intel i7, 16GB RAM, 512GB SSD</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-3">
-                                <div class="flex items-center space-x-3">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        Elektronik
-                                    </span>
-                                    <div class="flex items-center">
-                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
-                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 25%"></div>
-                                        </div>
-                                        <span class="ml-2 text-xs font-medium text-gray-900">25%</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <button onclick="viewDetailProduk(1)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
-                                        <i class="fas fa-eye text-lg"></i>
-                                    </button>
-                                    <button onclick="editProduk(1)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
-                                        <i class="fas fa-edit text-lg"></i>
-                                    </button>
-                                    <button onclick="deleteProduk(1)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
-                                        <i class="fas fa-trash text-lg"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-005</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Kursi Kantor Ergonomis</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Bahan kulit sintetis, adjustable height</p>
                 </div>
             </div>
 
-            <!-- Card 2 -->
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="p-4">
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0">
-                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Mesin">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-base font-semibold text-gray-900 truncate">Mesin Bubut CNC</h3>
-                                <span class="text-xs font-medium text-gray-500">PRD-002</span>
-                            </div>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-700">3 Axis, Max 200mm chuck</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-3">
-                                <div class="flex items-center space-x-3">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        Mesin
-                                    </span>
-                                    <div class="flex items-center">
-                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
-                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 60%"></div>
-                                        </div>
-                                        <span class="ml-2 text-xs font-medium text-gray-900">60%</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <button onclick="viewDetailProduk(2)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
-                                        <i class="fas fa-eye text-lg"></i>
-                                    </button>
-                                    <button onclick="editProduk(2)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
-                                        <i class="fas fa-edit text-lg"></i>
-                                    </button>
-                                    <button onclick="deleteProduk(2)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
-                                        <i class="fas fa-trash text-lg"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Product Card 6 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(6)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Printer LaserJet Pro" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            Elektronik
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-006</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Printer LaserJet Pro</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Monochrome Laser, 35 ppm, USB & Network</p>
                 </div>
             </div>
 
-            <!-- Card 3 -->
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="p-4">
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0">
-                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Meja">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-base font-semibold text-gray-900 truncate">Meja Kerja Kayu Jati</h3>
-                                <span class="text-xs font-medium text-gray-500">PRD-003</span>
-                            </div>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-700">120x60x75cm, Kayu Jati Grade A</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-3">
-                                <div class="flex items-center space-x-3">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        Meubel
-                                    </span>
-                                    <div class="flex items-center">
-                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
-                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 85%"></div>
-                                        </div>
-                                        <span class="ml-2 text-xs font-medium text-gray-900">85%</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <button onclick="viewDetailProduk(3)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
-                                        <i class="fas fa-eye text-lg"></i>
-                                    </button>
-                                    <button onclick="editProduk(3)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
-                                        <i class="fas fa-edit text-lg"></i>
-                                    </button>
-                                    <button onclick="deleteProduk(3)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
-                                        <i class="fas fa-trash text-lg"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Product Card 7 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(7)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="AC Split Inverter" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            Elektronik
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-007</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">AC Split Inverter</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">1.5 PK, R32 Refrigerant, Energy Saving</p>
                 </div>
             </div>
 
-            <!-- Card 4 -->
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="p-4">
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0">
-                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Server">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-base font-semibold text-gray-900 truncate">Server HP ProLiant DL380</h3>
-                                <span class="text-xs font-medium text-gray-500">PRD-004</span>
-                            </div>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-700">Intel Xeon, 32GB RAM, 2TB HDD</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-3">
-                                <div class="flex items-center space-x-3">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        Elektronik
-                                    </span>
-                                    <div class="flex items-center">
-                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
-                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 30%"></div>
-                                        </div>
-                                        <span class="ml-2 text-xs font-medium text-gray-900">30%</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <button onclick="viewDetailProduk(4)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
-                                        <i class="fas fa-eye text-lg"></i>
-                                    </button>
-                                    <button onclick="editProduk(4)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
-                                        <i class="fas fa-edit text-lg"></i>
-                                    </button>
-                                    <button onclick="deleteProduk(4)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
-                                        <i class="fas fa-trash text-lg"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Product Card 8 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(8)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Proyektor LED" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            Elektronik
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-008</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Proyektor LED</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">4000 Lumens, Full HD, HDMI & VGA</p>
                 </div>
             </div>
 
-            <!-- Card 5 -->
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div class="p-4">
-                    <div class="flex items-start space-x-3">
-                        <div class="flex-shrink-0">
-                            <img class="h-12 w-12 rounded-lg object-cover" src="https://via.placeholder.com/48" alt="Kursi">
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-base font-semibold text-gray-900 truncate">Kursi Kantor Ergonomis</h3>
-                                <span class="text-xs font-medium text-gray-500">PRD-005</span>
-                            </div>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-700">Bahan kulit sintetis, adjustable height</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-3">
-                                <div class="flex items-center space-x-3">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        Meubel
-                                    </span>
-                                    <div class="flex items-center">
-                                        <div class="w-8 bg-gray-200 rounded-full h-1.5">
-                                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 70%"></div>
-                                        </div>
-                                        <span class="ml-2 text-xs font-medium text-gray-900">70%</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <button onclick="viewDetailProduk(5)" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
-                                        <i class="fas fa-eye text-lg"></i>
-                                    </button>
-                                    <button onclick="editProduk(5)" class="text-green-600 hover:text-green-900 transition-colors p-2" title="Edit">
-                                        <i class="fas fa-edit text-lg"></i>
-                                    </button>
-                                    <button onclick="deleteProduk(5)" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
-                                        <i class="fas fa-trash text-lg"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Product Card 9 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(9)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Mesin Gerinda" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Mesin
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-009</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Mesin Gerinda</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">4 inch, 580W, Variable Speed Control</p>
+                </div>
+            </div>
+
+            <!-- Product Card 10 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(10)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Sofa Minimalis" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            Meubel
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-010</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Sofa Minimalis</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">3 Seater, Fabric Cover, Modern Design</p>
+                </div>
+            </div>
+
+            <!-- Product Card 11 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(11)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Monitor LED 24 inch" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            Elektronik
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-011</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Monitor LED 24 inch</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Full HD, IPS Panel, HDMI & VGA</p>
+                </div>
+            </div>
+
+            <!-- Product Card 12 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(12)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Mesin Bor Listrik" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Mesin
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-012</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Mesin Bor Listrik</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">13mm Chuck, 650W, Reversible Function</p>
+                </div>
+            </div>
+
+            <!-- Product Card 13 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(13)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Rak Buku Kayu" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            Meubel
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-013</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Rak Buku Kayu</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">5 Tingkat, Kayu Mahoni, 180x80x30cm</p>
+                </div>
+            </div>
+
+            <!-- Product Card 14 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(14)">
+
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Speaker Bluetooth" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            Elektronik
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-014</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Speaker Bluetooth</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">50W RMS, Waterproof, 12 Hours Battery</p>
+                </div>
+            </div>
+
+            <!-- Product Card 15 -->
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail(15)">
+                <div class="relative">
+                    <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                        <img src="https://via.placeholder.com/300x200" alt="Mesin Las Inverter" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="absolute top-3 right-3">
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Mesin
+                        </span>
+                    </div>
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-015</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">Mesin Las Inverter</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">200A, IGBT Technology, Arc Force Control</p>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Pagination -->
+    </div>    <!-- Pagination -->
     <div class="p-4 sm:p-6">
-        <!-- Mobile Pagination -->
-        <div class="flex md:hidden items-center justify-between pt-4 sm:pt-6 border-t border-gray-200">
-            <div class="text-sm text-gray-500">
-                1 / 9
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pt-4 sm:pt-6 border-t border-gray-200 space-y-3 sm:space-y-0">
+            <div class="text-sm text-gray-500 text-center sm:text-left">
+                Menampilkan 1-15 dari 45 produk
             </div>
-            <div class="flex items-center space-x-2">
-                <button class="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+
+            <!-- Mobile Pagination (Simple) -->
+            <div class="flex sm:hidden items-center justify-center space-x-3">
+                <button class="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 min-h-[44px] flex items-center">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <button class="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                <span class="text-sm font-medium text-gray-700 px-3 py-2">1 / 3</span>
+                <button class="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 min-h-[44px] flex items-center">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-        </div>
-        
-        <!-- Desktop Pagination -->
-        <div class="hidden md:flex items-center justify-between pt-6 border-t border-gray-200">
-            <div class="text-sm text-gray-500">
-                Menampilkan 1-5 dari 45 produk
-            </div>
-            <div class="flex items-center space-x-1">
+
+            <!-- Desktop Pagination (Full) -->
+            <div class="hidden sm:flex items-center space-x-1">
                 <button class="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
                     <i class="fas fa-chevron-left"></i>
                 </button>
@@ -613,18 +438,82 @@
 </div>
 
 <!-- Floating Add Button -->
-<button onclick="openModal('modalTambahProduk')" class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 lg:bottom-16 lg:right-16 bg-red-600 text-white w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
-    <i class="fas fa-plus text-lg sm:text-xl group-hover:rotate-90 transition-transform duration-200"></i>
-    <div class="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+<button onclick="openModal('modalTambahProduk')" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-16 lg:right-16 bg-red-600 text-white w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
+    <i class="fas fa-plus text-sm sm:text-base lg:text-xl group-hover:rotate-90 transition-transform duration-200"></i>
+    <div class="absolute bottom-full right-0 mb-2 px-2 py-1 sm:px-3 sm:py-1 bg-gray-800 text-white text-xs sm:text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
         Tambah Produk
     </div>
 </button>
 
 <!-- Include Modal Components -->
-@include('pages.purchasing.produk-components.tambah')
-@include('pages.purchasing.produk-components.edit')
-@include('pages.purchasing.produk-components.detail')
-@include('pages.purchasing.produk-components.hapus')
+@include('pages.produk-components.tambah')
+
+<!-- Product Detail Modal -->
+<div id="modalDetailProduk" class="fixed inset-0 bg-black/20 backdrop-blur-xs overflow-y-auto h-full w-full hidden z-50 items-center justify-center p-4">
+    <div class="relative mx-auto max-w-4xl w-full bg-white bg-opacity-95 backdrop-blur-md shadow-2xl rounded-2xl border border-white border-opacity-20 transform transition-all duration-300" id="modalContent">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-red-50 to-red-100 rounded-t-2xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-box text-white text-lg"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900" id="modalProductTitle">Detail Produk</h3>
+            </div>
+            <button type="button" class="text-gray-400 bg-white bg-opacity-80 hover:bg-red-100 hover:text-red-600 rounded-xl text-sm p-2 transition-all duration-200 shadow-md hover:shadow-lg" onclick="closeModalDetail()">
+                <i class="fas fa-times w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 bg-gradient-to-br from-white to-gray-50">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Product Image Section -->
+                <div class="space-y-6">
+                    <div class="relative group">
+                        <div class="w-full h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden shadow-lg">
+                            <img id="modalProductImage" src="" alt="Product Image" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                        </div>
+                        <div class="absolute top-4 left-4">
+                            <span id="modalProductCode" class="bg-gray-900 bg-opacity-90 text-white text-sm font-medium px-3 py-2 rounded-xl shadow-lg backdrop-blur-sm"></span>
+                        </div>
+                        <div class="absolute top-4 right-4">
+                            <span id="modalProductCategory" class="inline-flex px-3 py-2 text-sm font-semibold rounded-xl shadow-lg backdrop-blur-sm"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Details Section -->
+                <div class="space-y-6">
+                    <div class="bg-white bg-opacity-80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white border-opacity-50">
+                        <h4 class="text-2xl font-bold text-gray-900 mb-3" id="modalProductName"></h4>
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-cogs text-red-600"></i>
+                            <p class="text-gray-700 font-medium" id="modalProductSpec"></p>
+                        </div>
+                    </div>                    <div class="bg-white bg-opacity-80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white border-opacity-50">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-file-alt text-blue-600"></i>
+                            <h5 class="text-lg font-bold text-gray-900">Deskripsi Produk</h5>
+                        </div>
+                        <p class="text-gray-700 leading-relaxed" id="modalProductDescription"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-between p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 rounded-b-2xl">
+            <div class="flex items-center space-x-3 text-sm text-gray-600">
+                <i class="fas fa-info-circle text-blue-500"></i>
+                <span>Informasi produk diperbarui secara real-time</span>
+            </div>
+            <button type="button" onclick="closeModalDetail()"
+                    class="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 transform hover:scale-105">
+                <i class="fas fa-times mr-2"></i>Tutup
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Include Success Modal -->
 @include('components.success-modal')
@@ -634,77 +523,239 @@
 @push('scripts')
 <script src="{{ asset('js/modal-functions.js') }}"></script>
 <script>
-    function viewDetailProduk(id) {
-        // Logic to show detail modal with sample data
-        const sampleData = {
-            no_produk: 'PRD-' + String(id).padStart(3, '0'),
-            nama_barang: id === 1 ? 'Laptop Dell Latitude 7420' : 
-                        id === 2 ? 'Mesin Bubut CNC' :
-                        id === 3 ? 'Meja Kerja Kayu Jati' :
-                        id === 4 ? 'Server HP ProLiant DL380' :
-                        'Kursi Kantor Ergonomis',
-            spesifikasi: id === 1 ? 'Intel Core i7-1165G7 Processor, 16GB LPDDR4x RAM, 512GB PCIe NVMe SSD' :
-                        id === 2 ? '3 Axis CNC Lathe, Maximum chuck diameter 200mm' :
-                        id === 3 ? '120x60x75cm, Kayu Jati Grade A, Finishing natural' :
-                        id === 4 ? 'Intel Xeon Scalable Processor, 32GB DDR4 RAM, 2TB Enterprise HDD' :
-                        'Bahan kulit sintetis premium, adjustable height, ergonomic design',
-            jenis_barang: id === 1 || id === 4 ? 'Elektronik' : 
-                         id === 2 ? 'Mesin' : 'Meubel',
-            nilai_tkdn: id === 1 ? 25 : id === 2 ? 60 : id === 3 ? 85 : id === 4 ? 30 : 70,
-            gambar: 'https://via.placeholder.com/300',
-            tanggal_dibuat: '12 Agustus 2025',
-            last_update: 'Hari ini'
-        };
-        
-        // Populate detail modal with sample data
-        populateDetailModal(sampleData);
-        openModal('modalDetailProduk');
+    // Product data
+    const products = {
+        1: {
+            name: 'Laptop Dell Latitude 7420',
+            code: 'PRD-001',
+            category: 'Elektronik',
+            categoryClass: 'bg-blue-100 text-blue-800',
+            spec: 'Intel i7, 16GB RAM, 512GB SSD',
+            image: 'https://via.placeholder.com/400x300',
+            date: '12 Agustus 2025',
+            description: 'Laptop profesional dengan performa tinggi untuk kebutuhan bisnis dan produktivitas. Dilengkapi dengan processor Intel Core i7 generasi terbaru, RAM 16GB DDR4, dan storage SSD 512GB untuk kecepatan akses data yang optimal.'
+        },
+        2: {
+            name: 'Mesin Bubut CNC',
+            code: 'PRD-002',
+            category: 'Mesin',
+            categoryClass: 'bg-green-100 text-green-800',
+            spec: '3 Axis, Max 200mm chuck',
+            image: 'https://via.placeholder.com/400x300',
+            date: '10 Agustus 2025',
+            description: 'Mesin bubut CNC presisi tinggi dengan 3 axis untuk berbagai kebutuhan machining. Dilengkapi chuck maksimal 200mm dan kontrol numerik untuk akurasi tinggi dalam proses produksi.'
+        },
+        3: {
+            name: 'Meja Kerja Kayu Jati',
+            code: 'PRD-003',
+            category: 'Meubel',
+            categoryClass: 'bg-yellow-100 text-yellow-800',
+            spec: '120x60x75cm, Kayu Jati Grade A',
+            image: 'https://via.placeholder.com/400x300',
+            date: '8 Agustus 2025',
+            description: 'Meja kerja premium dari kayu jati grade A dengan dimensi 120x60x75cm. Finishing natural yang mempertahankan keindahan serat kayu alami, cocok untuk ruang kerja modern maupun klasik.'
+        },
+        4: {
+            name: 'Server HP ProLiant DL380',
+            code: 'PRD-004',
+            category: 'Elektronik',
+            categoryClass: 'bg-blue-100 text-blue-800',
+            spec: 'Intel Xeon, 32GB RAM, 2TB HDD',
+            image: 'https://via.placeholder.com/400x300',
+            date: '6 Agustus 2025',
+            description: 'Server enterprise HP ProLiant DL380 dengan processor Intel Xeon, RAM 32GB DDR4, dan storage 2TB HDD. Ideal untuk infrastruktur IT skala menengah hingga besar.'
+        },
+        5: {
+            name: 'Kursi Kantor Ergonomis',
+            code: 'PRD-005',
+            category: 'Meubel',
+            categoryClass: 'bg-yellow-100 text-yellow-800',
+            spec: 'Bahan kulit sintetis, adjustable height',
+            image: 'https://via.placeholder.com/400x300',
+            date: '4 Agustus 2025',
+            description: 'Kursi kantor ergonomis dengan bahan kulit sintetis premium. Dilengkapi fitur adjustable height, lumbar support, dan armrest yang dapat disesuaikan untuk kenyamanan maksimal.'
+        },
+        6: {
+            name: 'Printer LaserJet Pro',
+            code: 'PRD-006',
+            category: 'Elektronik',
+            categoryClass: 'bg-blue-100 text-blue-800',
+            spec: 'Monochrome Laser, 35 ppm, USB & Network',
+            image: 'https://via.placeholder.com/400x300',
+            date: '2 Agustus 2025',
+            description: 'Printer laser monochrome profesional dengan kecepatan cetak 35 halaman per menit. Dilengkapi konektivitas USB dan Network untuk sharing printer di lingkungan kantor.'
+        },
+        7: {
+            name: 'AC Split Inverter',
+            code: 'PRD-007',
+            category: 'Elektronik',
+            categoryClass: 'bg-blue-100 text-blue-800',
+            spec: '1.5 PK, R32 Refrigerant, Energy Saving',
+            image: 'https://via.placeholder.com/400x300',
+            date: '1 Agustus 2025',
+            description: 'Air conditioner split inverter 1.5 PK dengan teknologi hemat energi. Menggunakan refrigerant R32 yang ramah lingkungan dan dilengkapi fitur auto-cleaning.'
+        },
+        8: {
+            name: 'Proyektor LED',
+            code: 'PRD-008',
+            category: 'Elektronik',
+            categoryClass: 'bg-blue-100 text-blue-800',
+            spec: '4000 Lumens, Full HD, HDMI & VGA',
+            image: 'https://via.placeholder.com/400x300',
+            date: '30 Juli 2025',
+            description: 'Proyektor LED dengan brightness 4000 lumens dan resolusi Full HD. Dilengkapi multiple input HDMI dan VGA untuk berbagai kebutuhan presentasi dan hiburan.'
+        },
+        9: {
+            name: 'Mesin Gerinda',
+            code: 'PRD-009',
+            category: 'Mesin',
+            categoryClass: 'bg-green-100 text-green-800',
+            spec: '4 inch, 580W, Variable Speed Control',
+            image: 'https://via.placeholder.com/400x300',
+            date: '28 Juli 2025',
+            description: 'Mesin gerinda 4 inch dengan motor 580W dan variable speed control. Cocok untuk berbagai aplikasi grinding, cutting, dan polishing dengan kontrol kecepatan yang presisi.'
+        },
+        10: {
+            name: 'Sofa Minimalis',
+            code: 'PRD-010',
+            category: 'Meubel',
+            categoryClass: 'bg-yellow-100 text-yellow-800',
+            spec: '3 Seater, Fabric Cover, Modern Design',
+            image: 'https://via.placeholder.com/400x300',
+            date: '26 Juli 2025',
+            description: 'Sofa minimalis 3 seater dengan cover fabric berkualitas tinggi. Design modern yang cocok untuk ruang tamu contemporary dengan kenyamanan duduk yang optimal.'
+        },
+        11: {
+            name: 'Monitor LED 24 inch',
+            code: 'PRD-011',
+            category: 'Elektronik',
+            categoryClass: 'bg-blue-100 text-blue-800',
+            spec: 'Full HD, IPS Panel, HDMI & VGA',
+            image: 'https://via.placeholder.com/400x300',
+            date: '24 Juli 2025',
+            description: 'Monitor LED 24 inch dengan panel IPS Full HD untuk akurasi warna yang excellent. Dilengkapi input HDMI dan VGA untuk fleksibilitas koneksi.'
+        },
+        12: {
+            name: 'Mesin Bor Listrik',
+            code: 'PRD-012',
+            category: 'Mesin',
+            categoryClass: 'bg-green-100 text-green-800',
+            spec: '13mm Chuck, 650W, Reversible Function',
+            image: 'https://via.placeholder.com/400x300',
+            date: '22 Juli 2025',
+            description: 'Mesin bor listrik dengan chuck 13mm dan motor 650W. Dilengkapi reversible function untuk drilling dan driving, cocok untuk berbagai aplikasi konstruksi dan woodworking.'
+        },
+        13: {
+            name: 'Rak Buku Kayu',
+            code: 'PRD-013',
+            category: 'Meubel',
+            categoryClass: 'bg-yellow-100 text-yellow-800',
+            spec: '5 Tingkat, Kayu Mahoni, 180x80x30cm',
+            image: 'https://via.placeholder.com/400x300',
+            date: '20 Juli 2025',
+            description: 'Rak buku 5 tingkat dari kayu mahoni berkualitas dengan dimensi 180x80x30cm. Konstruksi kokoh dengan finishing natural untuk penyimpanan buku dan dekorasi ruangan.'
+        },
+        14: {
+            name: 'Speaker Bluetooth',
+            code: 'PRD-014',
+            category: 'Elektronik',
+            categoryClass: 'bg-blue-100 text-blue-800',
+            spec: '50W RMS, Waterproof, 12 Hours Battery',
+            image: 'https://via.placeholder.com/400x300',
+            date: '18 Juli 2025',
+            description: 'Speaker Bluetooth portable 50W RMS dengan sertifikasi waterproof. Baterai tahan hingga 12 jam untuk penggunaan outdoor dan indoor yang fleksibel.'
+        },
+        15: {
+            name: 'Mesin Las Inverter',
+            code: 'PRD-015',
+            category: 'Mesin',
+            categoryClass: 'bg-green-100 text-green-800',
+            spec: '200A, IGBT Technology, Arc Force Control',
+            image: 'https://via.placeholder.com/400x300',
+            date: '16 Juli 2025',
+            description: 'Mesin las inverter 200A dengan teknologi IGBT untuk efisiensi tinggi. Dilengkapi arc force control untuk stabilitas arc yang optimal dalam berbagai kondisi pengelasan.'
+        }
+    };
+
+    function showProductDetail(productId) {
+        const product = products[productId];
+        if (!product) return;
+
+        // Update modal content
+        document.getElementById('modalProductTitle').textContent = product.name;
+        document.getElementById('modalProductName').textContent = product.name;
+        document.getElementById('modalProductCode').textContent = product.code;
+        document.getElementById('modalProductSpec').textContent = product.spec;
+        document.getElementById('modalProductImage').src = product.image;
+        document.getElementById('modalProductImage').alt = product.name;
+        document.getElementById('modalProductDescription').textContent = product.description;
+
+        // Update category badge
+        const categoryElement = document.getElementById('modalProductCategory');
+        categoryElement.textContent = product.category;
+        categoryElement.className = `inline-flex px-3 py-2 text-sm font-semibold rounded-xl shadow-lg backdrop-blur-sm ${product.categoryClass}`;
+
+        // Show modal with animation
+        const modal = document.getElementById('modalDetailProduk');
+        const modalContent = document.getElementById('modalContent');
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Animate modal appearance
+        setTimeout(() => {
+            modalContent.style.transform = 'scale(1)';
+            modalContent.style.opacity = '1';
+        }, 10);
     }
 
-    function editProduk(id) {
-        // Logic to show edit modal with sample data
-        const sampleData = {
-            no_produk: 'PRD-' + String(id).padStart(3, '0'),
-            nama_barang: id === 1 ? 'Laptop Dell Latitude 7420' : 
-                        id === 2 ? 'Mesin Bubut CNC' :
-                        id === 3 ? 'Meja Kerja Kayu Jati' :
-                        id === 4 ? 'Server HP ProLiant DL380' :
-                        'Kursi Kantor Ergonomis',
-            spesifikasi: id === 1 ? 'Intel i7, 16GB RAM, 512GB SSD' :
-                        id === 2 ? '3 Axis, Max 200mm chuck' :
-                        id === 3 ? '120x60x75cm, Kayu Jati Grade A' :
-                        id === 4 ? 'Intel Xeon, 32GB RAM, 2TB HDD' :
-                        'Bahan kulit sintetis, adjustable height',
-            jenis_barang: id === 1 || id === 4 ? 'Elektronik' : 
-                         id === 2 ? 'Mesin' : 'Meubel',
-            nilai_tkdn: id === 1 ? 25 : id === 2 ? 60 : id === 3 ? 85 : id === 4 ? 30 : 70,
-            gambar: 'https://via.placeholder.com/150'
-        };
-        
-        // Populate edit modal with sample data
-        populateEditForm(sampleData);
-        openModal('modalEditProduk');
+    // Enhanced modal close function
+    function closeModalDetail() {
+        const modal = document.getElementById('modalDetailProduk');
+        const modalContent = document.getElementById('modalContent');
+
+        // Animate modal disappearance
+        modalContent.style.transform = 'scale(0.95)';
+        modalContent.style.opacity = '0';
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
     }
 
-    function deleteProduk(id) {
-        // Logic to show delete confirmation modal with sample data
-        const sampleData = {
-            no_produk: 'PRD-' + String(id).padStart(3, '0'),
-            nama_barang: id === 1 ? 'Laptop Dell Latitude 7420' : 
-                        id === 2 ? 'Mesin Bubut CNC' :
-                        id === 3 ? 'Meja Kerja Kayu Jati' :
-                        id === 4 ? 'Server HP ProLiant DL380' :
-                        'Kursi Kantor Ergonomis',
-            gambar: 'https://via.placeholder.com/48'
-        };
-        
-        // Populate delete modal with sample data
-        populateDeleteModal(sampleData);
-        openModal('modalHapusProduk');
-    }
-
-    // Override the form submission handlers to show success messages
+    // Update close button onclick
     document.addEventListener('DOMContentLoaded', function() {
+        // Update all close modal calls for detail modal
+        const closeButtons = document.querySelectorAll('[onclick*="closeModal(\'modalDetailProduk\')"]');
+        closeButtons.forEach(button => {
+            button.setAttribute('onclick', 'closeModalDetail()');
+        });
+
+        // Close modal when clicking outside
+        const modal = document.getElementById('modalDetailProduk');
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModalDetail();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modalDetailProduk');
+                if (!modal.classList.contains('hidden')) {
+                    closeModalDetail();
+                }
+            }
+        });
+
+        // Initialize modal content styles
+        const modalContent = document.getElementById('modalContent');
+        modalContent.style.transform = 'scale(0.95)';
+        modalContent.style.opacity = '0';
+        modalContent.style.transition = 'all 0.3s ease-out';
+
         // Tambah Produk Form
         const formTambah = document.getElementById('formTambahProduk');
         if (formTambah) {
@@ -715,35 +766,6 @@
                 // In real app, you would send AJAX request here
             });
         }
-
-        // Edit Produk Form
-        const formEdit = document.getElementById('formEditProduk');
-        if (formEdit) {
-            formEdit.addEventListener('submit', function(e) {
-                e.preventDefault();
-                closeModal('modalEditProduk');
-                showSuccessModalWithAutoClose('Produk berhasil diperbarui!', 3000);
-                // In real app, you would send AJAX request here
-            });
-        }
     });
-
-    // Override the confirmDeleteProduct function
-    function confirmDeleteProduct() {
-        const checkbox = document.getElementById('confirmDelete');
-        if (!checkbox.checked) {
-            alert('Harap centang kotak konfirmasi terlebih dahulu.');
-            return;
-        }
-
-        // Close delete modal and show success
-        closeModal('modalHapusProduk');
-        showSuccessModalWithAutoClose('Produk berhasil dihapus!', 3000);
-        
-        // In real application, you would:
-        // 1. Send AJAX request to delete the product
-        // 2. Remove the product row from the table
-        // 3. Update the stats cards
-    }
 </script>
 @endpush
