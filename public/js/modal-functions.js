@@ -252,25 +252,508 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Format currency function
-function formatCurrency(amount) {
+// HPS Modal Functions for Kalkulasi
+
+/**
+ * Format number to Indonesian currency format
+ * @param {number} number - The number to format
+ * @returns {string} Formatted currency string
+ */
+function formatCurrency(number) {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(amount);
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(number);
 }
 
-// Parse currency function
-function parseCurrency(currencyString) {
-    return parseInt(currencyString.replace(/[^\d]/g, '')) || 0;
+/**
+ * Open HPS Modal with project data
+ * @param {string} projectId - Project ID
+ * @param {string} projectName - Project name
+ * @param {string} clientName - Client name
+ */
+function openHpsModal(projectId, projectName, clientName) {
+    // Set modal data
+    document.getElementById('modal-project-id').textContent = projectId;
+    document.getElementById('modal-project-name').textContent = projectName;
+    document.getElementById('modal-client-name').textContent = clientName;
+    
+    // Show modal
+    document.getElementById('hps-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Initialize calculations
+    setTimeout(() => {
+        calculateRow(1);
+        calculateRow(2);
+    }, 100);
 }
 
-// Confirm dialog function
-function confirmAction(message, callback) {
-    if (confirm(message)) {
-        callback();
+/**
+ * Close HPS Modal
+ */
+function closeHpsModal() {
+    document.getElementById('hps-modal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+/**
+ * Calculate row values based on inputs
+ * @param {number} rowNum - Row number to calculate
+ */
+function calculateRow(rowNum) {
+    const row = document.querySelector(`tr[data-row="${rowNum}"]`);
+    if (!row) return;
+
+    // Get input values
+    const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+    const hargaVendor = parseFloat(row.querySelector('.harga-vendor-input').value) || 0;
+    const diskonPersen = parseFloat(row.querySelector('.diskon-persen-input').value) || 0;
+    const persenKenaikan = parseFloat(row.querySelector('.kenaikan-input').value) || 0;
+    const paguPcs = parseFloat(row.querySelector('.pagu-pcs-input').value) || 0;
+    const nilaiSP = parseFloat(row.querySelector('.nilai-sp-input').value) || 0;
+    const ongkir = parseFloat(row.querySelector('.ongkir-input').value) || 0;
+    const dinas = parseFloat(row.querySelector('.dinas-input').value) || 0;
+    const bankCost = parseFloat(row.querySelector('.bank-cost-input').value) || 0;
+    const bendera = parseFloat(row.querySelector('.bendera-input').value) || 0;
+    const biayaOps = parseFloat(row.querySelector('.biaya-ops-input').value) || 0;
+
+    // Calculations based on your formula
+    // 1. Total Diskon = Harga Vendor × Qty × (Diskon% / 100)
+    const totalDiskon = hargaVendor * qty * (diskonPersen / 100);
+    
+    // 2. Total Harga = (Harga Vendor × Qty) - Total Diskon
+    const totalHarga = (hargaVendor * qty) - totalDiskon;
+    
+    // 3. Proyeksi Kenaikan = Total Harga × (Persen Kenaikan / 100)
+    const proyeksiKenaikan = totalHarga * (persenKenaikan / 100);
+    
+    // 4. DPP (setelah kenaikan) = Total Harga + Proyeksi Kenaikan
+    const dpp = totalHarga + proyeksiKenaikan;
+    
+    // 5. PPH 1.5% = DPP × 1.5%
+    const pph = dpp * 0.015;
+    
+    // 6. PPN 11% = DPP × 11%
+    const ppn = dpp * 0.11;
+    
+    // 7. HPS = DPP + PPN
+    const hps = dpp + ppn;
+    
+    // 8. Harga per PCS = HPS / Qty
+    const hargaPcs = qty > 0 ? hps / qty : 0;
+    
+    // 9. Pagu Total = Pagu per PCS × Qty
+    const paguTotal = paguPcs * qty;
+    
+    // 10. Selisih = Pagu Total - HPS
+    const selisih = paguTotal - hps;
+    
+    // 11. DPP Dinas = Nilai SP / 1.11 (karena SP sudah termasuk PPN)
+    const dppDinas = nilaiSP / 1.11;
+    
+    // 12. PPN Dinas = Nilai SP - DPP Dinas
+    const ppnDinas = nilaiSP - dppDinas;
+    
+    // 13. PPH Dinas = DPP Dinas × 1.5%
+    const pphDinas = dppDinas * 0.015;
+    
+    // 14. Asumsi Nilai Cair = Nilai SP - PPH Dinas
+    const asumsiCair = nilaiSP - pphDinas;
+    
+    // 15. Total Biaya = Ongkir + Dinas + Bank Cost + Bendera + Biaya Ops + Total Harga
+    const totalBiaya = ongkir + dinas + bankCost + bendera + biayaOps + totalHarga;
+    
+    // 16. Nett = Asumsi Nilai Cair - Total Biaya
+    const nett = asumsiCair - totalBiaya;
+    
+    // 17. Persentase Nett = (Nett / Asumsi Nilai Cair) × 100%
+    const persenNett = asumsiCair > 0 ? (nett / asumsiCair) * 100 : 0;
+
+    // Update display values
+    row.querySelector('.total-diskon-value').textContent = formatNumber(totalDiskon);
+    row.querySelector('.total-harga-value').textContent = formatNumber(totalHarga);
+    row.querySelector('.proyeksi-kenaikan-value').textContent = formatNumber(proyeksiKenaikan);
+    row.querySelector('.pph-value').textContent = formatNumber(pph);
+    row.querySelector('.ppn-value').textContent = formatNumber(ppn);
+    row.querySelector('.hps-value').textContent = formatNumber(hps);
+    row.querySelector('.harga-pcs-value').textContent = formatNumber(hargaPcs);
+    row.querySelector('.pagu-total-value').textContent = formatNumber(paguTotal);
+    row.querySelector('.selisih-value').textContent = formatNumber(selisih);
+    row.querySelector('.dpp-dinas-value').textContent = formatNumber(dppDinas);
+    row.querySelector('.ppn-dinas-value').textContent = formatNumber(ppnDinas);
+    row.querySelector('.pph-dinas-value').textContent = formatNumber(pphDinas);
+    row.querySelector('.asumsi-cair-value').textContent = formatNumber(asumsiCair);
+    row.querySelector('.nett-value').textContent = formatNumber(nett);
+    row.querySelector('.persen-nett-value').textContent = persenNett.toFixed(1) + '%';
+
+    // Update grand totals
+    updateGrandTotals();
+}
+
+/**
+ * Calculate total values and update summary
+ */
+function calculateTotal() {
+    updateGrandTotals();
+}
+
+/**
+ * Update grand totals in summary section
+ */
+function updateGrandTotals() {
+    const rows = document.querySelectorAll('.kalkulasi-row');
+    let totalHPS = 0;
+    let totalPagu = 0;
+    let totalSelisih = 0;
+    let totalAsumsiCair = 0;
+    let totalNett = 0;
+    let totalPersenNett = 0;
+    let validRows = 0;
+
+    rows.forEach(row => {
+        const hps = parseNumber(row.querySelector('.hps-value')?.textContent || '0');
+        const pagu = parseNumber(row.querySelector('.pagu-total-value')?.textContent || '0');
+        const selisih = parseNumber(row.querySelector('.selisih-value')?.textContent || '0');
+        const asumsiCair = parseNumber(row.querySelector('.asumsi-cair-value')?.textContent || '0');
+        const nett = parseNumber(row.querySelector('.nett-value')?.textContent || '0');
+        const persenNett = parseFloat(row.querySelector('.persen-nett-value')?.textContent?.replace('%', '') || '0');
+
+        totalHPS += hps;
+        totalPagu += pagu;
+        totalSelisih += selisih;
+        totalAsumsiCair += asumsiCair;
+        totalNett += nett;
+        totalPersenNett += persenNett;
+        validRows++;
+    });
+
+    const avgPersenNett = validRows > 0 ? totalPersenNett / validRows : 0;
+
+    // Update summary cards
+    updateElementIfExists('grand-total-hps', formatCurrency(totalHPS));
+    updateElementIfExists('grand-total-pagu', formatCurrency(totalPagu));
+    updateElementIfExists('grand-total-selisih', formatCurrency(totalSelisih));
+    updateElementIfExists('grand-total-cair', formatCurrency(totalAsumsiCair));
+    updateElementIfExists('grand-total-nett', formatCurrency(totalNett));
+    updateElementIfExists('grand-avg-nett', avgPersenNett.toFixed(1) + '%');
+
+    // Update the original summary cards
+    updateElementIfExists('total-hpp', formatCurrency(totalHPS));
+    updateElementIfExists('total-penawaran', formatCurrency(totalHPS));
+    updateElementIfExists('total-margin', formatCurrency(totalSelisih));
+    updateElementIfExists('nilai-nett', formatCurrency(totalNett));
+}
+
+/**
+ * Parse number from formatted text
+ * @param {string} text - Formatted number text
+ * @returns {number} - Parsed number
+ */
+function parseNumber(text) {
+    return parseFloat(text.replace(/[^\d.-]/g, '')) || 0;
+}
+
+/**
+ * Format number with thousand separators
+ * @param {number} num - Number to format
+ * @returns {string} - Formatted number
+ */
+function formatNumber(num) {
+    return Math.round(num).toLocaleString('id-ID');
+}
+
+/**
+ * Update element text content if element exists
+ * @param {string} id - Element ID
+ * @param {string} content - Content to set
+ */
+function updateElementIfExists(id, content) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.textContent = content;
     }
+}
+
+/**
+ * Update vendor information when vendor is selected
+ * @param {HTMLSelectElement} selectElement - The select element
+ * @param {number} rowNum - Row number
+ */
+function updateVendorInfo(selectElement, rowNum) {
+    const selectedValue = selectElement.value;
+    if (selectedValue) {
+        const [product, vendor, price] = selectedValue.split('|');
+        const row = document.querySelector(`tr[data-row="${rowNum}"]`);
+        
+        if (row) {
+            const vendorNameElement = row.querySelector('.vendor-name');
+            const hargaVendorElement = row.querySelector('.harga-vendor-input');
+            
+            if (vendorNameElement) vendorNameElement.textContent = vendor;
+            if (hargaVendorElement) hargaVendorElement.value = price;
+            
+            calculateRow(rowNum);
+        }
+    }
+}
+
+/**
+ * Update client request information when client request is selected
+ * @param {HTMLSelectElement} selectElement - The select element
+ * @param {number} rowNum - Row number
+ */
+function updateClientRequest(selectElement, rowNum) {
+    const selectedValue = selectElement.value;
+    if (selectedValue) {
+        const [itemName, qty, targetPrice] = selectedValue.split('|');
+        const row = document.querySelector(`tr[data-row="${rowNum}"]`);
+        
+        if (row) {
+            const qtyInput = row.querySelector('.qty-input');
+            
+            if (qtyInput) {
+                qtyInput.value = qty;
+            }
+            
+            // You can add more logic here to compare with vendor price
+            // and show alerts if vendor price is higher than target price
+            
+            calculateRow(rowNum);
+        }
+    }
+}
+
+/**
+ * Update client request information when client request is selected
+ * @param {HTMLSelectElement} selectElement - The select element
+ * @param {number} rowNumber - Row number
+ */
+function updateClientRequest(selectElement, rowNumber) {
+    const value = selectElement.value;
+    const row = document.querySelector(`tr[data-row="${rowNumber}"]`);
+    
+    if (value && row) {
+        const [itemName, qty, targetPrice] = value.split('|');
+        
+        // Update quantity input with client request quantity
+        const qtyInput = row.querySelector('.qty-input');
+        if (qtyInput) {
+            qtyInput.value = qty;
+        }
+        
+        // You can add more logic here to compare with vendor price
+        // and show alerts if vendor price is higher than target price
+        
+        // Recalculate the row
+        calculateRow(rowNumber);
+    }
+}
+
+/**
+ * Update barang information when barang is selected
+ * @param {HTMLSelectElement} selectElement - The select element
+ * @param {number} rowNum - Row number
+ */
+function updateBarang(selectElement, rowNum) {
+    const selectedValue = selectElement.value;
+    if (selectedValue) {
+        // You can add logic here to update related fields when barang is changed
+        calculateRow(rowNum);
+    }
+}
+
+/**
+ * Add new row to the calculation table
+ */
+function addNewRow() {
+    if (typeof window.hpsRowCounter === 'undefined') {
+        window.hpsRowCounter = 2;
+    }
+    
+    window.hpsRowCounter++;
+    const tbody = document.getElementById('kalkulasi-table-body');
+    
+    if (!tbody) return;
+    
+    const newRow = document.createElement('tr');
+    newRow.className = 'kalkulasi-row';
+    newRow.setAttribute('data-row', window.hpsRowCounter);
+    
+    newRow.innerHTML = `
+        <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200">${window.hpsRowCounter}</td>
+        <td class="px-2 py-3 border-r border-gray-200">
+            <select class="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="updateClientRequest(this, ${window.hpsRowCounter})">
+                <option value="">Pilih Permintaan Klien</option>
+                <option value="meja-kayu|10|250000">Meja Kayu (Qty: 10, Target: Rp 250,000)</option>
+                <option value="meja-besi|5|300000">Meja Besi (Qty: 5, Target: Rp 300,000)</option>
+                <option value="kursi-kantor|15|400000">Kursi Kantor (Qty: 15, Target: Rp 400,000)</option>
+                <option value="kursi-rapat|20|350000">Kursi Rapat (Qty: 20, Target: Rp 350,000)</option>
+                <option value="komputer-desktop|8|8000000">Komputer Desktop (Qty: 8, Target: Rp 8,000,000)</option>
+                <option value="printer-laser|3|2000000">Printer Laser (Qty: 3, Target: Rp 2,000,000)</option>
+                <option value="lemari-arsip|12|500000">Lemari Arsip (Qty: 12, Target: Rp 500,000)</option>
+            </select>
+        </td>
+        <td class="px-2 py-3 border-r border-gray-200">
+            <select class="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="updateVendorInfo(this, ${window.hpsRowCounter})">
+                <option value="">Pilih Barang Vendor</option>
+                <option value="meja-a|PT XYZ|30000">Meja A - PT XYZ</option>
+                <option value="meja-b|PT ABC|35000">Meja B - PT ABC</option>
+                <option value="kursi-a|PT ABC|450000">Kursi Executive A - PT ABC</option>
+                <option value="kursi-b|PT XYZ|480000">Kursi Executive B - PT XYZ</option>
+                <option value="komputer-a|PT DEF|8500000">Komputer Desktop A - PT DEF</option>
+                <option value="printer-a|CV GHI|2500000">Printer Laser A - CV GHI</option>
+            </select>
+        </td>
+        <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200 vendor-name">-</td>
+        <td class="px-2 py-3 border-r border-gray-200">
+            <input type="number" value="1" min="1" class="qty-input w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="calculateRow(${window.hpsRowCounter})">
+        </td>
+        <td class="px-2 py-3 border-r border-gray-200">
+            <input type="number" value="0" min="0" class="harga-vendor-input w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="calculateRow(${window.hpsRowCounter})">
+        </td>
+        <td class="px-2 py-3 border-r border-gray-200">
+            <input type="number" value="0" min="0" max="100" step="0.1" class="diskon-input w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="calculateRow(${window.hpsRowCounter})">
+        </td>
+        <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200 hpp-value">Rp 0</td>
+        <td class="px-2 py-3 border-r border-gray-200">
+            <input type="number" value="0" min="0" max="1000" step="0.1" class="kenaikan-input w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="calculateRow(${window.hpsRowCounter})">
+        </td>
+        <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200 dpp-jual-value">Rp 0</td>
+        <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200 pph-value">Rp 0</td>
+        <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200 ppn-value">Rp 0</td>
+        <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200 font-semibold harga-penawaran-value">Rp 0</td>
+        <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200 margin-value">Rp 0</td>
+        <td class="px-2 py-3 text-sm">
+            <button onclick="deleteRow(${window.hpsRowCounter})" class="text-red-600 hover:text-red-800">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    tbody.appendChild(newRow);
+}
+
+/**
+ * Delete a row from the calculation table
+ * @param {number} rowNum - Row number to delete
+ */
+function deleteRow(rowNum) {
+    const row = document.querySelector(`tr[data-row="${rowNum}"]`);
+    if (row && confirm('Apakah Anda yakin ingin menghapus item ini?')) {
+        row.remove();
+        calculateTotal();
+        updateRowNumbers();
+    }
+}
+
+/**
+ * Update row numbers after deletion
+ */
+function updateRowNumbers() {
+    const rows = document.querySelectorAll('.kalkulasi-row');
+    rows.forEach((row, index) => {
+        const firstCell = row.querySelector('td:first-child');
+        if (firstCell) {
+            firstCell.textContent = index + 1;
+        }
+    });
+}
+
+/**
+ * Save calculation data
+ */
+function saveKalkulasi() {
+    // Collect all data from the form
+    const projectId = document.getElementById('modal-project-id')?.textContent;
+    const data = {
+        project_id: projectId,
+        items: [],
+        additional_costs: {
+            ongkir: parseFloat(document.getElementById('ongkir')?.value) || 0,
+            biaya_operasional: parseFloat(document.getElementById('biaya-operasional')?.value) || 0,
+            bank_cost: parseFloat(document.getElementById('bank-cost')?.value) || 0,
+            biaya_lain: parseFloat(document.getElementById('biaya-lain')?.value) || 0
+        },
+        pagu_dinas: parseFloat(document.getElementById('pagu-dinas')?.value) || 0
+    };
+
+    // Collect row data
+    document.querySelectorAll('.kalkulasi-row').forEach(row => {
+        const item = {
+            barang_diminta: row.querySelector('input[type="text"]')?.value || '',
+            barang_vendor: row.querySelector('select')?.selectedOptions[0]?.text || '',
+            vendor: row.querySelector('.vendor-name')?.textContent || '',
+            qty: parseFloat(row.querySelector('.qty-input')?.value) || 0,
+            harga_vendor: parseFloat(row.querySelector('.harga-vendor-input')?.value) || 0,
+            diskon: parseFloat(row.querySelector('.diskon-input')?.value) || 0,
+            kenaikan: parseFloat(row.querySelector('.kenaikan-input')?.value) || 0,
+            hpp: parseFloat(row.querySelector('.hpp-value')?.textContent.replace(/[^\d]/g, '')) || 0,
+            dpp_jual: parseFloat(row.querySelector('.dpp-jual-value')?.textContent.replace(/[^\d]/g, '')) || 0,
+            pph: parseFloat(row.querySelector('.pph-value')?.textContent.replace(/[^\d]/g, '')) || 0,
+            ppn: parseFloat(row.querySelector('.ppn-value')?.textContent.replace(/[^\d]/g, '')) || 0,
+            harga_penawaran: parseFloat(row.querySelector('.harga-penawaran-value')?.textContent.replace(/[^\d]/g, '')) || 0,
+            margin: parseFloat(row.querySelector('.margin-value')?.textContent.replace(/[^\d]/g, '')) || 0
+        };
+        data.items.push(item);
+    });
+
+    // Here you would typically send the data to the server
+    console.log('Saving data:', data);
+    
+    // Simulate API call
+    alert('Kalkulasi berhasil disimpan!');
+}
+
+/**
+ * Export calculation to Excel
+ */
+function exportToExcel() {
+    const projectId = document.getElementById('modal-project-id')?.textContent;
+    const projectName = document.getElementById('modal-project-name')?.textContent;
+    
+    // Here you would typically generate and download an Excel file
+    console.log('Exporting to Excel for project:', projectId);
+    alert(`Export Excel untuk proyek "${projectName}" sedang diproses...`);
+}
+
+// Initialize HPS functions
+if (typeof window.hpsInitialized === 'undefined') {
+    window.hpsInitialized = true;
+    window.hpsRowCounter = 2;
+    
+    // Add event listeners when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('hps-modal');
+            const modalContent = document.getElementById('hps-modal-content');
+            
+            if (modal && !modal.classList.contains('hidden') && modalContent && !modalContent.contains(event.target)) {
+                closeHpsModal();
+            }
+        });
+
+        // Prevent modal from closing when clicking inside modal content
+        const modalContent = document.getElementById('hps-modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        }
+
+        // ESC key to close modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('hps-modal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    closeHpsModal();
+                }
+            }
+        });
+    });
 }
 
 // Auto initialize when DOM is loaded

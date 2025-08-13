@@ -101,7 +101,7 @@
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="text-lg font-semibold text-gray-800 flex items-center">
                             <i class="fas fa-boxes text-red-600 mr-2"></i>
-                            Daftar Barang/Jasa
+                            Daftar Barang
                         </h4>
                         <button type="button" onclick="tambahBarang()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center">
                             <i class="fas fa-plus mr-2"></i>
@@ -121,7 +121,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
-                                    <input type="text" name="barang[0][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Nama barang/jasa">
+                                    <input type="text" name="barang[0][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Nama barang">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
