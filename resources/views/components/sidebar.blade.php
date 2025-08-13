@@ -68,6 +68,13 @@
                             <span class="font-medium">Potensi</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('marketing.penawaran') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.penawaran') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-file-contract w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Penawaran</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 
@@ -158,6 +165,15 @@
                    class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('produk') ? 'bg-red-200 text-red-800' : '' }}">
                     <i class="fas fa-box w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
                     <span class="font-medium">Produk</span>
+                </a>
+            </li>
+
+            <!-- Pengelolaan Akun -->
+            <li>
+                <a href="{{ route('pengelolaan.akun') }}"
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengelolaan.akun') ? 'bg-red-200 text-red-800' : '' }}">
+                    <i class="fas fa-users-cog w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="font-medium">Pengelolaan Akun</span>
                 </a>
             </li>
         </ul>
@@ -263,6 +279,13 @@
                             <span class="font-medium">Potensi</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('marketing.penawaran') }}" onclick="closeMobileMenu()"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.penawaran') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-file-contract w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Penawaran</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 
@@ -353,6 +376,15 @@
                    class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('produk') ? 'bg-red-200 text-red-800' : '' }}">
                     <i class="fas fa-box w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
                     <span class="font-medium">Produk</span>
+                </a>
+            </li>
+
+            <!-- Pengelolaan Akun -->
+            <li>
+                <a href="{{ route('pengelolaan.akun') }}" onclick="closeMobileMenu()"
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengelolaan.akun') ? 'bg-red-200 text-red-800' : '' }}">
+                    <i class="fas fa-users-cog w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="font-medium">Pengelolaan Akun</span>
                 </a>
             </li>
         </ul>

@@ -35,6 +35,10 @@ Route::prefix('marketing')->group(function () {
     Route::get('/potensi', function () {
         return view('pages.marketing.potensi');
     })->name('marketing.potensi');
+
+    Route::get('/penawaran', function () {
+        return view('pages.marketing.penawaran');
+    })->name('marketing.penawaran');
 });
 
 // Purchasing Routes
@@ -78,6 +82,10 @@ Route::prefix('keuangan')->group(function () {
     Route::get('/produk', function () {
         return view('pages.produk');
     })->name('produk');
+
+    Route::get('/pengelolaan-akun', function () {
+        return view('pages.pengelolaan-akun');
+    })->name('pengelolaan.akun');
 
     Route::get('/pengaturan', function () {
         return view('pages.pengaturan');
