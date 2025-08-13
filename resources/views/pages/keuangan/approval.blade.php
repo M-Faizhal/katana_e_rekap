@@ -1,110 +1,127 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Approval Pembayaran</h1>
-    <p class="text-gray-600">Kelola dan approve permintaan pembayaran</p>
+<!-- Header Section -->
+<div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Approval Pembayaran</h1>
+            <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola dan approve permintaan pembayaran</p>
+        </div>
+        <div class="hidden sm:block lg:block">
+            <i class="fas fa-clipboard-check text-3xl sm:text-4xl lg:text-6xl"></i>
+        </div>
+    </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500">Pending Approval</p>
-                <p class="text-2xl font-bold text-yellow-600">15</p>
-                <p class="text-sm text-yellow-500">
+<!-- Stats Cards -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-hourglass-half text-yellow-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Menunggu Persetujuan</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">15</p>
+                <p class="text-xs sm:text-sm text-yellow-500">
                     <i class="fas fa-clock"></i> Menunggu
                 </p>
             </div>
-            <div class="p-3 bg-yellow-100 rounded-full">
-                <i class="fas fa-hourglass-half text-yellow-600 text-xl"></i>
-            </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500">Approved Today</p>
-                <p class="text-2xl font-bold text-green-600">8</p>
-                <p class="text-sm text-green-500">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-check-circle text-green-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Disetujui Hari Ini</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">8</p>
+                <p class="text-xs sm:text-sm text-green-500">
                     <i class="fas fa-arrow-up"></i> +2 dari kemarin
                 </p>
             </div>
-            <div class="p-3 bg-green-100 rounded-full">
-                <i class="fas fa-check-circle text-green-600 text-xl"></i>
-            </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500">Rejected Today</p>
-                <p class="text-2xl font-bold text-red-600">2</p>
-                <p class="text-sm text-red-500">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-times-circle text-red-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Ditolak Hari Ini</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">2</p>
+                <p class="text-xs sm:text-sm text-red-500">
                     <i class="fas fa-times-circle"></i> Ditolak
                 </p>
             </div>
-            <div class="p-3 bg-red-100 rounded-full">
-                <i class="fas fa-times-circle text-red-600 text-xl"></i>
-            </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500">Total Amount</p>
-                <p class="text-2xl font-bold text-blue-600">Rp 125M</p>
-                <p class="text-sm text-blue-500">
-                    <i class="fas fa-money-bill-wave"></i> Pending
-                </p>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-money-bill-wave text-blue-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
-            <div class="p-3 bg-blue-100 rounded-full">
-                <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Nominal</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp 125M</p>
+                <p class="text-xs sm:text-sm text-blue-500">
+                    <i class="fas fa-money-bill-wave"></i> Menunggu
+                </p>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Filter and Search -->
-<div class="bg-white rounded-lg shadow-md mb-6">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            <h3 class="text-lg font-semibold text-gray-800">Filter Pembayaran</h3>
-            <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
-                <select class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+<div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
+    <div class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50">
+        <div class="flex flex-col lg:flex-row gap-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" placeholder="Cari pembayaran..." class="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <select class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
                     <option>Semua Status</option>
-                    <option>Pending</option>
-                    <option>Approved</option>
-                    <option>Rejected</option>
+                    <option>Menunggu</option>
+                    <option>Disetujui</option>
+                    <option>Ditolak</option>
                 </select>
-                <select class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                <select class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
                     <option>Semua Departemen</option>
-                    <option>Marketing</option>
-                    <option>Purchasing</option>
-                    <option>Operations</option>
-                    <option>HR</option>
+                    <option>Pemasaran</option>
+                    <option>Pembelian</option>
+                    <option>Operasional</option>
+                    <option>SDM</option>
                 </select>
-                <input type="text" placeholder="Cari pembayaran..." class="px-3 py-2 border border-gray-300 rounded-md text-sm">
             </div>
         </div>
     </div>
 </div>
 
 <!-- Payment Requests Table -->
-<div class="bg-white rounded-lg shadow-md">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-800">Permintaan Pembayaran</h3>
-        <div class="flex space-x-2">
-            <button class="bg-gray-100 text-gray-600 px-4 py-2 rounded-md hover:bg-gray-200 text-sm">
-                <i class="fas fa-download mr-2"></i>Export
-            </button>
-            <button class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm">
-                <i class="fas fa-plus mr-2"></i>Tambah Request
-            </button>
+<div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-20">
+    <div class="p-4 sm:p-6 border-b border-gray-200">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-lg sm:text-xl font-bold text-gray-800">Permintaan Pembayaran</h2>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Kelola semua permintaan pembayaran yang masuk</p>
+            </div>
+            <div class="flex space-x-2">
+                <button class="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg sm:rounded-xl hover:bg-gray-200 text-sm transition-colors">
+                    <i class="fas fa-download mr-2"></i>Export
+                </button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded-lg sm:rounded-xl hover:bg-red-700 text-sm transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Tambah Request
+                </button>
+            </div>
         </div>
     </div>
     <div class="overflow-x-auto">
@@ -114,14 +131,14 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <input type="checkbox" class="rounded border-gray-300 text-red-600">
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Permintaan</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pemohon</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departemen</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Request</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Permintaan</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -131,24 +148,24 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#PAY-001</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Ahmad Rizki</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Marketing</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Pembayaran vendor printing</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Pemasaran</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Pembayaran vendor percetakan</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rp 5,500,000</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">10 Agustus 2024</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Pending
+                            Menunggu
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
-                            <button onclick="openReviewModal('PAY-001', 'Ahmad Rizki', 'Marketing', 'Rp 5,500,000', 'Pembayaran vendor printing untuk kebutuhan marketing campaign Q3 2024', '10 Agustus 2024', '15 Agustus 2024')" class="text-blue-600 hover:text-blue-900" title="Review Documents">
+                            <button onclick="openReviewModal('PAY-001', 'Ahmad Rizki', 'Pemasaran', 'Rp 5,500,000', 'Pembayaran vendor percetakan untuk kebutuhan kampanye pemasaran Q3 2024', '10 Agustus 2024', '15 Agustus 2024')" class="text-blue-600 hover:text-blue-900" title="Tinjau Dokumen">
                                 <i class="fas fa-file-alt"></i>
                             </button>
-                            <button onclick="quickApprove('PAY-001')" class="text-green-600 hover:text-green-900" title="Quick Approve">
+                            <button onclick="quickApprove('PAY-001')" class="text-green-600 hover:text-green-900" title="Setujui Cepat">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <button onclick="quickReject('PAY-001')" class="text-red-600 hover:text-red-900" title="Quick Reject">
+                            <button onclick="quickReject('PAY-001')" class="text-red-600 hover:text-red-900" title="Tolak Cepat">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -160,21 +177,21 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#PAY-002</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Siti Nurhaliza</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Purchasing</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Pembayaran supplier bahan baku</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Pembelian</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Pembayaran pemasok bahan baku</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rp 25,000,000</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">9 Agustus 2024</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Approved
+                            Disetujui
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
-                            <button class="text-blue-600 hover:text-blue-900" title="View Details">
+                            <button class="text-blue-600 hover:text-blue-900" title="Lihat Detail">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="text-gray-600 hover:text-gray-900" title="Print">
+                            <button class="text-gray-600 hover:text-gray-900" title="Cetak">
                                 <i class="fas fa-print"></i>
                             </button>
                         </div>
@@ -186,24 +203,24 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#PAY-003</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Budi Santoso</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Operations</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Maintenance equipment</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Operasional</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Pemeliharaan peralatan</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rp 12,750,000</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">8 Agustus 2024</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Pending
+                            Menunggu
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
-                            <button onclick="openReviewModal('PAY-003', 'Budi Santoso', 'Operations', 'Rp 12,750,000', 'Maintenance equipment untuk mesin produksi utama', '8 Agustus 2024', '13 Agustus 2024')" class="text-blue-600 hover:text-blue-900" title="Review Documents">
+                            <button onclick="openReviewModal('PAY-003', 'Budi Santoso', 'Operasional', 'Rp 12,750,000', 'Pemeliharaan peralatan untuk mesin produksi utama', '8 Agustus 2024', '13 Agustus 2024')" class="text-blue-600 hover:text-blue-900" title="Tinjau Dokumen">
                                 <i class="fas fa-file-alt"></i>
                             </button>
-                            <button onclick="quickApprove('PAY-003')" class="text-green-600 hover:text-green-900" title="Quick Approve">
+                            <button onclick="quickApprove('PAY-003')" class="text-green-600 hover:text-green-900" title="Setujui Cepat">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <button onclick="quickReject('PAY-003')" class="text-red-600 hover:text-red-900" title="Quick Reject">
+                            <button onclick="quickReject('PAY-003')" class="text-red-600 hover:text-red-900" title="Tolak Cepat">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -215,21 +232,21 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#PAY-004</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Linda Wijaya</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">HR</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Reimburse training karyawan</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">SDM</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Ganti rugi pelatihan karyawan</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rp 3,250,000</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">7 Agustus 2024</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                            Rejected
+                            Ditolak
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
-                            <button class="text-blue-600 hover:text-blue-900" title="View Details">
+                            <button class="text-blue-600 hover:text-blue-900" title="Lihat Detail">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="text-orange-600 hover:text-orange-900" title="Resubmit">
+                            <button class="text-orange-600 hover:text-orange-900" title="Kirim Ulang">
                                 <i class="fas fa-redo"></i>
                             </button>
                         </div>
@@ -243,32 +260,34 @@
     <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
         <div class="flex items-center">
             <p class="text-sm text-gray-700">
-                Showing <span class="font-medium">1</span> to <span class="font-medium">4</span> of <span class="font-medium">25</span> results
+                Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">4</span> dari <span class="font-medium">25</span> hasil
             </p>
         </div>
         <div class="flex items-center space-x-2">
-            <button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">Previous</button>
+            <button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">Sebelumnya</button>
             <button class="px-3 py-1 border border-red-300 rounded-md text-sm bg-red-50 text-red-600">1</button>
             <button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">2</button>
             <button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">3</button>
-            <button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">Next</button>
+            <button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">Selanjutnya</button>
         </div>
     </div>
 </div>
 
 <!-- Bulk Actions -->
-<div class="mt-6 bg-white rounded-lg shadow-md p-6">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">Bulk Actions</h3>
-    <div class="flex flex-wrap gap-4">
-        <button class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm">
-            <i class="fas fa-check mr-2"></i>Approve Selected
-        </button>
-        <button class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm">
-            <i class="fas fa-times mr-2"></i>Reject Selected
-        </button>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">
-            <i class="fas fa-download mr-2"></i>Export Selected
-        </button>
+<div class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 lg:bottom-16 lg:right-16 z-40">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-100 p-4 sm:p-6">
+        <h3 class="text-sm sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Aksi Massal</h3>
+        <div class="flex flex-col space-y-2 sm:space-y-3">
+            <button class="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 text-xs sm:text-sm transition-colors">
+                <i class="fas fa-check mr-1 sm:mr-2"></i>Setujui yang Dipilih
+            </button>
+            <button class="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 text-xs sm:text-sm transition-colors">
+                <i class="fas fa-times mr-1 sm:mr-2"></i>Tolak yang Dipilih
+            </button>
+            <button class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 text-xs sm:text-sm transition-colors">
+                <i class="fas fa-download mr-1 sm:mr-2"></i>Ekspor yang Dipilih
+            </button>
+        </div>
     </div>
 </div>
 
@@ -280,25 +299,25 @@
 const documentsData = {
     'PAY-001': {
         purchasing: [
-            { name: 'Purchase Order', file: 'PO-2024-0815-001.pdf', image: 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Purchase+Order', date: '10 Aug 2024' },
-            { name: 'Invoice Vendor', file: 'INV-VND-2024-001.pdf', image: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Invoice+Vendor', date: '10 Aug 2024' },
-            { name: 'Bukti Penerimaan', file: 'BPB-2024-0815-001.pdf', image: 'https://via.placeholder.com/400x300/DC2626/FFFFFF?text=Bukti+Penerimaan', date: '11 Aug 2024' }
+            { name: 'Order Pembelian', file: 'PO-2024-0815-001.pdf', image: 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Order+Pembelian', date: '10 Agu 2024' },
+            { name: 'Invoice Vendor', file: 'INV-VND-2024-001.pdf', image: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Invoice+Vendor', date: '10 Agu 2024' },
+            { name: 'Bukti Penerimaan', file: 'BPB-2024-0815-001.pdf', image: 'https://via.placeholder.com/400x300/DC2626/FFFFFF?text=Bukti+Penerimaan', date: '11 Agu 2024' }
         ],
         marketing: [
-            { name: 'Budget Approval', file: 'BUDGET-Q3-2024.pdf', image: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Budget+Approval', date: '9 Aug 2024' },
-            { name: 'Campaign Brief', file: 'BRIEF-Q3-CAMPAIGN.pdf', image: 'https://via.placeholder.com/400x300/8B5CF6/FFFFFF?text=Campaign+Brief', date: '8 Aug 2024' },
-            { name: 'Cost Breakdown', file: 'COST-BREAKDOWN-Q3.xlsx', image: 'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Cost+Breakdown', date: '11 Aug 2024' }
+            { name: 'Persetujuan Anggaran', file: 'BUDGET-Q3-2024.pdf', image: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Persetujuan+Anggaran', date: '9 Agu 2024' },
+            { name: 'Brief Kampanye', file: 'BRIEF-Q3-CAMPAIGN.pdf', image: 'https://via.placeholder.com/400x300/8B5CF6/FFFFFF?text=Brief+Kampanye', date: '8 Agu 2024' },
+            { name: 'Rincian Biaya', file: 'COST-BREAKDOWN-Q3.xlsx', image: 'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Rincian+Biaya', date: '11 Agu 2024' }
         ]
     },
     'PAY-003': {
         purchasing: [
-            { name: 'Purchase Order', file: 'PO-2024-0808-003.pdf', image: 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Maintenance+PO', date: '8 Aug 2024' },
-            { name: 'Service Invoice', file: 'INV-SRV-2024-003.pdf', image: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Service+Invoice', date: '8 Aug 2024' },
-            { name: 'Work Completion', file: 'WC-2024-0808-003.pdf', image: 'https://via.placeholder.com/400x300/DC2626/FFFFFF?text=Work+Complete', date: '8 Aug 2024' }
+            { name: 'Order Pembelian', file: 'PO-2024-0808-003.pdf', image: 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Pemeliharaan+PO', date: '8 Agu 2024' },
+            { name: 'Invoice Layanan', file: 'INV-SRV-2024-003.pdf', image: 'https://via.placeholder.com/400x300/059669/FFFFFF?text=Invoice+Layanan', date: '8 Agu 2024' },
+            { name: 'Penyelesaian Kerja', file: 'WC-2024-0808-003.pdf', image: 'https://via.placeholder.com/400x300/DC2626/FFFFFF?text=Kerja+Selesai', date: '8 Agu 2024' }
         ],
         marketing: [
-            { name: 'Operational Budget', file: 'OP-BUDGET-2024.pdf', image: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Operational+Budget', date: '7 Aug 2024' },
-            { name: 'Equipment Report', file: 'EQ-REPORT-2024.pdf', image: 'https://via.placeholder.com/400x300/8B5CF6/FFFFFF?text=Equipment+Report', date: '6 Aug 2024' }
+            { name: 'Anggaran Operasional', file: 'OP-BUDGET-2024.pdf', image: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Anggaran+Operasional', date: '7 Agu 2024' },
+            { name: 'Laporan Peralatan', file: 'EQ-REPORT-2024.pdf', image: 'https://via.placeholder.com/400x300/8B5CF6/FFFFFF?text=Laporan+Peralatan', date: '6 Agu 2024' }
         ]
     }
 };
@@ -433,7 +452,7 @@ function approvePayment() {
     const allChecked = requiredChecks.every(id => document.getElementById(id).checked);
 
     if (!allChecked) {
-        alert('Silakan centang semua item checklist sebelum melakukan approval.');
+        alert('Silakan centang semua item checklist sebelum melakukan persetujuan.');
         return;
     }
 
@@ -496,23 +515,23 @@ function updateRowStatus(requestId, status) {
 
             if (status === 'approved') {
                 statusCell.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800';
-                statusCell.textContent = 'Approved';
+                statusCell.textContent = 'Disetujui';
                 actionCell.innerHTML = `
-                    <button class="text-blue-600 hover:text-blue-900" title="View Details">
+                    <button class="text-blue-600 hover:text-blue-900" title="Lihat Detail">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="text-gray-600 hover:text-gray-900" title="Print">
+                    <button class="text-gray-600 hover:text-gray-900" title="Cetak">
                         <i class="fas fa-print"></i>
                     </button>
                 `;
             } else if (status === 'rejected') {
                 statusCell.className = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800';
-                statusCell.textContent = 'Rejected';
+                statusCell.textContent = 'Ditolak';
                 actionCell.innerHTML = `
-                    <button class="text-blue-600 hover:text-blue-900" title="View Details">
+                    <button class="text-blue-600 hover:text-blue-900" title="Lihat Detail">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="text-orange-600 hover:text-orange-900" title="Resubmit">
+                    <button class="text-orange-600 hover:text-orange-900" title="Kirim Ulang">
                         <i class="fas fa-redo"></i>
                     </button>
                 `;
