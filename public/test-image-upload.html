@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Image Upload - Vendor Modal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Test Image Upload Functionality</h1>
+
+        <!-- Vendor Image Upload Test -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Vendor Image Upload</h2>
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-red-400 transition-colors">
+                <div class="space-y-1 text-center">
+                    <div id="vendorImagePreviewContainer" class="mb-4 hidden">
+                        <img id="vendorImagePreview" src="" alt="Preview" class="mx-auto h-32 w-32 object-cover rounded-lg shadow-md">
+                    </div>
+                    <div id="vendorUploadPrompt">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <div class="flex text-sm text-gray-600">
+                            <label for="testVendorImage" class="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-red-500">
+                                <span>Upload foto/logo</span>
+                                <input id="testVendorImage" type="file" class="sr-only" accept="image/*" onchange="previewImage(this, 'vendorImagePreview', 'vendorImagePreviewContainer', 'vendorUploadPrompt')">
+                            </label>
+                            <p class="pl-1">atau drag and drop</p>
+                        </div>
+                        <p class="text-xs text-gray-500">PNG, JPG, GIF hingga 5MB</p>
+                    </div>
+                    <div class="mt-2 hidden" id="removeVendorImageBtn">
+                        <button type="button" onclick="removeImage('vendorImagePreview', 'vendorImagePreviewContainer', 'vendorUploadPrompt', 'testVendorImage')" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                            <i class="fas fa-trash mr-1"></i>Hapus Gambar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Image Upload Test -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Product Image Upload</h2>
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-red-400 transition-colors">
+                <div class="space-y-1 text-center">
+                    <div id="productImagePreviewContainer" class="mb-4 hidden">
+                        <img id="productImagePreview" src="" alt="Preview" class="mx-auto h-24 w-24 object-cover rounded-lg shadow-md">
+                    </div>
+                    <div id="productUploadPrompt">
+                        <svg class="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <div class="flex text-sm text-gray-600">
+                            <label for="testProductImage" class="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-red-500">
+                                <span>Upload gambar</span>
+                                <input id="testProductImage" type="file" class="sr-only" accept="image/*" onchange="previewImage(this, 'productImagePreview', 'productImagePreviewContainer', 'productUploadPrompt')">
+                            </label>
+                            <p class="pl-1">atau drag and drop</p>
+                        </div>
+                        <p class="text-xs text-gray-500">PNG, JPG, GIF hingga 5MB</p>
+                    </div>
+                    <div class="mt-2 hidden" id="removeProductImageBtn">
+                        <button type="button" onclick="removeImage('productImagePreview', 'productImagePreviewContainer', 'productUploadPrompt', 'testProductImage')" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                            <i class="fas fa-trash mr-1"></i>Hapus Gambar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-gray-50 rounded-lg p-4">
+            <h3 class="text-md font-semibold text-gray-700 mb-2">Test Results</h3>
+            <div id="testResults" class="text-sm text-gray-600">
+                <p>✅ Upload functionality: Ready to test</p>
+                <p>✅ Drag & drop functionality: Ready to test</p>
+                <p>✅ Image preview: Ready to test</p>
+                <p>✅ Remove image: Ready to test</p>
+                <p>✅ File validation: Ready to test</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Image upload and preview functions
+        function previewImage(input, previewId, previewContainerId, uploadPromptId) {
+            const file = input.files[0];
+            if (file) {
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ukuran file terlalu besar! Maksimal 5MB.');
+                    input.value = '';
+                    updateTestResults('❌ File size validation: Failed - File too large');
+                    return;
+                }
+
+                // Check file type
+                if (!file.type.startsWith('image/')) {
+                    alert('File harus berupa gambar!');
+                    input.value = '';
+                    updateTestResults('❌ File type validation: Failed - Not an image');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImg = document.getElementById(previewId);
+                    const previewContainer = document.getElementById(previewContainerId);
+                    const uploadPrompt = document.getElementById(uploadPromptId);
+                    const removeBtn = document.getElementById(getRemoveButtonId(previewId));
+
+                    if (previewImg && previewContainer && uploadPrompt) {
+                        previewImg.src = e.target.result;
+                        previewContainer.classList.remove('hidden');
+                        uploadPrompt.classList.add('hidden');
+
+                        if (removeBtn) {
+                            removeBtn.classList.remove('hidden');
+                        }
+
+                        updateTestResults('✅ Image preview: Success - Image displayed correctly');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeImage(previewId, previewContainerId, uploadPromptId, inputId) {
+            const previewImg = document.getElementById(previewId);
+            const previewContainer = document.getElementById(previewContainerId);
+            const uploadPrompt = document.getElementById(uploadPromptId);
+            const input = document.getElementById(inputId);
+            const removeBtn = document.getElementById(getRemoveButtonId(previewId));
+
+            if (previewImg && previewContainer && uploadPrompt && input) {
+                previewImg.src = '';
+                previewContainer.classList.add('hidden');
+                uploadPrompt.classList.remove('hidden');
+                input.value = '';
+
+                if (removeBtn) {
+                    removeBtn.classList.add('hidden');
+                }
+
+                updateTestResults('✅ Remove image: Success - Image removed correctly');
+            }
+        }
+
+        function getRemoveButtonId(previewId) {
+            const mapping = {
+                'vendorImagePreview': 'removeVendorImageBtn',
+                'productImagePreview': 'removeProductImageBtn'
+            };
+            return mapping[previewId] || '';
+        }
+
+        function updateTestResults(message) {
+            const resultsDiv = document.getElementById('testResults');
+            const newResult = document.createElement('p');
+            newResult.textContent = message;
+            resultsDiv.appendChild(newResult);
+        }
+
+        // Drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+        });
+
+        function setupDragAndDrop() {
+            const dropZones = document.querySelectorAll('[class*="border-dashed"]');
+
+            dropZones.forEach(dropZone => {
+                // Prevent default drag behaviors
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, preventDefaults, false);
+                    document.body.addEventListener(eventName, preventDefaults, false);
+                });
+
+                // Highlight drop zone when item is dragged over it
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, highlight, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, unhighlight, false);
+                });
+
+                // Handle dropped files
+                dropZone.addEventListener('drop', handleDrop, false);
+            });
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            e.currentTarget.classList.add('border-red-400', 'bg-red-50');
+        }
+
+        function unhighlight(e) {
+            e.currentTarget.classList.remove('border-red-400', 'bg-red-50');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files.length > 0) {
+                const dropZone = e.currentTarget;
+                const fileInput = dropZone.querySelector('input[type="file"]');
+
+                if (fileInput) {
+                    // Create a new FileList
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(files[0]);
+                    fileInput.files = dataTransfer.files;
+
+                    // Trigger the change event
+                    const event = new Event('change', { bubbles: true });
+                    fileInput.dispatchEvent(event);
+
+                    updateTestResults('✅ Drag & drop: Success - File dropped and processed');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -737,119 +737,6 @@ let vendorProducts = [];
 let editVendorProducts = [];
 let productIdCounter = 1;
 
-// Function to add product to vendor (for tambah vendor modal)
-function addProductToVendor() {
-    const name = document.getElementById('newProductName').value.trim();
-    const category = document.getElementById('newProductCategory').value;
-    const price = document.getElementById('newProductPrice').value;
-    const spec = document.getElementById('newProductSpec').value.trim();
-    const description = document.getElementById('newProductDescription').value.trim();
-    const imageInput = document.getElementById('newProductImage');
-
-    if (!name || !category) {
-        alert('Nama produk dan kategori harus diisi!');
-        return;
-    }
-
-    // Handle image upload
-    let imageUrl = 'https://via.placeholder.com/400x300';
-    if (imageInput.files && imageInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const product = {
-                id: productIdCounter++,
-                name: name,
-                category: category,
-                categoryClass: getCategoryClass(category),
-                price: price || 0,
-                spec: spec || 'Spesifikasi tidak tersedia',
-                description: description || 'Deskripsi tidak tersedia',
-                code: generateProductCode(),
-                image: e.target.result
-            };
-
-            vendorProducts.push(product);
-            updateVendorProductList();
-            clearProductForm();
-        };
-        reader.readAsDataURL(imageInput.files[0]);
-    } else {
-        const product = {
-            id: productIdCounter++,
-            name: name,
-            category: category,
-            categoryClass: getCategoryClass(category),
-            price: price || 0,
-            spec: spec || 'Spesifikasi tidak tersedia',
-            description: description || 'Deskripsi tidak tersedia',
-            code: generateProductCode(),
-            image: imageUrl
-        };
-
-        vendorProducts.push(product);
-        updateVendorProductList();
-        clearProductForm();
-    }
-}
-
-// Function to add product to vendor (for edit vendor modal)
-function addProductToEditVendor() {
-    const name = document.getElementById('editNewProductName').value.trim();
-    const category = document.getElementById('editNewProductCategory').value;
-    const price = document.getElementById('editNewProductPrice').value;
-    const spec = document.getElementById('editNewProductSpec').value.trim();
-    const description = document.getElementById('editNewProductDescription').value.trim();
-    const imageInput = document.getElementById('editNewProductImage');
-
-    if (!name || !category) {
-        alert('Nama produk dan kategori harus diisi!');
-        return;
-    }
-
-    // Handle image upload
-    let imageUrl = 'https://via.placeholder.com/400x300';
-    if (imageInput.files && imageInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const product = {
-                id: productIdCounter++,
-                name: name,
-                category: category,
-                categoryClass: getCategoryClass(category),
-                price: price || 0,
-                spec: spec || 'Spesifikasi tidak tersedia',
-                description: description || 'Deskripsi tidak tersedia',
-                code: generateProductCode(),
-                image: e.target.result
-            };
-
-            editVendorProducts.push(product);
-            updateEditVendorProductList();
-            clearEditProductForm();
-        };
-        reader.readAsDataURL(imageInput.files[0]);
-    } else {
-        const product = {
-            id: productIdCounter++,
-            name: name,
-            category: category,
-            categoryClass: getCategoryClass(category),
-            price: price || 0,
-            spec: spec || 'Spesifikasi tidak tersedia',
-            description: description || 'Deskripsi tidak tersedia',
-            code: generateProductCode(),
-            image: imageUrl
-        };
-
-        editVendorProducts.push(product);
-        updateEditVendorProductList();
-        clearEditProductForm();
-    }
-}
-    updateEditVendorProductList();
-    clearEditProductForm();
-}
-
 // Function to update vendor product list display
 function updateVendorProductList() {
     const listContainer = document.getElementById('vendorProductList');
@@ -904,65 +791,6 @@ function removeProductFromVendor(productId) {
 function removeProductFromEditVendor(productId) {
     editVendorProducts = editVendorProducts.filter(product => product.id !== productId);
     updateEditVendorProductList();
-}
-
-// Function to clear product form (tambah vendor)
-function clearProductForm() {
-    document.getElementById('newProductName').value = '';
-    document.getElementById('newProductCategory').value = '';
-    document.getElementById('newProductPrice').value = '';
-    document.getElementById('newProductSpec').value = '';
-    document.getElementById('newProductDescription').value = '';
-    document.getElementById('newProductImage').value = '';
-    // Reset image preview
-    const imagePreview = document.getElementById('imagePreview');
-    imagePreview.innerHTML = '<i class="fas fa-image text-gray-400 text-2xl"></i>';
-}
-
-// Function to clear product form (edit vendor)
-function clearEditProductForm() {
-    document.getElementById('editNewProductName').value = '';
-    document.getElementById('editNewProductCategory').value = '';
-    document.getElementById('editNewProductPrice').value = '';
-    document.getElementById('editNewProductSpec').value = '';
-    document.getElementById('editNewProductDescription').value = '';
-    document.getElementById('editNewProductImage').value = '';
-    // Reset image preview
-    const imagePreview = document.getElementById('editImagePreview');
-    imagePreview.innerHTML = '<i class="fas fa-image text-gray-400 text-2xl"></i>';
-}
-
-// Function to preview uploaded image
-function previewProductImage(input, previewId) {
-    const previewElement = document.getElementById(previewId);
-
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-
-        // Check file size (5MB limit)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran file terlalu besar! Maksimal 5MB.');
-            input.value = '';
-            previewElement.innerHTML = '<i class="fas fa-image text-gray-400 text-2xl"></i>';
-            return;
-        }
-
-        // Check file type
-        if (!file.type.startsWith('image/')) {
-            alert('File harus berupa gambar!');
-            input.value = '';
-            previewElement.innerHTML = '<i class="fas fa-image text-gray-400 text-2xl"></i>';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewElement.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-lg">`;
-        };
-        reader.readAsDataURL(file);
-    } else {
-        previewElement.innerHTML = '<i class="fas fa-image text-gray-400 text-2xl"></i>';
-    }
 }
 
 // Function to get category class for styling
@@ -1028,5 +856,234 @@ submitEditVendor = function() {
     editVendorProducts = [];
     updateEditVendorProductList();
 };
+
+// Image upload and preview functions
+function previewImage(input, previewId, previewContainerId, uploadPromptId) {
+    const file = input.files[0];
+    if (file) {
+        // Check file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ukuran file terlalu besar! Maksimal 5MB.');
+            input.value = '';
+            return;
+        }
+
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+            alert('File harus berupa gambar!');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImg = document.getElementById(previewId);
+            const previewContainer = document.getElementById(previewContainerId);
+            const uploadPrompt = document.getElementById(uploadPromptId);
+            const removeBtn = document.getElementById(getRemoveButtonId(previewId));
+
+            if (previewImg && previewContainer && uploadPrompt) {
+                previewImg.src = e.target.result;
+                previewContainer.classList.remove('hidden');
+                uploadPrompt.classList.add('hidden');
+
+                if (removeBtn) {
+                    removeBtn.classList.remove('hidden');
+                }
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeImage(previewId, previewContainerId, uploadPromptId, inputId) {
+    const previewImg = document.getElementById(previewId);
+    const previewContainer = document.getElementById(previewContainerId);
+    const uploadPrompt = document.getElementById(uploadPromptId);
+    const input = document.getElementById(inputId);
+    const removeBtn = document.getElementById(getRemoveButtonId(previewId));
+
+    if (previewImg && previewContainer && uploadPrompt && input) {
+        previewImg.src = '';
+        previewContainer.classList.add('hidden');
+        uploadPrompt.classList.remove('hidden');
+        input.value = '';
+
+        if (removeBtn) {
+            removeBtn.classList.add('hidden');
+        }
+    }
+}
+
+function getRemoveButtonId(previewId) {
+    const mapping = {
+        'imagePreview': 'removeImageBtn',
+        'editImagePreview': 'editRemoveImageBtn',
+        'productImagePreview': 'removeProductImageBtn',
+        'editProductImagePreview': 'editRemoveProductImageBtn'
+    };
+    return mapping[previewId] || '';
+}
+
+// Enhanced product management functions with image support
+function addProductToVendor() {
+    const name = document.getElementById('newProductName').value.trim();
+    const category = document.getElementById('newProductCategory').value;
+    const price = document.getElementById('newProductPrice').value;
+    const spec = document.getElementById('newProductSpec').value.trim();
+    const description = document.getElementById('newProductDescription').value.trim();
+    const imageInput = document.getElementById('newProductImage');
+
+    if (!name || !category) {
+        alert('Nama produk dan kategori harus diisi!');
+        return;
+    }
+
+    let imageUrl = 'https://via.placeholder.com/400x300';
+    if (imageInput.files[0]) {
+        // In a real application, you would upload the file to server
+        // For now, we'll use the file URL for preview
+        imageUrl = URL.createObjectURL(imageInput.files[0]);
+    }
+
+    const product = {
+        id: productIdCounter++,
+        name: name,
+        category: category,
+        categoryClass: getCategoryClass(category),
+        price: price || 0,
+        spec: spec || 'Spesifikasi tidak tersedia',
+        description: description || 'Deskripsi tidak tersedia',
+        code: generateProductCode(),
+        image: imageUrl
+    };
+
+    vendorProducts.push(product);
+    updateVendorProductList();
+    clearProductForm();
+}
+
+function addProductToEditVendor() {
+    const name = document.getElementById('editNewProductName').value.trim();
+    const category = document.getElementById('editNewProductCategory').value;
+    const price = document.getElementById('editNewProductPrice').value;
+    const spec = document.getElementById('editNewProductSpec').value.trim();
+    const description = document.getElementById('editNewProductDescription').value.trim();
+    const imageInput = document.getElementById('editNewProductImage');
+
+    if (!name || !category) {
+        alert('Nama produk dan kategori harus diisi!');
+        return;
+    }
+
+    let imageUrl = 'https://via.placeholder.com/400x300';
+    if (imageInput.files[0]) {
+        // In a real application, you would upload the file to server
+        // For now, we'll use the file URL for preview
+        imageUrl = URL.createObjectURL(imageInput.files[0]);
+    }
+
+    const product = {
+        id: productIdCounter++,
+        name: name,
+        category: category,
+        categoryClass: getCategoryClass(category),
+        price: price || 0,
+        spec: spec || 'Spesifikasi tidak tersedia',
+        description: description || 'Deskripsi tidak tersedia',
+        code: generateProductCode(),
+        image: imageUrl
+    };
+
+    editVendorProducts.push(product);
+    updateEditVendorProductList();
+    clearEditProductForm();
+}
+
+// Updated clear form functions
+function clearProductForm() {
+    document.getElementById('newProductName').value = '';
+    document.getElementById('newProductCategory').value = '';
+    document.getElementById('newProductPrice').value = '';
+    document.getElementById('newProductSpec').value = '';
+    document.getElementById('newProductDescription').value = '';
+
+    // Clear image upload
+    removeImage('productImagePreview', 'productImagePreviewContainer', 'productUploadPrompt', 'newProductImage');
+}
+
+function clearEditProductForm() {
+    document.getElementById('editNewProductName').value = '';
+    document.getElementById('editNewProductCategory').value = '';
+    document.getElementById('editNewProductPrice').value = '';
+    document.getElementById('editNewProductSpec').value = '';
+    document.getElementById('editNewProductDescription').value = '';
+
+    // Clear image upload
+    removeImage('editProductImagePreview', 'editProductImagePreviewContainer', 'editProductUploadPrompt', 'editNewProductImage');
+}
+
+// Drag and drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+    setupDragAndDrop();
+});
+
+function setupDragAndDrop() {
+    const dropZones = document.querySelectorAll('[class*="border-dashed"]');
+
+    dropZones.forEach(dropZone => {
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop zone when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Handle dropped files
+        dropZone.addEventListener('drop', handleDrop, false);
+    });
+}
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function highlight(e) {
+    e.currentTarget.classList.add('border-red-400', 'bg-red-50');
+}
+
+function unhighlight(e) {
+    e.currentTarget.classList.remove('border-red-400', 'bg-red-50');
+}
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files.length > 0) {
+        const dropZone = e.currentTarget;
+        const fileInput = dropZone.querySelector('input[type="file"]');
+
+        if (fileInput) {
+            // Create a new FileList
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(files[0]);
+            fileInput.files = dataTransfer.files;
+
+            // Trigger the change event
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        }
+    }
+}
 </script>
 @endsection
