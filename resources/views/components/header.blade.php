@@ -60,14 +60,9 @@
                         <p class="font-semibold text-gray-800">Admin</p>
                         <p class="text-sm text-gray-500">admin@katana.com</p>
                     </div>
-                    <a href="#" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                        <i class="fas fa-user mr-3 w-4"></i>Profile Saya
-                    </a>
-                    <a href="#" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+
+                    <a href="{{ route('pengaturan') }}" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                         <i class="fas fa-cog mr-3 w-4"></i>Pengaturan
-                    </a>
-                    <a href="#" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                        <i class="fas fa-question-circle mr-3 w-4"></i>Bantuan
                     </a>
                     <div class="border-t border-gray-100 mt-2"></div>
                     <form method="POST" action="">

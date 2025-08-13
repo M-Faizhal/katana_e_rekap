@@ -1,5 +1,5 @@
-<!-- Modal Hapus Penawaran -->
-<div id="modalHapusPenawaran" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden items-center justify-center z-50 p-4">
+<!-- Modal Hapus Proyek -->
+<div id="modalHapusProyek" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden my-4 mx-auto">
         <!-- Modal Header -->
         <div class="bg-red-800 text-white p-6 text-center flex-shrink-0">
@@ -14,7 +14,7 @@
         <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(100vh - 250px);">
             <div class="text-center mb-6">
                 <h4 class="text-lg font-semibold text-gray-800 mb-2">Apakah Anda yakin?</h4>
-                <p class="text-gray-600 mb-4">Anda akan menghapus penawaran berikut:</p>
+                <p class="text-gray-600 mb-4">Anda akan menghapus proyek berikut:</p>
                 
                 <!-- Item Info -->
                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -61,7 +61,7 @@
                     <option value="Data duplikat">Data duplikat</option>
                     <option value="Input error">Input error/kesalahan data</option>
                     <option value="Dibatalkan klien">Dibatalkan oleh klien</option>
-                    <option value="Expired">Penawaran expired</option>
+                    <option value="Expired">Proyek expired</option>
                     <option value="Tidak relevan">Tidak relevan lagi</option>
                     <option value="Lainnya">Lainnya</option>
                 </select>
@@ -88,12 +88,12 @@
 
         <!-- Modal Footer -->
         <div class="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3 border-t border-gray-200 flex-shrink-0">
-            <button type="button" onclick="closeModal('modalHapusPenawaran')" class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+            <button type="button" onclick="closeModal('modalHapusProyek')" class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                 Batal
             </button>
             <button type="button" onclick="confirmHapus()" id="btnHapus" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center" disabled>
                 <i class="fas fa-trash mr-2"></i>
-                Hapus Penawaran
+                Hapus Proyek
             </button>
         </div>
     </div>
@@ -174,8 +174,8 @@ function openHapusModal(id) {
     };
     
     loadHapusData(sampleData);
-    document.getElementById('modalHapusPenawaran').classList.remove('hidden');
-    document.getElementById('modalHapusPenawaran').classList.add('flex');
+    document.getElementById('modalHapusProyek').classList.remove('hidden');
+    document.getElementById('modalHapusProyek').classList.add('flex');
 }
 
 // Enable/disable hapus button based on form validation
@@ -199,8 +199,8 @@ document.getElementById('konfirmasiHapus').addEventListener('change', validateHa
 
 function confirmHapus() {
     // Close first modal and open confirmation modal
-    document.getElementById('modalHapusPenawaran').classList.add('hidden');
-    document.getElementById('modalHapusPenawaran').classList.remove('flex');
+    document.getElementById('modalHapusProyek').classList.add('hidden');
+    document.getElementById('modalHapusProyek').classList.remove('flex');
     
     document.getElementById('modalKonfirmasiAkhir').classList.remove('hidden');
     document.getElementById('modalKonfirmasiAkhir').classList.add('flex');
@@ -247,8 +247,9 @@ function executeHapus() {
         btn.disabled = false;
         
         // Here you would typically make an API call to delete the data
+        const hapusData = window.hapusData || {};
         console.log('Deleting item:', {
-            id: hapusData.id,
+            id: hapusData.id || null,
             alasan: alasan,
             catatan: catatan
         });
@@ -258,13 +259,15 @@ function executeHapus() {
 
 function showSuccessMessage() {
     // Show success modal
-    showSuccessModal(`Penawaran ${hapusData.kode} berhasil dihapus dari sistem!`);
+    const hapusData = window.hapusData || {};
+    const kode = hapusData.kode ? hapusData.kode : 'Proyek';
+    showSuccessModal(`Proyek ${kode} berhasil dihapus dari sistem!`);
 }
 
 // Close modal when clicking outside
-document.getElementById('modalHapusPenawaran').addEventListener('click', function(e) {
+document.getElementById('modalHapusProyek').addEventListener('click', function(e) {
     if (e.target === this) {
-        closeModal('modalHapusPenawaran');
+        closeModal('modalHapusProyek');
     }
 });
 
@@ -279,8 +282,8 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         if (!document.getElementById('modalKonfirmasiAkhir').classList.contains('hidden')) {
             closeModal('modalKonfirmasiAkhir');
-        } else if (!document.getElementById('modalHapusPenawaran').classList.contains('hidden')) {
-            closeModal('modalHapusPenawaran');
+        } else if (!document.getElementById('modalHapusProyek').classList.contains('hidden')) {
+            closeModal('modalHapusProyek');
         }
     }
 });
@@ -297,7 +300,7 @@ document.addEventListener('keydown', function(e) {
 }
 
 /* Smooth transitions */
-#modalHapusPenawaran,
+#modalHapusProyek,
 #modalKonfirmasiAkhir {
     transition: all 0.3s ease;
 }

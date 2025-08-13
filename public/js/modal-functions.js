@@ -45,9 +45,9 @@ function closeModal(modalId) {
                 form.reset();
                 
                 // Reset any dynamic content if it's the add/edit modal
-                if (modalId === 'modalTambahPenawaran') {
+                if (modalId === 'modalTambahProyek') {
                     resetTambahModal();
-                } else if (modalId === 'modalEditPenawaran') {
+                } else if (modalId === 'modalEditProyek') {
                     resetEditModal();
                 } else if (modalId === 'modalEditWilayah') {
                     resetWilayahModal();
@@ -182,7 +182,10 @@ function resetTambahModal() {
                     input.value = '';
                 }
             });
-            firstItem.querySelector('.total-harga').value = 'Rp 0';
+            const totalHargaElement = firstItem.querySelector('.total-harga');
+            if (totalHargaElement) {
+                totalHargaElement.value = 'Rp 0';
+            }
         }
         
         // Reset counters and totals
@@ -200,7 +203,7 @@ function resetTambahModal() {
 
 function resetEditModal() {
     // Reset any edit-specific content
-    const form = document.getElementById('formEditPenawaran');
+    const form = document.getElementById('formEditProyek');
     if (form) {
         form.reset();
     }

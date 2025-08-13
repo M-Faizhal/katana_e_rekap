@@ -8,7 +8,7 @@
             </div>
             <div class="text-gray-800">
                 <h1 class="text-xl font-bold tracking-wide">KATANA</h1>
-                <p class="text-sm text-red-700">PT. Kamil Trio Niaga</p>
+                <p class="text-sm text-red-700">PT. Kamil Tria Niaga</p>
             </div>
         </div>
     </div>
@@ -48,10 +48,10 @@
                 <!-- Submenu -->
                 <ul x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-2 ml-6 space-y-1">
                     <li>
-                        <a href="{{ route('marketing.penawaran') }}"
-                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.penawaran') ? 'bg-red-100 text-red-800' : '' }}">
+                        <a href="{{ route('marketing.proyek') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.proyek') ? 'bg-red-100 text-red-800' : '' }}">
                             <i class="fas fa-handshake w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
-                            <span class="font-medium">Penawaran</span>
+                            <span class="font-medium">Proyek</span>
                         </a>
                     </li>
                     <li>
@@ -200,7 +200,7 @@
             </div>
             <div class="text-gray-800">
                 <h1 class="text-lg font-bold tracking-wide">KATANA</h1>
-                <p class="text-xs text-red-700">PT. Kamil Trio Niaga</p>
+                <p class="text-xs text-red-700">PT. Kamil Tria Niaga</p>
             </div>
         </div>
         <button onclick="closeMobileMenu()" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-200">
@@ -243,10 +243,10 @@
                 <!-- Submenu -->
                 <ul x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-2 ml-6 space-y-1">
                     <li>
-                        <a href="{{ route('marketing.penawaran') }}" onclick="closeMobileMenu()"
-                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.penawaran') ? 'bg-red-100 text-red-800' : '' }}">
+                        <a href="{{ route('marketing.proyek') }}" onclick="closeMobileMenu()"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.proyek') ? 'bg-red-100 text-red-800' : '' }}">
                             <i class="fas fa-handshake w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
-                            <span class="font-medium">Penawaran</span>
+                            <span class="font-medium">Proyek</span>
                         </a>
                     </li>
                     <li>

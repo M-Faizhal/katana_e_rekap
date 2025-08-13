@@ -24,9 +24,9 @@ use App\Http\Controllers\AuthController;
 
 // Marketing Routes
 Route::prefix('marketing')->group(function () {
-    Route::get('/penawaran', function () {
-        return view('pages.marketing.penawaran');
-    })->name('marketing.penawaran');
+    Route::get('/proyek', function () {
+        return view('pages.marketing.proyek');
+    })->name('marketing.proyek');
 
     Route::get('/wilayah', function () {
         return view('pages.marketing.wilayah');
