@@ -35,10 +35,10 @@
                         </div>
                         <div class="ml-4 sm:ml-6">
                             <p class="text-sm sm:text-base font-medium text-gray-600 mb-1">Total Pengguna Terdaftar</p>
-                            <p class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">42</p>
+                            <p class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{{ $stats['total'] }}</p>
                             <p class="text-sm text-green-600 mt-2 flex items-center">
-                                <i class="fas fa-arrow-up mr-2"></i>
-                                <span>Bertambah 2 pengguna bulan ini</span>
+                                <i class="fas fa-users mr-2"></i>
+                                <span>{{ $stats['superadmin'] }} Super Admin, {{ $stats['admin_marketing'] }} Marketing, {{ $stats['admin_purchasing'] }} Purchasing, {{ $stats['admin_keuangan'] }} Keuangan</span>
                             </p>
                         </div>
                     </div>
@@ -54,32 +54,35 @@
         </div>
 
         <!-- Filter and Search -->
-        <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 mb-6 sm:mb-8">
+        <form method="GET" action="{{ route('pengelolaan.akun') }}" class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 mb-6 sm:mb-8">
             <div class="flex flex-col space-y-4">
                 <!-- Search Bar -->
                 <div class="relative">
-                    <input type="text" placeholder="Cari pengguna..."
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari pengguna berdasarkan nama, email, atau username..."
                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200">
                     <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
                 </div>
 
                 <!-- Filter Controls -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <select class="px-4 py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <select name="role" class="px-4 py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base">
                         <option value="">Semua Role</option>
-                        <option value="admin">Admin</option>
-                        <option value="manager">Manager</option>
-                        <option value="staff">Staff</option>
+                        <option value="superadmin" {{ request('role') == 'superadmin' ? 'selected' : '' }}>Super Admin</option>
+                        <option value="admin_marketing" {{ request('role') == 'admin_marketing' ? 'selected' : '' }}>Admin Marketing</option>
+                        <option value="admin_purchasing" {{ request('role') == 'admin_purchasing' ? 'selected' : '' }}>Admin Purchasing</option>
+                        <option value="admin_keuangan" {{ request('role') == 'admin_keuangan' ? 'selected' : '' }}>Admin Keuangan</option>
                     </select>
-                    <select class="px-4 py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base">
-                        <option value="">Cari berdasarkan nama</option>
-                        <option value="john">John Doe</option>
-                        <option value="jane">Jane Smith</option>
-                        <option value="bob">Bob Johnson</option>
-                    </select>
+                    
+                    <button type="submit" class="px-4 py-3 bg-red-600 text-white rounded-lg sm:rounded-xl hover:bg-red-700 transition-all duration-200 font-semibold">
+                        <i class="fas fa-search mr-2"></i>Cari
+                    </button>
+                    
+                    <a href="{{ route('pengelolaan.akun') }}" class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg sm:rounded-xl hover:bg-gray-200 transition-all duration-200 font-semibold text-center">
+                        <i class="fas fa-refresh mr-2"></i>Reset
+                    </a>
                 </div>
             </div>
-        </div>
+        </form>
 
         <!-- Table -->
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -87,83 +90,55 @@
             <div class="block lg:hidden">
                 <div class="p-4 border-b border-gray-200 bg-gray-50">
                     <h3 class="text-lg font-semibold text-gray-800">Daftar Pengguna</h3>
-                    <p class="text-sm text-gray-600 mt-1">42 pengguna terdaftar</p>
+                    <p class="text-sm text-gray-600 mt-1">{{ $users->total() }} pengguna terdaftar</p>
                 </div>
                 <div class="divide-y divide-gray-200">
-                    <!-- User Card 1 -->
+                    @forelse($users as $user)
                     <div class="p-4 hover:bg-gray-50 transition-colors duration-200">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <img class="h-12 w-12 rounded-full border-2 border-gray-200" src="https://ui-avatars.com/api/?name=John+Doe&background=ef4444&color=ffffff" alt="">
+                                <img class="h-12 w-12 rounded-full border-2 border-gray-200" 
+                                     src="https://ui-avatars.com/api/?name={{ urlencode($user->nama) }}&background=ef4444&color=ffffff" 
+                                     alt="{{ $user->nama }}">
                                 <div>
-                                    <h4 class="text-base font-semibold text-gray-900">John Doe</h4>
-                                    <p class="text-sm text-gray-500">john.doe@katana.com</p>
+                                    <h4 class="text-base font-semibold text-gray-900">{{ $user->nama }}</h4>
+                                    <p class="text-sm text-gray-500">{{ $user->email }}</p>
                                     <div class="flex items-center gap-2 mt-1">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span>
+                                        @php
+                                            $roleColors = [
+                                                'superadmin' => 'bg-red-100 text-red-800',
+                                                'admin_marketing' => 'bg-blue-100 text-blue-800',
+                                                'admin_purchasing' => 'bg-green-100 text-green-800',
+                                                'admin_keuangan' => 'bg-yellow-100 text-yellow-800'
+                                            ];
+                                            $roleNames = [
+                                                'superadmin' => 'Super Admin',
+                                                'admin_marketing' => 'Admin Marketing',
+                                                'admin_purchasing' => 'Admin Purchasing',
+                                                'admin_keuangan' => 'Admin Keuangan'
+                                            ];
+                                        @endphp
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $roleNames[$user->role] ?? $user->role }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="confirmDeleteUser('USR-001', 'John Doe')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200">
-                                <i class="fas fa-trash text-lg"></i>
-                            </button>
-                        </div>
-                        <div class="mt-3 text-sm">
-                            <div>
-                                <span class="text-gray-500">Departemen:</span>
-                                <span class="font-medium text-gray-900 ml-1">IT</span>
+                            <div class="flex space-x-2">
+                                @if($user->id_user !== auth()->user()->id_user)
+                                <button onclick="confirmDeleteUser({{ $user->id_user }}, '{{ $user->nama }}')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200" title="Hapus Pengguna">
+                                    <i class="fas fa-trash text-lg"></i>
+                                </button>
+                                @endif
                             </div>
                         </div>
                     </div>
-
-                    <!-- User Card 2 -->
-                    <div class="p-4 hover:bg-gray-50 transition-colors duration-200">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <img class="h-12 w-12 rounded-full border-2 border-gray-200" src="https://ui-avatars.com/api/?name=Jane+Smith&background=ef4444&color=ffffff" alt="">
-                                <div>
-                                    <h4 class="text-base font-semibold text-gray-900">Jane Smith</h4>
-                                    <p class="text-sm text-gray-500">jane.smith@katana.com</p>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Manager</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="confirmDeleteUser('USR-002', 'Jane Smith')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200">
-                                <i class="fas fa-trash text-lg"></i>
-                            </button>
-                        </div>
-                        <div class="mt-3 text-sm">
-                            <div>
-                                <span class="text-gray-500">Departemen:</span>
-                                <span class="font-medium text-gray-900 ml-1">Marketing</span>
-                            </div>
-                        </div>
+                    @empty
+                    <div class="p-8 text-center">
+                        <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">Belum ada pengguna terdaftar.</p>
                     </div>
-
-                    <!-- User Card 3 -->
-                    <div class="p-4 hover:bg-gray-50 transition-colors duration-200">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <img class="h-12 w-12 rounded-full border-2 border-gray-200" src="https://ui-avatars.com/api/?name=Bob+Johnson&background=ef4444&color=ffffff" alt="">
-                                <div>
-                                    <h4 class="text-base font-semibold text-gray-900">Bob Johnson</h4>
-                                    <p class="text-sm text-gray-500">bob.johnson@katana.com</p>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Staff</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="confirmDeleteUser('USR-003', 'Bob Johnson')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200">
-                                <i class="fas fa-trash text-lg"></i>
-                            </button>
-                        </div>
-                        <div class="mt-3 text-sm">
-                            <div>
-                                <span class="text-gray-500">Departemen:</span>
-                                <span class="font-medium text-gray-900 ml-1">Purchasing</span>
-                            </div>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
 
@@ -174,95 +149,66 @@
                         <tr>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pengguna</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departemen</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse($users as $user)
                         <tr class="hover:bg-gray-50 transition-colors duration-200">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
-                                        <img class="h-10 w-10 rounded-full border-2 border-gray-200" src="https://ui-avatars.com/api/?name=John+Doe&background=ef4444&color=ffffff" alt="">
+                                        <img class="h-10 w-10 rounded-full border-2 border-gray-200" 
+                                             src="https://ui-avatars.com/api/?name={{ urlencode($user->nama) }}&background=ef4444&color=ffffff" 
+                                             alt="{{ $user->nama }}">
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">John Doe</div>
-                                        <div class="text-sm text-gray-500">ID: USR-001</div>
+                                        <div class="text-sm font-medium text-gray-900">{{ $user->nama }}</div>
+                                        <div class="text-sm text-gray-500">ID: {{ $user->id_user }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">john.doe@katana.com</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->email }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->username }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                    Admin
+                                @php
+                                    $roleColors = [
+                                        'superadmin' => 'bg-red-100 text-red-800',
+                                        'admin_marketing' => 'bg-blue-100 text-blue-800',
+                                        'admin_purchasing' => 'bg-green-100 text-green-800',
+                                        'admin_keuangan' => 'bg-yellow-100 text-yellow-800'
+                                    ];
+                                    $roleNames = [
+                                        'superadmin' => 'Super Admin',
+                                        'admin_marketing' => 'Admin Marketing',
+                                        'admin_purchasing' => 'Admin Purchasing',
+                                        'admin_keuangan' => 'Admin Keuangan'
+                                    ];
+                                @endphp
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">
+                                    {{ $roleNames[$user->role] ?? $user->role }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">IT</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-2">
-                                    <button onclick="confirmDeleteUser('USR-001', 'John Doe')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200" title="Hapus Pengguna">
+                                    @if($user->id_user !== auth()->user()->id_user)
+                                    <button onclick="confirmDeleteUser({{ $user->id_user }}, '{{ $user->nama }}')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200" title="Hapus Pengguna">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
-
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <img class="h-10 w-10 rounded-full border-2 border-gray-200" src="https://ui-avatars.com/api/?name=Jane+Smith&background=ef4444&color=ffffff" alt="">
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">Jane Smith</div>
-                                        <div class="text-sm text-gray-500">ID: USR-002</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">jane.smith@katana.com</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    Manager
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Marketing</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <button onclick="confirmDeleteUser('USR-002', 'Jane Smith')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200" title="Hapus Pengguna">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500">Belum ada pengguna terdaftar.</p>
                             </td>
                         </tr>
-
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <img class="h-10 w-10 rounded-full border-2 border-gray-200" src="https://ui-avatars.com/api/?name=Bob+Johnson&background=ef4444&color=ffffff" alt="">
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">Bob Johnson</div>
-                                        <div class="text-sm text-gray-500">ID: USR-003</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">bob.johnson@katana.com</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    Staff
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Purchasing</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <button onclick="confirmDeleteUser('USR-003', 'Bob Johnson')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200" title="Hapus Pengguna">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -271,31 +217,17 @@
         <!-- Pagination -->
         <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div class="text-sm text-gray-700 text-center sm:text-left">
-                Menampilkan <span class="font-medium text-red-600">1</span> hingga <span class="font-medium text-red-600">10</span> dari <span class="font-medium text-red-600">42</span> hasil
+                Menampilkan <span class="font-medium text-red-600">{{ $users->firstItem() ?? 0 }}</span> hingga <span class="font-medium text-red-600">{{ $users->lastItem() ?? 0 }}</span> dari <span class="font-medium text-red-600">{{ $users->total() }}</span> hasil
             </div>
             <div class="flex justify-center sm:justify-end">
-                <nav class="flex space-x-1" aria-label="Pagination">
-                    <button class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 disabled:opacity-50" disabled>
-                        <i class="fas fa-chevron-left"></i>
-                        <span class="hidden sm:inline ml-1">Previous</span>
-                    </button>
-                    <button class="px-3 py-2 text-sm text-white bg-red-600 border border-red-600 rounded-lg shadow-sm">1</button>
-                    <button class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">2</button>
-                    <button class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">3</button>
-                    <span class="px-3 py-2 text-sm text-gray-500">...</span>
-                    <button class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">5</button>
-                    <button class="px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">
-                        <span class="hidden sm:inline mr-1">Next</span>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </nav>
+                {{ $users->links() }}
             </div>
         </div>
     </div>
 </div>
 
 <!-- Add User Modal -->
-<div id="addUserModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 items-center justify-center p-4" style="display: none;">
+<div id="addUserModal" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-50 items-center justify-center p-4" style="display: none;">
     <div class="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 shadow-2xl" id="addUserModalContent">
         <div class="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-red-600 to-red-700 rounded-t-2xl sm:rounded-t-3xl">
             <div class="flex items-center justify-between">
@@ -313,9 +245,17 @@
                 <!-- Nama Lengkap -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
-                    <input type="text" id="fullName" name="fullName" required
+                    <input type="text" id="nama" name="nama" required
                            class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base"
                            placeholder="Masukkan nama lengkap">
+                </div>
+
+                <!-- Username -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+                    <input type="text" id="username" name="username" required
+                           class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base"
+                           placeholder="Masukkan username">
                 </div>
 
                 <!-- Email -->
@@ -326,32 +266,17 @@
                            placeholder="nama@katana.com">
                 </div>
 
-                <!-- Role & Departemen -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Role</label>
-                        <select id="role" name="role" required
-                                class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base">
-                            <option value="">Pilih Role</option>
-                            <option value="admin">Admin</option>
-                            <option value="manager">Manager</option>
-                            <option value="staff">Staff</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Departemen</label>
-                        <select id="department" name="department" required
-                                class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base">
-                            <option value="">Pilih Departemen</option>
-                            <option value="IT">IT</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Purchasing">Purchasing</option>
-                            <option value="Finance">Finance</option>
-                            <option value="HR">HR</option>
-                            <option value="Operations">Operations</option>
-                        </select>
-                    </div>
+                <!-- Role -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Role</label>
+                    <select id="role" name="role" required
+                            class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base">
+                        <option value="">Pilih Role</option>
+                        <option value="superadmin">Super Admin</option>
+                        <option value="admin_marketing">Admin Marketing</option>
+                        <option value="admin_purchasing">Admin Purchasing</option>
+                        <option value="admin_keuangan">Admin Keuangan</option>
+                    </select>
                 </div>
 
                 <!-- Password Fields -->
@@ -365,7 +290,7 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Konfirmasi Password</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required
+                        <input type="password" id="password_confirmation" name="password_confirmation" required
                                class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base"
                                placeholder="Ulangi password">
                     </div>
@@ -388,7 +313,7 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteUserModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 items-center justify-center p-4" style="display: none;">
+<div id="deleteUserModal" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-50 items-center justify-center p-4" style="display: none;">
     <div class="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full transform transition-all duration-300 scale-95 shadow-2xl" id="deleteUserModalContent">
         <div class="p-6 sm:p-8 text-center">
             <div class="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -413,6 +338,8 @@
         </div>
     </div>
 </div>
+
+
 
 <script>
 let currentUserIdToDelete = null;
@@ -475,19 +402,28 @@ function closeDeleteUserModal() {
 function deleteUser() {
     if (!currentUserIdToDelete) return;
 
-    // Here you would typically make an AJAX call to delete the user
-    console.log('Deleting user:', currentUserIdToDelete);
-
-    // Show success notification
-    showNotification('Pengguna berhasil dihapus!', 'success');
-
-    // Close modal
-    closeDeleteUserModal();
-
-    // Refresh page or remove row from table
-    setTimeout(() => {
-        location.reload();
-    }, 1500);
+    fetch(`/pengelolaan-akun/${currentUserIdToDelete}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeDeleteUserModal();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Terjadi kesalahan saat menghapus pengguna!', 'error');
+        console.error('Error:', error);
+    });
 }
 
 // Add User Form Submission
@@ -495,34 +431,93 @@ document.getElementById('addUserForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);
-    const password = formData.get('password');
-    const confirmPassword = formData.get('confirmPassword');
+    
+    fetch('{{ route("pengelolaan.akun.store") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.status === 422) {
+            return response.json().then(data => {
+                // Handle validation errors
+                let errorMessage = 'Validasi gagal:\n';
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        errorMessage += `• ${data.errors[field][0]}\n`;
+                    });
+                }
+                showNotification(errorMessage, 'error');
+                throw new Error('Validation failed');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeAddUserModal();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message || 'Terjadi kesalahan saat menambah pengguna!', 'error');
+        }
+    })
+    .catch(error => {
+        if (error.message !== 'Validation failed') {
+            showNotification('Terjadi kesalahan saat menambah pengguna!', 'error');
+            console.error('Error:', error);
+        }
+    });
+});
 
-    // Validate password match
-    if (password !== confirmPassword) {
-        showNotification('Password tidak cocok!', 'error');
-        return;
-    }
+// Add User Form Submission
+document.getElementById('addUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-    // Validate password length
-    if (password.length < 8) {
-        showNotification('Password minimal 8 karakter!', 'error');
-        return;
-    }
-
-    // Here you would typically make an AJAX call to add the user
-    console.log('Adding user:', Object.fromEntries(formData));
-
-    // Show success notification
-    showNotification('Pengguna berhasil ditambahkan!', 'success');
-
-    // Close modal
-    closeAddUserModal();
-
-    // Refresh page or add new row to table
-    setTimeout(() => {
-        location.reload();
-    }, 1500);
+    const formData = new FormData(this);
+    
+    fetch('{{ route("pengelolaan.akun.store") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.status === 422) {
+            return response.json().then(data => {
+                // Handle validation errors
+                let errorMessage = 'Validasi gagal:\n';
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        errorMessage += `• ${data.errors[field][0]}\n`;
+                    });
+                }
+                showNotification(errorMessage, 'error');
+                throw new Error('Validation failed');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeAddUserModal();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message || 'Terjadi kesalahan saat menambah pengguna!', 'error');
+        }
+    })
+    .catch(error => {
+        if (error.message !== 'Validation failed') {
+            showNotification('Terjadi kesalahan saat menambah pengguna!', 'error');
+            console.error('Error:', error);
+        }
+    });
 });
 
 // Notification function
@@ -551,7 +546,9 @@ function showNotification(message, type = 'info') {
     setTimeout(() => {
         notification.classList.add('translate-x-full');
         setTimeout(() => {
-            document.body.removeChild(notification);
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
         }, 300);
     }, 3000);
 }

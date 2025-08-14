@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\superadmin\PengelolaanAkun;
 
 
 
@@ -90,41 +91,22 @@ Route::middleware('auth')->group(function () {
     })->name('pengaturan');
 
     // Admin only routes
+<<<<<<< Updated upstream
     Route::middleware('superadmin')->group(function () {
         Route::get('/pengelolaan-akun', function () {
             return view('pages.pengelolaan-akun');
         })->name('pengelolaan.akun');
+=======
+    Route::middleware('role:superadmin')->group(function () {
+        Route::get('/pengelolaan-akun', [PengelolaanAkun::class, 'index'])->name('pengelolaan.akun');
+        Route::post('/pengelolaan-akun', [PengelolaanAkun::class, 'store'])->name('pengelolaan.akun.store');
+        Route::get('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'show'])->name('pengelolaan.akun.show');
+        Route::put('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'update'])->name('pengelolaan.akun.update');
+        Route::delete('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'destroy'])->name('pengelolaan.akun.destroy');
+
+        Route::get('/pengaturan', function () {
+            return view('pages.pengaturan');
+        })->name('pengaturan');
+>>>>>>> Stashed changes
     });
 });
-
-// // Protected pages
-// Route::middleware('auth')->group(function () {
-//     // Dashboard Routes
-//     Route::get('/dashboard', function () {
-//         return view('pages.dashboard');
-//     })->name('dashboard');
-
-//     Route::get('/laporan', function () {
-//         return view('pages.laporan');
-//     })->name('laporan');
-
-//     Route::get('/marketing', function () {
-//         return view('pages.marketing');
-//     })->name('marketing');
-
-//     Route::get('/purchasing', function () {
-//         return view('pages.purchasing');
-//     })->name('purchasing');
-
-//     Route::get('/keuangan', function () {
-//         return view('pages.keuangan');
-//     })->name('keuangan');
-
-//     Route::get('/produk', function () {
-//         return view('pages.produk');
-//     })->name('produk');
-
-//     Route::get('/pengaturan', function () {
-//         return view('pages.pengaturan');
-//     })->name('pengaturan');
-// });
