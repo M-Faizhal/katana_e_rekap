@@ -172,7 +172,7 @@ function resetTambahModal() {
         const items = container.querySelectorAll('.barang-item');
         for (let i = 1; i < items.length; i++) {
             items[i].remove();
-        }
+        }   
         
         // Reset first item
         const firstItem = container.querySelector('.barang-item');

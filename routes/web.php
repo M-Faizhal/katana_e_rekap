@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\superadmin\PengelolaanAkun;
+use App\Http\Controllers\purchasing\VendorController;
+use App\Http\Controllers\purchasing\ProdukController;
 
 
 
@@ -46,13 +48,16 @@ Route::middleware('auth')->group(function () {
 
     // Purchasing Routes
     Route::prefix('purchasing')->group(function () {
-        Route::get('/produk', function () {
-            return view('pages.purchasing.produk');
-        })->name('purchasing.produk');
+        // Produk Routes
+        Route::get('/produk', [ProdukController::class, 'index_produk_purchasing'])->name('purchasing.produk');
+        Route::get('/produk/{id}', [ProdukController::class, 'show'])->name('produk.show');
 
-        Route::get('/vendor', function () {
-            return view('pages.purchasing.vendor');
-        })->name('purchasing.vendor');
+        // Vendor Routes
+        Route::get('/vendor', [VendorController::class, 'index'])->name('purchasing.vendor');
+        Route::post('/vendor', [VendorController::class, 'store'])->name('vendor.store');
+        Route::get('/vendor/{id}', [VendorController::class, 'show'])->name('vendor.show');
+        Route::put('/vendor/{id}', [VendorController::class, 'update'])->name('vendor.update');
+        Route::delete('/vendor/{id}', [VendorController::class, 'destroy'])->name('vendor.destroy');
 
         Route::get('/kalkulasi', function () {
             return view('pages.purchasing.kalkulasi');
@@ -82,9 +87,8 @@ Route::middleware('auth')->group(function () {
         })->name('keuangan.penagihan');
     });
 
-    Route::get('/produk', function () {
-        return view('pages.produk');
-    })->name('produk');
+    Route::get('/produk', [ProdukController::class, 'index_produk'])->name('produk');
+
 
     Route::get('/pengaturan', [App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan');
     Route::put('/pengaturan', [App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');

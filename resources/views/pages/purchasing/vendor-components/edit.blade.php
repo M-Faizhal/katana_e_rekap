@@ -1,15 +1,15 @@
 <!-- Modal Edit Vendor -->
 <div id="modalEditVendor" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-screen overflow-hidden my-4 mx-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-screen overflow-hidden my-4 mx-auto">
         <!-- Modal Header -->
-        <div class="bg-red-800 text-white p-6 flex items-center justify-between flex-shrink-0">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+        <div class="bg-gradient-to-r from-red-800 to-red-700 text-white p-6 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center overflow-hidden">
                     <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-10 h-10 object-contain">
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold">Edit Vendor</h3>
-                    <p class="text-red-100 text-sm">Ubah informasi vendor yang ada</p>
+                    <h3 class="text-2xl font-bold">Edit Vendor</h3>
+                    <p class="text-red-100 text-sm">Ubah informasi vendor dan kelola produknya</p>
                 </div>
             </div>
             <button onclick="closeModal('modalEditVendor')" class="text-white hover:bg-white hover:text-red-800 p-2 rounded-lg transition-colors duration-200">
@@ -23,168 +23,157 @@
                 <input type="hidden" id="editVendorId" name="vendor_id">
 
                 <!-- Informasi Vendor -->
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-building text-red-600 mr-2"></i>
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
+                    <h4 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-building text-white text-sm"></i>
+                        </div>
                         Informasi Vendor
                     </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Vendor <span class="text-red-500">*</span></label>
-                            <input type="text" name="nama_vendor" id="editNamaVendor" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama vendor" required>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Vendor <span class="text-red-500">*</span></label>
+                            <input type="text" name="nama_vendor" id="editNamaVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="Masukkan nama vendor" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Vendor <span class="text-red-500">*</span></label>
-                            <select name="jenis_vendor" id="editJenisVendor" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
-                                <option value="">Pilih jenis vendor</option>
-                                <option value="Perusahaan">Perusahaan</option>
-                                <option value="Perorangan">Perorangan</option>
-                                <option value="Koperasi">Koperasi</option>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Perusahaan <span class="text-red-500">*</span></label>
+                            <select name="jenis_perusahaan" id="editJenisPerusahaan" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" required>
+                                <option value="">Pilih jenis perusahaan</option>
+                                <option value="Principle">Principle</option>
+                                <option value="Distributor">Distributor</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Lain-lain">Lain-lain</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Status Vendor <span class="text-red-500">*</span></label>
-                            <select name="status_vendor" id="editStatusVendor" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
-                                <option value="">Pilih status</option>
-                                <option value="Aktif">Aktif</option>
-                                <option value="Tidak Aktif">Tidak Aktif</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Foto/Logo Vendor</label>
-                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-red-400 transition-colors">
-                                <div class="space-y-1 text-center">
-                                    <div id="editImagePreviewContainer" class="mb-4 hidden">
-                                        <img id="editImagePreview" src="" alt="Preview" class="mx-auto h-32 w-32 object-cover rounded-lg shadow-md">
-                                    </div>
-                                    <div id="editUploadPrompt">
-                                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                        </svg>
-                                        <div class="flex text-sm text-gray-600">
-                                            <label for="editVendorImage" class="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-red-500">
-                                                <span>Upload foto/logo</span>
-                                                <input id="editVendorImage" name="vendor_image" type="file" class="sr-only" accept="image/*" onchange="previewImage(this, 'editImagePreview', 'editImagePreviewContainer', 'editUploadPrompt')">
-                                            </label>
-                                            <p class="pl-1">atau drag and drop</p>
-                                        </div>
-                                        <p class="text-xs text-gray-500">PNG, JPG, GIF hingga 5MB</p>
-                                    </div>
-                                    <div class="mt-2 hidden" id="editRemoveImageBtn">
-                                        <button type="button" onclick="removeImage('editImagePreview', 'editImagePreviewContainer', 'editUploadPrompt', 'editVendorImage')" class="text-red-600 hover:text-red-800 text-sm font-medium">
-                                            <i class="fas fa-trash mr-1"></i>Hapus Gambar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Informasi Kontak -->
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-address-book text-red-600 mr-2"></i>
-                        Informasi Kontak
-                    </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
-                            <input type="email" name="email" id="editEmailVendor" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="vendor@email.com" required>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
+                            <input type="email" name="email" id="editEmailVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="vendor@email.com" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">No HP <span class="text-red-500">*</span></label>
-                            <input type="tel" name="no_hp" id="editNoHpVendor" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="0812-3456-7890" required>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Kontak/No HP <span class="text-red-500">*</span></label>
+                            <input type="tel" name="kontak" id="editKontakVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="0812-3456-7890" required>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Alamat <span class="text-red-500">*</span></label>
-                            <textarea name="alamat" id="editAlamatVendor" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan alamat lengkap vendor" required></textarea>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Alamat</label>
+                            <textarea name="alamat" id="editAlamatVendor" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="Masukkan alamat lengkap vendor"></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Manajemen Produk -->
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-box text-red-600 mr-2"></i>
-                        Manajemen Produk Vendor
-                    </h4>
-
-                    <!-- Produk yang sudah ditambahkan -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Produk yang sudah ditambahkan</label>
-                        <div id="editVendorProductList" class="space-y-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white">
-                            <p class="text-gray-500 text-sm">Belum ada produk yang ditambahkan</p>
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+                    <h4 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-boxes text-white text-sm"></i>
                         </div>
-                    </div>
-
-                    <!-- Form tambah produk baru -->
-                    <div class="border-t pt-4">
-                        <h5 class="text-md font-medium text-gray-700 mb-3 flex items-center">
-                            <i class="fas fa-plus-circle text-green-600 mr-2"></i>
-                            Tambah Produk Baru
-                        </h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Nama Produk</label>
-                                <input type="text" id="editNewProductName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama produk">
+                        Manajemen Produk
+                    </h4>
+                    
+                    <!-- Form Tambah Produk -->
+                    <div class="bg-white rounded-xl p-6 mb-6 border border-blue-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h5 class="text-lg font-semibold text-gray-800 flex items-center" id="productFormTitle">
+                                <i class="fas fa-plus-circle text-green-600 mr-2"></i>
+                                Tambah Produk Baru
+                            </h5>
+                            <div class="text-sm text-gray-500" id="productFormHint">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Isi semua field untuk menambah produk
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nama Produk <span class="text-red-500">*</span></label>
+                                <input type="text" id="editNewProductName" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Masukkan nama produk">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Produk</label>
-                                <select id="editNewProductCategory" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Brand/Merk <span class="text-red-500">*</span></label>
+                                <input type="text" id="editNewProductBrand" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Brand produk">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Kategori <span class="text-red-500">*</span></label>
+                                <select id="editNewProductKategori" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                                     <option value="">Pilih kategori</option>
-                                    <option value="Elektronik">Elektronik</option>
-                                    <option value="Mesin">Mesin</option>
-                                    <option value="Meubel">Meubel</option>
-                                    <option value="Alat Tulis">Alat Tulis</option>
-                                    <option value="Konsumsi">Konsumsi</option>
-                                    <option value="Lainnya">Lainnya</option>
+                                    <option value="Elektronik">📱 Elektronik</option>
+                                    <option value="Meubel">🪑 Meubel</option>
+                                    <option value="Mesin">⚙️ Mesin</option>
+                                    <option value="Lain-lain">📦 Lain-lain</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Harga</label>
-                                <input type="number" id="editNewProductPrice" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="0" min="0">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Satuan <span class="text-red-500">*</span></label>
+                                <input type="text" id="editNewProductSatuan" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="pcs, kg, box, dll">
                             </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Spesifikasi Produk</label>
-                                <input type="text" id="editNewProductSpec" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan spesifikasi produk">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi Produk</label>
-                                <textarea id="editNewProductDescription" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan deskripsi produk"></textarea>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Gambar Produk</label>
-                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-red-400 transition-colors">
-                                    <div class="space-y-1 text-center">
-                                        <div id="editProductImagePreviewContainer" class="mb-4 hidden">
-                                            <img id="editProductImagePreview" src="" alt="Preview" class="mx-auto h-24 w-24 object-cover rounded-lg shadow-md">
-                                        </div>
-                                        <div id="editProductUploadPrompt">
-                                            <svg class="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                            </svg>
-                                            <div class="flex text-sm text-gray-600">
-                                                <label for="editNewProductImage" class="relative cursor-pointer bg-white rounded-md font-medium text-red-600 hover:text-red-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-red-500">
-                                                    <span>Upload gambar</span>
-                                                    <input id="editNewProductImage" type="file" class="sr-only" accept="image/*" onchange="previewImage(this, 'editProductImagePreview', 'editProductImagePreviewContainer', 'editProductUploadPrompt')">
-                                                </label>
-                                                <p class="pl-1">atau drag and drop</p>
-                                            </div>
-                                            <p class="text-xs text-gray-500">PNG, JPG, GIF hingga 5MB</p>
-                                        </div>
-                                        <div class="mt-2 hidden" id="editRemoveProductImageBtn">
-                                            <button type="button" onclick="removeImage('editProductImagePreview', 'editProductImagePreviewContainer', 'editProductUploadPrompt', 'editNewProductImage')" class="text-red-600 hover:text-red-800 text-sm font-medium">
-                                                <i class="fas fa-trash mr-1"></i>Hapus Gambar
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Vendor <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span>
+                                    <input type="number" id="editNewProductHarga" class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="0" min="0">
                                 </div>
                             </div>
-                            <div class="md:col-span-2">
-                                <button type="button" onclick="addProductToEditVendor()" class="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors">
-                                    <i class="fas fa-plus mr-2"></i>Tambah Produk ke Vendor
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Foto Produk</label>
+                                <input type="file" id="editNewProductFoto" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" accept="image/*">
+                                <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF (Max: 2MB)</p>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spesifikasi Detail</label>
+                                <textarea id="editNewProductSpesifikasi" rows="3" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Deskripsi lengkap produk, spesifikasi teknis, dll..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-end space-x-3">
+                            <button type="button" id="cancelEditProductBtn" onclick="cancelEditProduct()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 hidden">
+                                <i class="fas fa-times mr-2"></i>Batal Edit
+                            </button>
+                            <button type="button" onclick="addProductToEditVendor()" class="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                                <i class="fas fa-plus mr-2"></i>Tambah ke Daftar Produk
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Daftar Produk Vendor -->
+                    <div class="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h5 class="text-lg font-semibold text-gray-800 flex items-center">
+                                <i class="fas fa-list text-blue-600 mr-2"></i>
+                                Daftar Produk Vendor
+                            </h5>
+                            <div class="flex items-center space-x-2">
+                                <div class="text-sm text-gray-500" id="editProductCount">
+                                    0 produk
+                                </div>
+                                <button type="button" onclick="exportProductList()" class="px-3 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all duration-200" title="Export daftar produk">
+                                    <i class="fas fa-download"></i>
                                 </button>
+                                <button type="button" onclick="clearAllProducts()" class="px-3 py-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-all duration-200" title="Hapus semua produk">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search and Filter for Products -->
+                        <div class="mb-4 flex space-x-3" id="productSearchContainer" style="display: none;">
+                            <div class="flex-1">
+                                <input type="text" id="searchProducts" placeholder="Cari produk berdasarkan nama, brand, atau kategori..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            </div>
+                            <div>
+                                <select id="filterProductCategory" class="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                    <option value="">Semua Kategori</option>
+                                    <option value="Elektronik">📱 Elektronik</option>
+                                    <option value="Meubel">🪑 Meubel</option>
+                                    <option value="Mesin">⚙️ Mesin</option>
+                                    <option value="Lain-lain">📦 Lain-lain</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="editVendorProductList" class="space-y-3">
+                            <div class="text-center py-12 text-gray-500">
+                                <i class="fas fa-box-open text-4xl mb-4 text-gray-400"></i>
+                                <p class="text-lg">Belum ada produk ditambahkan</p>
+                                <p class="text-sm">Gunakan form di atas untuk menambah produk</p>
                             </div>
                         </div>
                     </div>
@@ -193,16 +182,18 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3 border-t border-gray-200 flex-shrink-0">
-            <button type="button" onclick="closeModal('modalEditVendor')" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                <i class="fas fa-times mr-2"></i>Batal
-            </button>
-            <button type="button" onclick="submitEditVendor()" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                <i class="fas fa-save mr-2"></i>Update Vendor
-            </button>
-        </div>
-    </div>
-</div>
+        <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200 flex-shrink-0">
+            <div class="text-sm text-gray-500">
+                <i class="fas fa-save mr-1"></i>
+                Perubahan akan disimpan secara permanen
+            </div>
+            <div class="flex space-x-3">
+                <button type="button" onclick="closeModal('modalEditVendor')" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200">
+                    <i class="fas fa-times mr-2"></i>Batal
+                </button>
+                <button type="button" onclick="submitEditVendor()" class="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-save mr-2"></i>Update Vendor & Produk
+                </button>
             </div>
         </div>
     </div>

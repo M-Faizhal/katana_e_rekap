@@ -14,8 +14,11 @@ return new class extends Migration
         Schema::create('vendor', function (Blueprint $table) {
             $table->id('id_vendor');
             $table->string('nama_vendor');
-            $table->text('alamat');
-            $table->string('kontak');
+            $table->text('alamat')->nullable();
+            $table->string('kontak')->nullable();
+            $table->enum('jenis_perusahaan', ['Principle', 'Distributor', 'Retail', 'Lain-lain'])->nullable();
+            $table->string('email')->unique();
+
             $table->timestamps();
         });
     }

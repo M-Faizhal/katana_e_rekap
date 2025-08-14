@@ -36,39 +36,32 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-500 mb-1">No Produk</label>
-                                <p id="detailNoProduk" class="text-lg font-semibold text-gray-800">PRD-001</p>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Kode Produk</label>
+                                <p id="detailNoProduk" class="text-lg font-semibold text-gray-800">-</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 mb-1">Nama Barang</label>
-                                <p id="detailNamaBarang" class="text-lg font-semibold text-gray-800">Laptop Dell Latitude 7420</p>
+                                <p id="detailNamaBarang" class="text-lg font-semibold text-gray-800">-</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-500 mb-1">Jenis Barang</label>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Kategori</label>
                                 <span id="detailJenisBarang" class="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
-                                    Elektronik
+                                    -
                                 </span>
                             </div>
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-500 mb-1">Nilai TKDN</label>
-                                <div class="flex items-center space-x-2">
-                                    <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                        <div id="detailTkdnBar" class="bg-green-500 h-2 rounded-full" style="width: 25%"></div>
-                                    </div>
-                                    <span id="detailNilaiTkdn" class="text-lg font-semibold text-green-600">25%</span>
-                                </div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Brand</label>
+                                <p id="detailBrand" class="text-lg font-semibold text-gray-800">-</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-500 mb-1">Tanggal Dibuat</label>
-                                <p id="detailTanggalDibuat" class="text-lg font-semibold text-gray-800">12 Agustus 2025</p>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Vendor</label>
+                                <p id="detailVendor" class="text-lg font-semibold text-gray-800">-</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                                <span id="detailStatus" class="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
-                                    Aktif
-                                </span>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Harga Vendor</label>
+                                <p id="detailHarga" class="text-lg font-bold text-red-600">-</p>
                             </div>
                         </div>
                     </div>
@@ -82,9 +75,7 @@
                     </h4>
                     <div class="bg-white rounded-lg p-4 border">
                         <p id="detailSpesifikasi" class="text-gray-700 leading-relaxed">
-                            Intel Core i7-1165G7 Processor, 16GB LPDDR4x RAM, 512GB PCIe NVMe SSD, 
-                            14" FHD (1920x1080) Anti-Glare Display, Intel Iris Xe Graphics, 
-                            WiFi 6, Bluetooth 5.1, Windows 11 Pro, 3 Year Warranty
+                            -
                         </p>
                     </div>
                 </div>
@@ -99,17 +90,17 @@
                         <div class="bg-white rounded-lg p-4 text-center border">
                             <i class="fas fa-box-open text-blue-500 text-2xl mb-2"></i>
                             <p class="text-sm text-gray-500">Kategori</p>
-                            <p id="detailKategori" class="font-semibold text-gray-800">Teknologi</p>
+                            <p id="detailKategori" class="font-semibold text-gray-800">-</p>
                         </div>
                         <div class="bg-white rounded-lg p-4 text-center border">
-                            <i class="fas fa-flag text-green-500 text-2xl mb-2"></i>
-                            <p class="text-sm text-gray-500">TKDN</p>
-                            <p id="detailTkdnBadge" class="font-semibold text-green-600">25%</p>
+                            <i class="fas fa-calendar text-green-500 text-2xl mb-2"></i>
+                            <p class="text-sm text-gray-500">Tanggal Dibuat</p>
+                            <p id="detailTanggalDibuat" class="font-semibold text-gray-800">-</p>
                         </div>
                         <div class="bg-white rounded-lg p-4 text-center border">
-                            <i class="fas fa-calendar text-purple-500 text-2xl mb-2"></i>
+                            <i class="fas fa-calendar-check text-purple-500 text-2xl mb-2"></i>
                             <p class="text-sm text-gray-500">Terakhir Update</p>
-                            <p id="detailLastUpdate" class="font-semibold text-gray-800">Hari ini</p>
+                            <p id="detailLastUpdate" class="font-semibold text-gray-800">-</p>
                         </div>
                     </div>
                 </div>
@@ -119,58 +110,8 @@
         <!-- Modal Footer -->
         <div class="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3 flex-shrink-0">
             <button type="button" onclick="closeModal('modalDetailProduk')" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                Tutup
-            </button>
-            <button type="button" onclick="editProdukFromDetail()" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center space-x-2">
-                <i class="fas fa-edit"></i>
-                <span>Edit Produk</span>
+                <i class="fas fa-times mr-2"></i>Tutup
             </button>
         </div>
     </div>
 </div>
-
-<script>
-    // Function to populate detail modal (would be called when detail button is clicked)
-    function populateDetailModal(productData) {
-        document.getElementById('detailProductImage').src = productData.gambar || 'https://via.placeholder.com/300';
-        document.getElementById('detailNoProduk').textContent = productData.no_produk || '';
-        document.getElementById('detailNamaBarang').textContent = productData.nama_barang || '';
-        document.getElementById('detailSpesifikasi').textContent = productData.spesifikasi || '';
-        document.getElementById('detailNilaiTkdn').textContent = (productData.nilai_tkdn || 0) + '%';
-        document.getElementById('detailTkdnBadge').textContent = (productData.nilai_tkdn || 0) + '%';
-        
-        // Update TKDN progress bar
-        const tkdnBar = document.getElementById('detailTkdnBar');
-        tkdnBar.style.width = (productData.nilai_tkdn || 0) + '%';
-        
-        // Update jenis barang badge
-        const jenisBarangBadge = document.getElementById('detailJenisBarang');
-        jenisBarangBadge.textContent = productData.jenis_barang || '';
-        
-        // Set badge color based on jenis barang
-        jenisBarangBadge.className = 'inline-flex px-3 py-1 text-sm font-medium rounded-full';
-        switch(productData.jenis_barang) {
-            case 'Elektronik':
-                jenisBarangBadge.classList.add('bg-blue-100', 'text-blue-800');
-                break;
-            case 'Mesin':
-                jenisBarangBadge.classList.add('bg-green-100', 'text-green-800');
-                break;
-            case 'Meubel':
-                jenisBarangBadge.classList.add('bg-yellow-100', 'text-yellow-800');
-                break;
-            default:
-                jenisBarangBadge.classList.add('bg-gray-100', 'text-gray-800');
-        }
-        
-        // Set dates
-        document.getElementById('detailTanggalDibuat').textContent = productData.tanggal_dibuat || new Date().toLocaleDateString('id-ID');
-        document.getElementById('detailLastUpdate').textContent = productData.last_update || 'Hari ini';
-        document.getElementById('detailKategori').textContent = productData.jenis_barang || '';
-    }
-
-    function editProdukFromDetail() {
-        closeModal('modalDetailProduk');
-        openModal('modalEditProduk');
-    }
-</script>
