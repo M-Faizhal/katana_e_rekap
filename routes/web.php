@@ -24,8 +24,8 @@ Route::middleware('auth')->group(function () {
         return view('pages.laporan');
     })->name('laporan');
 
-    // Marketing Routes - Only for superadmin and admin_marketing
-    Route::prefix('marketing')->middleware('role:superadmin,admin_marketing')->group(function () {
+    // Marketing Routes
+    Route::prefix('marketing')->group(function () {
         Route::get('/proyek', function () {
             return view('pages.marketing.proyek');
         })->name('marketing.proyek');
@@ -43,8 +43,8 @@ Route::middleware('auth')->group(function () {
         })->name('marketing.penawaran');
     });
 
-    // Purchasing Routes - Only for superadmin and admin_purchasing
-    Route::prefix('purchasing')->middleware('role:superadmin,admin_purchasing')->group(function () {
+    // Purchasing Routes
+    Route::prefix('purchasing')->group(function () {
         Route::get('/produk', function () {
             return view('pages.purchasing.produk');
         })->name('purchasing.produk');
@@ -66,8 +66,8 @@ Route::middleware('auth')->group(function () {
         })->name('purchasing.pengiriman');
     });
 
-    // Keuangan Routes - Only for superadmin and admin_keuangan
-    Route::prefix('keuangan')->middleware('role:superadmin,admin_keuangan')->group(function () {
+    // Keuangan Routes
+    Route::prefix('keuangan')->group(function () {
         Route::get('/', function () {
             return view('pages.keuangan.keuangan');
         })->name('keuangan');
@@ -85,15 +85,15 @@ Route::middleware('auth')->group(function () {
         return view('pages.produk');
     })->name('produk');
 
+    Route::get('/pengaturan', function () {
+        return view('pages.pengaturan');
+    })->name('pengaturan');
+
     // Admin only routes
-    Route::middleware('role:superadmin')->group(function () {
+    Route::middleware('superadmin')->group(function () {
         Route::get('/pengelolaan-akun', function () {
             return view('pages.pengelolaan-akun');
         })->name('pengelolaan.akun');
-
-        Route::get('/pengaturan', function () {
-            return view('pages.pengaturan');
-        })->name('pengaturan');
     });
 });
 
