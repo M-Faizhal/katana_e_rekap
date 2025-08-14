@@ -198,3 +198,89 @@
         </div>
     </div>
 </div>
+
+<script>
+// Fix untuk mencegah form submission yang tidak diinginkan
+function editProductInVendor(index) {
+    if (event) {
+        event.preventDefault(); // Mencegah default behavior
+        event.stopPropagation(); // Mencegah event bubbling
+    }
+    
+    const product = editVendorProducts[index];
+    if (!product) return;
+    
+    // Store the index being edited
+    editProductIndex = index;
+    
+    // Fill form with product data
+    document.getElementById('editNewProductName').value = product.nama_barang || '';
+    document.getElementById('editNewProductBrand').value = product.brand || '';
+    document.getElementById('editNewProductKategori').value = product.kategori || '';
+    document.getElementById('editNewProductSatuan').value = product.satuan || '';
+    document.getElementById('editNewProductSpesifikasi').value = product.spesifikasi || '';
+    document.getElementById('editNewProductHarga').value = product.harga_vendor || '';
+    
+    // Update form title and hint
+    const formTitle = document.getElementById('productFormTitle');
+    const formHint = document.getElementById('productFormHint');
+    if (formTitle) {
+        formTitle.innerHTML = '<i class="fas fa-edit text-yellow-600 mr-2"></i>Edit Produk';
+    }
+    if (formHint) {
+        formHint.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Ubah data produk yang diperlukan';
+    }
+    
+    // Change button text and behavior to indicate edit mode
+    const addButton = document.querySelector('button[onclick="addProductToEditVendor()"]');
+    if (addButton) {
+        addButton.innerHTML = '<i class="fas fa-save mr-2"></i>Update Produk';
+        addButton.setAttribute('onclick', 'updateProductInVendor()');
+        addButton.className = 'px-6 py-3 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-lg hover:from-yellow-700 hover:to-yellow-800 transition-all duration-200 transform hover:scale-105 shadow-lg';
+    }
+    
+    // Show cancel button
+    const cancelButton = document.getElementById('cancelEditProductBtn');
+    if (cancelButton) {
+        cancelButton.classList.remove('hidden');
+    }
+    
+    // Scroll to form
+    document.querySelector('.bg-gradient-to-br.from-blue-50').scrollIntoView({ behavior: 'smooth' });
+}
+
+function removeProductFromEditVendor(index) {
+    if (event) {
+        event.preventDefault(); // Mencegah default behavior
+        event.stopPropagation(); // Mencegah event bubbling
+    }
+    
+    if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+        // Rest of the function implementation
+        editVendorProducts.splice(index, 1);
+        
+        // Reset edit mode if editing the deleted product
+        if (editProductIndex === index) {
+            resetProductEditMode();
+            clearEditProductForm();
+        } else if (editProductIndex > index) {
+            // Adjust edit index if needed
+            editProductIndex--;
+        }
+        
+        updateEditVendorProductList();
+        showToast('Produk berhasil dihapus!', 'success');
+    }
+}
+
+// Tambahan untuk mencegah form submission pada modal
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('formEditVendor');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    }
+});
+</script>
