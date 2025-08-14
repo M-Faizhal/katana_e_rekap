@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,35 +14,49 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create admin user
-        User::factory()->create([
-            'name' => 'Administrator',
-            'email' => 'admin@katana.com',
-            'password' => bcrypt('admin123'),
+        // Create users first (required for foreign keys)
+        DB::table('users')->insert([
+            [
+                'nama' => 'Super Administrator',
+                'username' => 'superadmin',
+                'email' => 'superadmin@katana.com',
+                'password' => bcrypt('admin123'),
+                'role' => 'superadmin',
+                'foto' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nama' => 'Admin Marketing',
+                'username' => 'marketing',
+                'email' => 'marketing@katana.com',
+                'password' => bcrypt('marketing123'),
+                'role' => 'admin_marketing',
+                'foto' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nama' => 'Admin Purchasing',
+                'username' => 'purchasing',
+                'email' => 'purchasing@katana.com',
+                'password' => bcrypt('purchasing123'),
+                'role' => 'admin_purchasing',
+                'foto' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
 
-        // Create manager user
-        User::factory()->create([
-            'name' => 'Manager PT. Kamil Trio Niaga',
-            'email' => 'manager@katana.com',
-            'password' => bcrypt('manager123'),
+        // Call other seeders in proper order (respecting foreign key constraints)
+        $this->call([
+            VendorSeeder::class,
+            BarangSeeder::class,
+            ProyekSeeder::class,
+            PenawaranSeeder::class,
+            PenawaranDetailSeeder::class,
+            PembayaranSeeder::class,
+            PengirimanSeeder::class,
         ]);
-
-        // Create staff user
-        User::factory()->create([
-            'name' => 'Staff KATANA',
-            'email' => 'staff@katana.com',
-            'password' => bcrypt('staff123'),
-        ]);
-
-        // Create test user (original)
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => bcrypt('password'),
-        ]);
-
-        // Create additional dummy users
-        User::factory(5)->create();
     }
 }
