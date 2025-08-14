@@ -35,6 +35,7 @@
             </li>
 
             <!-- Marketing Dropdown -->
+            @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
             <li x-data="{ open: {{ request()->routeIs('marketing*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                         class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('marketing*') ? 'bg-red-200 text-red-800' : '' }}">
@@ -77,8 +78,10 @@
                     </li>
                 </ul>
             </li>
+            @endif
 
             <!-- Purchasing Dropdown -->
+            @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_purchasing')
             <li x-data="{ open: {{ request()->routeIs('purchasing*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                         class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('purchasing*') ? 'bg-red-200 text-red-800' : '' }}">
@@ -128,8 +131,10 @@
                     </li>
                 </ul>
             </li>
+            @endif
 
             <!-- Keuangan Dropdown -->
+            @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_keuangan')
             <li x-data="{ open: {{ request()->routeIs('keuangan*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                         class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('keuangan*') ? 'bg-red-200 text-red-800' : '' }}">
@@ -158,6 +163,7 @@
                     </li>
                 </ul>
             </li>
+            @endif
 
             <!-- Produk -->
             <li>
@@ -169,6 +175,7 @@
             </li>
 
             <!-- Pengelolaan Akun -->
+            @if(auth()->user()->role === 'superadmin')
             <li>
                 <a href="{{ route('pengelolaan.akun') }}"
                    class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengelolaan.akun') ? 'bg-red-200 text-red-800' : '' }}">
@@ -176,6 +183,7 @@
                     <span class="font-medium">Pengelolaan Akun</span>
                 </a>
             </li>
+            @endif
         </ul>
     </nav>
 
@@ -183,14 +191,16 @@
     <div class="absolute bottom-0 w-64 px-4 pb-6 bg-white">
         <div class="border-t border-white/20 pt-4">
             <ul class="space-y-1">
+                @if(auth()->user()->role === 'superadmin')
                 <li>
                     <a href="{{ route('pengaturan') }}" class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengaturan') ? 'bg-red-200 text-red-800' : '' }}">
                         <i class="fas fa-cog w-5 text-lg group-hover:rotate-180 transition-transform duration-500"></i>
                         <span class="font-medium">Pengaturan</span>
                     </a>
                 </li>
+                @endif
                 <li>
-                    <form method="POST" action="" class="w-full">
+                    <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <button type="submit" class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group w-full text-left">
                             <i class="fas fa-sign-out-alt w-5 text-lg group-hover:translate-x-1 transition-transform duration-300"></i>
@@ -246,6 +256,7 @@
             </li>
 
             <!-- Marketing Dropdown -->
+            @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
             <li x-data="{ open: {{ request()->routeIs('marketing*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                         class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('marketing*') ? 'bg-red-200 text-red-800' : '' }}">
@@ -288,8 +299,10 @@
                     </li>
                 </ul>
             </li>
+            @endif
 
             <!-- Purchasing Dropdown -->
+            @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_purchasing')
             <li x-data="{ open: {{ request()->routeIs('purchasing*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                         class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('purchasing*') ? 'bg-red-200 text-red-800' : '' }}">
@@ -339,8 +352,10 @@
                     </li>
                 </ul>
             </li>
+            @endif
 
             <!-- Keuangan Dropdown -->
+            @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_keuangan')
             <li x-data="{ open: {{ request()->routeIs('keuangan*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                         class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('keuangan*') ? 'bg-red-200 text-red-800' : '' }}">
@@ -369,6 +384,7 @@
                     </li>
                 </ul>
             </li>
+            @endif
 
             <!-- Produk -->
             <li>
@@ -380,6 +396,7 @@
             </li>
 
             <!-- Pengelolaan Akun -->
+            @if(auth()->user()->role === 'superadmin')
             <li>
                 <a href="{{ route('pengelolaan.akun') }}" onclick="closeMobileMenu()"
                    class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengelolaan.akun') ? 'bg-red-200 text-red-800' : '' }}">
@@ -387,11 +404,13 @@
                     <span class="font-medium">Pengelolaan Akun</span>
                 </a>
             </li>
+            @endif
         </ul>
 
         <!-- Mobile Bottom Menu -->
         <div class="px-4 mt-8 pt-4 border-t border-gray-200">
             <ul class="space-y-1">
+                @if(auth()->user()->role === 'superadmin')
                 <li>
                     <a href="{{ route('pengaturan') }}" onclick="closeMobileMenu()"
                        class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengaturan') ? 'bg-red-200 text-red-800' : '' }}">
@@ -399,8 +418,9 @@
                         <span class="font-medium">Pengaturan</span>
                     </a>
                 </li>
+                @endif
                 <li>
-                    <form method="POST" action="" class="w-full">
+                    <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <button type="submit" class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group w-full text-left">
                             <i class="fas fa-sign-out-alt w-5 text-lg group-hover:translate-x-1 transition-transform duration-300"></i>
@@ -415,4 +435,3 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.0/cdn.min.js" defer></script>

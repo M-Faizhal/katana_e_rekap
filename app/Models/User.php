@@ -50,6 +50,67 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Check if user has specific role
+     */
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Check if user has any of the given roles
+     */
+    public function hasAnyRole(array $roles)
+    {
+        return in_array($this->role, $roles);
+    }
+
+    /**
+     * Check if user is superadmin
+     */
+    public function isSuperAdmin()
+    {
+        return $this->role === 'superadmin';
+    }
+
+    /**
+     * Check if user is marketing admin
+     */
+    public function isMarketingAdmin()
+    {
+        return $this->role === 'admin_marketing';
+    }
+
+    /**
+     * Check if user is purchasing admin
+     */
+    public function isPurchasingAdmin()
+    {
+        return $this->role === 'admin_purchasing';
+    }
+
+    /**
+     * Check if user is finance admin
+     */
+    public function isFinanceAdmin()
+    {
+        return $this->role === 'admin_keuangan';
+    }
+
+    /**
+     * Get available roles
+     */
+    public static function getAvailableRoles()
+    {
+        return [
+            'superadmin' => 'Super Admin',
+            'admin_marketing' => 'Admin Marketing',
+            'admin_purchasing' => 'Admin Purchasing',
+            'admin_keuangan' => 'Admin Keuangan',
+        ];
+    }
+
     // Relationships
     public function proyekMarketing()
     {

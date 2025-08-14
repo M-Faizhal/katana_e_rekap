@@ -27,29 +27,41 @@
             </div>
 
             <!-- Status Message (Show when needed) -->
-            <div class="status-message" style="display: none;">
-                Status message akan muncul di sini
-            </div>
+            @if ($errors->any())
+                <div class="status-message" style="display: block; background-color: #fee; border-color: #fcc; color: #c33;">
+                    @foreach ($errors->all() as $error)
+                        {{ $error }}
+                    @endforeach
+                </div>
+            @endif
 
-            <form id="loginForm" class="space-y-4">
+            @if (session('status'))
+                <div class="status-message" style="display: block; background-color: #efe; border-color: #cfc; color: #393;">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            <form id="loginForm" method="POST" action="{{ route('login.attempt') }}" class="space-y-4">
+                @csrf
                 <div class="form-group">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">Email/Username</label>
                     <div class="input-wrapper">
                         <input
                             id="email"
                             name="email"
-                            type="email"
+                            type="text"
                             required
                             autofocus
                             autocomplete="username"
                             class="form-input"
-                            placeholder="Masukkan email Anda"
+                            placeholder="Masukkan email atau username Anda"
+                            value="{{ old('email') }}"
                         >
-                        <i class="fas fa-envelope input-icon"></i>
+                        <i class="fas fa-user input-icon"></i>
                     </div>
-                    <div class="error-message" style="display: none;">
+                    <div class="error-message" style="display: {{ $errors->has('email') ? 'block' : 'none' }};">
                         <i class="fas fa-exclamation-circle"></i>
-                        <span>Pesan error akan muncul di sini</span>
+                        <span>{{ $errors->first('email') }}</span>
                     </div>
                 </div>
 
@@ -70,9 +82,9 @@
                             <i id="eye" class="fas fa-eye"></i>
                         </button>
                     </div>
-                    <div class="error-message" style="display: none;">
+                    <div class="error-message" style="display: {{ $errors->has('password') ? 'block' : 'none' }};">
                         <i class="fas fa-exclamation-circle"></i>
-                        <span>Pesan error akan muncul di sini</span>
+                        <span>{{ $errors->first('password') }}</span>
                     </div>
                 </div>
 
