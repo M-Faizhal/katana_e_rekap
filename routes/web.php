@@ -91,12 +91,6 @@ Route::middleware('auth')->group(function () {
     })->name('pengaturan');
 
     // Admin only routes
-<<<<<<< Updated upstream
-    Route::middleware('superadmin')->group(function () {
-        Route::get('/pengelolaan-akun', function () {
-            return view('pages.pengelolaan-akun');
-        })->name('pengelolaan.akun');
-=======
     Route::middleware('role:superadmin')->group(function () {
         Route::get('/pengelolaan-akun', [PengelolaanAkun::class, 'index'])->name('pengelolaan.akun');
         Route::post('/pengelolaan-akun', [PengelolaanAkun::class, 'store'])->name('pengelolaan.akun.store');
@@ -107,6 +101,5 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengaturan', function () {
             return view('pages.pengaturan');
         })->name('pengaturan');
->>>>>>> Stashed changes
     });
 });
