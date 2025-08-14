@@ -1,7 +1,10 @@
     @extends('layouts.app')
 
     @section('content')
-    <!-- Header Section -->
+    @extends('layouts.app')
+
+    @section('content')
+    <!-- Header Section -->    <!-- Header Section -->
     <div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg">
         <div class="flex items-center justify-between">
             <div>
@@ -71,6 +74,11 @@
                     <h2 class="text-2xl font-bold text-gray-800">Daftar Wilayah & Instansi</h2>
                     <p class="text-gray-600 mt-1">Kelola data wilayah dan informasi kontak pejabat</p>
                 </div>
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button onclick="tambahWilayah()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition-colors duration-200 flex items-center">
+                        <i class="fas fa-plus mr-2"></i>Tambah Wilayah
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -80,7 +88,7 @@
                 <div class="flex-1">
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" placeholder="Cari wilayah, instansi, atau admin marketing..." 
+                        <input type="text" placeholder="Cari wilayah, instansi, atau admin marketing..."
                             class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     </div>
                 </div>
@@ -119,13 +127,18 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                        
+                            <button onclick="detailWilayah(1)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             <button onclick="editWilayah(1)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <button onclick="hapusWilayah(1)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
@@ -144,7 +157,7 @@
                             <p class="font-medium text-gray-800">021-8765432</p>
                         </div>
                     </div>
-                    
+
                     <div class="border-t border-gray-200 pt-3">
                         <p class="text-xs text-gray-500">Terakhir diupdate: 10 Agustus 2025</p>
                     </div>
@@ -163,13 +176,18 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                    
+                            <button onclick="detailWilayah(2)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             <button onclick="editWilayah(2)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <button onclick="hapusWilayah(2)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
@@ -188,7 +206,7 @@
                             <p class="font-medium text-gray-800">0251-123456</p>
                         </div>
                     </div>
-                    
+
                     <div class="border-t border-gray-200 pt-3">
                         <p class="text-xs text-gray-500">Terakhir diupdate: 8 Agustus 2025</p>
                     </div>
@@ -207,13 +225,18 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                    
+                            <button onclick="detailWilayah(3)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             <button onclick="editWilayah(3)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <button onclick="hapusWilayah(3)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
@@ -232,7 +255,7 @@
                             <p class="font-medium text-gray-800">021-7654321</p>
                         </div>
                     </div>
-                    
+
                     <div class="border-t border-gray-200 pt-3">
                         <p class="text-xs text-gray-500">Terakhir diupdate: 5 Agustus 2025</p>
                     </div>
@@ -251,13 +274,18 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                    
+                            <button onclick="detailWilayah(4)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                <i class="fas fa-eye"></i>
+                            </button>
                             <button onclick="editWilayah(4)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <button onclick="hapusWilayah(4)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
@@ -276,7 +304,7 @@
                             <p class="font-medium text-gray-800">021-5551234</p>
                         </div>
                     </div>
-                    
+
                     <div class="border-t border-gray-200 pt-3">
                         <p class="text-xs text-gray-500">Terakhir diupdate: 3 Agustus 2025</p>
                     </div>
@@ -289,7 +317,7 @@
                 <div class="text-sm text-gray-600 text-center sm:text-left">
                     Menampilkan 1-4 dari 15 data wilayah
                 </div>
-                
+
                 <!-- Mobile Pagination (Simple) -->
                 <div class="flex sm:hidden items-center justify-center space-x-3">
                     <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px] flex items-center" disabled>
@@ -318,52 +346,98 @@
     </div>
 
     <!-- Include Modal Components -->
+    @include('pages.marketing.wilayah-components.tambah')
+    @include('pages.marketing.wilayah-components.detail')
     @include('pages.marketing.wilayah-components.edit')
+    @include('pages.marketing.wilayah-components.hapus')
     @include('components.success-modal')
 
     <script>
+        // Sample data for demonstration
+        const sampleData = {
+            1: {
+                id: 1,
+                wilayah: 'Jakarta Pusat',
+                instansi: 'Dinas Pendidikan DKI Jakarta',
+                admin_marketing: 'Budi Santoso',
+                nama_pejabat: 'Dr. Ahmad Wijaya',
+                jabatan: 'Kepala Dinas',
+                no_telp: '021-8765432',
+                alamat: 'Jl. Letjen S. Parman No. 81, Jakarta Barat',
+                email: 'ahmad.wijaya@jakarta.go.id',
+                updated_at: '10 Agustus 2025'
+            },
+            2: {
+                id: 2,
+                wilayah: 'Bogor',
+                instansi: 'RSUD Kota Bogor',
+                admin_marketing: 'Sari Indah',
+                nama_pejabat: 'Dr. Siti Nurhaliza',
+                jabatan: 'Direktur RSUD',
+                no_telp: '0251-123456',
+                alamat: 'Jl. Ir. H. Juanda No. 1, Bogor',
+                email: 'siti.nurhaliza@rsudbogor.go.id',
+                updated_at: '8 Agustus 2025'
+            },
+            3: {
+                id: 3,
+                wilayah: 'Depok',
+                instansi: 'Dinas Komunikasi dan Informatika',
+                admin_marketing: 'Andi Pratama',
+                nama_pejabat: 'Ir. Rahman Hakim',
+                jabatan: 'Kepala Dinas',
+                no_telp: '021-7654321',
+                alamat: 'Jl. Margonda Raya No. 54, Depok',
+                email: 'rahman.hakim@depok.go.id',
+                updated_at: '5 Agustus 2025'
+            },
+            4: {
+                id: 4,
+                wilayah: 'Tangerang',
+                instansi: 'Badan Perencanaan Pembangunan Daerah',
+                admin_marketing: 'Maya Sari',
+                nama_pejabat: 'Drs. Bambang Sutrisno',
+                jabatan: 'Kepala Badan',
+                no_telp: '021-5551234',
+                alamat: 'Jl. Satria Sudirman No. 1, Tangerang',
+                email: 'bambang.sutrisno@tangerang.go.id',
+                updated_at: '3 Agustus 2025'
+            }
+        };
+
+        // Function to add new wilayah
+        function tambahWilayah() {
+            // Clear form
+            document.getElementById('formTambahWilayah').reset();
+
+            // Show modal
+            document.getElementById('modalTambahWilayah').classList.remove('hidden');
+            document.getElementById('modalTambahWilayah').classList.add('flex');
+        }
+
+        // Function to view wilayah detail
+        function detailWilayah(id) {
+            const data = sampleData[id];
+            if (data) {
+                // Populate detail modal
+                document.getElementById('detailWilayah').textContent = data.wilayah;
+                document.getElementById('detailInstansi').textContent = data.instansi;
+                document.getElementById('detailAdminMarketing').textContent = data.admin_marketing;
+                document.getElementById('detailNamaPejabat').textContent = data.nama_pejabat;
+                document.getElementById('detailJabatan').textContent = data.jabatan;
+                document.getElementById('detailNoTelp').textContent = data.no_telp;
+                document.getElementById('detailAlamat').textContent = data.alamat || '-';
+                document.getElementById('detailEmail').textContent = data.email || '-';
+                document.getElementById('detailUpdatedAt').textContent = data.updated_at;
+
+                // Show modal
+                document.getElementById('modalDetailWilayah').classList.remove('hidden');
+                document.getElementById('modalDetailWilayah').classList.add('flex');
+            }
+        }
+
         // Function to edit wilayah
         function editWilayah(id) {
-            // Sample data - replace with actual data from backend
-            const sampleData = {
-                1: {
-                    id: 1,
-                    wilayah: 'Jakarta Pusat',
-                    instansi: 'Dinas Pendidikan DKI Jakarta',
-                    admin_marketing: 'Budi Santoso',
-                    nama_pejabat: 'Dr. Ahmad Wijaya',
-                    jabatan: 'Kepala Dinas',
-                    no_telp: '021-8765432'
-                },
-                2: {
-                    id: 2,
-                    wilayah: 'Bogor',
-                    instansi: 'RSUD Kota Bogor',
-                    admin_marketing: 'Sari Indah',
-                    nama_pejabat: 'Dr. Siti Nurhaliza',
-                    jabatan: 'Direktur RSUD',
-                    no_telp: '0251-123456'
-                },
-                3: {
-                    id: 3,
-                    wilayah: 'Depok',
-                    instansi: 'Dinas Komunikasi dan Informatika',
-                    admin_marketing: 'Andi Pratama',
-                    nama_pejabat: 'Ir. Rahman Hakim',
-                    jabatan: 'Kepala Dinas',
-                    no_telp: '021-7654321'
-                },
-                4: {
-                    id: 4,
-                    wilayah: 'Tangerang',
-                    instansi: 'Badan Perencanaan Pembangunan Daerah',
-                    admin_marketing: 'Maya Sari',
-                    nama_pejabat: 'Drs. Bambang Sutrisno',
-                    jabatan: 'Kepala Badan',
-                    no_telp: '021-5551234'
-                }
-            };
-
             const data = sampleData[id];
             if (data) {
                 // Populate form
@@ -374,14 +448,27 @@
                 document.getElementById('editNamaPejabat').value = data.nama_pejabat;
                 document.getElementById('editJabatan').value = data.jabatan;
                 document.getElementById('editNoTelp').value = data.no_telp;
-                
+
                 // Show modal
                 document.getElementById('modalEditWilayah').classList.remove('hidden');
                 document.getElementById('modalEditWilayah').classList.add('flex');
             }
         }
 
-        
+        // Function to delete wilayah
+        function hapusWilayah(id) {
+            const data = sampleData[id];
+            if (data) {
+                // Populate delete confirmation
+                document.getElementById('hapusId').value = data.id;
+                document.getElementById('hapusWilayahName').textContent = data.wilayah;
+                document.getElementById('hapusInstansiName').textContent = data.instansi;
+
+                // Show modal
+                document.getElementById('modalHapusWilayah').classList.remove('hidden');
+                document.getElementById('modalHapusWilayah').classList.add('flex');
+            }
+        }
 
         // Function to close modal
         function closeModal(modalId) {
@@ -389,23 +476,69 @@
             document.getElementById(modalId).classList.remove('flex');
         }
 
-        // Handle form submission
-        document.getElementById('formEditWilayah').addEventListener('submit', function(e) {
+        // Handle tambah form submission
+        document.getElementById('formTambahWilayah').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             // Get form data
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
-            
+
+            // Here you would normally send data to backend
+            console.log('Adding new wilayah data:', data);
+
+            // Close modal
+            closeModal('modalTambahWilayah');
+
+            // Show success message
+            alert('Data wilayah berhasil ditambahkan!');
+
+            // Optional: Auto refresh after success modal closes
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        });
+
+        // Handle edit form submission
+        document.getElementById('formEditWilayah').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get form data
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
             // Here you would normally send data to backend
             console.log('Updating wilayah data:', data);
-            
+
             // Close edit modal
             closeModal('modalEditWilayah');
-            
-            // Show success modal
-            showSuccessModal('Data wilayah berhasil diperbarui!');
-            
+
+            // Show success message
+            alert('Data wilayah berhasil diperbarui!');
+
+            // Optional: Auto refresh after success modal closes
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        });
+
+        // Handle delete form submission
+        document.getElementById('formHapusWilayah').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get form data
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            // Here you would normally send data to backend
+            console.log('Deleting wilayah with ID:', data.id);
+
+            // Close delete modal
+            closeModal('modalHapusWilayah');
+
+            // Show success message
+            alert('Data wilayah berhasil dihapus!');
+
             // Optional: Auto refresh after success modal closes
             setTimeout(() => {
                 location.reload();
