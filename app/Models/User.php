@@ -115,6 +115,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'id_user';
+    }
+
+    /**
      * Get profile photo URL
      */
     public function getProfilePhotoUrlAttribute()
