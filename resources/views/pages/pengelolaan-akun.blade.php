@@ -97,9 +97,17 @@
                     <div class="p-4 hover:bg-gray-50 transition-colors duration-200">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <img class="h-12 w-12 rounded-full border-2 border-gray-200" 
-                                     src="https://ui-avatars.com/api/?name={{ urlencode($user->nama) }}&background=ef4444&color=ffffff" 
-                                     alt="{{ $user->nama }}">
+                                @if($user->profile_photo_url)
+                                    <img class="h-12 w-12 rounded-full border-2 border-gray-200" 
+                                         src="{{ $user->profile_photo_url }}" 
+                                         alt="{{ $user->nama }}">
+                                @else
+                                    <div class="h-12 w-12 rounded-full border-2 border-gray-200 bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                                        <span class="text-white font-bold text-lg">
+                                            {{ strtoupper(substr($user->nama, 0, 1)) }}
+                                        </span>
+                                    </div>
+                                @endif
                                 <div>
                                     <h4 class="text-base font-semibold text-gray-900">{{ $user->nama }}</h4>
                                     <p class="text-sm text-gray-500">{{ $user->email }}</p>
@@ -160,10 +168,19 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
-                                        <img class="h-10 w-10 rounded-full border-2 border-gray-200" 
-                                             src="https://ui-avatars.com/api/?name={{ urlencode($user->nama) }}&background=ef4444&color=ffffff" 
-                                             alt="{{ $user->nama }}">
+                                        @if($user->profile_photo_url)
+                                            <img class="h-10 w-10 rounded-full border-2 border-gray-200"
+                                                src="{{ $user->profile_photo_url }}"
+                                                alt="{{ $user->nama }}">
+                                        @else
+                                            <div class="h-10 w-10 rounded-full border-2 border-gray-200 bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                                                <span class="text-white font-semibold text-sm">
+                                                    {{ strtoupper(substr($user->nama, 0, 2)) }}
+                                                </span>
+                                            </div>
+                                        @endif
                                     </div>
+
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">{{ $user->nama }}</div>
                                         <div class="text-sm text-gray-500">ID: {{ $user->id_user }}</div>
@@ -425,53 +442,6 @@ function deleteUser() {
         console.error('Error:', error);
     });
 }
-
-// Add User Form Submission
-document.getElementById('addUserForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-    
-    fetch('{{ route("pengelolaan.akun.store") }}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-        if (response.status === 422) {
-            return response.json().then(data => {
-                // Handle validation errors
-                let errorMessage = 'Validasi gagal:\n';
-                if (data.errors) {
-                    Object.keys(data.errors).forEach(field => {
-                        errorMessage += `• ${data.errors[field][0]}\n`;
-                    });
-                }
-                showNotification(errorMessage, 'error');
-                throw new Error('Validation failed');
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            showNotification(data.message, 'success');
-            closeAddUserModal();
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showNotification(data.message || 'Terjadi kesalahan saat menambah pengguna!', 'error');
-        }
-    })
-    .catch(error => {
-        if (error.message !== 'Validation failed') {
-            showNotification('Terjadi kesalahan saat menambah pengguna!', 'error');
-            console.error('Error:', error);
-        }
-    });
-});
 
 // Add User Form Submission
 document.getElementById('addUserForm').addEventListener('submit', function(e) {

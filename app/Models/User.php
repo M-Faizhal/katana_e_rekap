@@ -133,9 +133,8 @@ class User extends Authenticatable
             return asset('storage/' . $this->foto);
         }
 
-        // Return default avatar with first letter of name
-        $initial = substr($this->nama, 0, 1);
-        return 'https://via.placeholder.com/120x120/ef4444/ffffff?text=' . strtoupper($initial);
+        // Return null to indicate no profile photo
+        return null;
     }
 
     /**
