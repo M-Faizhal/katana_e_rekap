@@ -88,7 +88,7 @@
                             <input type="number" name="tahun_potensi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="2024" value="2024" min="2020" max="2030">
                         </div>
                     </div>
-                    
+
                     <!-- Catatan -->
                     <div class="mt-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
@@ -108,7 +108,7 @@
                             Tambah Barang
                         </button>
                     </div>
-                    
+
                     <div id="daftarBarang" class="space-y-4">
                         <!-- Item Barang Template -->
                         <div class="barang-item bg-white border border-gray-200 rounded-lg p-4">
@@ -154,7 +154,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Total Keseluruhan -->
                     <div class="mt-6 bg-white border border-gray-200 rounded-lg p-4">
                         <div class="flex justify-between items-center">
@@ -187,18 +187,18 @@ function togglePotensi(value) {
     const yaBtn = document.getElementById('potensiYa');
     const tidakBtn = document.getElementById('potensiTidak');
     const hiddenInput = document.getElementById('potensiValue');
-    
+
     if (!yaBtn || !tidakBtn || !hiddenInput) {
         console.error('Potensi elements not found');
         return;
     }
-    
+
     // Reset all buttons
     yaBtn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
     tidakBtn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
     yaBtn.classList.add('border-gray-300', 'text-gray-700');
     tidakBtn.classList.add('border-gray-300', 'text-gray-700');
-    
+
     if (value === 'ya') {
         yaBtn.classList.remove('border-gray-300', 'text-gray-700');
         yaBtn.classList.add('bg-green-500', 'text-white', 'border-green-500');
@@ -213,20 +213,20 @@ function togglePotensi(value) {
 function tambahBarang() {
     const container = document.getElementById('daftarBarang');
     const template = document.querySelector('.barang-item');
-    
+
     if (!container || !template) {
         console.error('Container atau template tidak ditemukan');
         return;
     }
-    
+
     const clonedTemplate = template.cloneNode(true);
-    
+
     // Update header dan input names
     const titleElement = clonedTemplate.querySelector('h5');
     if (titleElement) {
         titleElement.textContent = `Item ${itemCounter + 1}`;
     }
-    
+
     clonedTemplate.querySelectorAll('input, select').forEach(input => {
         const name = input.getAttribute('name');
         if (name) {
@@ -236,13 +236,13 @@ function tambahBarang() {
             input.value = '';
         }
     });
-    
+
     // Show delete button for new items
     const deleteButton = clonedTemplate.querySelector('button[onclick="hapusBarang(this)"]');
     if (deleteButton) {
         deleteButton.style.display = 'block';
     }
-    
+
     container.appendChild(clonedTemplate);
     itemCounter++;
     updateDeleteButtons();
@@ -288,7 +288,7 @@ function hitungTotal(input) {
     const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
     const hargaSatuan = parseFloat(row.querySelector('.harga-satuan-input').value) || 0;
     const total = qty * hargaSatuan;
-    
+
     const totalInput = row.querySelector('.harga-total-input');
     if (totalInput) {
         totalInput.value = total;
@@ -301,14 +301,14 @@ function hitungTotalKeseluruhan() {
     document.querySelectorAll('.barang-item').forEach(item => {
         const qtyInput = item.querySelector('.qty-input');
         const hargaSatuanInput = item.querySelector('.harga-satuan-input');
-        
+
         if (qtyInput && hargaSatuanInput) {
             const qty = parseFloat(qtyInput.value) || 0;
             const hargaSatuan = parseFloat(hargaSatuanInput.value) || 0;
             total += qty * hargaSatuan;
         }
     });
-    
+
     const totalElement = document.getElementById('totalKeseluruhan');
     if (totalElement) {
         totalElement.textContent = formatRupiah(total);
@@ -319,33 +319,86 @@ function formatRupiah(angka) {
     return 'Rp ' + angka.toLocaleString('id-ID');
 }
 
+// Function to clear file input in tambah modal
+function clearTambahFile(inputId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(inputId + 'Preview');
+
+    if (input) {
+        input.value = '';
+    }
+    if (preview) {
+        preview.classList.add('hidden');
+    }
+}
+
+// File upload preview handlers for tambah modal
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInputs = ['suratPenawaran', 'suratPersetujuan', 'suratKontrak', 'suratSelesai'];
+
+    fileInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(inputId + 'Preview');
+
+        if (input && preview) {
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const filenameSpan = preview.querySelector('.filename');
+
+                if (file) {
+                    // Check file size (5MB limit)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Ukuran file terlalu besar. Maksimal 5MB.');
+                        this.value = '';
+                        preview.classList.add('hidden');
+                        return;
+                    }
+
+                    filenameSpan.textContent = file.name;
+                    preview.classList.remove('hidden');
+                } else {
+                    preview.classList.add('hidden');
+                }
+            });
+        }
+    });
+});
+
 // Form submission
 document.getElementById('formTambahProyek').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     // Simulate form submission
     const submitButton = e.target.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
-    
+
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
     submitButton.disabled = true;
-    
+
     setTimeout(() => {
         submitButton.innerHTML = originalText;
         submitButton.disabled = false;
         closeModal('modalTambahProyek');
-        
+
         // Show success message
         alert('Proyek berhasil ditambahkan!');
-        
+
         // Reset form
         this.reset();
-        
+
+        // Reset file previews
+        ['suratPenawaran', 'suratPersetujuan', 'suratKontrak', 'suratSelesai'].forEach(inputId => {
+            const preview = document.getElementById(inputId + 'Preview');
+            if (preview) {
+                preview.classList.add('hidden');
+            }
+        });
+
         // Reset potensi buttons
         const potensiYa = document.getElementById('potensiYa');
         const potensiTidak = document.getElementById('potensiTidak');
         const potensiValue = document.getElementById('potensiValue');
-        
+
         if (potensiYa) {
             potensiYa.classList.remove('bg-green-500', 'text-white', 'border-green-500');
             potensiYa.classList.add('border-gray-300', 'text-gray-700');
@@ -357,7 +410,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', function(
         if (potensiValue) {
             potensiValue.value = '';
         }
-        
+
         // Reset items to 1
         const container = document.getElementById('daftarBarang');
         const items = container.querySelectorAll('.barang-item');

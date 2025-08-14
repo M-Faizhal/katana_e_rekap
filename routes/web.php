@@ -96,9 +96,5 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'show'])->name('pengelolaan.akun.show');
         Route::put('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'update'])->name('pengelolaan.akun.update');
         Route::delete('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'destroy'])->name('pengelolaan.akun.destroy');
-
-        Route::get('/pengaturan', function () {
-            return view('pages.pengaturan');
-        })->name('pengaturan');
     });
 });

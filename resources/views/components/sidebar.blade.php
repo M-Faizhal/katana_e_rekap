@@ -68,13 +68,6 @@
                             <span class="font-medium">Potensi</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="{{ route('marketing.penawaran') }}"
-                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.penawaran') ? 'bg-red-100 text-red-800' : '' }}">
-                            <i class="fas fa-file-contract w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
-                            <span class="font-medium">Penawaran</span>
-                        </a>
-                    </li>
                 </ul>
             </li>
 
@@ -279,13 +272,6 @@
                            class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.potensi') ? 'bg-red-100 text-red-800' : '' }}">
                             <i class="fas fa-chart-line w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
                             <span class="font-medium">Potensi</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('marketing.penawaran') }}" onclick="closeMobileMenu()"
-                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.penawaran') ? 'bg-red-100 text-red-800' : '' }}">
-                            <i class="fas fa-file-contract w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
-                            <span class="font-medium">Penawaran</span>
                         </a>
                     </li>
                 </ul>

@@ -14,18 +14,27 @@ $proyekData = [
         'jenis_pengadaan' => 'Pelelangan Umum',
         'tanggal' => '2024-09-15',
         'deadline' => '2024-09-30',
-        'status' => 'berhasil',
+        'status' => 'penawaran',
         'admin_marketing' => 'Andi Prasetyo',
         'admin_purchasing' => 'Sari Wijaya',
         'catatan' => 'Proyek pembangunan sistem informasi manajemen pendidikan untuk meningkatkan efisiensi administrasi.',
         'potensi' => 'ya',
         'tahun_potensi' => 2024,
         'total_nilai' => 850000000,
+        'surat_penawaran' => 'SP-2024-001.pdf',
+        'surat_persetujuan' => '',
+        'surat_kontrak' => '',
+        'surat_selesai' => '',
         'daftar_barang' => [
             ['nama' => 'Server Database', 'qty' => 2, 'satuan' => 'unit', 'harga_satuan' => 15000000, 'harga_total' => 30000000],
             ['nama' => 'Workstation', 'qty' => 10, 'satuan' => 'unit', 'harga_satuan' => 8000000, 'harga_total' => 80000000],
             ['nama' => 'Software License', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 50000000, 'harga_total' => 50000000],
             ['nama' => 'Training & Support', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 25000000, 'harga_total' => 25000000]
+        ],
+        'penawaran' => [
+            'no_penawaran' => 'PNW-2024-001',
+            'tanggal_penawaran' => '2024-09-10',
+            'status_penawaran' => 'dikirim'
         ]
     ],
     [
@@ -37,17 +46,26 @@ $proyekData = [
         'jenis_pengadaan' => 'Penunjukan Langsung',
         'tanggal' => '2024-09-20',
         'deadline' => '2024-10-05',
-        'status' => 'proses',
+        'status' => 'pembayaran',
         'admin_marketing' => 'Budi Santoso',
         'admin_purchasing' => 'Maya Indah',
         'catatan' => 'Pengembangan portal layanan publik online untuk memudahkan akses masyarakat.',
         'potensi' => 'tidak',
         'tahun_potensi' => 2025,
         'total_nilai' => 650000000,
+        'surat_penawaran' => 'SP-2024-002.pdf',
+        'surat_persetujuan' => 'SPJ-2024-002.pdf',
+        'surat_kontrak' => 'SK-2024-002.pdf',
+        'surat_selesai' => '',
         'daftar_barang' => [
             ['nama' => 'Web Development', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 45000000, 'harga_total' => 45000000],
             ['nama' => 'Hosting & Domain', 'qty' => 1, 'satuan' => 'tahun', 'harga_satuan' => 5000000, 'harga_total' => 5000000],
             ['nama' => 'Maintenance', 'qty' => 1, 'satuan' => 'tahun', 'harga_satuan' => 12000000, 'harga_total' => 12000000]
+        ],
+        'penawaran' => [
+            'no_penawaran' => 'PNW-2024-002',
+            'tanggal_penawaran' => '2024-09-18',
+            'status_penawaran' => 'diterima'
         ]
     ],
     [
@@ -66,10 +84,19 @@ $proyekData = [
         'potensi' => 'ya',
         'tahun_potensi' => 2024,
         'total_nilai' => 720000000,
+        'surat_penawaran' => 'SP-2024-003.pdf',
+        'surat_persetujuan' => '',
+        'surat_kontrak' => '',
+        'surat_selesai' => '',
         'daftar_barang' => [
             ['nama' => 'Mobile App Development', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 60000000, 'harga_total' => 60000000],
             ['nama' => 'Backend API', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 40000000, 'harga_total' => 40000000],
             ['nama' => 'Testing & QA', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 15000000, 'harga_total' => 15000000]
+        ],
+        'penawaran' => [
+            'no_penawaran' => 'PNW-2024-003',
+            'tanggal_penawaran' => '2024-08-20',
+            'status_penawaran' => 'ditolak'
         ]
     ],
     [
@@ -81,17 +108,26 @@ $proyekData = [
         'jenis_pengadaan' => 'Pelelangan Umum',
         'tanggal' => '2024-10-10',
         'deadline' => '2024-10-25',
-        'status' => 'proses',
+        'status' => 'selesai',
         'admin_marketing' => 'Fajar Ramadhan',
         'admin_purchasing' => 'Lisa Permata',
         'catatan' => 'Dashboard untuk monitoring dan analisis data pembangunan daerah.',
         'potensi' => 'ya',
         'tahun_potensi' => 2024,
         'total_nilai' => 920000000,
+        'surat_penawaran' => 'SP-2024-004.pdf',
+        'surat_persetujuan' => 'SPJ-2024-004.pdf',
+        'surat_kontrak' => 'SK-2024-004.pdf',
+        'surat_selesai' => 'SS-2024-004.pdf',
         'daftar_barang' => [
             ['nama' => 'Dashboard System', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 75000000, 'harga_total' => 75000000],
             ['nama' => 'Data Integration', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 35000000, 'harga_total' => 35000000],
             ['nama' => 'User Training', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 20000000, 'harga_total' => 20000000]
+        ],
+        'penawaran' => [
+            'no_penawaran' => 'PNW-2024-004',
+            'tanggal_penawaran' => '2024-10-05',
+            'status_penawaran' => 'selesai'
         ]
     ],
     [
@@ -103,17 +139,26 @@ $proyekData = [
         'jenis_pengadaan' => 'Pemilihan Langsung',
         'tanggal' => '2024-09-30',
         'deadline' => '2024-11-15',
-        'status' => 'proses',
+        'status' => 'pengiriman',
         'admin_marketing' => 'Agus Setiawan',
         'admin_purchasing' => 'Nina Kartika',
         'catatan' => 'Sistem manajemen inventory aset daerah untuk meningkatkan akuntabilitas.',
         'potensi' => 'ya',
         'tahun_potensi' => 2024,
         'total_nilai' => 980000000,
+        'surat_penawaran' => 'SP-2024-005.pdf',
+        'surat_persetujuan' => 'SPJ-2024-005.pdf',
+        'surat_kontrak' => 'SK-2024-005.pdf',
+        'surat_selesai' => '',
         'daftar_barang' => [
             ['nama' => 'Inventory System', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 85000000, 'harga_total' => 85000000],
             ['nama' => 'Barcode Scanner', 'qty' => 10, 'satuan' => 'unit', 'harga_satuan' => 2500000, 'harga_total' => 25000000],
             ['nama' => 'Installation & Setup', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 15000000, 'harga_total' => 15000000]
+        ],
+        'penawaran' => [
+            'no_penawaran' => 'PNW-2024-005',
+            'tanggal_penawaran' => '2024-09-25',
+            'status_penawaran' => 'diterima'
         ]
     ],
     [
@@ -125,26 +170,80 @@ $proyekData = [
         'jenis_pengadaan' => 'Tender',
         'tanggal' => '2024-10-15',
         'deadline' => '2024-12-01',
-        'status' => 'berhasil',
+        'status' => 'menunggu',
         'admin_marketing' => 'Rina Sari',
         'admin_purchasing' => 'Dedi Kurniawan',
         'catatan' => 'Implementasi sistem keuangan daerah yang terintegrasi dengan sistem nasional.',
         'potensi' => 'tidak',
         'tahun_potensi' => 2025,
         'total_nilai' => 1200000000,
+        'surat_penawaran' => '',
+        'surat_persetujuan' => '',
+        'surat_kontrak' => '',
+        'surat_selesai' => '',
         'daftar_barang' => [
             ['nama' => 'Financial System', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 95000000, 'harga_total' => 95000000],
             ['nama' => 'Database Server', 'qty' => 2, 'satuan' => 'unit', 'harga_satuan' => 25000000, 'harga_total' => 50000000],
             ['nama' => 'Security Module', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 30000000, 'harga_total' => 30000000]
+        ],
+        'penawaran' => [
+            'no_penawaran' => 'PNW-2024-006',
+            'tanggal_penawaran' => '2024-10-12',
+            'status_penawaran' => 'dikirim'
+        ]
+    ],
+    [
+        'id' => 7,
+        'kode' => 'PNW-2024-007',
+        'nama_proyek' => 'Platform E-Learning Daerah',
+        'kabupaten_kota' => 'Medan',
+        'nama_instansi' => 'Dinas Pendidikan Sumut',
+        'jenis_pengadaan' => 'Tender',
+        'tanggal' => '2024-07-10',
+        'deadline' => '2024-08-25',
+        'status' => 'gagal',
+        'admin_marketing' => 'Maria Sinaga',
+        'admin_purchasing' => 'Bayu Pratama',
+        'catatan' => 'Platform pembelajaran online untuk sekolah-sekolah di Sumatera Utara. Proyek dibatalkan karena anggaran tidak mencukupi.',
+        'potensi' => 'tidak',
+        'tahun_potensi' => 2025,
+        'total_nilai' => 450000000,
+        'surat_penawaran' => 'SP-2024-007.pdf',
+        'surat_persetujuan' => '',
+        'surat_kontrak' => '',
+        'surat_selesai' => '',
+        'daftar_barang' => [
+            ['nama' => 'LMS Platform', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 35000000, 'harga_total' => 35000000],
+            ['nama' => 'Content Development', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 25000000, 'harga_total' => 25000000],
+            ['nama' => 'Teacher Training', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 15000000, 'harga_total' => 15000000]
+        ],
+        'penawaran' => [
+            'no_penawaran' => 'PNW-2024-007',
+            'tanggal_penawaran' => '2024-07-05',
+            'status_penawaran' => 'dibatalkan'
         ]
     ]
 ];
 
+// Fungsi helper untuk menghitung statistik
+function countByStatus($data, $status) {
+    return count(array_filter($data, function($item) use ($status) {
+        return $item['status'] === $status;
+    }));
+}
+
+function countTotal($data) {
+    return count($data);
+}
+
 // Hitung statistik
-$totalProyek = count($proyekData);
-$berhasilCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'berhasil'));
-$prosesCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'proses'));
-$gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'));
+$totalProyek = countTotal($proyekData);
+$menungguCount = countByStatus($proyekData, 'menunggu');
+$penawaranCount = countByStatus($proyekData, 'penawaran');
+$pembayaranCount = countByStatus($proyekData, 'pembayaran');
+$pengirimanCount = countByStatus($proyekData, 'pengiriman');
+$selesaiCount = countByStatus($proyekData, 'selesai');
+$gagalCount = countByStatus($proyekData, 'gagal');
 @endphp
 
 <!-- Header Section -->
@@ -161,41 +260,74 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+<div class="grid grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4 lg:gap-4 mb-6 sm:mb-8">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:items-center">
             <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-file-alt text-red-600 text-sm sm:text-lg lg:text-xl"></i>
+                <i class="fas fa-list text-red-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
             <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Proyek</h3>
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">{{ $totalProyek }}</p>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gray-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-clock text-gray-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Menunggu</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-600">{{ $menungguCount }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-file-alt text-blue-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Penawaran</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{{ $penawaranCount }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-credit-card text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Pembayaran</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">{{ $pembayaranCount }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-orange-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-shipping-fast text-orange-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Pengiriman</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">{{ $pengirimanCount }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:items-center">
             <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
                 <i class="fas fa-check-circle text-green-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
             <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Berhasil</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{{ $berhasilCount }}</p>
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Selesai</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{{ $selesaiCount }}</p>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-clock text-yellow-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Proses</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">{{ $prosesCount }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:items-center">
             <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
                 <i class="fas fa-times-circle text-red-600 text-sm sm:text-lg lg:text-xl"></i>
@@ -233,8 +365,11 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <select id="statusFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Status</option>
-                    <option value="proses">Proses</option>
-                    <option value="berhasil">Berhasil</option>
+                    <option value="menunggu">Menunggu</option>
+                    <option value="penawaran">Penawaran</option>
+                    <option value="pembayaran">Pembayaran</option>
+                    <option value="pengiriman">Pengiriman</option>
+                    <option value="selesai">Selesai</option>
                     <option value="gagal">Gagal</option>
                 </select>
                 <select id="sortBy" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
@@ -264,14 +399,64 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
                             <span class="text-red-600 font-bold text-sm sm:text-lg">{{ $index + 1 }}</span>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <h3 class="text-base sm:text-lg font-bold text-gray-800 truncate">{{ $proyek['nama_proyek'] }}</h3>
-                            <span class="inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full 
-                                @if($proyek['status'] === 'berhasil') bg-green-100 text-green-800
-                                @elseif($proyek['status'] === 'proses') bg-yellow-100 text-yellow-800
-                                @else bg-red-100 text-red-800
-                                @endif mt-1">
-                                {{ ucfirst($proyek['status']) }}
-                            </span>
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3 class="text-base sm:text-lg font-bold text-gray-800">{{ $proyek['nama_proyek'] }}</h3>
+
+                                @if(!empty($proyek['surat_penawaran']) && !empty($proyek['surat_kontrak']))
+                                    <!-- Indikator surat lengkap -->
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                                        <i class="fas fa-check-circle mr-1"></i>Surat Lengkap
+                                    </span>
+                                @else
+                                    <!-- Indikator surat belum lengkap -->
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>Surat Belum Lengkap
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full
+                                    @if($proyek['status'] === 'selesai') bg-green-100 text-green-800
+                                    @elseif($proyek['status'] === 'pengiriman') bg-orange-100 text-orange-800
+                                    @elseif($proyek['status'] === 'pembayaran') bg-purple-100 text-purple-800
+                                    @elseif($proyek['status'] === 'penawaran') bg-blue-100 text-blue-800
+                                    @elseif($proyek['status'] === 'menunggu') bg-gray-100 text-gray-800
+                                    @else bg-red-100 text-red-800
+                                    @endif">
+                                    {{ ucfirst($proyek['status']) }}
+                                </span>
+
+                                @if(!empty($proyek['surat_penawaran']) && !empty($proyek['surat_kontrak']))
+                                    <!-- Dropdown untuk ubah status jika surat penawaran dan kontrak sudah ada -->
+                                    <select onchange="changeStatusQuick({{ $proyek['id'] }}, this.value, this)"
+                                            data-current-status="{{ $proyek['status'] }}"
+                                            class="status-dropdown text-xs bg-white border border-gray-300 hover:border-gray-400 text-gray-700 px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-red-500 transition-all duration-200"
+                                            title="Ubah Status Cepat">
+                                        <option value="">Ubah Status</option>
+                                        @if($proyek['status'] !== 'penawaran')
+                                            <option value="penawaran">📄 Penawaran</option>
+                                        @endif
+                                        @if($proyek['status'] !== 'pembayaran')
+                                            <option value="pembayaran">💳 Pembayaran</option>
+                                        @endif
+                                        @if($proyek['status'] !== 'pengiriman')
+                                            <option value="pengiriman">🚚 Pengiriman</option>
+                                        @endif
+                                        @if($proyek['status'] !== 'selesai')
+                                            <option value="selesai">🏆 Selesai</option>
+                                        @endif
+                                        @if($proyek['status'] !== 'gagal')
+                                            <option value="gagal">❌ Gagal</option>
+                                        @endif
+                                    </select>
+                                @else
+                                    <!-- Tombol modal untuk ubah status jika surat belum lengkap -->
+                                    <button onclick="openStatusModal({{ $proyek['id'] }})" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full transition-colors duration-200" title="Ubah Status">
+                                        <i class="fas fa-edit mr-1"></i>Ubah
+                                    </button>
+                                @endif
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center space-x-1 sm:space-x-2 self-start">
@@ -329,10 +514,22 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
 
                 <!-- Total Nilai -->
                 <div class="mt-4 pt-4 border-t border-gray-100">
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center mb-2">
                         <span class="text-sm text-gray-500">Total Nilai Proyek:</span>
                         <span class="text-lg font-bold text-red-600">Rp {{ number_format($proyek['total_nilai'], 0, ',', '.') }}</span>
                     </div>
+
+                    <!-- Penawaran Info -->
+                    @if(isset($proyek['penawaran']))
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500">No. Penawaran:</span>
+                        <span class="font-medium text-blue-600">{{ $proyek['penawaran']['no_penawaran'] }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm mt-1">
+                        <span class="text-gray-500">Tanggal Penawaran:</span>
+                        <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($proyek['penawaran']['tanggal_penawaran'])->format('d M Y') }}</span>
+                    </div>
+                    @endif
                 </div>
             </div>
             @endforeach
@@ -365,7 +562,7 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
-                
+
                 <!-- Tablet & Desktop Pagination (Full) -->
                 <div class="hidden sm:flex items-center space-x-1 md:space-x-2">
                     <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
@@ -396,6 +593,7 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
 @include('pages.marketing.proyek-components.edit')
 @include('pages.marketing.proyek-components.detail')
 @include('pages.marketing.proyek-components.hapus')
+@include('pages.marketing.proyek-components.ubah-status')
 @include('components.success-modal')
 
 <!-- Include Modal Functions -->
@@ -493,7 +691,7 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
         margin: 0;
         min-height: 100vh;
     }
-    
+
     .modal-header {
         position: sticky;
         top: 0;
@@ -501,22 +699,22 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
         background: white;
         border-bottom: 1px solid #e5e7eb;
     }
-    
+
     .modal-form .space-y-4 > * + * {
         margin-top: 0.75rem;
     }
-    
+
     .modal-form .space-y-6 > * + * {
         margin-top: 1rem;
     }
-    
+
     .modal-form input,
     .modal-form select,
     .modal-form textarea {
         min-height: 44px;
         font-size: 16px;
     }
-    
+
     .modal-form button {
         min-height: 44px;
         padding: 0.75rem 1rem;
@@ -528,13 +726,13 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
         margin: 1rem;
         border-radius: 0.75rem;
     }
-    
+
     .modal-form input,
     .modal-form select,
     .modal-form textarea {
         min-height: 40px;
     }
-    
+
     .modal-form button {
         min-height: 40px;
     }
@@ -579,6 +777,85 @@ $gagalCount = count(array_filter($proyekData, fn($p) => $p['status'] === 'gagal'
         background-color: rgba(0, 0, 0, 0.75);
     }
 }
+
+/* Status Change Animations */
+.status-change-highlight {
+    animation: statusGlow 0.8s ease-in-out;
+}
+
+@keyframes statusGlow {
+    0%, 100% {
+        box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        transform: scale(1.02);
+    }
+}
+
+/* Dropdown styling */
+select.status-dropdown {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2rem;
+}
+
+/* Tooltip styling */
+.tooltip-wrapper {
+    position: relative;
+}
+
+.tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease-in-out;
+    z-index: 10;
+}
+
+.tooltip-wrapper:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-2px);
+}
+
+/* Success notification animation */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.notification-enter {
+    animation: slideInRight 0.3s ease-out;
+}
+
+.notification-exit {
+    animation: slideOutRight 0.3s ease-in;
+}
 </style>
 
 <script>
@@ -622,23 +899,23 @@ function debounce(func, wait) {
 // Filter dan sort function
 function filterAndSort() {
     let filtered = [...proyekData];
-    
+
     // Apply search filter
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     if (searchTerm) {
-        filtered = filtered.filter(proyek => 
+        filtered = filtered.filter(proyek =>
             proyek.nama_instansi.toLowerCase().includes(searchTerm) ||
             proyek.kabupaten_kota.toLowerCase().includes(searchTerm) ||
             proyek.nama_proyek.toLowerCase().includes(searchTerm)
         );
     }
-    
+
     // Apply status filter
     const selectedStatus = statusFilter ? statusFilter.value : '';
     if (selectedStatus) {
         filtered = filtered.filter(proyek => proyek.status === selectedStatus);
     }
-    
+
     // Apply sorting
     const selectedSort = sortBy ? sortBy.value : '';
     if (selectedSort) {
@@ -654,7 +931,7 @@ function filterAndSort() {
                 break;
         }
     }
-    
+
     currentData = filtered;
     displayResults();
     updatePaginationInfo();
@@ -664,11 +941,11 @@ function filterAndSort() {
 function displayResults() {
     const cards = document.querySelectorAll('.proyek-card');
     let visibleCount = 0;
-    
+
     cards.forEach((card, index) => {
         const originalProyek = proyekData[index];
         const isVisible = currentData.some(proyek => proyek.id === originalProyek.id);
-        
+
         if (isVisible) {
             card.style.display = 'block';
             visibleCount++;
@@ -676,7 +953,7 @@ function displayResults() {
             card.style.display = 'none';
         }
     });
-    
+
     // Show/hide no results message
     if (visibleCount === 0) {
         if (noResults) noResults.classList.remove('hidden');
@@ -692,7 +969,7 @@ function updatePaginationInfo() {
     if (paginationInfo) {
         const totalVisible = currentData.length;
         const totalAll = proyekData.length;
-        
+
         if (totalVisible === 0) {
             paginationInfo.innerHTML = 'Tidak ada proyek yang ditampilkan';
         } else {
@@ -704,17 +981,17 @@ function updatePaginationInfo() {
 // Function to view detail proyek
 function viewDetail(id) {
     console.log('viewDetail called with ID:', id);
-    
+
     const data = proyekData.find(p => p.id == id);
-    
+
     if (!data) {
         console.error('Data proyek tidak ditemukan dengan ID:', id);
         alert('Data proyek tidak ditemukan!');
         return;
     }
-    
+
     console.log('Data found:', data);
-    
+
     const formattedData = {
         id: data.id,
         kode: data.kode,
@@ -763,7 +1040,7 @@ function viewDetail(id) {
     if (statusBadge) {
         statusBadge.textContent = ucfirst(formattedData.status);
         statusBadge.className = 'inline-flex px-3 py-1 text-sm font-medium rounded-full';
-        
+
         if (formattedData.status === 'berhasil') {
             statusBadge.classList.add('bg-green-100', 'text-green-800');
         } else if (formattedData.status === 'proses') {
@@ -777,7 +1054,7 @@ function viewDetail(id) {
     const daftarBarangContainer = document.getElementById('detailDaftarBarang');
     if (daftarBarangContainer && formattedData.daftar_barang && formattedData.daftar_barang.length > 0) {
         daftarBarangContainer.innerHTML = '';
-        
+
         formattedData.daftar_barang.forEach((item, index) => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 mb-3';
@@ -821,17 +1098,17 @@ function viewDetail(id) {
 // Function to edit proyek
 function editProyek(id) {
     console.log('editProyek called with ID:', id);
-    
+
     const data = proyekData.find(p => p.id == id);
-    
+
     if (!data) {
         console.error('Data proyek tidak ditemukan dengan ID:', id);
         alert('Data proyek tidak ditemukan!');
         return;
     }
-    
+
     console.log('Data found for edit:', data);
-    
+
     // Format data untuk edit modal
     const editData = {
         id: data.id,
@@ -873,7 +1150,7 @@ function editProyek(id) {
                 'editTahunPotensi': editData.tahun_potensi,
                 'editStatus': editData.status
             };
-            
+
             Object.keys(fields).forEach(fieldId => {
                 const element = document.getElementById(fieldId);
                 if (element) {
@@ -895,17 +1172,17 @@ function editProyek(id) {
 // Function to delete proyek
 function deleteProyek(id) {
     console.log('deleteProyek called with ID:', id);
-    
+
     const data = proyekData.find(p => p.id == id);
-    
+
     if (!data) {
         console.error('Data proyek tidak ditemukan dengan ID:', id);
         alert('Data proyek tidak ditemukan!');
         return;
     }
-    
+
     console.log('Data found for delete:', data);
-    
+
     // Store data globally for deletion process
     window.hapusData = {
         id: data.id,
@@ -945,6 +1222,219 @@ function deleteProyek(id) {
     openModal('modalHapusProyek');
 }
 
+// Function to change status quickly via dropdown
+function changeStatusQuick(proyekId, newStatus, selectElement = null) {
+    if (!newStatus) return; // Jika tidak ada status yang dipilih
+
+    const proyek = proyekData.find(p => p.id == proyekId);
+    if (!proyek) {
+        showErrorMessage('Data proyek tidak ditemukan!');
+        if (selectElement) selectElement.value = '';
+        return;
+    }
+
+    // Validasi apakah status bisa diubah
+    if (!validateDropdownChange(selectElement, proyekId)) {
+        if (selectElement) selectElement.value = '';
+        return;
+    }
+
+    // Konfirmasi perubahan
+    const statusNames = {
+        'kontrak': 'Kontrak',
+        'selesai': 'Selesai',
+        'proses': 'Proses',
+        'gagal': 'Gagal'
+    };
+
+    const confirmMessage = `Apakah Anda yakin ingin mengubah status proyek "${proyek.nama_proyek}" menjadi "${statusNames[newStatus]}"?`;
+    if (!confirm(confirmMessage)) {
+        // Reset dropdown ke nilai awal
+        if (selectElement) selectElement.value = '';
+        return;
+    }
+
+    // Show loading state
+    const originalOptions = selectElement ? selectElement.innerHTML : '';
+    if (selectElement) {
+        selectElement.innerHTML = '<option value="">⏳ Memproses...</option>';
+        selectElement.disabled = true;
+        selectElement.classList.add('opacity-50');
+    }
+
+    // Simulasi API call
+    setTimeout(() => {
+        try {
+            // Update data
+            const originalStatus = proyek.status;
+            proyek.status = newStatus;
+
+            // Update UI
+            updateProyekStatusInUI(proyekId, newStatus);
+
+            // Reset dropdown
+            if (selectElement) {
+                selectElement.disabled = false;
+                selectElement.classList.remove('opacity-50');
+                selectElement.innerHTML = originalOptions;
+                selectElement.value = '';
+                selectElement.dataset.currentStatus = newStatus;
+            }
+
+            // Show success message
+            showSuccessMessage(`Status proyek berhasil diubah menjadi "${statusNames[newStatus]}"!`);
+
+            // Update statistics
+            updateStatistics();
+
+            // Refresh filter if needed
+            filterAndSort();
+
+        } catch (error) {
+            console.error('Error updating status:', error);
+            showErrorMessage('Terjadi kesalahan saat mengubah status!');
+
+            // Reset dropdown on error
+            if (selectElement) {
+                selectElement.disabled = false;
+                selectElement.classList.remove('opacity-50');
+                selectElement.innerHTML = originalOptions;
+                selectElement.value = '';
+            }
+        }
+    }, 1500);
+}
+
+// Function to show success message with animation
+function showSuccessMessage(message) {
+    // Create success notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Animate out and remove
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Function to update proyek status in UI
+function updateProyekStatusInUI(proyekId, newStatus) {
+    // Find the card element
+    const cards = document.querySelectorAll('.proyek-card');
+    cards.forEach(card => {
+        const cardData = proyekData.find(p => p.id == proyekId);
+        if (cardData) {
+            const cardIndex = proyekData.indexOf(cardData);
+            if (card === cards[cardIndex]) {
+                // Update status badge
+                const statusBadge = card.querySelector('span[class*="bg-"]');
+                if (statusBadge) {
+                    // Remove old classes
+                    statusBadge.classList.remove('bg-green-100', 'text-green-800', 'bg-orange-100', 'text-orange-800',
+                                              'bg-purple-100', 'text-purple-800', 'bg-blue-100', 'text-blue-800',
+                                              'bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800');
+
+                    // Add new classes based on status
+                    switch(newStatus) {
+                        case 'selesai':
+                            statusBadge.classList.add('bg-green-100', 'text-green-800');
+                            break;
+                        case 'kontrak':
+                            statusBadge.classList.add('bg-orange-100', 'text-orange-800');
+                            break;
+                        case 'persetujuan':
+                            statusBadge.classList.add('bg-purple-100', 'text-purple-800');
+                            break;
+                        case 'penawaran':
+                            statusBadge.classList.add('bg-blue-100', 'text-blue-800');
+                            break;
+                        case 'proses':
+                            statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                            break;
+                        default:
+                            statusBadge.classList.add('bg-red-100', 'text-red-800');
+                    }
+
+                    // Update text
+                    statusBadge.textContent = ucfirst(newStatus);
+                }
+
+                // Update data attribute
+                card.setAttribute('data-status', newStatus);
+            }
+        }
+    });
+}
+
+// Function to update statistics after status change
+function updateStatistics() {
+    // Recalculate statistics from current data
+    const totalProyek = proyekData.length;
+    const penawaranCount = proyekData.filter(p => p.status === 'penawaran').length;
+    const persetujuanCount = proyekData.filter(p => p.status === 'persetujuan').length;
+    const kontrakCount = proyekData.filter(p => p.status === 'kontrak').length;
+    const selesaiCount = proyekData.filter(p => p.status === 'selesai').length;
+    const prosesCount = proyekData.filter(p => p.status === 'proses').length;
+    const gagalCount = proyekData.filter(p => p.status === 'gagal').length;
+
+    // Update stats cards by finding them more specifically
+    const statsContainer = document.querySelector('.grid.grid-cols-2.lg\\:grid-cols-6');
+    if (statsContainer) {
+        const statCards = statsContainer.querySelectorAll('.bg-white');
+
+        // Update each stat card
+        if (statCards[0]) { // Total
+            const countElement = statCards[0].querySelector('.font-bold');
+            if (countElement) countElement.textContent = totalProyek;
+        }
+        if (statCards[1]) { // Penawaran
+            const countElement = statCards[1].querySelector('.font-bold');
+            if (countElement) countElement.textContent = penawaranCount;
+        }
+        if (statCards[2]) { // Persetujuan
+            const countElement = statCards[2].querySelector('.font-bold');
+            if (countElement) countElement.textContent = persetujuanCount;
+        }
+        if (statCards[3]) { // Kontrak
+            const countElement = statCards[3].querySelector('.font-bold');
+            if (countElement) countElement.textContent = kontrakCount;
+        }
+        if (statCards[4]) { // Selesai
+            const countElement = statCards[4].querySelector('.font-bold');
+            if (countElement) countElement.textContent = selesaiCount;
+        }
+        if (statCards[5]) { // Gagal
+            const countElement = statCards[5].querySelector('.font-bold');
+            if (countElement) countElement.textContent = gagalCount;
+        }
+    }
+
+    // Add animation to updated stats
+    const allCountElements = document.querySelectorAll('.grid.grid-cols-2.lg\\:grid-cols-6 .font-bold');
+    allCountElements.forEach(element => {
+        element.classList.add('animate-pulse');
+        setTimeout(() => {
+            element.classList.remove('animate-pulse');
+        }, 1000);
+    });
+}
+
 // Utility Functions
 function formatRupiah(angka) {
     return 'Rp ' + parseInt(angka).toLocaleString('id-ID');
@@ -953,10 +1443,10 @@ function formatRupiah(angka) {
 function formatTanggal(tanggal) {
     if (!tanggal) return '-';
     const date = new Date(tanggal);
-    return date.toLocaleDateString('id-ID', { 
-        day: 'numeric', 
-        month: 'short', 
-        year: 'numeric' 
+    return date.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
     });
 }
 
@@ -1023,19 +1513,112 @@ if (typeof showSuccessModal === 'undefined') {
     }
 }
 
+// Additional utility functions for better UX
+function showErrorMessage(message) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+function showLoadingIndicator(element, show = true) {
+    if (show) {
+        element.disabled = true;
+        element.classList.add('opacity-50', 'cursor-not-allowed');
+        const originalText = element.textContent || element.value;
+        element.dataset.originalText = originalText;
+
+        if (element.tagName === 'SELECT') {
+            element.innerHTML = '<option value="">⏳ Memproses...</option>';
+        } else {
+            element.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Memproses...`;
+        }
+    } else {
+        element.disabled = false;
+        element.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        if (element.dataset.originalText) {
+            if (element.tagName === 'SELECT') {
+                // For select elements, we need to restore options properly
+                // This should be handled in the specific context
+            } else {
+                element.textContent = element.dataset.originalText;
+            }
+            delete element.dataset.originalText;
+        }
+    }
+}
+
+function getStatusEmoji(status) {
+    const emojis = {
+        'penawaran': '📋',
+        'persetujuan': '✅',
+        'kontrak': '📄',
+        'selesai': '🎯',
+        'proses': '⚡',
+        'gagal': '❌'
+    };
+    return emojis[status] || '📋';
+}
+
+function getStatusLabel(status) {
+    const labels = {
+        'penawaran': 'Penawaran',
+        'persetujuan': 'Persetujuan',
+        'kontrak': 'Kontrak',
+        'selesai': 'Selesai',
+        'proses': 'Proses',
+        'gagal': 'Gagal'
+    };
+    return labels[status] || status;
+}
+
+function validateDropdownChange(selectElement, proyekId) {
+    const newStatus = selectElement.value;
+    const currentStatus = selectElement.dataset.currentStatus;
+
+    if (!newStatus || newStatus === currentStatus) {
+        return false;
+    }
+
+    // Additional validation can be added here
+    // For example, checking if the user has permission to change status
+
+    return true;
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing...');
     console.log('Proyek data loaded:', proyekData.length, 'items');
-    
+
     // Initialize filter and sort
     filterAndSort();
-    
+
     // Add event listeners for modal close buttons
     document.querySelectorAll('[onclick*="closeModal"]').forEach(button => {
         console.log('Found modal close button');
     });
-    
+
     console.log('Initialization complete');
 });
 </script>

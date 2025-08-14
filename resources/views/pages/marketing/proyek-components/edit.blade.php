@@ -22,7 +22,7 @@
             <form id="formEditProyek" class="space-y-6">
                 <!-- Hidden ID -->
                 <input type="hidden" id="editId" name="id">
-                
+
                 <!-- Informasi Dasar -->
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -58,8 +58,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                             <select id="editStatus" name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih status</option>
+                                <option value="penawaran">Penawaran</option>
+                                <option value="persetujuan">Persetujuan</option>
+                                <option value="kontrak">Kontrak</option>
+                                <option value="selesai">Selesai</option>
                                 <option value="proses">Proses</option>
-                                <option value="berhasil">Berhasil</option>
                                 <option value="gagal">Gagal</option>
                             </select>
                         </div>
@@ -107,7 +110,7 @@
                             <input type="number" id="editTahunPotensi" name="tahun_potensi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="2024" min="2020" max="2030">
                         </div>
                     </div>
-                    
+
                     <!-- Catatan -->
                     <div class="mt-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
@@ -127,7 +130,7 @@
                             Tambah Barang
                         </button>
                     </div>
-                    
+
                     <div id="daftarBarangEdit" class="space-y-4">
                         <!-- Items will be populated here -->
                     </div>
@@ -137,6 +140,122 @@
                         <div class="flex justify-between items-center">
                             <h5 class="text-lg font-semibold text-gray-800">Total Keseluruhan:</h5>
                             <div class="text-2xl font-bold text-red-600" id="totalKeseluruhanEdit">Rp 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dokumen Surat -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-file-upload text-red-600 mr-2"></i>
+                        Dokumen Surat
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Surat Penawaran -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Penawaran</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="file" id="editSuratPenawaran" name="surat_penawaran"
+                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                                       accept=".pdf,.doc,.docx">
+                                <button type="button" onclick="clearFile('editSuratPenawaran')"
+                                        class="px-3 py-3 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="editSuratPenawaranPreview" class="mt-2 text-sm text-gray-600 hidden">
+                                <i class="fas fa-file-pdf mr-1"></i>
+                                <span class="filename">No file selected</span>
+                            </div>
+                        </div>
+
+                        <!-- Surat Persetujuan -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Persetujuan</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="file" id="editSuratPersetujuan" name="surat_persetujuan"
+                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                                       accept=".pdf,.doc,.docx">
+                                <button type="button" onclick="clearFile('editSuratPersetujuan')"
+                                        class="px-3 py-3 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="editSuratPersetujuanPreview" class="mt-2 text-sm text-gray-600 hidden">
+                                <i class="fas fa-file-pdf mr-1"></i>
+                                <span class="filename">No file selected</span>
+                            </div>
+                        </div>
+
+                        <!-- Surat Kontrak -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Kontrak</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="file" id="editSuratKontrak" name="surat_kontrak"
+                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                                       accept=".pdf,.doc,.docx">
+                                <button type="button" onclick="clearFile('editSuratKontrak')"
+                                        class="px-3 py-3 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="editSuratKontrakPreview" class="mt-2 text-sm text-gray-600 hidden">
+                                <i class="fas fa-file-pdf mr-1"></i>
+                                <span class="filename">No file selected</span>
+                            </div>
+                        </div>
+
+                        <!-- Surat Selesai -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Selesai</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="file" id="editSuratSelesai" name="surat_selesai"
+                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                                       accept=".pdf,.doc,.docx">
+                                <button type="button" onclick="clearFile('editSuratSelesai')"
+                                        class="px-3 py-3 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="editSuratSelesaiPreview" class="mt-2 text-sm text-gray-600 hidden">
+                                <i class="fas fa-file-pdf mr-1"></i>
+                                <span class="filename">No file selected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Files Display -->
+                    <div class="mt-4 space-y-3">
+                        <h5 class="text-sm font-medium text-gray-700">File Yang Ada Saat Ini:</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                                    <span>Surat Penawaran:</span>
+                                </div>
+                                <span id="currentSuratPenawaran" class="text-gray-600 font-mono text-xs">-</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-pdf text-purple-500 mr-2"></i>
+                                    <span>Surat Persetujuan:</span>
+                                </div>
+                                <span id="currentSuratPersetujuan" class="text-gray-600 font-mono text-xs">-</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-pdf text-orange-500 mr-2"></i>
+                                    <span>Surat Kontrak:</span>
+                                </div>
+                                <span id="currentSuratKontrak" class="text-gray-600 font-mono text-xs">-</span>
+                            </div>
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-pdf text-green-500 mr-2"></i>
+                                    <span>Surat Selesai:</span>
+                                </div>
+                                <span id="currentSuratSelesai" class="text-gray-600 font-mono text-xs">-</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -164,18 +283,18 @@ function togglePotensiEdit(value) {
     const yaBtn = document.getElementById('editPotensiYa');
     const tidakBtn = document.getElementById('editPotensiTidak');
     const hiddenInput = document.getElementById('editPotensiValue');
-    
+
     if (!yaBtn || !tidakBtn || !hiddenInput) {
         console.error('Edit potensi elements not found');
         return;
     }
-    
+
     // Reset all buttons
     yaBtn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
     tidakBtn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
     yaBtn.classList.add('border-gray-300', 'text-gray-700');
     tidakBtn.classList.add('border-gray-300', 'text-gray-700');
-    
+
     if (value === 'ya') {
         yaBtn.classList.remove('border-gray-300', 'text-gray-700');
         yaBtn.classList.add('bg-green-500', 'text-white', 'border-green-500');
@@ -208,21 +327,24 @@ function loadEditData(data) {
     setElementValue('editCatatan', data.catatan);
     setElementValue('editTahunPotensi', data.tahun_potensi);
     setElementValue('editStatus', data.status);
-    
+
     // Load admin marketing
     setElementValue('editAdminMarketing', data.admin_marketing);
-    
+
     // Load potensi
     if (data.potensi) {
         togglePotensiEdit(data.potensi);
     }
-    
+
+    // Load current files information
+    loadCurrentFiles(data);
+
     // Load items (check both field names for compatibility)
     const container = document.getElementById('daftarBarangEdit');
     if (container) {
         container.innerHTML = '';
         editItemCounter = 0;
-        
+
         const items = data.items || data.daftar_barang || [];
         if (items.length > 0) {
             items.forEach((item, index) => {
@@ -231,7 +353,7 @@ function loadEditData(data) {
         } else {
             addEditItem();
         }
-        
+
         updateEditDeleteButtons();
         hitungTotalKeseluruhanEdit();
     }
@@ -287,10 +409,10 @@ function addEditItem(itemData = null) {
             </div>
         </div>
     `;
-    
+
     container.insertAdjacentHTML('beforeend', itemHtml);
     editItemCounter++;
-    
+
     // Calculate total for this item if data provided
     if (itemData && itemData.qty && itemData.harga_satuan) {
         const newItem = container.lastElementChild;
@@ -344,12 +466,12 @@ function hitungTotalEdit(input) {
     const qtyInput = row.querySelector('.qty-input-edit');
     const hargaSatuanInput = row.querySelector('.harga-satuan-input-edit');
     const totalInput = row.querySelector('.harga-total-input-edit');
-    
+
     if (qtyInput && hargaSatuanInput && totalInput) {
         const qty = parseFloat(qtyInput.value) || 0;
         const hargaSatuan = parseFloat(hargaSatuanInput.value) || 0;
         const total = qty * hargaSatuan;
-        
+
         totalInput.value = total;
         hitungTotalKeseluruhanEdit();
     }
@@ -360,14 +482,14 @@ function hitungTotalKeseluruhanEdit() {
     document.querySelectorAll('.barang-item-edit').forEach(item => {
         const qtyInput = item.querySelector('.qty-input-edit');
         const hargaSatuanInput = item.querySelector('.harga-satuan-input-edit');
-        
+
         if (qtyInput && hargaSatuanInput) {
             const qty = parseFloat(qtyInput.value) || 0;
             const hargaSatuan = parseFloat(hargaSatuanInput.value) || 0;
             total += qty * hargaSatuan;
         }
     });
-    
+
     const totalElement = document.getElementById('totalKeseluruhanEdit');
     if (totalElement) {
         totalElement.textContent = formatRupiah(total);
@@ -379,22 +501,74 @@ function formatRupiah(angka) {
     return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
+// Function to load current files information
+function loadCurrentFiles(data) {
+    const setCurrentFile = (elementId, filename) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = filename || 'Tidak ada file';
+        }
+    };
+
+    setCurrentFile('currentSuratPenawaran', data.surat_penawaran);
+    setCurrentFile('currentSuratPersetujuan', data.surat_persetujuan);
+    setCurrentFile('currentSuratKontrak', data.surat_kontrak);
+    setCurrentFile('currentSuratSelesai', data.surat_selesai);
+}
+
+// Function to clear file input
+function clearFile(inputId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(inputId + 'Preview');
+
+    if (input) {
+        input.value = '';
+    }
+    if (preview) {
+        preview.classList.add('hidden');
+    }
+}
+
+// File upload preview handlers
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInputs = ['editSuratPenawaran', 'editSuratPersetujuan', 'editSuratKontrak', 'editSuratSelesai'];
+
+    fileInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(inputId + 'Preview');
+
+        if (input && preview) {
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const filenameSpan = preview.querySelector('.filename');
+
+                if (file) {
+                    filenameSpan.textContent = file.name;
+                    preview.classList.remove('hidden');
+                } else {
+                    preview.classList.add('hidden');
+                }
+            });
+        }
+    });
+});
+
 // Form submission
 document.getElementById('formEditProyek').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     // Simulate form submission
     const submitButton = e.target.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
-    
+
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
     submitButton.disabled = true;
-    
+
     setTimeout(() => {
         submitButton.innerHTML = originalText;
         submitButton.disabled = false;
         closeModal('modalEditProyek');
-        
+
         // Show success message
         alert('Proyek berhasil diupdate!');
     }, 2000);
