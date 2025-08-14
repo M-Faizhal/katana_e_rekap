@@ -17,10 +17,6 @@
 
         <!-- Desktop Welcome Section -->
         <div class="hidden lg:flex items-center space-x-4">
-            <div>
-                <h2 class="text-xl font-bold text-gray-800">Dashboard</h2>
-                <p class="text-sm text-gray-500">Selamat datang kembali, Admin</p>
-            </div>
         </div>
 
         <!-- Right Header -->
@@ -35,10 +31,6 @@
 
             <!-- Notifications -->
             <div class="relative">
-                <button class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200">
-                    <i class="fas fa-bell text-lg lg:text-xl"></i>
-                    <span class="absolute -top-1 -right-1 h-4 w-4 lg:h-5 lg:w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">3</span>
-                </button>
             </div>
 
             <!-- User Menu -->
