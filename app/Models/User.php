@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -23,6 +24,8 @@ class User extends Authenticatable
         'nama',
         'username',
         'email',
+        'no_telepon',
+        'alamat',
         'password',
         'role',
         'foto',
@@ -109,6 +112,36 @@ class User extends Authenticatable
             'admin_purchasing' => 'Admin Purchasing',
             'admin_keuangan' => 'Admin Keuangan',
         ];
+    }
+
+    /**
+     * Get profile photo URL
+     */
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->foto && Storage::disk('public')->exists($this->foto)) {
+            return asset('storage/' . $this->foto);
+        }
+
+        // Return default avatar with first letter of name
+        $initial = substr($this->nama, 0, 1);
+        return 'https://via.placeholder.com/120x120/ef4444/ffffff?text=' . strtoupper($initial);
+    }
+
+    /**
+     * Get profile photo path for storage
+     */
+    public function getProfilePhotoPathAttribute()
+    {
+        return $this->foto;
+    }
+
+    /**
+     * Check if user has profile photo
+     */
+    public function hasProfilePhoto()
+    {
+        return $this->foto && Storage::disk('public')->exists($this->foto);
     }
 
     // Relationships

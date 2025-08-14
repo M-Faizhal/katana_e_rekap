@@ -85,9 +85,8 @@ Route::middleware('auth')->group(function () {
         return view('pages.produk');
     })->name('produk');
 
-    Route::get('/pengaturan', function () {
-        return view('pages.pengaturan');
-    })->name('pengaturan');
+    Route::get('/pengaturan', [App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan');
+    Route::put('/pengaturan', [App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
 
     // Admin only routes
     Route::middleware('superadmin')->group(function () {
