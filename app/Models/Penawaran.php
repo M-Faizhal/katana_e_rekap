@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Penawaran extends Model
 {
+    use HasFactory;
+
     protected $table = 'penawaran';
     protected $primaryKey = 'id_penawaran';
 
@@ -29,21 +32,27 @@ class Penawaran extends Model
     // Relationships
     public function proyek()
     {
-        return $this->belongsTo(Proyek::class, 'id_proyek');
+        return $this->belongsTo(Proyek::class, 'id_proyek', 'id_proyek');
     }
 
     public function penawaranDetail()
     {
-        return $this->hasMany(PenawaranDetail::class, 'id_penawaran');
+        return $this->hasMany(PenawaranDetail::class, 'id_penawaran', 'id_penawaran');
     }
 
     public function pembayaran()
     {
-        return $this->hasMany(Pembayaran::class, 'id_penawaran');
+        return $this->hasMany(Pembayaran::class, 'id_penawaran', 'id_penawaran');
     }
 
     public function pengiriman()
     {
-        return $this->hasOne(Pengiriman::class, 'id_penawaran');
+        return $this->hasOne(Pengiriman::class, 'id_penawaran', 'id_penawaran');
+    }
+
+    // Accessor untuk admin purchasing dari proyek
+    public function getAdminPurchasingAttribute()
+    {
+        return $this->proyek->adminPurchasing ?? null;
     }
 }

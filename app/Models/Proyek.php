@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Proyek extends Model
 {
+    use HasFactory;
+
     protected $table = 'proyek';
     protected $primaryKey = 'id_proyek';
 
@@ -13,6 +16,8 @@ class Proyek extends Model
         'tanggal',
         'kota_kab',
         'instansi',
+        'nama_klien',
+        'kontak_klien',
         'nama_barang',
         'jumlah',
         'satuan',
@@ -20,32 +25,51 @@ class Proyek extends Model
         'harga_satuan',
         'harga_total',
         'jenis_pengadaan',
+        'deadline',
         'id_admin_marketing',
         'id_admin_purchasing',
+        'id_penawaran',
         'catatan',
-        'status',
+        'status'
     ];
 
     protected $casts = [
         'tanggal' => 'date',
+        'deadline' => 'date',
         'harga_satuan' => 'decimal:2',
         'harga_total' => 'decimal:2',
-        'jumlah' => 'integer',
+        'jumlah' => 'integer'
     ];
 
     // Relationships
     public function adminMarketing()
     {
-        return $this->belongsTo(User::class, 'id_admin_marketing');
+        return $this->belongsTo(User::class, 'id_admin_marketing', 'id_user');
     }
 
     public function adminPurchasing()
     {
-        return $this->belongsTo(User::class, 'id_admin_purchasing');
+        return $this->belongsTo(User::class, 'id_admin_purchasing', 'id_user');
     }
 
-    public function penawaran()
+    public function penawaranAktif()
     {
-        return $this->hasMany(Penawaran::class, 'id_proyek');
+        return $this->belongsTo(Penawaran::class, 'id_penawaran', 'id_penawaran');
+    }
+
+    // Relationship untuk semua penawaran yang pernah dibuat untuk proyek ini
+    public function semuaPenawaran()
+    {
+        return $this->hasMany(Penawaran::class, 'id_proyek', 'id_proyek');
+    }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(Pembayaran::class, 'id_proyek', 'id_proyek');
+    }
+
+    public function pengiriman()
+    {
+        return $this->hasOne(Pengiriman::class, 'id_proyek', 'id_proyek');
     }
 }

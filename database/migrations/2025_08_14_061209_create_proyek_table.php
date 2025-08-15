@@ -16,21 +16,26 @@ return new class extends Migration
             $table->date('tanggal');
             $table->string('kota_kab');
             $table->string('instansi');
+            $table->string('nama_klien'); // Nama klien yang request
+            $table->string('kontak_klien')->nullable(); // Kontak klien (telp/email)
             $table->string('nama_barang');
             $table->integer('jumlah');
             $table->string('satuan');
             $table->text('spesifikasi');
-            $table->decimal('harga_satuan', 15, 2);
-            $table->decimal('harga_total', 15, 2);
+            $table->decimal('harga_satuan', 15, 2)->nullable(); // Bisa kosong dulu
+            $table->decimal('harga_total', 15, 2)->nullable(); // Akan diisi setelah ada penawaran
             $table->string('jenis_pengadaan');
+            $table->date('deadline')->nullable(); // Deadline dari klien
             $table->unsignedBigInteger('id_admin_marketing');
             $table->unsignedBigInteger('id_admin_purchasing');
+            $table->unsignedBigInteger('id_penawaran')->nullable(); // Link ke penawaran aktif
             $table->text('catatan')->nullable();
-            $table->string('status');
+            $table->enum('status', ['Menunggu', 'Penawaran', 'Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])->default('Menunggu');
             $table->timestamps();
 
             $table->foreign('id_admin_marketing')->references('id_user')->on('users')->onDelete('cascade');
             $table->foreign('id_admin_purchasing')->references('id_user')->on('users')->onDelete('cascade');
+            // Foreign key untuk id_penawaran akan ditambahkan setelah tabel penawaran dibuat
         });
     }
 
