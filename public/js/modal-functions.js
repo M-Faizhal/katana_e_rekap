@@ -269,26 +269,334 @@ function formatCurrency(number) {
 }
 
 /**
- * Open HPS Modal with project data
- * @param {string} projectId - Project ID
- * @param {string} projectName - Project name
- * @param {string} clientName - Client name
+ * Open HPS Modal and fetch project data via AJAX
+ * @param {number} projectId - Project ID
  */
-function openHpsModal(projectId, projectName, clientName) {
-    // Set modal data
-    document.getElementById('modal-project-id').textContent = projectId;
-    document.getElementById('modal-project-name').textContent = projectName;
-    document.getElementById('modal-client-name').textContent = clientName;
-    
+function openHpsModal(projectId) {
     // Show modal
-    document.getElementById('hps-modal').classList.remove('hidden');
+    const modal = document.getElementById('hps-modal');
+    const loading = document.getElementById('modal-loading');
+    const contentContainer = document.getElementById('modal-content-container');
+    
+    modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     
-    // Initialize calculations
-    setTimeout(() => {
-        calculateRow(1);
-        calculateRow(2);
-    }, 100);
+    // Show loading state
+    loading.classList.remove('hidden');
+    contentContainer.classList.add('hidden');
+    
+    // Clear previous data
+    document.getElementById('modal-project-id').textContent = '-';
+    document.getElementById('modal-project-name').textContent = '-';
+    document.getElementById('modal-client-name').textContent = '-';
+    
+    // Fetch project data via AJAX
+    fetch(`/purchasing/kalkulasi/proyek/${projectId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Populate modal with project data
+                populateHpsModal(data);
+                
+                // Hide loading and show content
+                loading.classList.add('hidden');
+                contentContainer.classList.remove('hidden');
+            } else {
+                throw new Error(data.message || 'Failed to load project data');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching project data:', error);
+            
+            // Show error message
+            loading.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-exclamation-circle text-3xl text-red-400 mb-4"></i>
+                    <p class="text-red-600 mb-4">Gagal memuat data proyek</p>
+                    <p class="text-gray-500 text-sm">${error.message}</p>
+                    <button onclick="closeHpsModal()" class="mt-4 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                        Tutup
+                    </button>
+                </div>
+            `;
+        });
+}
+
+/**
+ * Populate HPS Modal with project data
+ */
+function populateHpsModal(data) {
+    const { proyek, kalkulasi_data, barang_list, vendors } = data;
+    
+    // Set project information
+    document.getElementById('modal-project-id').textContent = proyek.id_proyek;
+    document.getElementById('modal-project-name').textContent = proyek.nama_barang || '-';
+    document.getElementById('modal-client-name').textContent = proyek.nama_klien || '-';
+    
+    // Populate vendor dropdown
+    const vendorSelect = document.getElementById('vendor-select');
+    vendorSelect.innerHTML = '<option value="">Pilih Vendor</option>';
+    vendors.forEach(vendor => {
+        vendorSelect.innerHTML += `<option value="${vendor.id_vendor}">${vendor.nama_vendor}</option>`;
+    });
+    
+    // Set up vendor change event to populate barang
+    vendorSelect.addEventListener('change', function() {
+        const selectedVendorId = this.value;
+        const barangSelect = document.getElementById('barang-select');
+        
+        barangSelect.innerHTML = '<option value="">Pilih Barang</option>';
+        
+        if (selectedVendorId) {
+            // Filter barang by selected vendor
+            const vendorBarang = barang_list.filter(barang => barang.id_vendor == selectedVendorId);
+            vendorBarang.forEach(barang => {
+                barangSelect.innerHTML += `<option value="${barang.id_barang}">${barang.nama_barang}</option>`;
+            });
+            barangSelect.disabled = false;
+        } else {
+            barangSelect.disabled = true;
+        }
+    });
+    
+    // Populate kalkulasi data table
+    populateKalkulasiTable(kalkulasi_data);
+    
+    // Show/hide action buttons based on data availability
+    const deleteBtn = document.getElementById('btn-delete-vendor-data');
+    const recalculateBtn = document.getElementById('btn-recalculate');
+    
+    if (kalkulasi_data && kalkulasi_data.length > 0) {
+        deleteBtn.style.display = 'inline-block';
+        recalculateBtn.style.display = 'inline-block';
+    } else {
+        deleteBtn.style.display = 'none';
+        recalculateBtn.style.display = 'none';
+    }
+}
+
+/**
+ * Populate kalkulasi data table
+ */
+function populateKalkulasiTable(kalkulasiData) {
+    const tbody = document.getElementById('kalkulasi-data-tbody');
+    const summarySection = document.getElementById('summary-section');
+    
+    if (!kalkulasiData || kalkulasiData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-6 text-gray-500">Belum ada data kalkulasi</td></tr>';
+        summarySection.style.display = 'none';
+        return;
+    }
+    
+    // Clear existing rows
+    tbody.innerHTML = '';
+    
+    // Populate table rows
+    kalkulasiData.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50';
+        row.innerHTML = `
+            <td class="px-3 py-2 text-sm text-gray-900">${index + 1}</td>
+            <td class="px-3 py-2 text-sm text-gray-900">${item.vendor?.nama_vendor || '-'}</td>
+            <td class="px-3 py-2 text-sm text-gray-900">${item.barang?.nama_barang || '-'}</td>
+            <td class="px-3 py-2 text-sm text-gray-900">${item.qty}</td>
+            <td class="px-3 py-2 text-sm text-gray-900">Rp ${formatNumber(item.harga_vendor)}</td>
+            <td class="px-3 py-2 text-sm text-gray-900">Rp ${formatNumber(item.total_harga_hpp)}</td>
+            <td class="px-3 py-2 text-sm text-gray-900">Rp ${formatNumber(item.hps)}</td>
+            <td class="px-3 py-2 text-sm text-gray-900">Rp ${formatNumber(item.nett)}</td>
+            <td class="px-3 py-2 text-sm">
+                <button onclick="editKalkulasiItem(${item.id})" class="text-blue-600 hover:text-blue-800 mr-2" title="Edit">
+                    <i class="fas fa-edit text-xs"></i>
+                </button>
+                <button onclick="deleteKalkulasiItem(${item.id})" class="text-red-600 hover:text-red-800" title="Hapus">
+                    <i class="fas fa-trash text-xs"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Calculate and show summary
+    updateSummary(kalkulasiData);
+    summarySection.style.display = 'block';
+}
+
+/**
+ * Update summary section
+ */
+function updateSummary(kalkulasiData) {
+    let totalHPP = 0;
+    let totalHPS = 0;
+    let totalNett = 0;
+    
+    kalkulasiData.forEach(item => {
+        totalHPP += parseFloat(item.total_harga_hpp || 0);
+        totalHPS += parseFloat(item.hps || 0);
+        totalNett += parseFloat(item.nett || 0);
+    });
+    
+    document.getElementById('summary-total-hpp').textContent = `Rp ${formatNumber(totalHPP)}`;
+    document.getElementById('summary-total-hps').textContent = `Rp ${formatNumber(totalHPS)}`;
+    document.getElementById('summary-total-nett').textContent = `Rp ${formatNumber(totalNett)}`;
+}
+
+/**
+ * Format number with thousand separators
+ */
+function formatNumber(num) {
+    return new Intl.NumberFormat('id-ID').format(num);
+}
+
+/**
+ * Show add item form
+ */
+function showAddItemForm() {
+    document.getElementById('add-item-form').style.display = 'block';
+}
+
+/**
+ * Hide add item form
+ */
+function hideAddItemForm() {
+    document.getElementById('add-item-form').style.display = 'none';
+    
+    // Clear form
+    document.getElementById('vendor-select').value = '';
+    document.getElementById('barang-select').value = '';
+    document.getElementById('qty-input').value = '';
+    document.getElementById('harga-vendor-input').value = '';
+    document.getElementById('diskon-input').value = '';
+    document.getElementById('kenaikan-input').value = '';
+    document.getElementById('ongkir-input').value = '';
+    document.getElementById('bank-cost-input').value = '';
+    document.getElementById('biaya-ops-input').value = '';
+    document.getElementById('bendera-input').value = '';
+    document.getElementById('catatan-input').value = '';
+}
+
+/**
+ * Save kalkulasi item
+ */
+function saveKalkulasiItem() {
+    const projectId = document.getElementById('modal-project-id').textContent;
+    
+    const formData = {
+        id_vendor: document.getElementById('vendor-select').value,
+        id_barang: document.getElementById('barang-select').value,
+        qty: document.getElementById('qty-input').value,
+        harga_vendor: document.getElementById('harga-vendor-input').value,
+        diskon_amount: document.getElementById('diskon-input').value || 0,
+        kenaikan_percent: document.getElementById('kenaikan-input').value || 0,
+        ongkir: document.getElementById('ongkir-input').value || 0,
+        bank_cost: document.getElementById('bank-cost-input').value || 0,
+        biaya_ops: document.getElementById('biaya-ops-input').value || 0,
+        bendera: document.getElementById('bendera-input').value || 0,
+        catatan: document.getElementById('catatan-input').value
+    };
+    
+    // Basic validation
+    if (!formData.id_vendor || !formData.id_barang || !formData.qty || !formData.harga_vendor) {
+        alert('Harap lengkapi data yang wajib diisi');
+        return;
+    }
+    
+    // Send AJAX request to save
+    fetch('/purchasing/kalkulasi/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({
+            proyek_id: projectId,
+            kalkulasi_items: [formData]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Item berhasil disimpan');
+            hideAddItemForm();
+            // Refresh modal data
+            openHpsModal(projectId);
+        } else {
+            alert('Gagal menyimpan item: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error saving item:', error);
+        alert('Terjadi kesalahan saat menyimpan item');
+    });
+}
+
+/**
+ * Save all kalkulasi
+ */
+function saveAllKalkulasi() {
+    const projectId = document.getElementById('modal-project-id').textContent;
+    
+    fetch('/purchasing/kalkulasi/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({
+            proyek_id: projectId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Kalkulasi berhasil disimpan');
+        } else {
+            alert('Gagal menyimpan kalkulasi: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error saving kalkulasi:', error);
+        alert('Terjadi kesalahan saat menyimpan kalkulasi');
+    });
+}
+
+/**
+ * Create penawaran
+ */
+function createPenawaran() {
+    const projectId = document.getElementById('modal-project-id').textContent;
+    
+    if (confirm('Yakin ingin membuat penawaran dari kalkulasi ini?')) {
+        fetch('/purchasing/kalkulasi/create-penawaran', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+                proyek_id: projectId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Penawaran berhasil dibuat');
+                closeHpsModal();
+                // Refresh the main page
+                window.location.reload();
+            } else {
+                alert('Gagal membuat penawaran: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error creating penawaran:', error);
+            alert('Terjadi kesalahan saat membuat penawaran');
+        });
+    }
 }
 
 /**
@@ -297,6 +605,11 @@ function openHpsModal(projectId, projectName, clientName) {
 function closeHpsModal() {
     document.getElementById('hps-modal').classList.add('hidden');
     document.body.style.overflow = 'auto';
+    
+    // Reset modal state
+    document.getElementById('modal-loading').classList.remove('hidden');
+    document.getElementById('modal-content-container').classList.add('hidden');
+    hideAddItemForm();
 }
 
 /**
@@ -310,7 +623,7 @@ function calculateRow(rowNum) {
     // Get input values
     const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
     const hargaVendor = parseFloat(row.querySelector('.harga-vendor-input').value) || 0;
-    const diskonPersen = parseFloat(row.querySelector('.diskon-persen-input').value) || 0;
+    const diskonAmount = parseFloat(row.querySelector('.diskon-input').value) || 0;
     const persenKenaikan = parseFloat(row.querySelector('.kenaikan-input').value) || 0;
     const paguPcs = parseFloat(row.querySelector('.pagu-pcs-input').value) || 0;
     const nilaiSP = parseFloat(row.querySelector('.nilai-sp-input').value) || 0;
@@ -321,8 +634,8 @@ function calculateRow(rowNum) {
     const biayaOps = parseFloat(row.querySelector('.biaya-ops-input').value) || 0;
 
     // Calculations based on your formula
-    // 1. Total Diskon = Harga Vendor × Qty × (Diskon% / 100)
-    const totalDiskon = hargaVendor * qty * (diskonPersen / 100);
+    // 1. Total Diskon = diskon amount (fixed amount, not percentage)
+    const totalDiskon = diskonAmount;
     
     // 2. Total Harga = (Harga Vendor × Qty) - Total Diskon
     const totalHarga = (hargaVendor * qty) - totalDiskon;
@@ -615,7 +928,7 @@ function addNewRow() {
             <input type="number" value="0" min="0" class="harga-vendor-input w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="calculateRow(${window.hpsRowCounter})">
         </td>
         <td class="px-2 py-3 border-r border-gray-200">
-            <input type="number" value="0" min="0" max="100" step="0.1" class="diskon-input w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="calculateRow(${window.hpsRowCounter})">
+            <input type="number" value="0" min="0" step="1" class="diskon-input w-full text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-500" onchange="calculateRow(${window.hpsRowCounter})" placeholder="Diskon (Rp)">
         </td>
         <td class="px-2 py-3 text-sm text-gray-900 border-r border-gray-200 hpp-value">Rp 0</td>
         <td class="px-2 py-3 border-r border-gray-200">

@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\superadmin\PengelolaanAkun;
 use App\Http\Controllers\purchasing\VendorController;
 use App\Http\Controllers\purchasing\ProdukController;
+use App\Http\Controllers\purchasing\KalkulasiController;
 
 
 
@@ -59,9 +60,13 @@ Route::middleware('auth')->group(function () {
         Route::put('/vendor/{id}', [VendorController::class, 'update'])->name('vendor.update');
         Route::delete('/vendor/{id}', [VendorController::class, 'destroy'])->name('vendor.destroy');
 
-        Route::get('/kalkulasi', function () {
-            return view('pages.purchasing.kalkulasi');
-        })->name('purchasing.kalkulasi');
+        // Kalkulasi Routes
+        Route::get('/kalkulasi', [KalkulasiController::class, 'index'])->name('purchasing.kalkulasi');
+        Route::get('/kalkulasi/proyek/{id}', [KalkulasiController::class, 'getProyekData'])->name('kalkulasi.proyek');
+        Route::get('/kalkulasi/barang', [KalkulasiController::class, 'getBarangList'])->name('kalkulasi.barang');
+        Route::get('/kalkulasi/vendor', [KalkulasiController::class, 'getVendorList'])->name('kalkulasi.vendor');
+        Route::post('/kalkulasi/save', [KalkulasiController::class, 'saveKalkulasi'])->name('kalkulasi.save');
+        Route::post('/kalkulasi/penawaran', [KalkulasiController::class, 'createPenawaran'])->name('kalkulasi.penawaran');
 
         Route::get('/pembayaran', function () {
             return view('pages.purchasing.pembayaran');
