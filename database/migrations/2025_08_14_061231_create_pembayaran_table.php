@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('metode_bayar');
             $table->string('bukti_bayar')->nullable();
             $table->text('catatan')->nullable();
-            $table->string('status_verifikasi');
+            $table->enum('status_verifikasi', ['Pending', 'Approved', 'Ditolak'])->default('Pending');
             $table->timestamps();
 
             $table->foreign('id_penawaran')->references('id_penawaran')->on('penawaran')->onDelete('cascade');

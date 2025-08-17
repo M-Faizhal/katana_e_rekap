@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('surat_pesanan')->nullable();
             $table->string('surat_penawaran')->nullable();
             $table->decimal('total_penawaran', 15, 2);
-            $table->enum('status', ['draft', 'dikirim', 'disetujui', 'ditolak', 'expired'])->default('draft');
+            $table->enum('status', ['Draft', 'Dikirim', 'ACC', 'Ditolak'])->default('Draft');
             $table->timestamps();
 
             $table->foreign('id_proyek')->references('id_proyek')->on('proyek')->onDelete('cascade');

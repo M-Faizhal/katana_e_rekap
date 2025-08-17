@@ -28,6 +28,18 @@ class Pembayaran extends Model
     // Relationships
     public function penawaran()
     {
-        return $this->belongsTo(Penawaran::class, 'id_penawaran');
+        return $this->belongsTo(Penawaran::class, 'id_penawaran', 'id_penawaran');
+    }
+
+    public function proyek()
+    {
+        return $this->hasOneThrough(
+            Proyek::class,
+            Penawaran::class,
+            'id_penawaran', // Foreign key on penawaran table
+            'id_proyek', // Foreign key on proyek table
+            'id_penawaran', // Local key on pembayaran table
+            'id_proyek' // Local key on penawaran table
+        );
     }
 }

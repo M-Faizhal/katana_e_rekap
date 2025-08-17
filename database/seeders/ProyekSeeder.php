@@ -53,7 +53,7 @@ class ProyekSeeder extends Seeder
                 'id_admin_purchasing' => 3,
                 'id_penawaran' => null,
                 'catatan' => 'Pengadaan printer untuk unit administrasi rumah sakit',
-                'status' => 'Selesai',
+                'status' => 'Penawaran',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

@@ -6,6 +6,7 @@ use App\Http\Controllers\superadmin\PengelolaanAkun;
 use App\Http\Controllers\purchasing\VendorController;
 use App\Http\Controllers\purchasing\ProdukController;
 use App\Http\Controllers\purchasing\KalkulasiController;
+use App\Http\Controllers\purchasing\PembayaranController;
 
 
 
@@ -68,9 +69,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/kalkulasi/save', [KalkulasiController::class, 'saveKalkulasi'])->name('kalkulasi.save');
         Route::post('/kalkulasi/penawaran', [KalkulasiController::class, 'createPenawaran'])->name('kalkulasi.penawaran');
 
-        Route::get('/pembayaran', function () {
-            return view('pages.purchasing.pembayaran');
-        })->name('purchasing.pembayaran');
+        // Pembayaran Routes
+        Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('purchasing.pembayaran');
+        Route::get('/pembayaran/create/{id_proyek}', [PembayaranController::class, 'create'])->name('purchasing.pembayaran.create');
+        Route::post('/pembayaran', [PembayaranController::class, 'store'])->name('purchasing.pembayaran.store');
+        Route::get('/pembayaran/{id_pembayaran}', [PembayaranController::class, 'show'])->name('purchasing.pembayaran.show');
+        Route::get('/pembayaran/{id_pembayaran}/edit', [PembayaranController::class, 'edit'])->name('purchasing.pembayaran.edit');
+        Route::put('/pembayaran/{id_pembayaran}', [PembayaranController::class, 'update'])->name('purchasing.pembayaran.update');
+        Route::delete('/pembayaran/{id_pembayaran}', [PembayaranController::class, 'destroy'])->name('purchasing.pembayaran.destroy');
+        Route::get('/pembayaran/history/{id_proyek}', [PembayaranController::class, 'history'])->name('purchasing.pembayaran.history');
+        Route::get('/pembayaran/suggestion/{id_proyek}', [PembayaranController::class, 'calculateSuggestion'])->name('purchasing.pembayaran.suggestion');
+        Route::post('/pembayaran/cleanup-files', [PembayaranController::class, 'cleanupOrphanedFiles'])->name('purchasing.pembayaran.cleanup');
 
         Route::get('/pengiriman', function () {
             return view('pages.purchasing.pengiriman');

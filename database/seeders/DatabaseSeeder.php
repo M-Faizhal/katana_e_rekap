@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             ProyekSeeder::class,
             PenawaranSeeder::class,
             PenawaranDetailSeeder::class,
+            UpdateProyekPenawaranSeeder::class, // Update relasi setelah semua data ada
             PembayaranSeeder::class,
             PengirimanSeeder::class,
         ]);

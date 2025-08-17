@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Pembayaran;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -65,7 +66,14 @@ class Proyek extends Model
 
     public function pembayaran()
     {
-        return $this->hasMany(Pembayaran::class, 'id_proyek', 'id_proyek');
+        return $this->hasManyThrough(
+            Pembayaran::class,
+            Penawaran::class,
+            'id_proyek', // Foreign key on penawaran table
+            'id_penawaran', // Foreign key on pembayaran table
+            'id_proyek', // Local key on proyek table
+            'id_penawaran' // Local key on penawaran table
+        );
     }
 
     public function pengiriman()
