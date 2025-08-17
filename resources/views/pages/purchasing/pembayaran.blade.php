@@ -1,319 +1,361 @@
 @extends('layouts.app')
 
 @section('content')
-
-<!-- Header Section -->
-<div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Pembayaran Purchasing</h1>
-            <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola pembayaran proyek yang sudah di-ACC klien</p>
-        </div>
-        <div class="hidden sm:block lg:block">
-            <i class="fas fa-credit-card text-3xl sm:text-4xl lg:text-6xl"></i>
-        </div>
-    </div>
-    
-    <!-- Info Flow -->
-    <div class="mt-4 p-3 bg-red-700 rounded-lg">
-        <div class="flex items-center gap-2 text-sm mb-2">
-            <i class="fas fa-info-circle"></i>
-            <span class="font-medium">Alur:</span>
-            <span class="flex items-center gap-1">
-                Marketing → Penawaran → ACC Klien → 
-                <span class="bg-red-600 px-2 py-1 rounded text-xs font-bold">Purchasing (Anda di sini)</span>
-            </span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-clock text-yellow-300"></i>
-                <span><strong>DP Dulu:</strong> Input DP → Verifikasi → Input Pelunasan</span>
+<div class="container mx-auto px-4 py-6">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-red-800 to-red-900 rounded-2xl p-6 lg:p-8 mb-8 text-white shadow-xl">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <h1 class="text-2xl lg:text-4xl font-bold mb-2">Pembayaran Purchasing</h1>
+                <p class="text-red-100 text-base lg:text-lg opacity-90">Kelola pembayaran proyek yang sudah di-ACC klien</p>
             </div>
-            <div class="flex items-center gap-2">
-                <i class="fas fa-check-circle text-green-300"></i>
-                <span><strong>Langsung Lunas:</strong> Input Pembayaran Full → Selesai</span>
+            <div class="hidden lg:flex items-center justify-center w-20 h-20 bg-red-700 rounded-2xl">
+                <i class="fas fa-credit-card text-4xl opacity-80"></i>
             </div>
         </div>
+        
+        
     </div>
-</div>
 
-<!-- Alert Messages -->
-@if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-    <div class="flex items-center">
-        <i class="fas fa-check-circle mr-2"></i>
-        {{ session('success') }}
-    </div>
-</div>
-@endif
-
-@if(session('error'))
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-    <div class="flex items-center">
-        <i class="fas fa-exclamation-circle mr-2"></i>
-        {{ session('error') }}
-    </div>
-</div>
-@endif
-
-<!-- Statistics Cards -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white p-4 rounded-lg shadow">
+    <!-- Alert Messages -->
+    @if(session('success'))
+    <div class="mb-6 bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-4 rounded-r-lg shadow-sm">
         <div class="flex items-center">
-            <div class="p-2 bg-blue-100 rounded-lg">
-                <i class="fas fa-clock text-blue-600"></i>
+            <div class="flex-shrink-0">
+                <i class="fas fa-check-circle text-green-600 text-lg"></i>
             </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-600">Menunggu Pembayaran</p>
-                <p class="text-lg font-semibold">{{ $proyekPerluBayar->total() }}</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="bg-white p-4 rounded-lg shadow">
-        <div class="flex items-center">
-            <div class="p-2 bg-yellow-100 rounded-lg">
-                <i class="fas fa-hourglass-half text-yellow-600"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-600">Pending Verifikasi</p>
-                <p class="text-lg font-semibold">
-                    {{ $proyekPerluBayar->sum(function($proyek) { 
-                        return $proyek->pembayaran->where('status_verifikasi', 'Pending')->count(); 
-                    }) }}
-                </p>
+            <div class="ml-3">
+                <p class="text-green-800 font-medium">{{ session('success') }}</p>
             </div>
         </div>
-    </div>
-    
-    <div class="bg-white p-4 rounded-lg shadow">
-        <div class="flex items-center">
-            <div class="p-2 bg-green-100 rounded-lg">
-                <i class="fas fa-check-circle text-green-600"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-600">Terverifikasi</p>
-                <p class="text-lg font-semibold">
-                    {{ $proyekPerluBayar->sum(function($proyek) { 
-                        return $proyek->pembayaran->where('status_verifikasi', 'Approved')->count(); 
-                    }) }}
-                </p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="bg-white p-4 rounded-lg shadow">
-        <div class="flex items-center">
-            <div class="p-2 bg-red-100 rounded-lg">
-                <i class="fas fa-times-circle text-red-600"></i>
-            </div>
-            <div class="ml-4">
-                <p class="text-sm text-gray-600">Ditolak</p>
-                <p class="text-lg font-semibold">
-                    {{ $proyekPerluBayar->sum(function($proyek) { 
-                        return $proyek->pembayaran->where('status_verifikasi', 'Ditolak')->count(); 
-                    }) }}
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Projects List -->
-<div class="bg-white rounded-lg shadow-lg">
-    <div class="p-6 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-800">Proyek Perlu Pembayaran</h2>
-        <p class="text-gray-600 mt-1">Daftar proyek yang sudah di-ACC dan menunggu pembayaran dari klien</p>
-    </div>
-    
-    <div class="overflow-x-auto">
-        @if($proyekPerluBayar->count() > 0)
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Penawaran</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Bayar</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                @foreach($proyekPerluBayar as $proyek)
-                @php
-                    // Hitung total yang sudah dibayar dan disetujui (approved saja)
-                    $totalDibayarApproved = $proyek->pembayaran->where('status_verifikasi', 'Approved')->sum('nominal_bayar');
-                    $sisaBayar = $proyek->penawaranAktif->total_penawaran - $totalDibayarApproved;
-                    $persenBayar = $proyek->penawaranAktif->total_penawaran > 0 ? 
-                        ($totalDibayarApproved / $proyek->penawaranAktif->total_penawaran) * 100 : 0;
-                @endphp
-                
-                @if($sisaBayar > 0)
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">
-                        <div>
-                            <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_barang }}</div>
-                            <div class="text-sm text-gray-500">{{ $proyek->instansi }} - {{ $proyek->kota_kab }}</div>
-                            <div class="text-xs text-gray-400">No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}</div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">{{ $proyek->nama_klien }}</div>
-                        <div class="text-sm text-gray-500">{{ $proyek->kontak_klien }}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm font-medium text-gray-900">
-                            Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}
-                        </div>
-                        @if($totalDibayarApproved > 0)
-                        <div class="text-xs text-gray-500">
-                            Dibayar: Rp {{ number_format($totalDibayarApproved, 0, ',', '.') }} ({{ number_format($persenBayar, 1) }}%)
-                        </div>
-                        <div class="text-xs text-orange-600">
-                            Sisa: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
-                        </div>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4">
-                        @if($sisaBayar <= 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <i class="fas fa-check-circle mr-1"></i>
-                                Lunas
-                            </span>
-                        @elseif($totalDibayarApproved > 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                <i class="fas fa-clock mr-1"></i>
-                                Cicilan ({{ number_format($persenBayar, 0) }}%)
-                            </span>
-                        @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                <i class="fas fa-times-circle mr-1"></i>
-                                Belum Bayar
-                            </span>
-                        @endif
-                        
-                        @php
-                            $pendingCount = $proyek->pembayaran->where('status_verifikasi', 'Pending')->count();
-                            $ditolakCount = $proyek->pembayaran->where('status_verifikasi', 'Ditolak')->count();
-                        @endphp
-                        
-                        @if($pendingCount > 0)
-                        <div class="text-xs text-yellow-600 mt-1">
-                            <i class="fas fa-hourglass-half"></i> {{ $pendingCount }} pending
-                        </div>
-                        @endif
-                        
-                        @if($ditolakCount > 0)
-                        <div class="text-xs text-red-600 mt-1">
-                            <i class="fas fa-exclamation-triangle"></i> {{ $ditolakCount }} ditolak
-                        </div>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center space-x-2">
-                            @if($sisaBayar > 0)
-                            <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
-                               class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                <i class="fas fa-plus mr-1"></i>
-                                Input Bayar
-                            </a>
-                            @endif
-                            
-                            @if($proyek->pembayaran->count() > 0)
-                            <a href="{{ route('purchasing.pembayaran.history', $proyek->id_proyek) }}" 
-                               class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                <i class="fas fa-history mr-1"></i>
-                                Riwayat
-                            </a>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-                @endif
-                @endforeach
-            </tbody>
-        </table>
-        @else
-        <div class="text-center py-12">
-            <div class="mx-auto h-12 w-12 text-gray-400">
-                <i class="fas fa-credit-card text-4xl"></i>
-            </div>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada proyek yang perlu pembayaran</h3>
-            <p class="mt-1 text-sm text-gray-500">Semua proyek sudah dalam tahap selanjutnya atau belum ada yang di-ACC.</p>
-        </div>
-        @endif
-    </div>
-    
-    @if($proyekPerluBayar->hasPages())
-    <div class="px-6 py-4 border-t border-gray-200">
-        {{ $proyekPerluBayar->links() }}
     </div>
     @endif
-</div>
 
-<!-- All Projects with Payment Status Section -->
-<div class="bg-white rounded-lg shadow-lg mt-6">
-    <div class="p-6 border-b border-gray-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="text-xl font-semibold text-gray-800">Semua Proyek Pembayaran</h2>
-                <p class="text-gray-600 mt-1">Daftar lengkap proyek dengan status Pembayaran (termasuk yang sudah lunas)</p>
+    @if(session('error'))
+    <div class="mb-6 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-600 text-lg"></i>
             </div>
-            
-            <!-- Filter & Search Controls -->
-            <div class="flex flex-col sm:flex-row gap-3">
-                <form method="GET" class="flex flex-col sm:flex-row gap-2">
-                    <!-- Search Input -->
-                    <div class="relative">
-                        <input type="text" 
-                               name="search" 
-                               value="{{ $search }}" 
-                               placeholder="Cari proyek, klien, atau instansi..."
-                               class="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <i class="fas fa-search text-gray-400"></i>
-                        </div>
-                    </div>
-                    
-                    <!-- Status Proyek Filter -->
-                    <select name="proyek_status_filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="all" {{ $proyekStatusFilter == 'all' || !$proyekStatusFilter ? 'selected' : '' }}>Semua Status</option>
-                        <option value="lunas" {{ $proyekStatusFilter == 'lunas' ? 'selected' : '' }}>Lunas</option>
-                        <option value="belum_lunas" {{ $proyekStatusFilter == 'belum_lunas' ? 'selected' : '' }}>Belum Lunas</option>
-                    </select>
-                    
-                    <!-- Sort By -->
-                    <select name="sort_by" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="created_at" {{ $sortBy == 'created_at' ? 'selected' : '' }}>Terbaru</option>
-                        <option value="nama_barang" {{ $sortBy == 'nama_barang' ? 'selected' : '' }}>Nama Barang</option>
-                        <option value="instansi" {{ $sortBy == 'instansi' ? 'selected' : '' }}>Instansi</option>
-                        <option value="nama_klien" {{ $sortBy == 'nama_klien' ? 'selected' : '' }}>Klien</option>
-                    </select>
-                    
-                    <!-- Sort Order -->
-                    <select name="sort_order" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="desc" {{ $sortOrder == 'desc' ? 'selected' : '' }}>Z-A / Terbaru</option>
-                        <option value="asc" {{ $sortOrder == 'asc' ? 'selected' : '' }}>A-Z / Terlama</option>
-                    </select>
-                    
-                    <!-- Submit Button -->
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <i class="fas fa-filter mr-1"></i>
-                        Filter
-                    </button>
-                    
-                    <!-- Reset Button -->
-                    @if($search || $proyekStatusFilter != 'all' && $proyekStatusFilter || $sortBy != 'created_at' || $sortOrder != 'desc')
-                    <a href="{{ route('purchasing.pembayaran') }}" 
-                       class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                        <i class="fas fa-times mr-1"></i>
-                        Reset
-                    </a>
-                    @endif
-                </form>
+            <div class="ml-3">
+                <p class="text-red-800 font-medium">{{ session('error') }}</p>
             </div>
         </div>
     </div>
+    @endif
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium opacity-90">Menunggu Pembayaran</p>
+                    <p class="text-3xl font-bold mt-1">{{ $proyekPerluBayar->total() }}</p>
+                </div>
+                <div class="bg-blue-400/30 p-3 rounded-xl">
+                    <i class="fas fa-clock text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-yellow-100 text-sm font-medium opacity-90">Pending Verifikasi</p>
+                    <p class="text-3xl font-bold mt-1">
+                        {{ $semuaProyek->sum(function($proyek) { 
+                            return $proyek->pembayaran->where('status_verifikasi', 'Pending')->count(); 
+                        }) }}
+                    </p>
+                </div>
+                <div class="bg-yellow-400/30 p-3 rounded-xl">
+                    <i class="fas fa-hourglass-half text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-100 text-sm font-medium opacity-90">Terverifikasi</p>
+                    <p class="text-3xl font-bold mt-1">
+                        {{ $semuaProyek->sum(function($proyek) { 
+                            return $proyek->pembayaran->where('status_verifikasi', 'Approved')->count(); 
+                        }) }}
+                    </p>
+                </div>
+                <div class="bg-green-400/30 p-3 rounded-xl">
+                    <i class="fas fa-check-circle text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-red-100 text-sm font-medium opacity-90">Ditolak</p>
+                    <p class="text-3xl font-bold mt-1">
+                        {{ $semuaProyek->sum(function($proyek) { 
+                            return $proyek->pembayaran->where('status_verifikasi', 'Ditolak')->count(); 
+                        }) }}
+                    </p>
+                </div>
+                <div class="bg-red-400/30 p-3 rounded-xl">
+                    <i class="fas fa-times-circle text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
+        <!-- Tab Headers -->
+        <div class="border-b border-gray-200 bg-gray-50 rounded-t-2xl">
+            <nav class="flex space-x-0" aria-label="Tabs">
+                <button onclick="openTab(event, 'tab-perlu-bayar')" 
+                        class="tab-button flex-1 py-4 px-6 border-b-3 font-semibold text-sm focus:outline-none transition-all duration-300 border-red-500 text-red-600 bg-white rounded-tl-2xl" 
+                        id="defaultOpen">
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span class="hidden sm:inline">Proyek Perlu Pembayaran</span>
+                        <span class="sm:hidden">Perlu Bayar</span>
+                        <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded-full min-w-[1.5rem] h-6 flex items-center justify-center">
+                            {{ $proyekPerluBayar->total() }}
+                        </span>
+                    </div>
+                </button>
+                <button onclick="openTab(event, 'tab-semua-proyek')" 
+                        class="tab-button flex-1 py-4 px-6 border-b-3 font-semibold text-sm focus:outline-none transition-all duration-300 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 bg-gray-50">
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fas fa-list"></i>
+                        <span class="hidden sm:inline">Semua Proyek</span>
+                        <span class="sm:hidden">Proyek</span>
+                        <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full min-w-[1.5rem] h-6 flex items-center justify-center">
+                            {{ $semuaProyek->total() }}
+                        </span>
+                    </div>
+                </button>
+                <button onclick="openTab(event, 'tab-semua-pembayaran')" 
+                        class="tab-button flex-1 py-4 px-6 border-b-3 font-semibold text-sm focus:outline-none transition-all duration-300 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 bg-gray-50 rounded-tr-2xl">
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fas fa-receipt"></i>
+                        <span class="hidden sm:inline">Semua Pembayaran</span>
+                        <span class="sm:hidden">Pembayaran</span>
+                        <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full min-w-[1.5rem] h-6 flex items-center justify-center">
+                            {{ $semuaPembayaran->total() }}
+                        </span>
+                    </div>
+                </button>
+            </nav>
+        </div>
+
+    <!-- Tab Content 1: Proyek Perlu Pembayaran -->
+    <div id="tab-perlu-bayar" class="tab-content">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Proyek Perlu Pembayaran</h2>
+                    <p class="text-gray-600 mt-1">Daftar proyek yang sudah di-ACC dan menunggu pembayaran dari klien</p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                @if($proyekPerluBayar->count() > 0)
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Penawaran</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Bayar</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($proyekPerluBayar as $proyek)
+                        @php
+                            // Hitung total yang sudah dibayar dan disetujui (approved saja)
+                            $totalDibayarApproved = $proyek->pembayaran->where('status_verifikasi', 'Approved')->sum('nominal_bayar');
+                            $sisaBayar = $proyek->penawaranAktif->total_penawaran - $totalDibayarApproved;
+                            $persenBayar = $proyek->penawaranAktif->total_penawaran > 0 ? 
+                                ($totalDibayarApproved / $proyek->penawaranAktif->total_penawaran) * 100 : 0;
+                        @endphp
+                        
+                        @if($sisaBayar > 0)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_barang }}</div>
+                                    <div class="text-sm text-gray-500">{{ $proyek->instansi }} - {{ $proyek->kota_kab }}</div>
+                                    <div class="text-xs text-gray-400">No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ $proyek->nama_klien }}</div>
+                                <div class="text-sm text-gray-500">{{ $proyek->kontak_klien }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">
+                                    Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}
+                                </div>
+                                @if($totalDibayarApproved > 0)
+                                <div class="text-xs text-gray-500">
+                                    Dibayar: Rp {{ number_format($totalDibayarApproved, 0, ',', '.') }} ({{ number_format($persenBayar, 1) }}%)
+                                </div>
+                                <div class="text-xs text-orange-600">
+                                    Sisa: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                                </div>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($sisaBayar <= 0)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        Lunas
+                                    </span>
+                                @elseif($totalDibayarApproved > 0)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        Cicilan ({{ number_format($persenBayar, 0) }}%)
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <i class="fas fa-times-circle mr-1"></i>
+                                        Belum Bayar
+                                    </span>
+                                @endif
+                                
+                                @php
+                                    $pendingCount = $proyek->pembayaran->where('status_verifikasi', 'Pending')->count();
+                                    $ditolakCount = $proyek->pembayaran->where('status_verifikasi', 'Ditolak')->count();
+                                @endphp
+                                
+                                @if($pendingCount > 0)
+                                <div class="text-xs text-yellow-600 mt-1">
+                                    <i class="fas fa-hourglass-half"></i> {{ $pendingCount }} pending
+                                </div>
+                                @endif
+                                
+                                @if($ditolakCount > 0)
+                                <div class="text-xs text-red-600 mt-1">
+                                    <i class="fas fa-exclamation-triangle"></i> {{ $ditolakCount }} ditolak
+                                </div>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center space-x-2">
+                                    @if($sisaBayar > 0)
+                                    <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
+                                       class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <i class="fas fa-plus mr-1"></i>
+                                        Input Bayar
+                                    </a>
+                                    @endif
+                                    
+                                    @if($proyek->pembayaran->count() > 0)
+                                    <a href="{{ route('purchasing.pembayaran.history', $proyek->id_proyek) }}" 
+                                       class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        <i class="fas fa-history mr-1"></i>
+                                        Riwayat
+                                    </a>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @endif
+                        @endforeach
+                    </tbody>
+                </table>
+                @else
+                <div class="text-center py-12">
+                    <div class="mx-auto h-12 w-12 text-gray-400">
+                        <i class="fas fa-credit-card text-4xl"></i>
+                    </div>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada proyek yang perlu pembayaran</h3>
+                    <p class="mt-1 text-sm text-gray-500">Semua proyek sudah dalam tahap selanjutnya atau belum ada yang di-ACC.</p>
+                </div>
+                @endif
+            </div>
+            
+            @if($proyekPerluBayar->hasPages())
+            <div class="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $proyekPerluBayar->firstItem() ?? 0 }} - {{ $proyekPerluBayar->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $proyekPerluBayar->total() }}</span> proyek
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $proyekPerluBayar->appends(['tab' => 'perlu-bayar'])->links() }}
+                    </div>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Tab Content 2: Semua Proyek -->
+    <div id="tab-semua-proyek" class="tab-content" style="display:none;">
+        <div class="p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Semua Proyek Pembayaran</h2>
+                    <p class="text-gray-600 mt-1">Daftar lengkap proyek dengan status pembayaran (termasuk yang sudah lunas)</p>
+                </div>
+                
+                <!-- Filter & Search Controls -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <form method="GET" class="flex flex-col sm:flex-row gap-2">
+                        <input type="hidden" name="tab" value="semua-proyek">
+                        <!-- Search Input -->
+                        <div class="relative">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ $search }}" 
+                                   placeholder="Cari proyek, klien, atau instansi..."
+                                   class="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Status Proyek Filter -->
+                        <select name="proyek_status_filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all" {{ $proyekStatusFilter == 'all' || !$proyekStatusFilter ? 'selected' : '' }}>Semua Status</option>
+                            <option value="lunas" {{ $proyekStatusFilter == 'lunas' ? 'selected' : '' }}>Lunas</option>
+                            <option value="belum_lunas" {{ $proyekStatusFilter == 'belum_lunas' ? 'selected' : '' }}>Belum Lunas</option>
+                        </select>
+                        
+                        <!-- Sort By -->
+                        <select name="sort_by" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="created_at" {{ $sortBy == 'created_at' ? 'selected' : '' }}>Terbaru</option>
+                            <option value="nama_barang" {{ $sortBy == 'nama_barang' ? 'selected' : '' }}>Nama Barang</option>
+                            <option value="instansi" {{ $sortBy == 'instansi' ? 'selected' : '' }}>Instansi</option>
+                            <option value="nama_klien" {{ $sortBy == 'nama_klien' ? 'selected' : '' }}>Klien</option>
+                        </select>
+                        
+                        <!-- Sort Order -->
+                        <select name="sort_order" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="desc" {{ $sortOrder == 'desc' ? 'selected' : '' }}>Z-A / Terbaru</option>
+                            <option value="asc" {{ $sortOrder == 'asc' ? 'selected' : '' }}>A-Z / Terlama</option>
+                        </select>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-filter mr-1"></i>
+                            Filter
+                        </button>
+                        
+                        <!-- Reset Button -->
+                        @if($search || ($proyekStatusFilter && $proyekStatusFilter != 'all') || $sortBy != 'created_at' || $sortOrder != 'desc')
+                        <a href="{{ route('purchasing.pembayaran') }}?tab=semua-proyek" 
+                           class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                            <i class="fas fa-times mr-1"></i>
+                            Reset
+                        </a>
+                        @endif
+                    </form>
+                </div>
+            </div>
     
     <div class="overflow-x-auto">
         @if($semuaProyek->count() > 0)
@@ -498,50 +540,58 @@
         </div>
         @endif
     </div>
-    
-    @if($semuaProyek->hasPages())
-    <div class="px-6 py-4 border-t border-gray-200">
-        {{ $semuaProyek->appends(request()->query())->links() }}
-    </div>
-    @endif
-</div>
-
-<!-- All Payments Section -->
-<div class="bg-white rounded-lg shadow-lg mt-6">
-    <div class="p-6 border-b border-gray-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="text-xl font-semibold text-gray-800">Semua Pembayaran</h2>
-                <p class="text-gray-600 mt-1">Daftar lengkap pembayaran dengan semua status (Pending, Approved, Ditolak)</p>
-            </div>
             
-            <!-- Filter Controls untuk Pembayaran -->
-            <div class="flex flex-col sm:flex-row gap-3">
-                <form method="GET" class="flex flex-col sm:flex-row gap-2">
-                    <!-- Keep existing search if any -->
-                    @if($search)
-                    <input type="hidden" name="search" value="{{ $search }}">
-                    @endif
-                    
-                    <!-- Status Filter -->
-                    <select name="status_filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
-                        <option value="all" {{ $statusFilter == 'all' || !$statusFilter ? 'selected' : '' }}>Semua Status</option>
-                        <option value="Pending" {{ $statusFilter == 'Pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="Approved" {{ $statusFilter == 'Approved' ? 'selected' : '' }}>Approved</option>
-                        <option value="Ditolak" {{ $statusFilter == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
-                    </select>
-                    
-                    @if($statusFilter && $statusFilter !== 'all')
-                    <a href="{{ route('purchasing.pembayaran', array_filter(request()->query(), function($key) { return $key !== 'status_filter'; }, ARRAY_FILTER_USE_KEY)) }}" 
-                       class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600">
-                        <i class="fas fa-times mr-1"></i>
-                        Reset Filter
-                    </a>
-                    @endif
-                </form>
+            @if($semuaProyek->hasPages())
+            <div class="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $semuaProyek->firstItem() ?? 0 }} - {{ $semuaProyek->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $semuaProyek->total() }}</span> proyek
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $semuaProyek->appends(['tab' => 'semua-proyek'])->links() }}
+                    </div>
+                </div>
             </div>
+            @endif
         </div>
     </div>
+
+    <!-- Tab Content 3: Semua Pembayaran -->
+    <div id="tab-semua-pembayaran" class="tab-content" style="display:none;">
+        <div class="p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Semua Pembayaran</h2>
+                    <p class="text-gray-600 mt-1">Daftar lengkap pembayaran dengan semua status (Pending, Approved, Ditolak)</p>
+                </div>
+                
+                <!-- Filter Controls untuk Pembayaran -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <form method="GET" class="flex flex-col sm:flex-row gap-2">
+                        <input type="hidden" name="tab" value="semua-pembayaran">
+                        @if($search)
+                        <input type="hidden" name="search" value="{{ $search }}">
+                        @endif
+                        
+                        <!-- Status Filter -->
+                        <select name="status_filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
+                            <option value="all" {{ $statusFilter == 'all' || !$statusFilter ? 'selected' : '' }}>Semua Status</option>
+                            <option value="Pending" {{ $statusFilter == 'Pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="Approved" {{ $statusFilter == 'Approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="Ditolak" {{ $statusFilter == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
+                        </select>
+                        
+                        @if($statusFilter && $statusFilter !== 'all')
+                        <a href="{{ route('purchasing.pembayaran') }}?tab=semua-pembayaran" 
+                           class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600">
+                            <i class="fas fa-times mr-1"></i>
+                            Reset Filter
+                        </a>
+                        @endif
+                    </form>
+                </div>
+            </div>
     
     <div class="overflow-x-auto">
         @if($semuaPembayaran->count() > 0)
@@ -693,12 +743,23 @@
         </div>
         @endif
     </div>
-    
-    @if($semuaPembayaran->hasPages())
-    <div class="px-6 py-4 border-t border-gray-200">
-        {{ $semuaPembayaran->appends(request()->query())->links() }}
+            
+            @if($semuaPembayaran->hasPages())
+            <div class="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $semuaPembayaran->firstItem() ?? 0 }} - {{ $semuaPembayaran->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $semuaPembayaran->total() }}</span> pembayaran
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $semuaPembayaran->appends(['tab' => 'semua-pembayaran'])->links() }}
+                    </div>
+                </div>
+            </div>
+            @endif
+        </div>
     </div>
-    @endif    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -850,6 +911,84 @@ document.getElementById('proyekDetailModal').addEventListener('click', function(
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeProyekDetail();
+    }
+});
+
+// Tab Navigation Functions
+function openTab(evt, tabName) {
+    // Hide all tab content
+    const tabcontent = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    
+    // Remove active class from all tab buttons
+    const tabbuttons = document.getElementsByClassName("tab-button");
+    for (let i = 0; i < tabbuttons.length; i++) {
+        tabbuttons[i].classList.remove("border-red-500", "text-red-600", "bg-white");
+        tabbuttons[i].classList.add("border-transparent", "text-gray-500", "bg-gray-50");
+    }
+    
+    // Show the selected tab content
+    document.getElementById(tabName).style.display = "block";
+    
+    // Add active class to the clicked button
+    evt.currentTarget.classList.remove("border-transparent", "text-gray-500", "bg-gray-50");
+    evt.currentTarget.classList.add("border-red-500", "text-red-600", "bg-white");
+    
+    // Update badge colors for active tab
+    const badges = evt.currentTarget.querySelectorAll('span');
+    badges.forEach(badge => {
+        if (badge.classList.contains('bg-gray-200')) {
+            badge.classList.remove('bg-gray-200', 'text-gray-700');
+            badge.classList.add('bg-red-100', 'text-red-800');
+        }
+    });
+    
+    // Reset other tab badges
+    tabbuttons.forEach(button => {
+        if (button !== evt.currentTarget) {
+            const badges = button.querySelectorAll('span');
+            badges.forEach(badge => {
+                if (badge.classList.contains('bg-red-100')) {
+                    badge.classList.remove('bg-red-100', 'text-red-800');
+                    badge.classList.add('bg-gray-200', 'text-gray-700');
+                }
+            });
+        }
+    });
+    
+    // Update URL parameter without page reload
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tabName.replace('tab-', ''));
+    window.history.pushState({}, '', url);
+}
+
+// Initialize tabs on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const activeTab = '{{ $activeTab ?? "perlu-bayar" }}';
+    
+    // Show the tab from backend/URL parameter
+    const tabButton = document.querySelector(`button[onclick*="tab-${activeTab}"]`);
+    if (tabButton) {
+        // Manually trigger the tab display
+        const tabcontent = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        
+        const tabbuttons = document.getElementsByClassName("tab-button");
+        for (let i = 0; i < tabbuttons.length; i++) {
+            tabbuttons[i].classList.remove("border-red-500", "text-red-600", "bg-white");
+            tabbuttons[i].classList.add("border-transparent", "text-gray-500", "bg-gray-50");
+        }
+        
+        document.getElementById(`tab-${activeTab}`).style.display = "block";
+        tabButton.classList.remove("border-transparent", "text-gray-500", "bg-gray-50");
+        tabButton.classList.add("border-red-500", "text-red-600", "bg-white");
+    } else {
+        // Default: show first tab
+        document.getElementById("defaultOpen").click();
     }
 });
 </script>

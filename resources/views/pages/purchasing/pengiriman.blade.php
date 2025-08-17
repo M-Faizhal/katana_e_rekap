@@ -106,29 +106,6 @@ $pengirimanSelesai = [
             <i class="fas fa-truck text-3xl sm:text-4xl lg:text-6xl"></i>
         </div>
     </div>
-
-    <!-- Info Flow -->
-    <div class="mt-4 p-3 bg-red-700 rounded-lg">
-        <div class="flex items-center gap-2 text-sm mb-2">
-            <i class="fas fa-info-circle"></i>
-            <span class="font-medium">Alur:</span>
-            <span class="flex items-center gap-1">
-                Marketing ACC →
-                <span class="bg-red-600 px-2 py-1 rounded text-xs font-bold">Purchasing Kirim (Anda di sini)</span>
-                → Manager Verifikasi → Selesai
-            </span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-clipboard-list text-blue-300"></i>
-                <span><strong>Input:</strong> Surat jalan, foto keberangkatan, perjalanan, diterima, tanda terima</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <i class="fas fa-check-circle text-green-300"></i>
-                <span><strong>Status:</strong> Lengkapi semua dokumen untuk verifikasi manager</span>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Content Card -->

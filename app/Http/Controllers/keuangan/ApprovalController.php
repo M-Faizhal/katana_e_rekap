@@ -7,6 +7,7 @@ use App\Models\Pembayaran;
 use App\Models\Penawaran;
 use App\Models\Proyek;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -103,7 +104,7 @@ class ApprovalController extends Controller
             Log::info('Payment approved', [
                 'payment_id' => $id,
                 'amount' => $pembayaran->nominal_bayar,
-                'approved_by' => auth()->user()->nama
+                'approved_by' => Auth::user()->nama
             ]);
 
             return redirect()->route('keuangan.approval')
@@ -149,7 +150,7 @@ class ApprovalController extends Controller
             Log::info('Payment rejected', [
                 'payment_id' => $id,
                 'amount' => $pembayaran->nominal_bayar,
-                'rejected_by' => auth()->user()->nama,
+                'rejected_by' => Auth::user()->nama,
                 'reason' => $request->input('alasan_penolakan')
             ]);
 

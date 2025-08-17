@@ -49,7 +49,7 @@ class PembayaranController extends Controller
 
         // Convert collection to paginated result
         $currentPage = request()->get('page', 1);
-        $perPage = 10;
+        $perPage = 5;
         $currentPageItems = $proyekPerluBayar->slice(($currentPage - 1) * $perPage, $perPage);
         $proyekPerluBayar = new \Illuminate\Pagination\LengthAwarePaginator(
             $currentPageItems,
@@ -67,6 +67,7 @@ class PembayaranController extends Controller
         $proyekStatusFilter = request()->get('proyek_status_filter'); // untuk status proyek lunas/belum
         $sortBy = request()->get('sort_by', 'created_at');
         $sortOrder = request()->get('sort_order', 'desc');
+        $activeTab = request()->get('tab', 'perlu-bayar'); // untuk tab navigation
 
         // Ambil semua proyek dengan status Pembayaran untuk history
         $semuaProyekQuery = Proyek::with(['penawaranAktif', 'adminMarketing', 'pembayaran'])
@@ -99,7 +100,9 @@ class PembayaranController extends Controller
             $semuaProyekQuery->orderBy('created_at', $sortOrder);
         }
 
-        $semuaProyek = $semuaProyekQuery->paginate(15, ['*'], 'proyek_page');
+        $semuaProyek = $semuaProyekQuery->paginate(5, ['*'], 'proyek_page');
+
+        Log::info('SemuaProyek before calculation count: ' . $semuaProyek->count());
 
         // Hitung statistik untuk setiap proyek
         $semuaProyek->getCollection()->transform(function ($proyek) {
@@ -116,8 +119,12 @@ class PembayaranController extends Controller
             $proyek->persen_bayar = $persenBayar;
             $proyek->status_lunas = $sisaBayar <= 0;
 
+            Log::info("Proyek {$proyek->nama_barang}: Sisa={$sisaBayar}, Status Lunas={$proyek->status_lunas}");
+
             return $proyek;
         });
+
+        Log::info('SemuaProyek after calculation count: ' . $semuaProyek->count());
 
         // Filter berdasarkan status proyek (lunas/belum lunas) setelah perhitungan
         if ($proyekStatusFilter && $proyekStatusFilter !== 'all') {
@@ -132,7 +139,7 @@ class PembayaranController extends Controller
 
             // Re-paginate setelah filter
             $currentPage = request()->get('proyek_page', 1);
-            $perPage = 15;
+            $perPage = 5;
             $currentPageItems = $semuaProyek->slice(($currentPage - 1) * $perPage, $perPage);
             $semuaProyek = new \Illuminate\Pagination\LengthAwarePaginator(
                 $currentPageItems,
@@ -167,7 +174,7 @@ class PembayaranController extends Controller
         }
 
         $semuaPembayaran = $semuaPembayaranQuery->orderBy('created_at', 'desc')
-            ->paginate(15, ['*'], 'pembayaran_page');
+            ->paginate(5, ['*'], 'pembayaran_page');
 
         Log::info('SemuaPembayaran count: ' . $semuaPembayaran->count());
 
@@ -179,7 +186,8 @@ class PembayaranController extends Controller
             'statusFilter',
             'proyekStatusFilter',
             'sortBy',
-            'sortOrder'
+            'sortOrder',
+            'activeTab'
         ));
     }
 
