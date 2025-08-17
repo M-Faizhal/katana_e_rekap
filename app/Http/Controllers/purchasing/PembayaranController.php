@@ -30,21 +30,21 @@ class PembayaranController extends Controller
             })
             ->get()
             ->filter(function ($proyek) {
-                // Hitung total yang sudah dibayar (exclude yang ditolak)
-                $totalDibayar = $proyek->pembayaran()
-                    ->where('status_verifikasi', '!=', 'Ditolak')
+                // Hitung total yang sudah dibayar dan disetujui (approved saja)
+                $totalDibayarApproved = $proyek->pembayaran()
+                    ->where('status_verifikasi', 'Approved')
                     ->sum('nominal_bayar');
                 
                 // Hitung sisa bayar
-                $sisaBayar = $proyek->penawaranAktif->total_penawaran - $totalDibayar;
+                $sisaBayar = $proyek->penawaranAktif->total_penawaran - $totalDibayarApproved;
                 
                 // Log untuk debugging
-                Log::info("Proyek {$proyek->nama_proyek}: Total Penawaran = {$proyek->penawaranAktif->total_penawaran}, Total Dibayar = {$totalDibayar}, Sisa = {$sisaBayar}");
+                Log::info("Proyek {$proyek->nama_barang}: Total Penawaran = {$proyek->penawaranAktif->total_penawaran}, Total Dibayar Approved = {$totalDibayarApproved}, Sisa = {$sisaBayar}");
                 
                 // Hanya tampilkan yang masih ada sisa bayar (lebih dari 0)
                 return $sisaBayar > 0;
             })
-            ->sortBy('nama_proyek')
+            ->sortBy('nama_barang')
             ->values();
 
         // Convert collection to paginated result
@@ -61,19 +61,126 @@ class PembayaranController extends Controller
 
         Log::info('ProyekPerluBayar count: ' . $proyekPerluBayar->count());
 
-        // Ambil semua pembayaran dengan status berbeda untuk ditampilkan
-        $semuaPembayaran = Pembayaran::with(['penawaran.proyek.adminMarketing'])
+        // Ambil parameter filter dan search
+        $search = request()->get('search');
+        $statusFilter = request()->get('status_filter'); // untuk pembayaran
+        $proyekStatusFilter = request()->get('proyek_status_filter'); // untuk status proyek lunas/belum
+        $sortBy = request()->get('sort_by', 'created_at');
+        $sortOrder = request()->get('sort_order', 'desc');
+
+        // Ambil semua proyek dengan status Pembayaran untuk history
+        $semuaProyekQuery = Proyek::with(['penawaranAktif', 'adminMarketing', 'pembayaran'])
+            ->where('status', 'Pembayaran')
+            ->whereHas('penawaranAktif', function ($query) {
+                $query->where('status', 'ACC');
+            });
+
+        // Filter berdasarkan search
+        if ($search) {
+            $semuaProyekQuery->where(function ($query) use ($search) {
+                $query->where('nama_barang', 'like', "%{$search}%")
+                      ->orWhere('instansi', 'like', "%{$search}%")
+                      ->orWhere('nama_klien', 'like', "%{$search}%")
+                      ->orWhere('kota_kab', 'like', "%{$search}%")
+                      ->orWhereHas('penawaranAktif', function ($subQuery) use ($search) {
+                          $subQuery->where('no_penawaran', 'like', "%{$search}%");
+                      });
+            });
+        }
+
+        // Sorting
+        if ($sortBy === 'nama_barang') {
+            $semuaProyekQuery->orderBy('nama_barang', $sortOrder);
+        } elseif ($sortBy === 'instansi') {
+            $semuaProyekQuery->orderBy('instansi', $sortOrder);
+        } elseif ($sortBy === 'nama_klien') {
+            $semuaProyekQuery->orderBy('nama_klien', $sortOrder);
+        } else {
+            $semuaProyekQuery->orderBy('created_at', $sortOrder);
+        }
+
+        $semuaProyek = $semuaProyekQuery->paginate(15, ['*'], 'proyek_page');
+
+        // Hitung statistik untuk setiap proyek
+        $semuaProyek->getCollection()->transform(function ($proyek) {
+            $totalDibayarApproved = $proyek->pembayaran()
+                ->where('status_verifikasi', 'Approved')
+                ->sum('nominal_bayar');
+            
+            $sisaBayar = $proyek->penawaranAktif->total_penawaran - $totalDibayarApproved;
+            $persenBayar = $proyek->penawaranAktif->total_penawaran > 0 ? 
+                ($totalDibayarApproved / $proyek->penawaranAktif->total_penawaran) * 100 : 0;
+
+            $proyek->total_dibayar_approved = $totalDibayarApproved;
+            $proyek->sisa_bayar = $sisaBayar;
+            $proyek->persen_bayar = $persenBayar;
+            $proyek->status_lunas = $sisaBayar <= 0;
+
+            return $proyek;
+        });
+
+        // Filter berdasarkan status proyek (lunas/belum lunas) setelah perhitungan
+        if ($proyekStatusFilter && $proyekStatusFilter !== 'all') {
+            $semuaProyek = $semuaProyek->filter(function ($proyek) use ($proyekStatusFilter) {
+                if ($proyekStatusFilter === 'lunas') {
+                    return $proyek->status_lunas;
+                } elseif ($proyekStatusFilter === 'belum_lunas') {
+                    return !$proyek->status_lunas;
+                }
+                return true;
+            });
+
+            // Re-paginate setelah filter
+            $currentPage = request()->get('proyek_page', 1);
+            $perPage = 15;
+            $currentPageItems = $semuaProyek->slice(($currentPage - 1) * $perPage, $perPage);
+            $semuaProyek = new \Illuminate\Pagination\LengthAwarePaginator(
+                $currentPageItems,
+                $semuaProyek->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'pageName' => 'proyek_page']
+            );
+        }
+
+        // Ambil semua pembayaran dengan filter
+        $semuaPembayaranQuery = Pembayaran::with(['penawaran.proyek.adminMarketing'])
             ->whereHas('penawaran.proyek', function ($query) {
-                $query->whereHas('penawaranAktif', function ($subQuery) {
-                    $subQuery->where('status', 'ACC');
-                });
-            })
-            ->orderBy('created_at', 'desc')
+                $query->where('status', 'Pembayaran')
+                      ->whereHas('penawaranAktif', function ($subQuery) {
+                          $subQuery->where('status', 'ACC');
+                      });
+            });
+
+        // Filter pembayaran berdasarkan status
+        if ($statusFilter && $statusFilter !== 'all') {
+            $semuaPembayaranQuery->where('status_verifikasi', $statusFilter);
+        }
+
+        // Filter pembayaran berdasarkan search
+        if ($search) {
+            $semuaPembayaranQuery->whereHas('penawaran.proyek', function ($query) use ($search) {
+                $query->where('nama_barang', 'like', "%{$search}%")
+                      ->orWhere('instansi', 'like', "%{$search}%")
+                      ->orWhere('nama_klien', 'like', "%{$search}%");
+            });
+        }
+
+        $semuaPembayaran = $semuaPembayaranQuery->orderBy('created_at', 'desc')
             ->paginate(15, ['*'], 'pembayaran_page');
 
         Log::info('SemuaPembayaran count: ' . $semuaPembayaran->count());
 
-        return view('pages.purchasing.pembayaran', compact('proyekPerluBayar', 'semuaPembayaran'));
+        return view('pages.purchasing.pembayaran', compact(
+            'proyekPerluBayar', 
+            'semuaPembayaran', 
+            'semuaProyek',
+            'search',
+            'statusFilter',
+            'proyekStatusFilter',
+            'sortBy',
+            'sortOrder'
+        ));
     }
 
     /**
@@ -90,9 +197,9 @@ class PembayaranController extends Controller
                 ->with('error', 'Proyek ini belum memiliki penawaran yang di-ACC');
         }
 
-        // Hitung total yang sudah dibayar
+        // Hitung total yang sudah dibayar dan disetujui (approved saja)
         $totalDibayar = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
-            ->where('status_verifikasi', '!=', 'Ditolak')
+            ->where('status_verifikasi', 'Approved')
             ->sum('nominal_bayar');
 
         $sisaBayar = $proyek->penawaranAktif->total_penawaran - $totalDibayar;

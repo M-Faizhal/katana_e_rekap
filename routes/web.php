@@ -7,6 +7,7 @@ use App\Http\Controllers\purchasing\VendorController;
 use App\Http\Controllers\purchasing\ProdukController;
 use App\Http\Controllers\purchasing\KalkulasiController;
 use App\Http\Controllers\purchasing\PembayaranController;
+use App\Http\Controllers\keuangan\ApprovalController;
 
 
 
@@ -88,13 +89,13 @@ Route::middleware('auth')->group(function () {
 
     // Keuangan Routes
     Route::prefix('keuangan')->group(function () {
-        Route::get('/', function () {
-            return view('pages.keuangan.keuangan');
-        })->name('keuangan');
-
-        Route::get('/approval', function () {
-            return view('pages.keuangan.approval');
-        })->name('keuangan.approval');
+        // Approval routes
+        Route::get('/approval', [ApprovalController::class, 'index'])->name('keuangan.approval');
+        Route::get('/approval/{id}', [ApprovalController::class, 'show'])->name('keuangan.approval.detail');
+        Route::post('/approval/{id}/approve', [ApprovalController::class, 'approve'])->name('keuangan.approval.approve');
+        Route::post('/approval/{id}/reject', [ApprovalController::class, 'reject'])->name('keuangan.approval.reject');
+        Route::get('/approval-approved', [ApprovalController::class, 'approved'])->name('keuangan.approval.approved');
+        Route::get('/approval-rejected', [ApprovalController::class, 'rejected'])->name('keuangan.approval.rejected');
 
         Route::get('/penagihan', function () {
             return view('pages.keuangan.penagihan');
