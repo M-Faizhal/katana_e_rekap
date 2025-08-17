@@ -110,6 +110,74 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Documents Section -->
+        @if($proyek->penawaranAktif && ($proyek->penawaranAktif->surat_pesanan || $proyek->penawaranAktif->surat_penawaran))
+        <div class="mt-6 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Dokumen Terkait</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Surat Pesanan -->
+                @if($proyek->penawaranAktif->surat_pesanan)
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Surat Pesanan:</h4>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        @php
+                            $fileSuratPesanan = pathinfo($proyek->penawaranAktif->surat_pesanan, PATHINFO_EXTENSION);
+                        @endphp
+                        
+                        <div class="flex items-center justify-center h-16 bg-blue-50 rounded-lg mb-3">
+                            @if(in_array(strtolower($fileSuratPesanan), ['pdf']))
+                                <i class="fas fa-file-pdf text-red-500 text-2xl mr-2"></i>
+                            @elseif(in_array(strtolower($fileSuratPesanan), ['jpg', 'jpeg', 'png']))
+                                <i class="fas fa-file-image text-blue-500 text-2xl mr-2"></i>
+                            @else
+                                <i class="fas fa-file-alt text-gray-500 text-2xl mr-2"></i>
+                            @endif
+                            <span class="text-sm font-medium text-gray-700">Surat Pesanan</span>
+                        </div>
+                        
+                        <a href="{{ asset('storage/' . $proyek->penawaranAktif->surat_pesanan) }}" 
+                           target="_blank"
+                           class="inline-flex items-center px-3 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 w-full justify-center">
+                            <i class="fas fa-download mr-2"></i>
+                            Lihat Surat Pesanan
+                        </a>
+                    </div>
+                </div>
+                @endif
+                
+                <!-- Surat Penawaran -->
+                @if($proyek->penawaranAktif->surat_penawaran)
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Surat Penawaran:</h4>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        @php
+                            $fileSuratPenawaran = pathinfo($proyek->penawaranAktif->surat_penawaran, PATHINFO_EXTENSION);
+                        @endphp
+                        
+                        <div class="flex items-center justify-center h-16 bg-green-50 rounded-lg mb-3">
+                            @if(in_array(strtolower($fileSuratPenawaran), ['pdf']))
+                                <i class="fas fa-file-pdf text-red-500 text-2xl mr-2"></i>
+                            @elseif(in_array(strtolower($fileSuratPenawaran), ['jpg', 'jpeg', 'png']))
+                                <i class="fas fa-file-image text-green-500 text-2xl mr-2"></i>
+                            @else
+                                <i class="fas fa-file-alt text-gray-500 text-2xl mr-2"></i>
+                            @endif
+                            <span class="text-sm font-medium text-gray-700">Surat Penawaran</span>
+                        </div>
+                        
+                        <a href="{{ asset('storage/' . $proyek->penawaranAktif->surat_penawaran) }}" 
+                           target="_blank"
+                           class="inline-flex items-center px-3 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 w-full justify-center">
+                            <i class="fas fa-download mr-2"></i>
+                            Lihat Surat Penawaran
+                        </a>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 
