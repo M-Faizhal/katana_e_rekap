@@ -32,13 +32,6 @@ class DatabaseSeeder extends Seeder
             CompleteSystemSeeder::class,
         ]);
 
-        echo "\n=== DATABASE SEEDING COMPLETED ===\n";
-        echo "Silakan login dengan akun berikut:\n";
-        echo "- Super Admin: superadmin@katana.com / admin123\n";
-        echo "- Marketing: marketing@katana.com / marketing123\n";
-        echo "- Purchasing: purchasing@katana.com / purchasing123\n";
-        echo "- Keuangan: keuangan@katana.com / keuangan123\n";
-        echo "- Demo: demo@katana.com / demo123\n";
         echo "\nData lengkap telah dibuat untuk testing flow bisnis!\n";
     }
 }

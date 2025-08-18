@@ -116,7 +116,7 @@ class UserSeeder extends Seeder
         echo "- Super Admin: superadmin@katana.com / password123\n";
         echo "- Admin Marketing: marketing@katana.com / password123\n";
         echo "- Admin Purchasing: purchasing@katana.com / password123\n";
-        echo "- Admin Keuangan: keuangan@katana.com / keuangan123\n";
-        echo "- Demo User: demo@katana.com / demo123\n";
+        echo "- Admin Keuangan: keuangan@katana.com / password123\n";
+        echo "- Demo User: demo@katana.com / password123\n";
     }
 }

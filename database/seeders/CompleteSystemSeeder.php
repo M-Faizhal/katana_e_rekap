@@ -56,11 +56,11 @@ class CompleteSystemSeeder extends Seeder
 
         echo "\n✅ Complete system seeding finished successfully!\n";
         echo "🔐 Login credentials:\n";
-        echo "   - Super Admin: superadmin@katana.com / admin123\n";
-        echo "   - Marketing: marketing@katana.com / marketing123\n";
-        echo "   - Purchasing: purchasing@katana.com / purchasing123\n";
-        echo "   - Keuangan: keuangan@katana.com / keuangan123\n";
-        echo "   - Demo: demo@katana.com / demo123\n\n";
+        echo "   - Super Admin: superadmin@katana.com / password123\n";
+        echo "   - Marketing: marketing@katana.com / password123\n";
+        echo "   - Purchasing: purchasing@katana.com / password123\n";
+        echo "   - Keuangan: keuangan@katana.com / password123\n";
+        echo "   - Demo: demo@katana.com / password123\n\n";
     }
 
     private function seedUsers()
