@@ -13,6 +13,7 @@ use App\Http\Controllers\keuangan\ApprovalController;
 use App\Http\Controllers\Marketing\ProyekController;
 use App\Http\Controllers\Marketing\WilayahController;
 use App\Http\Controllers\Marketing\PotensiController;
+use App\Http\Controllers\Marketing\PenawaranController;
 
 
 
@@ -57,9 +58,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/potensi', [PotensiController::class, 'index'])->name('marketing.potensi');
         Route::get('/potensi/{id}/detail', [PotensiController::class, 'detail'])->name('marketing.potensi.detail');
 
-        Route::get('/penawaran', function () {
-            return view('pages.marketing.penawaran');
-        })->name('marketing.penawaran');
+        // Penawaran Routes
+        Route::get('/penawaran', [PenawaranController::class, 'index'])->name('marketing.penawaran');
+        Route::get('/penawaran/{proyekId}', [PenawaranController::class, 'show'])->name('marketing.penawaran.detail');
+        Route::post('/penawaran', [PenawaranController::class, 'store'])->name('marketing.penawaran.store');
+        Route::put('/penawaran/{id}', [PenawaranController::class, 'update'])->name('marketing.penawaran.update');
+        Route::get('/penawaran/download/{type}/{filename}', [PenawaranController::class, 'downloadFile'])->name('penawaran.download');
     });
 
     // Purchasing Routes

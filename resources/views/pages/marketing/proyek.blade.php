@@ -164,11 +164,13 @@ $gagalCount = countByStatus($proyekData, 'gagal');
         <div id="proyekContainer" class="grid grid-cols-1 gap-4 sm:gap-6">
             @foreach($proyekData as $index => $proyek)
             <!-- Card {{ $index + 1 }} -->
-            <div class="proyek-card bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200"
+            <div class="proyek-card bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 cursor-pointer relative"
                  data-status="{{ $proyek['status'] }}"
                  data-kabupaten="{{ strtolower($proyek['kabupaten']) }}"
                  data-instansi="{{ strtolower($proyek['instansi']) }}"
-                 data-tanggal="{{ $proyek['tanggal'] }}">
+                 data-tanggal="{{ $proyek['tanggal'] }}"
+                 onclick="buatPenawaran({{ $proyek['id'] }})"
+                 title="Klik untuk membuat penawaran">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                     <div class="flex items-center space-x-3 mb-3 sm:mb-0">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
@@ -235,7 +237,10 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-1 sm:space-x-2 self-start">
+                    <div class="flex items-center space-x-1 sm:space-x-2 self-start" onclick="event.stopPropagation()">
+                        <button onclick="buatPenawaran({{ $proyek['id'] }})" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200" title="Buat Penawaran">
+                            <i class="fas fa-file-invoice text-sm"></i>
+                        </button>
                         <button onclick="viewDetail({{ $proyek['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
                             <i class="fas fa-eye text-sm"></i>
                         </button>
@@ -860,6 +865,22 @@ function viewDetail(id) {
 
     // Show modal
     openModal('modalDetailProyek');
+}
+
+// Function to create penawaran (redirect to penawaran page)
+function buatPenawaran(id) {
+    console.log('buatPenawaran called with ID:', id);
+
+    const data = proyekData.find(p => p.id == id);
+
+    if (!data) {
+        console.error('Data proyek tidak ditemukan dengan ID:', id);
+        alert('Data proyek tidak ditemukan!');
+        return;
+    }
+
+    // Redirect to penawaran detail page
+    window.location.href = `/marketing/penawaran/${id}`;
 }
 
 // Function to edit proyek
