@@ -7,7 +7,7 @@
         <div class="flex items-center justify-between">
             <div class="flex-1">
                 <h1 class="text-2xl lg:text-4xl font-bold mb-2">Pembayaran Purchasing</h1>
-                <p class="text-red-100 text-base lg:text-lg opacity-90">Kelola pembayaran proyek yang sudah di-ACC klien</p>
+                <p class="text-red-100 text-base lg:text-lg opacity-90">Kelola pembayaran proyek yang sudah di-ACC klien (termasuk proyek selesai dan gagal yang belum lunas)</p>
             </div>
             <div class="hidden lg:flex items-center justify-center w-20 h-20 bg-red-700 rounded-2xl">
                 <i class="fas fa-credit-card text-4xl opacity-80"></i>
@@ -155,7 +155,7 @@
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-800">Proyek Perlu Pembayaran</h2>
-                    <p class="text-gray-600 mt-1">Daftar proyek yang sudah di-ACC dan menunggu pembayaran dari klien</p>
+                    <p class="text-gray-600 mt-1">Daftar proyek yang sudah di-ACC dan menunggu pembayaran dari klien, termasuk proyek dalam tahap pengiriman, selesai, dan gagal yang perlu pelunasan atau pengembalian dana</p>
                 </div>
             </div>
             
@@ -188,6 +188,26 @@
                                     <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_barang }}</div>
                                     <div class="text-sm text-gray-500">{{ $proyek->instansi }} - {{ $proyek->kota_kab }}</div>
                                     <div class="text-xs text-gray-400">No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}</div>
+                                    <!-- Status Proyek -->
+                                    <div class="mt-1">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                            @if($proyek->status == 'Pembayaran') bg-blue-100 text-blue-800
+                                            @elseif($proyek->status == 'Pengiriman') bg-purple-100 text-purple-800
+                                            @elseif($proyek->status == 'Selesai') bg-green-100 text-green-800
+                                            @elseif($proyek->status == 'Gagal') bg-red-100 text-red-800
+                                            @else bg-gray-100 text-gray-800 @endif">
+                                            @if($proyek->status == 'Pembayaran')
+                                                <i class="fas fa-credit-card mr-1"></i> 
+                                            @elseif($proyek->status == 'Pengiriman')
+                                                <i class="fas fa-shipping-fast mr-1"></i>
+                                            @elseif($proyek->status == 'Selesai')
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                            @elseif($proyek->status == 'Gagal')
+                                                <i class="fas fa-times-circle mr-1"></i>
+                                            @endif
+                                            {{ $proyek->status }}
+                                        </span>
+                                    </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
@@ -248,7 +268,15 @@
                                     <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
                                        class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                         <i class="fas fa-plus mr-1"></i>
-                                        Input Bayar
+                                        @if($proyek->status == 'Pengiriman')
+                                            Pelunasan
+                                        @elseif($proyek->status == 'Selesai')
+                                            Sisa Bayar
+                                        @elseif($proyek->status == 'Gagal')
+                                            Proses Dana
+                                        @else
+                                            Input Bayar
+                                        @endif
                                     </a>
                                     @endif
                                     
@@ -260,6 +288,23 @@
                                     </a>
                                     @endif
                                 </div>
+                                
+                                @if($proyek->status == 'Pengiriman' && $sisaBayar > 0)
+                                <div class="mt-2 text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Barang sudah dikirim, menunggu pelunasan
+                                </div>
+                                @elseif($proyek->status == 'Selesai' && $sisaBayar > 0)
+                                <div class="mt-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Proyek selesai, tersisa pelunasan
+                                </div>
+                                @elseif($proyek->status == 'Gagal' && $sisaBayar > 0)
+                                <div class="mt-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Proyek gagal, perlu pengembalian dana
+                                </div>
+                                @endif
                             </td>
                         </tr>
                         @endif
@@ -299,7 +344,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-800">Semua Proyek Pembayaran</h2>
-                    <p class="text-gray-600 mt-1">Daftar lengkap proyek dengan status pembayaran (termasuk yang sudah lunas)</p>
+                    <p class="text-gray-600 mt-1">Daftar lengkap proyek dengan status pembayaran, pengiriman, selesai, atau gagal (termasuk yang sudah lunas)</p>
                 </div>
                 
                 <!-- Filter & Search Controls -->
@@ -379,6 +424,26 @@
                             <div class="text-sm text-gray-500">{{ $proyek->instansi }} - {{ $proyek->kota_kab }}</div>
                             <div class="text-xs text-gray-400">No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}</div>
                             <div class="text-xs text-gray-400">Dibuat: {{ $proyek->created_at->format('d/m/Y H:i') }}</div>
+                            <!-- Status Proyek -->
+                            <div class="mt-1">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                    @if($proyek->status == 'Pembayaran') bg-blue-100 text-blue-800
+                                    @elseif($proyek->status == 'Pengiriman') bg-purple-100 text-purple-800
+                                    @elseif($proyek->status == 'Selesai') bg-green-100 text-green-800
+                                    @elseif($proyek->status == 'Gagal') bg-red-100 text-red-800
+                                    @else bg-gray-100 text-gray-800 @endif">
+                                    @if($proyek->status == 'Pembayaran')
+                                        <i class="fas fa-credit-card mr-1"></i>
+                                    @elseif($proyek->status == 'Pengiriman')
+                                        <i class="fas fa-shipping-fast mr-1"></i>
+                                    @elseif($proyek->status == 'Selesai')
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                    @elseif($proyek->status == 'Gagal')
+                                        <i class="fas fa-times-circle mr-1"></i>
+                                    @endif
+                                    {{ $proyek->status }}
+                                </span>
+                            </div>
                         </div>
                     </td>
                     <td class="px-6 py-4">
@@ -563,7 +628,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-800">Semua Pembayaran</h2>
-                    <p class="text-gray-600 mt-1">Daftar lengkap pembayaran dengan semua status (Pending, Approved, Ditolak)</p>
+                    <p class="text-gray-600 mt-1">Daftar lengkap pembayaran dari proyek dengan status pembayaran, pengiriman, selesai, atau gagal (Pending, Approved, Ditolak)</p>
                 </div>
                 
                 <!-- Filter Controls untuk Pembayaran -->

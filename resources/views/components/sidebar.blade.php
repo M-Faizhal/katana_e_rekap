@@ -170,6 +170,28 @@
                     <span class="font-medium">Pengelolaan Akun</span>
                 </a>
             </li>
+
+            <!-- Verifikasi Proyek -->
+            <li>
+                <a href="{{ route('superadmin.verifikasi-proyek') }}"
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('superadmin.verifikasi-proyek') && !request()->routeIs('superadmin.verifikasi-proyek.history') ? 'bg-red-200 text-red-800' : '' }}">
+                    <i class="fas fa-check-double w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="font-medium">Verifikasi Proyek</span>
+                    @php
+                        $countPendingVerifikasi = \Illuminate\Support\Facades\DB::table('proyek')
+                            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
+                            ->join('pengiriman', 'penawaran.id_penawaran', '=', 'pengiriman.id_penawaran')
+                            ->where('proyek.status', 'Pengiriman')
+                            ->whereIn('pengiriman.status_verifikasi', ['Sampai_Tujuan', 'Dalam_Proses'])
+                            ->count();
+                    @endphp
+                    @if($countPendingVerifikasi > 0)
+                        <span class="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">{{ $countPendingVerifikasi }}</span>
+                    @endif
+                </a>
+            </li>
+
+          
             @endif
         </ul>
     </nav>

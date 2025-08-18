@@ -3,10 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\superadmin\PengelolaanAkun;
+use App\Http\Controllers\superadmin\VerifikasiProyekController;
 use App\Http\Controllers\purchasing\VendorController;
 use App\Http\Controllers\purchasing\ProdukController;
 use App\Http\Controllers\purchasing\KalkulasiController;
 use App\Http\Controllers\purchasing\PembayaranController;
+use App\Http\Controllers\purchasing\PengirimanController;
 use App\Http\Controllers\keuangan\ApprovalController;
 
 
@@ -82,9 +84,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/pembayaran/suggestion/{id_proyek}', [PembayaranController::class, 'calculateSuggestion'])->name('purchasing.pembayaran.suggestion');
         Route::post('/pembayaran/cleanup-files', [PembayaranController::class, 'cleanupOrphanedFiles'])->name('purchasing.pembayaran.cleanup');
 
-        Route::get('/pengiriman', function () {
-            return view('pages.purchasing.pengiriman');
-        })->name('purchasing.pengiriman');
+        // Pengiriman Routes
+        Route::get('/pengiriman', [PengirimanController::class, 'index'])->name('purchasing.pengiriman');
+        Route::get('/pengiriman/{id}/detail', [PengirimanController::class, 'getDetailWithFiles'])->name('pengiriman.detail');
+        Route::post('/pengiriman', [PengirimanController::class, 'store'])->name('pengiriman.store');
+        Route::put('/pengiriman/{id}/update-dokumentasi', [PengirimanController::class, 'updateDokumentasi'])->name('pengiriman.update-dokumentasi');
+        Route::put('/pengiriman/{id}/update-surat-jalan', [PengirimanController::class, 'updateSuratJalan'])->name('pengiriman.update-surat-jalan');
+        Route::put('/pengiriman/{id}/verify', [PengirimanController::class, 'verify'])->name('pengiriman.verify');
+        Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy'])->name('pengiriman.destroy');
+        Route::post('/pengiriman/cleanup-files', [PengirimanController::class, 'cleanupOrphanedFiles'])->name('pengiriman.cleanup');
     });
 
     // Keuangan Routes
@@ -115,5 +123,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'show'])->name('pengelolaan.akun.show');
         Route::put('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'update'])->name('pengelolaan.akun.update');
         Route::delete('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'destroy'])->name('pengelolaan.akun.destroy');
+        
+        // Verifikasi Proyek Routes
+        Route::get('/verifikasi-proyek', [VerifikasiProyekController::class, 'index'])->name('superadmin.verifikasi-proyek');
+        Route::get('/verifikasi-proyek/{id}', [VerifikasiProyekController::class, 'show'])->name('superadmin.verifikasi-proyek.detail');
+        Route::put('/verifikasi-proyek/{id}/verify', [VerifikasiProyekController::class, 'verify'])->name('superadmin.verifikasi-proyek.verify');
+        Route::get('/verifikasi-proyek-history', [VerifikasiProyekController::class, 'history'])->name('superadmin.verifikasi-proyek.history');
     });
 });

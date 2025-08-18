@@ -21,10 +21,10 @@ class PembayaranController extends Controller
         // Log untuk debugging
         Log::info('PembayaranController@index called');
         
-        // Ambil proyek yang statusnya 'Pembayaran' dan sudah ada penawaran yang di-ACC
+        // Ambil proyek yang statusnya 'Pembayaran', 'Pengiriman', 'Selesai', atau 'Gagal' dan sudah ada penawaran yang di-ACC
         // Tapi belum lunas pembayarannya
         $proyekPerluBayar = Proyek::with(['penawaranAktif', 'adminMarketing', 'pembayaran'])
-            ->where('status', 'Pembayaran')
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
             ->whereHas('penawaranAktif', function ($query) {
                 $query->where('status', 'ACC');
             })
@@ -69,9 +69,9 @@ class PembayaranController extends Controller
         $sortOrder = request()->get('sort_order', 'desc');
         $activeTab = request()->get('tab', 'perlu-bayar'); // untuk tab navigation
 
-        // Ambil semua proyek dengan status Pembayaran untuk history
+        // Ambil semua proyek dengan status Pembayaran, Pengiriman, Selesai, atau Gagal untuk history
         $semuaProyekQuery = Proyek::with(['penawaranAktif', 'adminMarketing', 'pembayaran'])
-            ->where('status', 'Pembayaran')
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
             ->whereHas('penawaranAktif', function ($query) {
                 $query->where('status', 'ACC');
             });
@@ -153,7 +153,7 @@ class PembayaranController extends Controller
         // Ambil semua pembayaran dengan filter
         $semuaPembayaranQuery = Pembayaran::with(['penawaran.proyek.adminMarketing'])
             ->whereHas('penawaran.proyek', function ($query) {
-                $query->where('status', 'Pembayaran')
+                $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
                       ->whereHas('penawaranAktif', function ($subQuery) {
                           $subQuery->where('status', 'ACC');
                       });
