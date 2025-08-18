@@ -14,8 +14,10 @@ class Proyek extends Model
     protected $primaryKey = 'id_proyek';
 
     protected $fillable = [
+        'kode_proyek',
         'tanggal',
-        'kota_kab',
+        'id_wilayah',
+        'kab_kota',
         'instansi',
         'nama_klien',
         'kontak_klien',
@@ -31,7 +33,9 @@ class Proyek extends Model
         'id_admin_purchasing',
         'id_penawaran',
         'catatan',
-        'status'
+        'status',
+        'potensi',
+        'tahun_potensi'
     ];
 
     protected $casts = [
@@ -39,10 +43,39 @@ class Proyek extends Model
         'deadline' => 'date',
         'harga_satuan' => 'decimal:2',
         'harga_total' => 'decimal:2',
-        'jumlah' => 'integer'
+        'jumlah' => 'integer',
+        'tahun_potensi' => 'integer'
     ];
 
+    /**
+     * Boot method untuk generate kode proyek otomatis
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($proyek) {
+            if (empty($proyek->kode_proyek)) {
+                $proyek->kode_proyek = 'PRJ-' . str_pad($proyek->id_proyek, 5, '0', STR_PAD_LEFT);
+                $proyek->save();
+            }
+        });
+    }
+
+    /**
+     * Generate kode proyek baru
+     */
+    public static function generateKodeProyek($id)
+    {
+        return 'PRJ-' . str_pad($id, 5, '0', STR_PAD_LEFT);
+    }
+
     // Relationships
+    public function wilayah()
+    {
+        return $this->belongsTo(Wilayah::class, 'id_wilayah', 'id_wilayah');
+    }
+
     public function adminMarketing()
     {
         return $this->belongsTo(User::class, 'id_admin_marketing', 'id_user');

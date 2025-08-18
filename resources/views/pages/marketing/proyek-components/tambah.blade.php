@@ -62,13 +62,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
-                            <select name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                            <select name="admin_purchasing" id="adminPurchasingSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih admin purchasing</option>
-                                <option value="Sari Wijaya">Sari Wijaya</option>
-                                <option value="Maya Indah">Maya Indah</option>
-                                <option value="Roni Hidayat">Roni Hidayat</option>
-                                <option value="Lisa Permata">Lisa Permata</option>
-                                <option value="Nina Kartika">Nina Kartika</option>
                             </select>
                         </div>
                         <div>
@@ -368,58 +363,221 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('formTambahProyek').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Simulate form submission
-    const submitButton = e.target.querySelector('button[type="submit"]');
+    // Validasi form
+    if (!validateTambahForm()) {
+        return;
+    }
+
+    // Kumpulkan data form
+    const formData = collectTambahFormData();
+
+    // Submit data
+    const submitButton = e.target.querySelector('button[type="submit"]') || document.querySelector('button[form="formTambahProyek"]');
+
+    if (!submitButton) {
+        console.error('Submit button not found');
+        alert('Terjadi kesalahan: tombol submit tidak ditemukan');
+        return;
+    }
+
     const originalText = submitButton.innerHTML;
 
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
     submitButton.disabled = true;
 
-    setTimeout(() => {
-        submitButton.innerHTML = originalText;
-        submitButton.disabled = false;
-        closeModal('modalTambahProyek');
+    // Kirim data ke server
+    fetch('/marketing/proyek', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reset form
+            this.reset();
+            resetTambahModal();
+            closeModal('modalTambahProyek');
 
-        // Show success message
-        alert('Proyek berhasil ditambahkan!');
-
-        // Reset form
-        this.reset();
-
-        // Reset file previews
-        ['suratPenawaran', 'suratPersetujuan', 'suratKontrak', 'suratSelesai'].forEach(inputId => {
-            const preview = document.getElementById(inputId + 'Preview');
-            if (preview) {
-                preview.classList.add('hidden');
+            // Show success message
+            if (typeof showSuccessModal === 'function') {
+                showSuccessModal('Proyek berhasil ditambahkan!');
+            } else {
+                alert('Proyek berhasil ditambahkan!');
             }
-        });
 
-        // Reset potensi buttons
-        const potensiYa = document.getElementById('potensiYa');
-        const potensiTidak = document.getElementById('potensiTidak');
-        const potensiValue = document.getElementById('potensiValue');
+            // Reload page untuk update data
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            throw new Error(data.message || 'Terjadi kesalahan saat menyimpan data');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan: ' + error.message);
+    })
+    .finally(() => {
+        if (submitButton) {
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+        }
+    });
+});
 
-        if (potensiYa) {
-            potensiYa.classList.remove('bg-green-500', 'text-white', 'border-green-500');
-            potensiYa.classList.add('border-gray-300', 'text-gray-700');
-        }
-        if (potensiTidak) {
-            potensiTidak.classList.remove('bg-red-500', 'text-white', 'border-red-500');
-            potensiTidak.classList.add('border-gray-300', 'text-gray-700');
-        }
-        if (potensiValue) {
-            potensiValue.value = '';
-        }
+// Fungsi validasi form tambah
+function validateTambahForm() {
+    const requiredFields = [
+        { name: 'tanggal', label: 'Tanggal' },
+        { name: 'kabupaten_kota', label: 'Kabupaten/Kota' },
+        { name: 'nama_instansi', label: 'Nama Instansi' },
+        { name: 'jenis_pengadaan', label: 'Jenis Pengadaan' },
+        { name: 'admin_purchasing', label: 'Admin Purchasing' }
+    ];
 
-        // Reset items to 1
-        const container = document.getElementById('daftarBarang');
-        const items = container.querySelectorAll('.barang-item');
-        for (let i = 1; i < items.length; i++) {
-            items[i].remove();
+    for (let field of requiredFields) {
+        const input = document.querySelector(`[name="${field.name}"]`);
+        if (!input || !input.value.trim()) {
+            alert(`${field.label} harus diisi!`);
+            if (input) input.focus();
+            return false;
         }
-        itemCounter = 1;
-        updateDeleteButtons();
-        hitungTotalKeseluruhan();
-    }, 2000);
+    }
+
+    // Validasi minimal ada 1 barang
+    const barangItems = document.querySelectorAll('.barang-item');
+    let hasValidItem = false;
+
+    for (let item of barangItems) {
+        const namaBarang = item.querySelector('input[name*="[nama]"]');
+        const qty = item.querySelector('input[name*="[qty]"]');
+        const satuan = item.querySelector('select[name*="[satuan]"]');
+
+        if (namaBarang && namaBarang.value.trim() && qty && qty.value && satuan && satuan.value) {
+            hasValidItem = true;
+            break;
+        }
+    }
+
+    if (!hasValidItem) {
+        alert('Minimal harus ada 1 barang yang lengkap datanya!');
+        return false;
+    }
+
+    return true;
+}
+
+// Fungsi untuk mengumpulkan data form
+function collectTambahFormData() {
+    const form = document.getElementById('formTambahProyek');
+    const formData = new FormData(form);
+
+    // Convert ke object
+    const data = {};
+
+    // Data dasar
+    data.tanggal = formData.get('tanggal');
+    data.kab_kota = formData.get('kabupaten_kota');
+    data.instansi = formData.get('nama_instansi');
+    data.jenis_pengadaan = formData.get('jenis_pengadaan');
+    data.id_admin_purchasing = formData.get('admin_purchasing');
+    data.catatan = formData.get('catatan') || '';
+    data.potensi = formData.get('potensi') || 'tidak';
+    data.tahun_potensi = parseInt(formData.get('tahun_potensi')) || new Date().getFullYear();
+
+    // Ambil data barang pertama untuk kompatibilitas dengan struktur database
+    const firstItem = document.querySelector('.barang-item');
+    if (firstItem) {
+        data.nama_barang = firstItem.querySelector('input[name*="[nama]"]')?.value || '';
+        data.jumlah = parseInt(firstItem.querySelector('input[name*="[qty]"]')?.value) || 1;
+        data.satuan = firstItem.querySelector('select[name*="[satuan]"]')?.value || '';
+        data.harga_satuan = parseFloat(firstItem.querySelector('input[name*="[harga_satuan]"]')?.value) || null;
+        data.spesifikasi = 'Spesifikasi standar'; // Default value
+    }
+
+    // Data tambahan yang diperlukan
+    data.nama_klien = 'Klien'; // Default value
+    data.kontak_klien = ''; // Default value
+    data.id_admin_marketing = 1; // Harus diambil dari session user yang login
+
+    return data;
+}
+
+// Fungsi reset modal tambah
+function resetTambahModal() {
+    // Reset file previews
+    ['suratPenawaran', 'suratPersetujuan', 'suratKontrak', 'suratSelesai'].forEach(inputId => {
+        const preview = document.getElementById(inputId + 'Preview');
+        if (preview) {
+            preview.classList.add('hidden');
+        }
+    });
+
+    // Reset potensi buttons
+    const potensiYa = document.getElementById('potensiYa');
+    const potensiTidak = document.getElementById('potensiTidak');
+    const potensiValue = document.getElementById('potensiValue');
+
+    if (potensiYa) {
+        potensiYa.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+        potensiYa.classList.add('border-gray-300', 'text-gray-700');
+    }
+    if (potensiTidak) {
+        potensiTidak.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+        potensiTidak.classList.add('border-gray-300', 'text-gray-700');
+    }
+    if (potensiValue) {
+        potensiValue.value = '';
+    }
+
+    // Reset items to 1
+    const container = document.getElementById('daftarBarang');
+    const items = container.querySelectorAll('.barang-item');
+    for (let i = 1; i < items.length; i++) {
+        items[i].remove();
+    }
+    itemCounter = 1;
+    updateDeleteButtons();
+    hitungTotalKeseluruhan();
+}
+
+// Function to load admin purchasing options
+async function loadAdminPurchasingOptions() {
+    try {
+        const response = await fetch('/marketing/proyek/users');
+        const data = await response.json();
+
+        if (data.success) {
+            const select = document.getElementById('adminPurchasingSelect');
+            if (select) {
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Pilih admin purchasing</option>';
+
+                // Add options for purchasing and admin roles
+                data.data.forEach(user => {
+                    if (user.role === 'admin_purchasing' || user.role === 'superadmin') {
+                        const option = document.createElement('option');
+                        option.value = user.id_user;
+                        option.textContent = user.nama;
+                        select.appendChild(option);
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading admin purchasing options:', error);
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Load admin purchasing options
+    loadAdminPurchasingOptions();
+
+    console.log('Tambah modal initialized');
 });
 </script>

@@ -25,7 +25,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Potensi</p>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">25</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{{ $totalPotensi }}</p>
             </div>
         </div>
     </div>
@@ -36,7 +36,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Pending</p>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">15</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{{ $pendingCount }}</p>
             </div>
         </div>
     </div>
@@ -47,7 +47,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">Sukses</p>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">8</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{{ $suksesCount }}</p>
             </div>
         </div>
     </div>
@@ -58,7 +58,7 @@
             </div>
             <div>
                 <p class="text-sm font-medium text-gray-600">Vendor Aktif</p>
-                <p class="text-2xl font-bold text-gray-900">12</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $vendorAktifCount }}</p>
             </div>
         </div>
     </div>
@@ -73,34 +73,40 @@
                 <h2 class="text-2xl font-bold text-gray-900">Daftar Potensi Proyek</h2>
                 <p class="text-gray-600 mt-1">Kelola pencocokan proyek dengan vendor</p>
             </div>
-            <div class="flex space-x-3">
-                <button class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                    <i class="fas fa-download mr-2"></i>Export
-                </button>
-            </div>
         </div>
     </div>
 
     <!-- Filter & Search -->
     <div class="p-6 border-b border-gray-200 bg-gray-50">
-        <div class="flex flex-col lg:flex-row gap-4">
+        <form method="GET" action="{{ route('marketing.potensi') }}" class="flex flex-col lg:flex-row gap-4">
             <div class="flex-1">
-                <input type="text" placeholder="Cari berdasarkan nama proyek, instansi, atau vendor..." 
+                <input type="text" name="search" value="{{ request('search') }}"
+                       placeholder="Cari berdasarkan nama proyek, instansi, atau vendor..."
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
-                <select class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    <option value="">Semua Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="sukses">Sukses</option>
-                </select>
-                <select class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                <select name="tahun" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
                     <option value="">Semua Tahun</option>
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
+                    @foreach($tahunList as $tahun)
+                        <option value="{{ $tahun }}" {{ $tahunFilter == $tahun ? 'selected' : '' }}>{{ $tahun }}</option>
+                    @endforeach
                 </select>
+                <select name="admin_marketing" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="">Semua Admin Marketing</option>
+                    @foreach($adminMarketingList as $admin)
+                        <option value="{{ $admin->id_user }}" {{ $adminMarketingFilter == $admin->id_user ? 'selected' : '' }}>{{ $admin->nama }}</option>
+                    @endforeach
+                </select>
+                <select name="status" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    <option value="">Semua Status</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="sukses" {{ request('status') == 'sukses' ? 'selected' : '' }}>Sukses</option>
+                </select>
+                <button type="submit" class="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    <i class="fas fa-filter mr-2"></i>Filter
+                </button>
             </div>
-        </div>
+        </form>
     </div>
 
     <!-- List Layout -->
@@ -116,120 +122,112 @@
         </div>
 
         <!-- List Items -->
-        <div class="space-y-4">
-            <!-- Sample Item 1 -->
-            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                    <div class="col-span-3">
-                        <h3 class="font-semibold text-gray-900">Sistem Informasi Sekolah</h3>
-                        <p class="text-sm text-gray-600">PNW-20240810-143052</p>
-                        <div class="text-xs text-gray-500 mt-1">
-                            <i class="fas fa-calendar mr-1"></i>Deadline: 30 Sep 2024
+        <div class="space-y-6">
+            @forelse($potensiData as $potensi)
+            <!-- Potensi Item {{ $potensi['id'] }} -->
+            <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 hover:transform hover:scale-[1.01]">
+                <!-- Header Card dengan Icon dan Status -->
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                            <i class="fas fa-chart-line text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 mb-1">{{ $potensi['nama_proyek'] }}</h3>
+                            <p class="text-sm text-gray-600 font-medium">{{ $potensi['kode_proyek'] }}</p>
+                            <div class="flex items-center text-xs text-gray-500 mt-2">
+                                <i class="fas fa-calendar mr-2"></i>
+                                <span>Deadline: {{ $potensi['deadline'] }}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-span-2">
-                        <p class="font-medium text-gray-900">Dinas Pendidikan DKI</p>
-                        <p class="text-sm text-gray-600">Jakarta Pusat</p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="font-medium text-gray-900">PT. Teknologi Maju</p>
-                        <p class="text-sm text-gray-600">VND001</p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="font-semibold text-green-600">Rp 850.000.000</p>
-                        <p class="text-sm text-gray-600">Pelelangan Umum</p>
-                    </div>
-                    <div class="col-span-1">
-                        <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
-                            Pending
+                    <div class="mt-3 sm:mt-0">
+                        <span class="inline-flex px-4 py-2 text-sm font-semibold rounded-full shadow-sm
+                            {{ $potensi['status'] === 'sukses' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-yellow-100 text-yellow-800 border border-yellow-200' }}">
+                            @if($potensi['status'] === 'sukses')
+                                <i class="fas fa-check-circle mr-2"></i>Sukses
+                            @else
+                                <i class="fas fa-clock mr-2"></i>Pending
+                            @endif
                         </span>
                     </div>
-                    <div class="col-span-2 flex space-x-2">
-                        <button onclick="viewDetailPotensi(1)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Detail">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button onclick="editPotensi(1)" class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
                 </div>
-            </div>
 
-            <!-- Sample Item 2 -->
-            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                    <div class="col-span-3">
-                        <h3 class="font-semibold text-gray-900">Aplikasi E-Learning</h3>
-                        <p class="text-sm text-gray-600">PNW-20240715-120034</p>
-                        <div class="text-xs text-gray-500 mt-1">
-                            <i class="fas fa-calendar mr-1"></i>Deadline: 15 Oct 2024
-                        </div>
+                <!-- Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Informasi Instansi -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <i class="fas fa-building text-blue-600 mr-2"></i>
+                            Instansi
+                        </h4>
+                        <p class="font-semibold text-gray-900 mb-1">{{ $potensi['instansi'] }}</p>
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>
+                            {{ $potensi['kabupaten_kota'] }}
+                        </p>
                     </div>
-                    <div class="col-span-2">
-                        <p class="font-medium text-gray-900">Universitas Negeri</p>
-                        <p class="text-sm text-gray-600">Bandung</p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="font-medium text-gray-900">CV. Mandiri Sejahtera</p>
-                        <p class="text-sm text-gray-600">VND002</p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="font-semibold text-green-600">Rp 650.000.000</p>
-                        <p class="text-sm text-gray-600">Penunjukan Langsung</p>
-                    </div>
-                    <div class="col-span-1">
-                        <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                            Sukses
-                        </span>
-                    </div>
-                    <div class="col-span-2 flex space-x-2">
-                        <button onclick="viewDetailPotensi(2)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Detail">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button onclick="editPotensi(2)" class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Sample Item 3 -->
-            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                    <div class="col-span-3">
-                        <h3 class="font-semibold text-gray-900">Portal Website Pemerintah</h3>
-                        <p class="text-sm text-gray-600">PNW-20240620-095021</p>
-                        <div class="text-xs text-gray-500 mt-1">
-                            <i class="fas fa-calendar mr-1"></i>Deadline: 20 Nov 2024
+                    <!-- Informasi Vendor -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <i class="fas fa-handshake text-purple-600 mr-2"></i>
+                            Vendor
+                        </h4>
+                        <p class="font-semibold text-gray-900 mb-1">{{ $potensi['vendor_nama'] }}</p>
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <i class="fas fa-tag mr-1 text-gray-400"></i>
+                            {{ $potensi['vendor_id'] }} - {{ $potensi['vendor_jenis'] }}
+                        </p>
+                    </div>
+
+                    <!-- Informasi Finansial -->
+                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <i class="fas fa-dollar-sign text-green-600 mr-2"></i>
+                            Nilai Proyek
+                        </h4>
+                        <p class="text-xl font-bold text-green-700 mb-1">Rp {{ number_format($potensi['nilai_proyek'], 0, ',', '.') }}</p>
+                        <p class="text-sm text-gray-600 flex items-center">
+                            <i class="fas fa-gavel mr-1 text-gray-400"></i>
+                            {{ $potensi['jenis_pengadaan'] }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Admin Info dan Actions -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex items-center space-x-4 mb-3 sm:mb-0">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-user-tie text-gray-400"></i>
+                            <span class="text-sm text-gray-600">Marketing: <span class="font-medium text-gray-800">{{ $potensi['admin_marketing'] }}</span></span>
+                        </div>
+                        <div class="text-xs text-gray-400">•</div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-calendar-alt text-gray-400"></i>
+                            <span class="text-sm text-gray-600">{{ $potensi['tahun'] }}</span>
                         </div>
                     </div>
-                    <div class="col-span-2">
-                        <p class="font-medium text-gray-900">Pemkot Surabaya</p>
-                        <p class="text-sm text-gray-600">Surabaya</p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="font-medium text-gray-900">PT. Global Industri</p>
-                        <p class="text-sm text-gray-600">VND004</p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="font-semibold text-green-600">Rp 1.200.000.000</p>
-                        <p class="text-sm text-gray-600">Pelelangan Umum</p>
-                    </div>
-                    <div class="col-span-1">
-                        <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
-                            Pending
-                        </span>
-                    </div>
-                    <div class="col-span-2 flex space-x-2">
-                        <button onclick="viewDetailPotensi(3)" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Detail">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button onclick="editPotensi(3)" class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit">
-                            <i class="fas fa-edit"></i>
+
+                    <div class="flex space-x-2">
+                        <button onclick="openDetailPotensiModal({{ $potensi['id'] }})"
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
+                            <i class="fas fa-eye mr-2"></i>
+                            Lihat Detail
                         </button>
                     </div>
                 </div>
             </div>
+            @empty
+            <!-- No Results Message -->
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-chart-line text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">Belum ada data potensi</h3>
+                <p class="text-gray-500 max-w-md mx-auto">Tambahkan proyek baru untuk melihat data potensi proyek yang bisa di-assign ke vendor</p>
+            </div>
+            @endforelse
         </div>
     </div>
 
@@ -237,9 +235,9 @@
     <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
             <div class="text-sm text-gray-700 text-center sm:text-left">
-                Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">10</span> dari <span class="font-medium">25</span> hasil
+                Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">{{ count($potensiData) }}</span> dari <span class="font-medium">{{ $totalPotensi }}</span> hasil
             </div>
-            
+
             <!-- Mobile Pagination (Simple) -->
             <div class="flex sm:hidden items-center justify-center space-x-3">
                 <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px] flex items-center" disabled>
@@ -267,18 +265,7 @@
     </div>
 </div>
 
-<!-- Floating Action Button -->
-<button onclick="openModal('modalTambahPotensi')" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-16 lg:right-16 bg-red-600 text-white w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
-    <i class="fas fa-plus text-sm sm:text-base lg:text-lg group-hover:rotate-180 transition-transform duration-300"></i>
-    <div class="absolute bottom-full right-0 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-        Tambah Potensi
-        <div class="absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-    </div>
-</button>
-
-<!-- Include Modal Components -->
-@include('pages.marketing.potensi-components.tambah')
-@include('pages.marketing.potensi-components.edit')
+<!-- Include Modal Components (Detail only) -->
 @include('pages.marketing.potensi-components.detail')
 @include('components.success-modal')
 
@@ -372,7 +359,7 @@
         margin: 0;
         min-height: 100vh;
     }
-    
+
     /* Make modal headers sticky on mobile */
     .modal-header {
         position: sticky;
@@ -381,16 +368,16 @@
         background: white;
         border-bottom: 1px solid #e5e7eb;
     }
-    
+
     /* Adjust form spacing on mobile */
     .modal-form .space-y-4 > * + * {
         margin-top: 0.75rem;
     }
-    
+
     .modal-form .space-y-6 > * + * {
         margin-top: 1rem;
     }
-    
+
     /* Make inputs more touch-friendly */
     .modal-form input,
     .modal-form select,
@@ -398,18 +385,18 @@
         min-height: 44px;
         font-size: 16px; /* Prevents zoom on iOS */
     }
-    
+
     /* Adjust button sizes for touch */
     .modal-form button {
         min-height: 44px;
         padding: 0.75rem 1rem;
     }
-    
+
     /* Grid adjustments for mobile */
     .grid.grid-cols-1.md\\:grid-cols-12 {
         display: block;
     }
-    
+
     .grid.grid-cols-1.md\\:grid-cols-12 > div {
         margin-bottom: 0.5rem;
     }
@@ -421,14 +408,14 @@
         margin: 1rem;
         border-radius: 0.75rem;
     }
-    
+
     /* Slightly larger touch targets for tablets */
     .modal-form input,
     .modal-form select,
     .modal-form textarea {
         min-height: 40px;
     }
-    
+
     .modal-form button {
         min-height: 40px;
     }
@@ -484,123 +471,8 @@
 </style>
 
 <script>
-// Sample data for potensi (projects with potensi flag and vendors)
-const potensiData = {
-    1: {
-        id: 1,
-        kode_proyek: 'PNW-20240810-143052',
-        nama_proyek: 'Sistem Informasi Sekolah',
-        instansi: 'Dinas Pendidikan DKI',
-        kabupaten_kota: 'Jakarta Pusat',
-        jenis_pengadaan: 'Pelelangan Umum',
-        nilai_proyek: 850000000,
-        deadline: '30 September 2024',
-        vendor_id: 'VND001',
-        vendor_nama: 'PT. Teknologi Maju',
-        status: 'pending',
-        tanggal_assign: '2024-08-10',
-        catatan: 'Proyek sistem informasi manajemen sekolah dengan fitur lengkap'
-    },
-    2: {
-        id: 2,
-        kode_proyek: 'PNW-20240715-120034',
-        nama_proyek: 'Aplikasi E-Learning',
-        instansi: 'Universitas Negeri',
-        kabupaten_kota: 'Bandung',
-        jenis_pengadaan: 'Penunjukan Langsung',
-        nilai_proyek: 650000000,
-        deadline: '15 Oktober 2024',
-        vendor_id: 'VND002',
-        vendor_nama: 'CV. Mandiri Sejahtera',
-        status: 'sukses',
-        tanggal_assign: '2024-07-15',
-        catatan: 'Platform e-learning untuk universitas'
-    },
-    3: {
-        id: 3,
-        kode_proyek: 'PNW-20240620-095021',
-        nama_proyek: 'Portal Website Pemerintah',
-        instansi: 'Pemkot Surabaya',
-        kabupaten_kota: 'Surabaya',
-        jenis_pengadaan: 'Pelelangan Umum',
-        nilai_proyek: 1200000000,
-        deadline: '20 November 2024',
-        vendor_id: 'VND004',
-        vendor_nama: 'PT. Global Industri',
-        status: 'pending',
-        tanggal_assign: '2024-06-20',
-        catatan: 'Website resmi pemerintah kota dengan portal layanan publik'
-    }
-};
-
-// Available vendors data
-const vendorData = [
-    { id: 'VND001', nama: 'PT. Teknologi Maju', jenis: 'Perusahaan', status: 'Aktif' },
-    { id: 'VND002', nama: 'CV. Mandiri Sejahtera', jenis: 'Perorangan', status: 'Aktif' },
-    { id: 'VND003', nama: 'Koperasi Sukses Bersama', jenis: 'Koperasi', status: 'Tidak Aktif' },
-    { id: 'VND004', nama: 'PT. Global Industri', jenis: 'Perusahaan', status: 'Aktif' },
-    { id: 'VND005', nama: 'Budi Santoso', jenis: 'Perorangan', status: 'Aktif' }
-];
-
-// Projects with potensi flag (sample data)
-const proyekPotensiData = [
-    {
-        kode: 'PNW-20240810-143052',
-        nama: 'Sistem Informasi Sekolah',
-        instansi: 'Dinas Pendidikan DKI',
-        kabupaten_kota: 'Jakarta Pusat',
-        jenis_pengadaan: 'Pelelangan Umum',
-        nilai_proyek: 850000000,
-        deadline: '30 September 2024',
-        potensi: 'ya'
-    },
-    {
-        kode: 'PNW-20240715-120034',
-        nama: 'Aplikasi E-Learning',
-        instansi: 'Universitas Negeri',
-        kabupaten_kota: 'Bandung',
-        jenis_pengadaan: 'Penunjukan Langsung',
-        nilai_proyek: 650000000,
-        deadline: '15 Oktober 2024',
-        potensi: 'ya'
-    }
-];
-
-// Function to view detail potensi
-function viewDetailPotensi(id) {
-    const data = potensiData[id];
-    if (data) {
-        // Populate detail modal with data
-        loadDetailPotensiData(data);
-        openModal('modalDetailPotensi');
-    }
-}
-
-// Function to edit potensi
-function editPotensi(id) {
-    const data = potensiData[id];
-    if (data) {
-        // Populate edit modal with data
-        loadEditPotensiData(data);
-        openModal('modalEditPotensi');
-    }
-}
-
-// Function to load detail data
-function loadDetailPotensiData(data) {
-    // This function will be implemented in detail modal component
-    if (typeof loadPotensiDetailData === 'function') {
-        loadPotensiDetailData(data);
-    }
-}
-
-// Function to load edit data
-function loadEditPotensiData(data) {
-    // This function will be implemented in edit modal component
-    if (typeof loadPotensiEditData === 'function') {
-        loadPotensiEditData(data);
-    }
-}
+// Data from controller
+const potensiData = @json($potensiData);
 
 // Function to open modal (if not already defined)
 if (typeof openModal === 'undefined') {
@@ -610,7 +482,7 @@ if (typeof openModal === 'undefined') {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.classList.add('modal-open');
-            
+
             // Add animation class
             const modalContent = modal.querySelector('.bg-white');
             if (modalContent) {
@@ -650,21 +522,21 @@ function formatRupiah(angka) {
 
 // Search and filter functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Search functionality
-    const searchInput = document.querySelector('input[placeholder*="Cari"]');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            console.log('Searching:', this.value);
-            // Implement search logic here
+    // Auto submit form when filter changes
+    const filterSelects = document.querySelectorAll('select[name="tahun"], select[name="admin_marketing"], select[name="status"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
         });
-    }
-    
-    // Filter functionality
-    const statusFilter = document.querySelector('select option[value="pending"]').parentElement;
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            console.log('Filter by status:', this.value);
-            // Implement filter logic here
+    });
+
+    // Search on enter key
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.form.submit();
+            }
         });
     }
 });

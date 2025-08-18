@@ -40,6 +40,11 @@ class Penawaran extends Model
         return $this->hasMany(PenawaranDetail::class, 'id_penawaran', 'id_penawaran');
     }
 
+    public function details()
+    {
+        return $this->hasMany(PenawaranDetail::class, 'id_penawaran', 'id_penawaran');
+    }
+
     public function pembayaran()
     {
         return $this->hasMany(Pembayaran::class, 'id_penawaran', 'id_penawaran');

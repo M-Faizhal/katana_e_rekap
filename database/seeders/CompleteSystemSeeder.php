@@ -14,6 +14,7 @@ use App\Models\Penawaran;
 use App\Models\PenawaranDetail;
 use App\Models\Pembayaran;
 use App\Models\Pengiriman;
+use App\Models\Wilayah;
 
 class CompleteSystemSeeder extends Seeder
 {
@@ -21,23 +22,24 @@ class CompleteSystemSeeder extends Seeder
     {
         // Disable foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        
+
         // Truncate tables in reverse dependency order
         $tables = [
             'pengiriman',
-            'pembayaran', 
+            'pembayaran',
             'penawaran_detail',
             'penawaran',
             'proyek',
             'barang',
             'vendor',
+            'wilayah',
             'users'
         ];
 
         foreach ($tables as $table) {
             DB::table($table)->truncate();
         }
-        
+
         // Re-enable foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
@@ -46,6 +48,7 @@ class CompleteSystemSeeder extends Seeder
 
         // Seed data in proper order
         $this->seedUsers();
+        $this->seedWilayah();
         $this->seedVendors();
         $this->seedBarang();
         $this->seedProyek();
@@ -66,7 +69,7 @@ class CompleteSystemSeeder extends Seeder
     private function seedUsers()
     {
         echo "👥 Seeding users...\n";
-        
+
         $users = [
             [
                 'nama' => 'Super Administrator',
@@ -173,7 +176,7 @@ class CompleteSystemSeeder extends Seeder
     private function seedVendors()
     {
         echo "🏪 Seeding vendors...\n";
-        
+
         $vendors = [
             [
                 'nama_vendor' => 'PT Teknologi Canggih Indonesia',
@@ -229,7 +232,7 @@ class CompleteSystemSeeder extends Seeder
     private function seedBarang()
     {
         echo "📦 Seeding barang...\n";
-        
+
         $barang = [
             // Elektronik dari vendor 1
             [
@@ -280,7 +283,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
-            
+
             // Meubel dari vendor 3
             [
                 'id_vendor' => 3,
@@ -318,7 +321,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
-            
+
             // Mesin dari vendor 4
             [
                 'id_vendor' => 4,
@@ -344,7 +347,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
-            
+
             // Lain-lain dari vendor 5
             [
                 'id_vendor' => 5,
@@ -376,15 +379,81 @@ class CompleteSystemSeeder extends Seeder
         echo "   ✓ Created " . count($barang) . " barang\n";
     }
 
+    private function seedWilayah()
+    {
+        echo "🗺️  Seeding wilayah...\n";
+
+        $wilayahData = [
+            [
+                'nama_wilayah' => 'Jakarta Pusat',
+                'provinsi' => 'DKI Jakarta',
+                'kode_wilayah' => 'JKT-PST',
+                'deskripsi' => 'Wilayah pusat pemerintahan dan bisnis Jakarta',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'nama_wilayah' => 'Jakarta Selatan',
+                'provinsi' => 'DKI Jakarta',
+                'kode_wilayah' => 'JKT-SEL',
+                'deskripsi' => 'Wilayah Jakarta Selatan yang strategis',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'nama_wilayah' => 'Jakarta Timur',
+                'provinsi' => 'DKI Jakarta',
+                'kode_wilayah' => 'JKT-TIM',
+                'deskripsi' => 'Wilayah Jakarta Timur',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'nama_wilayah' => 'Jakarta Barat',
+                'provinsi' => 'DKI Jakarta',
+                'kode_wilayah' => 'JKT-BAR',
+                'deskripsi' => 'Wilayah Jakarta Barat',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'nama_wilayah' => 'Bandung',
+                'provinsi' => 'Jawa Barat',
+                'kode_wilayah' => 'BDG',
+                'deskripsi' => 'Kota Bandung, Jawa Barat',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'nama_wilayah' => 'Surabaya',
+                'provinsi' => 'Jawa Timur',
+                'kode_wilayah' => 'SBY',
+                'deskripsi' => 'Kota Surabaya, Jawa Timur',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        ];
+
+        Wilayah::insert($wilayahData);
+        echo "   ✓ Created " . count($wilayahData) . " wilayah\n";
+    }
+
     private function seedProyek()
     {
         echo "🚀 Seeding proyek...\n";
-        
+
         $proyeks = [
             // Proyek 1: Status "Selesai" - sudah selesai pengiriman
             [
                 'tanggal' => Carbon::now()->subDays(30),
-                'kota_kab' => 'Jakarta Pusat',
+                'id_wilayah' => 1, // Jakarta Pusat
+                'kab_kota' => 'Jakarta Pusat',
                 'instansi' => 'Dinas Pendidikan DKI Jakarta',
                 'nama_klien' => 'Budi Santoso',
                 'kontak_klien' => '0812-3456-7890',
@@ -405,10 +474,11 @@ class CompleteSystemSeeder extends Seeder
                 'updated_at' => now()
             ],
 
-            // Proyek 2: Status "Pengiriman" - sedang dalam proses pengiriman 
+            // Proyek 2: Status "Pengiriman" - sedang dalam proses pengiriman
             [
                 'tanggal' => Carbon::now()->subDays(25),
-                'kota_kab' => 'Jakarta Selatan',
+                'id_wilayah' => 2, // Jakarta Selatan
+                'kab_kota' => 'Jakarta Selatan',
                 'instansi' => 'PT Kreatif Teknologi',
                 'nama_klien' => 'Sari Dewi',
                 'kontak_klien' => '0813-9876-5432',
@@ -432,7 +502,8 @@ class CompleteSystemSeeder extends Seeder
             // Proyek 3: Status "Pengiriman" - pembayaran sudah diverifikasi, sedang pengiriman
             [
                 'tanggal' => Carbon::now()->subDays(20),
-                'kota_kab' => 'Bandung',
+                'id_wilayah' => 5, // Bandung
+                'kab_kota' => 'Bandung',
                 'instansi' => 'CV Maju Bersama',
                 'nama_klien' => 'Budi Santoso',
                 'kontak_klien' => '0814-5678-9012',
@@ -456,7 +527,8 @@ class CompleteSystemSeeder extends Seeder
             // Proyek 4: Status "Pembayaran" - belum ada pembayaran yang diverifikasi
             [
                 'tanggal' => Carbon::now()->subDays(15),
-                'kota_kab' => 'Jakarta Barat',
+                'id_wilayah' => 4, // Jakarta Barat
+                'kab_kota' => 'Jakarta Barat',
                 'instansi' => 'Universitas Bina Nusantara',
                 'nama_klien' => 'Prof. Maria Susanti',
                 'kontak_klien' => '0815-2468-1357',
@@ -480,7 +552,8 @@ class CompleteSystemSeeder extends Seeder
             // Proyek 5: Status "Penawaran" - belum masuk ke pembayaran
             [
                 'tanggal' => Carbon::now()->subDays(10),
-                'kota_kab' => 'Jakarta Utara',
+                'id_wilayah' => 3, // Jakarta Timur (ganti dari Jakarta Utara)
+                'kab_kota' => 'Jakarta Timur',
                 'instansi' => 'PT Pelindo II',
                 'nama_klien' => 'Ir. Bambang Wijaya',
                 'kontak_klien' => '0816-1357-2468',
@@ -501,11 +574,12 @@ class CompleteSystemSeeder extends Seeder
                 'updated_at' => now()
             ],
 
-            // Proyek 6: Status "Gagal" - proyek gagal verifikasi pengiriman 
+            // Proyek 6: Status "Gagal" - proyek gagal verifikasi pengiriman
             [
                 'tanggal' => Carbon::now()->subDays(45),
-                'kota_kab' => 'Depok',
-                'instansi' => 'Sekolah Tinggi Teknologi Depok',
+                'id_wilayah' => 6, // Surabaya (ganti dari Depok)
+                'kab_kota' => 'Surabaya',
+                'instansi' => 'Sekolah Tinggi Teknologi Surabaya',
                 'nama_klien' => 'Dr. Agus Pramono',
                 'kontak_klien' => '0817-8888-9999',
                 'nama_barang' => 'Meja dan Kursi Kantor untuk Ruang Dosen',
@@ -533,7 +607,7 @@ class CompleteSystemSeeder extends Seeder
     private function seedPenawaran()
     {
         echo "📋 Seeding penawaran...\n";
-        
+
         $penawarans = [
             [
                 'id_proyek' => 1,
@@ -610,7 +684,7 @@ class CompleteSystemSeeder extends Seeder
         ];
 
         Penawaran::insert($penawarans);
-        
+
         // Update proyek with id_penawaran
         Proyek::where('id_proyek', 1)->update(['id_penawaran' => 1]);
         Proyek::where('id_proyek', 2)->update(['id_penawaran' => 2]);
@@ -618,14 +692,14 @@ class CompleteSystemSeeder extends Seeder
         Proyek::where('id_proyek', 4)->update(['id_penawaran' => 4]);
         Proyek::where('id_proyek', 5)->update(['id_penawaran' => 5]);
         Proyek::where('id_proyek', 6)->update(['id_penawaran' => 6]);
-        
+
         echo "   ✓ Created " . count($penawarans) . " penawaran\n";
     }
 
     private function seedPenawaranDetail()
     {
         echo "📝 Seeding penawaran detail...\n";
-        
+
         $details = [
             // Penawaran 1 - Laptop dan Monitor
             [
@@ -650,7 +724,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
-            
+
             // Penawaran 2 - Furniture
             [
                 'id_penawaran' => 2,
@@ -685,7 +759,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
-            
+
             // Penawaran 3 - Generator dan Pompa
             [
                 'id_penawaran' => 3,
@@ -709,7 +783,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
-            
+
             // Penawaran 4 - Proyektor dan AC
             [
                 'id_penawaran' => 4,
@@ -790,7 +864,7 @@ class CompleteSystemSeeder extends Seeder
     private function seedPembayaran()
     {
         echo "💰 Seeding pembayaran...\n";
-        
+
         $pembayarans = [
             // Pembayaran untuk proyek 1 (Selesai) - DP dan Pelunasan (Approved)
             [
@@ -817,7 +891,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => Carbon::now()->subDays(10),
                 'updated_at' => now()
             ],
-            
+
             // Pembayaran untuk proyek 2 (Pengiriman) - DP saja (Approved)
             [
                 'id_penawaran' => 2,
@@ -831,7 +905,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => Carbon::now()->subDays(20),
                 'updated_at' => now()
             ],
-            
+
             // Pembayaran untuk proyek 3 (Pembayaran) - DP sudah Approved, ready untuk kirim
             [
                 'id_penawaran' => 3,
@@ -845,7 +919,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => Carbon::now()->subDays(15),
                 'updated_at' => now()
             ],
-            
+
             // Pembayaran untuk proyek 4 (Pembayaran) - masih Pending
             [
                 'id_penawaran' => 4,
@@ -860,7 +934,7 @@ class CompleteSystemSeeder extends Seeder
                 'updated_at' => now()
             ],
 
-            // Pembayaran untuk proyek 6 (Gagal) - DP sudah dibayar tapi proyek gagal 
+            // Pembayaran untuk proyek 6 (Gagal) - DP sudah dibayar tapi proyek gagal
             [
                 'id_penawaran' => 6,
                 'jenis_bayar' => 'DP',
@@ -882,7 +956,7 @@ class CompleteSystemSeeder extends Seeder
     private function seedPengiriman()
     {
         echo "🚚 Seeding pengiriman...\n";
-        
+
         $pengirimans = [
             // Pengiriman untuk proyek 1 (Selesai) - sudah diverifikasi oleh superadmin
             [
@@ -902,7 +976,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => Carbon::now()->subDays(15),
                 'updated_at' => Carbon::now()->subDays(5)
             ],
-            
+
             // Pengiriman untuk proyek 2 (Sudah sampai, menunggu verifikasi)
             [
                 'id_penawaran' => 2,
@@ -921,7 +995,7 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => Carbon::now()->subDays(3),
                 'updated_at' => Carbon::now()->subDays(1)
             ],
-            
+
             // Pengiriman untuk proyek 3 (Baru sampai, menunggu verifikasi)
             [
                 'id_penawaran' => 3,

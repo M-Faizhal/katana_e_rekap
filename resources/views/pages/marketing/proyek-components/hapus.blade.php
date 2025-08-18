@@ -15,7 +15,7 @@
             <div class="text-center mb-6">
                 <h4 class="text-lg font-semibold text-gray-800 mb-2">Apakah Anda yakin?</h4>
                 <p class="text-gray-600 mb-4">Anda akan menghapus proyek berikut:</p>
-                
+
                 <!-- Item Info -->
                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div class="space-y-2">
@@ -37,7 +37,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <div class="flex items-start space-x-3">
                         <i class="fas fa-exclamation-circle text-red-500 mt-0.5"></i>
@@ -108,9 +108,9 @@
             </div>
             <h3 class="text-lg font-bold text-gray-800 mb-2">Konfirmasi Terakhir</h3>
             <p class="text-gray-600 mb-6">Ketik <strong>"HAPUS"</strong> untuk mengkonfirmasi penghapusan</p>
-            
+
             <input type="text" id="konfirmasiText" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-center font-medium" placeholder="Ketik HAPUS" maxlength="5">
-            
+
             <div class="flex items-center justify-center space-x-3 mt-6">
                 <button type="button" onclick="closeModal('modalKonfirmasiAkhir')" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                     Batal
@@ -128,17 +128,17 @@ let hapusData = null;
 
 function loadHapusData(data) {
     hapusData = data;
-    
+
     // Load item info
     document.getElementById('hapusKode').textContent = data.kode;
     document.getElementById('hapusInstansi').textContent = data.nama_instansi;
     document.getElementById('hapusKabupaten').textContent = data.kabupaten_kota;
-    
+
     // Set status with appropriate styling
     const statusElement = document.getElementById('hapusStatus');
     statusElement.textContent = data.status;
     statusElement.className = 'text-sm font-medium ' + getHapusStatusClass(data.status);
-    
+
     // Reset form
     document.getElementById('alasanHapus').value = '';
     document.getElementById('catatanHapus').value = '';
@@ -172,7 +172,7 @@ function openHapusModal(id) {
         kabupaten_kota: 'Jakarta Pusat',
         status: 'Diterima'
     };
-    
+
     loadHapusData(sampleData);
     document.getElementById('modalHapusProyek').classList.remove('hidden');
     document.getElementById('modalHapusProyek').classList.add('flex');
@@ -183,7 +183,7 @@ function validateHapusForm() {
     const alasan = document.getElementById('alasanHapus').value;
     const konfirmasi = document.getElementById('konfirmasiHapus').checked;
     const btnHapus = document.getElementById('btnHapus');
-    
+
     if (alasan && konfirmasi) {
         btnHapus.disabled = false;
         btnHapus.classList.remove('opacity-50');
@@ -201,10 +201,10 @@ function confirmHapus() {
     // Close first modal and open confirmation modal
     document.getElementById('modalHapusProyek').classList.add('hidden');
     document.getElementById('modalHapusProyek').classList.remove('flex');
-    
+
     document.getElementById('modalKonfirmasiAkhir').classList.remove('hidden');
     document.getElementById('modalKonfirmasiAkhir').classList.add('flex');
-    
+
     // Reset confirmation input
     document.getElementById('konfirmasiText').value = '';
     document.getElementById('btnKonfirmasiAkhir').disabled = true;
@@ -214,7 +214,7 @@ function confirmHapus() {
 document.getElementById('konfirmasiText').addEventListener('input', function() {
     const text = this.value.toUpperCase();
     const btn = document.getElementById('btnKonfirmasiAkhir');
-    
+
     if (text === 'HAPUS') {
         btn.disabled = false;
         btn.classList.remove('opacity-50');
@@ -227,33 +227,71 @@ document.getElementById('konfirmasiText').addEventListener('input', function() {
 function executeHapus() {
     const alasan = document.getElementById('alasanHapus').value;
     const catatan = document.getElementById('catatanHapus').value;
-    
-    // Simulate deletion process
+
+    // Ambil ID proyek yang akan dihapus
+    const hapusData = window.hapusData || {};
+    const proyekId = hapusData.id;
+
+    if (!proyekId) {
+        alert('ID Proyek tidak ditemukan!');
+        return;
+    }
+
     const btn = document.getElementById('btnKonfirmasiAkhir');
     const originalText = btn.innerHTML;
-    
+
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
     btn.disabled = true;
-    
-    setTimeout(() => {
-        // Close all modals
-        closeModal('modalKonfirmasiAkhir');
-        
-        // Show success message
-        showSuccessMessage();
-        
-        // Reset button
+
+    // Kirim request ke server
+    fetch(`/marketing/proyek/${proyekId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            alasan: alasan,
+            catatan: catatan
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close all modals
+            closeModal('modalKonfirmasiAkhir');
+
+            // Show success message
+            if (typeof showSuccessModal === 'function') {
+                const kode = hapusData.kode || 'Proyek';
+                showSuccessModal(`Proyek ${kode} berhasil dihapus dari sistem!`);
+            } else {
+                alert('Proyek berhasil dihapus!');
+            }
+
+            // Reload page untuk update data
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            throw new Error(data.message || 'Terjadi kesalahan saat menghapus data');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan: ' + error.message);
+    })
+    .finally(() => {
         btn.innerHTML = originalText;
         btn.disabled = false;
-        
-        // Here you would typically make an API call to delete the data
-        const hapusData = window.hapusData || {};
+    });
+}
         console.log('Deleting item:', {
             id: hapusData.id || null,
             alasan: alasan,
             catatan: catatan
         });
-        
+
     }, 2000);
 }
 

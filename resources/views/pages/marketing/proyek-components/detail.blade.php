@@ -42,10 +42,6 @@
                         <p id="detailTanggal" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-sm font-medium text-gray-500">Deadline</label>
-                        <p id="detailDeadline" class="text-lg font-semibold text-gray-800">-</p>
-                    </div>
-                    <div class="space-y-1">
                         <label class="text-sm font-medium text-gray-500">Kabupaten/Kota</label>
                         <p id="detailKabupatenKota" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
@@ -85,7 +81,7 @@
                 <div id="detailDaftarBarang" class="space-y-4">
                     <!-- Items will be populated here -->
                 </div>
-                
+
                 <!-- Total Keseluruhan -->
                 <div class="mt-6 bg-white border border-gray-200 rounded-lg p-4">
                     <div class="flex justify-between items-center">
@@ -178,7 +174,7 @@
 
         <!-- Modal Footer -->
         <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200 flex-shrink-0">
-            
+
             <button type="button" onclick="closeModal('modalDetailProyek')" class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                 Tutup
             </button>
@@ -205,11 +201,11 @@ function formatRupiah(angka) {
     .fixed, button {
         display: none !important;
     }
-    
+
     .max-h-\[90vh\] {
         max-height: none !important;
     }
-    
+
     .overflow-y-auto {
         overflow: visible !important;
     }

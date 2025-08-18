@@ -195,165 +195,20 @@
     </div>
 </div>
 
-<script>
-// Load detail data
-function loadPotensiDetailData(data) {
-    // Load project information
-    document.getElementById('detailPotensiKodeProyek').textContent = data.kode_proyek;
-    document.getElementById('detailPotensiNamaProyek').textContent = data.nama_proyek;
-    document.getElementById('detailPotensiInstansi').textContent = data.instansi;
-    document.getElementById('detailPotensiKabupatenKota').textContent = data.kabupaten_kota;
-    document.getElementById('detailPotensiJenisPengadaan').textContent = data.jenis_pengadaan;
-    document.getElementById('detailPotensiNilaiProyek').textContent = formatRupiah(data.nilai_proyek);
-    document.getElementById('detailPotensiDeadline').textContent = data.deadline;
-    
-    // Load vendor information
-    document.getElementById('detailPotensiVendorId').textContent = data.vendor_id;
-    document.getElementById('detailPotensiVendorNama').textContent = data.vendor_nama;
-    
-    // Get vendor details from vendorOptions
-    const vendor = vendorOptions[data.vendor_id];
-    if (vendor) {
-        document.getElementById('detailPotensiVendorJenis').textContent = vendor.jenis;
-        
-        // Set vendor status with styling
-        const statusElement = document.getElementById('detailPotensiVendorStatus');
-        statusElement.textContent = vendor.status;
-        if (vendor.status === 'Aktif') {
-            statusElement.className = 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800';
-        } else {
-            statusElement.className = 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800';
-        }
-    }
-    
-    // Load assignment information
-    document.getElementById('detailPotensiStatus').textContent = data.status;
-    document.getElementById('detailPotensiTanggalAssign').textContent = data.tanggal_assign;
-    document.getElementById('detailPotensiCatatan').textContent = data.catatan || 'Tidak ada catatan';
-    
-    // Set status badge
-    const statusBadge = document.getElementById('detailPotensiStatusBadge');
-    const statusColors = {
-        'pending': 'bg-yellow-100 text-yellow-800',
-        'sukses': 'bg-green-100 text-green-800'
-    };
-    statusBadge.className = 'inline-flex px-4 py-2 text-sm font-medium rounded-full ' + (statusColors[data.status] || 'bg-gray-100 text-gray-800');
-    statusBadge.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
-    
-    // Load timeline
-    loadPotensiTimeline(data.timeline || []);
-    
-    // Calculate and set progress summary
-    calculateProgressSummary(data);
-}
-
-// Load timeline
-function loadPotensiTimeline(timeline) {
-    const timelineContainer = document.getElementById('detailPotensiTimeline');
-    timelineContainer.innerHTML = '';
-    
-    if (timeline.length === 0) {
-        timeline = [
-            {
-                tanggal: new Date().toISOString().split('T')[0],
-                waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                aksi: 'Potensi proyek dibuat',
-                user: 'Admin Marketing',
-                status: 'pending',
-                keterangan: 'Assignment pertama kali dibuat'
-            }
-        ];
-    }
-    
-    timeline.forEach((item, index) => {
-        const isLast = index === timeline.length - 1;
-        const timelineItem = document.createElement('div');
-        timelineItem.className = 'flex items-start space-x-4';
-        
-        let statusColor = 'bg-gray-400';
-        let statusIcon = 'fas fa-circle';
-        let iconColor = 'text-white';
-        
-        if (item.status === 'sukses') {
-            statusColor = 'bg-green-500';
-            statusIcon = 'fas fa-check';
-        } else if (item.status === 'pending') {
-            statusColor = 'bg-yellow-500';
-            statusIcon = 'fas fa-clock';
-        } else if (item.status === 'edit') {
-            statusColor = 'bg-blue-500';
-            statusIcon = 'fas fa-edit';
-        }
-        
-        timelineItem.innerHTML = `
-            <div class="flex flex-col items-center">
-                <div class="w-8 h-8 ${statusColor} rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="${statusIcon} ${iconColor} text-sm"></i>
-                </div>
-                ${!isLast ? '<div class="w-0.5 h-12 bg-gray-300 mt-2"></div>' : ''}
-            </div>
-            <div class="flex-1 min-w-0 pb-4">
-                <div class="flex items-center justify-between">
-                    <p class="text-sm font-medium text-gray-900">${item.aksi}</p>
-                    <p class="text-xs text-gray-500">${item.tanggal} ${item.waktu}</p>
-                </div>
-                <p class="text-xs text-gray-600 mt-1">oleh ${item.user}</p>
-                ${item.keterangan ? `<p class="text-xs text-gray-500 mt-2 bg-gray-100 p-2 rounded">${item.keterangan}</p>` : ''}
-            </div>
-        `;
-        timelineContainer.appendChild(timelineItem);
-    });
-}
-
-// Calculate progress summary
-function calculateProgressSummary(data) {
-    // Calculate days active
-    const assignDate = new Date(data.tanggal_assign);
-    const currentDate = new Date();
-    const daysActive = Math.floor((currentDate - assignDate) / (1000 * 60 * 60 * 24));
-    document.getElementById('detailPotensiDaysActive').textContent = daysActive;
-    
-    // Calculate progress percentage
-    let progressPercentage = 0;
-    if (data.status === 'pending') {
-        progressPercentage = 50;
-    } else if (data.status === 'sukses') {
-        progressPercentage = 100;
-    }
-    document.getElementById('detailPotensiProgressPercentage').textContent = progressPercentage;
-}
-
-// Print function
-function printPotensiDetail() {
-    window.print();
-}
-
-// Export PDF function
-function exportPotensiPDF() {
-    alert('Exporting to PDF...');
-    // Implement PDF export functionality here
-}
-
-// Format rupiah function
-function formatRupiah(angka) {
-    return 'Rp ' + parseInt(angka).toLocaleString('id-ID');
-}
-</script>
-
 <style>
 @media print {
     .fixed, button {
         display: none !important;
     }
-    
+
     .max-h-screen {
         max-height: none !important;
     }
-    
+
     .overflow-y-auto {
         overflow: visible !important;
     }
-    
+
     .bg-red-800 {
         background-color: #dc2626 !important;
         -webkit-print-color-adjust: exact;
