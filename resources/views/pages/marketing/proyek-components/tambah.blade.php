@@ -30,7 +30,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">ID Proyek</label>
-                            <input type="text" name="id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan ID proyek">
+                            <div class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 flex items-center">
+                                <i class="fas fa-magic mr-2 text-blue-500"></i>
+                                <span id="previewKodeProyek">Auto Generate (PRJ-XXX)</span>
+                            </div>
+                            <small class="text-gray-500 text-xs mt-1">Kode proyek akan di-generate otomatis</small>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
@@ -57,7 +61,11 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
-                            <input type="text" name="admin_marketing" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600" value="[Nama User Login]" readonly>
+                            <div class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 flex items-center">
+                                <i class="fas fa-user mr-2 text-blue-500"></i>
+                                <span id="currentUserName">Loading...</span>
+                            </div>
+                            <input type="hidden" name="id_admin_marketing" id="currentUserId">
                             <small class="text-gray-500 text-xs mt-1">Otomatis diisi dengan nama user yang login</small>
                         </div>
                         <div>
@@ -448,6 +456,13 @@ function validateTambahForm() {
         }
     }
 
+    // Validasi admin marketing sudah terisi
+    const adminMarketingId = document.getElementById('currentUserId')?.value;
+    if (!adminMarketingId) {
+        alert('Data user login tidak ditemukan. Silakan refresh halaman dan coba lagi.');
+        return false;
+    }
+
     // Validasi minimal ada 1 barang
     const barangItems = document.querySelectorAll('.barang-item');
     let hasValidItem = false;
@@ -502,7 +517,10 @@ function collectTambahFormData() {
     // Data tambahan yang diperlukan
     data.nama_klien = 'Klien'; // Default value
     data.kontak_klien = ''; // Default value
-    data.id_admin_marketing = 1; // Harus diambil dari session user yang login
+    
+    // Ambil ID admin marketing dari user yang login
+    const adminMarketingId = document.getElementById('currentUserId')?.value;
+    data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : 1;
 
     return data;
 }
@@ -577,7 +595,62 @@ async function loadAdminPurchasingOptions() {
 document.addEventListener('DOMContentLoaded', function() {
     // Load admin purchasing options
     loadAdminPurchasingOptions();
+    
+    // Load preview kode proyek
+    loadPreviewKodeProyek();
+    
+    // Load current user data
+    loadCurrentUserData();
 
     console.log('Tambah modal initialized');
 });
+
+// Function to load current user data
+async function loadCurrentUserData() {
+    try {
+        const response = await fetch('/marketing/proyek/current-user');
+        const data = await response.json();
+
+        if (data.success) {
+            const nameElement = document.getElementById('currentUserName');
+            const idElement = document.getElementById('currentUserId');
+            
+            if (nameElement && data.data.nama) {
+                nameElement.textContent = data.data.nama;
+            }
+            
+            if (idElement && data.data.id) {
+                idElement.value = data.data.id;
+            }
+        } else {
+            const nameElement = document.getElementById('currentUserName');
+            if (nameElement) {
+                nameElement.textContent = 'Error loading user';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading current user data:', error);
+        const nameElement = document.getElementById('currentUserName');
+        if (nameElement) {
+            nameElement.textContent = 'Error loading user';
+        }
+    }
+}
+
+// Function to load preview kode proyek
+async function loadPreviewKodeProyek() {
+    try {
+        const response = await fetch('/marketing/proyek/next-kode');
+        const data = await response.json();
+
+        if (data.success) {
+            const previewElement = document.getElementById('previewKodeProyek');
+            if (previewElement) {
+                previewElement.innerHTML = `<i class="fas fa-tag mr-1"></i>${data.kode}`;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading preview kode proyek:', error);
+    }
+}
 </script>

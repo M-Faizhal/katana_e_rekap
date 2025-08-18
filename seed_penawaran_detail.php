@@ -16,10 +16,10 @@ $penawarans = Penawaran::limit(3)->get();
 
 foreach ($penawarans as $index => $penawaran) {
     echo "\nProses penawaran ID: {$penawaran->id_penawaran}\n";
-    
+
     // Hapus detail yang ada jika ada
     PenawaranDetail::where('id_penawaran', $penawaran->id_penawaran)->delete();
-    
+
     // Tambah sample detail
     $details = [
         [
@@ -44,9 +44,9 @@ foreach ($penawarans as $index => $penawaran) {
             'subtotal' => 7500000
         ]
     ];
-    
+
     $totalPenawaran = 0;
-    
+
     foreach ($details as $detail) {
         PenawaranDetail::create([
             'id_penawaran' => $penawaran->id_penawaran,
@@ -56,15 +56,15 @@ foreach ($penawarans as $index => $penawaran) {
             'harga_satuan' => $detail['harga_satuan'],
             'subtotal' => $detail['subtotal']
         ]);
-        
+
         $totalPenawaran += $detail['subtotal'];
         echo "- Ditambahkan: {$detail['nama_barang']} (Rp " . number_format($detail['subtotal'], 0, ',', '.') . ")\n";
     }
-    
+
     // Update total nilai penawaran
     $penawaran->total_nilai = $totalPenawaran;
     $penawaran->save();
-    
+
     echo "Total penawaran: Rp " . number_format($totalPenawaran, 0, ',', '.') . "\n";
 }
 

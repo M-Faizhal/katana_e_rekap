@@ -54,20 +54,41 @@ class Proyek extends Model
     {
         parent::boot();
 
-        static::created(function ($proyek) {
+        static::creating(function ($proyek) {
             if (empty($proyek->kode_proyek)) {
-                $proyek->kode_proyek = 'PRJ-' . str_pad($proyek->id_proyek, 5, '0', STR_PAD_LEFT);
-                $proyek->save();
+                $proyek->kode_proyek = static::generateNextKodeProyek();
             }
         });
     }
 
     /**
-     * Generate kode proyek baru
+     * Generate kode proyek baru berdasarkan urutan
+     */
+    public static function generateNextKodeProyek()
+    {
+        // Ambil kode proyek terakhir
+        $lastProyek = static::orderBy('kode_proyek', 'desc')->first();
+        
+        if (!$lastProyek || !$lastProyek->kode_proyek) {
+            return 'PRJ-001';
+        }
+        
+        // Extract nomor dari kode terakhir
+        $lastKode = $lastProyek->kode_proyek;
+        $lastNumber = (int) substr($lastKode, 4); // Ambil bagian setelah "PRJ-"
+        
+        // Generate nomor baru
+        $newNumber = $lastNumber + 1;
+        
+        return 'PRJ-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Generate kode proyek baru (untuk kompatibilitas)
      */
     public static function generateKodeProyek($id)
     {
-        return 'PRJ-' . str_pad($id, 5, '0', STR_PAD_LEFT);
+        return 'PRJ-' . str_pad($id, 3, '0', STR_PAD_LEFT);
     }
 
     // Relationships

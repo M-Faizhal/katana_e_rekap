@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Marketing;
 use App\Http\Controllers\Controller;
 use App\Models\Proyek;
 use App\Models\User;
+use App\Models\Wilayah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class ProyekController extends Controller
@@ -248,23 +250,55 @@ class ProyekController extends Controller
 
     public function getWilayahForSelect()
     {
-        $wilayah = \App\Models\Wilayah::active()
-            ->select('id_wilayah', 'nama_wilayah', 'provinsi')
-            ->orderBy('nama_wilayah')
-            ->get()
-            ->map(function ($w) {
-                return [
-                    'id' => $w->id_wilayah,
-                    'nama' => $w->nama_wilayah,
-                    'provinsi' => $w->provinsi,
-                    'nama_lengkap' => $w->nama_lengkap
-                ];
-            });
-
+        $wilayahData = Wilayah::with('adminMarketing:id_user,nama')->get();
         return response()->json([
             'success' => true,
-            'data' => $wilayah
+            'data' => $wilayahData
         ]);
+    }
+
+    public function getNextKodeProyek()
+    {
+        try {
+            $nextKode = Proyek::generateNextKodeProyek();
+            return response()->json([
+                'success' => true,
+                'kode' => $nextKode
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mendapatkan kode proyek: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getCurrentUser()
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak ditemukan'
+                ], 401);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $user->id_user,
+                    'nama' => $user->nama,
+                    'email' => $user->email,
+                    'role' => $user->role
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mendapatkan data user: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     private function getPotensiValue($harga_total)

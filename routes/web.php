@@ -46,6 +46,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/proyek/{id}/status', [ProyekController::class, 'updateStatus'])->name('marketing.proyek.status');
         Route::get('/proyek/users', [ProyekController::class, 'getUsersForSelect'])->name('marketing.proyek.users');
         Route::get('/proyek/wilayah', [ProyekController::class, 'getWilayahForSelect'])->name('marketing.proyek.wilayah');
+        Route::get('/proyek/next-kode', [ProyekController::class, 'getNextKodeProyek'])->name('marketing.proyek.next-kode');
+        Route::get('/proyek/current-user', [ProyekController::class, 'getCurrentUser'])->name('marketing.proyek.current-user');
 
         // Wilayah Routes
         Route::get('/wilayah', [WilayahController::class, 'index'])->name('marketing.wilayah');
