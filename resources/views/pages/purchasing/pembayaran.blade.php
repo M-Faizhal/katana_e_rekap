@@ -161,156 +161,208 @@
             
             <div class="overflow-x-auto">
                 @if($proyekPerluBayar->count() > 0)
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Penawaran</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Bayar</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($proyekPerluBayar as $proyek)
-                        @php
-                            // Hitung total yang sudah dibayar dan disetujui (approved saja)
-                            $totalDibayarApproved = $proyek->pembayaran->where('status_verifikasi', 'Approved')->sum('nominal_bayar');
-                            $sisaBayar = $proyek->penawaranAktif->total_penawaran - $totalDibayarApproved;
-                            $persenBayar = $proyek->penawaranAktif->total_penawaran > 0 ? 
-                                ($totalDibayarApproved / $proyek->penawaranAktif->total_penawaran) * 100 : 0;
-                        @endphp
-                        
-                        @if($sisaBayar > 0)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_barang }}</div>
-                                    <div class="text-sm text-gray-500">{{ $proyek->instansi }} - {{ $proyek->kota_kab }}</div>
-                                    <div class="text-xs text-gray-400">No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}</div>
-                                    <!-- Status Proyek -->
-                                    <div class="mt-1">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                            @if($proyek->status == 'Pembayaran') bg-blue-100 text-blue-800
-                                            @elseif($proyek->status == 'Pengiriman') bg-purple-100 text-purple-800
-                                            @elseif($proyek->status == 'Selesai') bg-green-100 text-green-800
-                                            @elseif($proyek->status == 'Gagal') bg-red-100 text-red-800
-                                            @else bg-gray-100 text-gray-800 @endif">
-                                            @if($proyek->status == 'Pembayaran')
-                                                <i class="fas fa-credit-card mr-1"></i> 
-                                            @elseif($proyek->status == 'Pengiriman')
-                                                <i class="fas fa-shipping-fast mr-1"></i>
-                                            @elseif($proyek->status == 'Selesai')
-                                                <i class="fas fa-check-circle mr-1"></i>
-                                            @elseif($proyek->status == 'Gagal')
-                                                <i class="fas fa-times-circle mr-1"></i>
-                                            @endif
-                                            {{ $proyek->status }}
-                                        </span>
+                <div class="space-y-6">
+                    @foreach($proyekPerluBayar as $proyek)
+                    <div class="bg-white border-2 border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <!-- Header Proyek dengan Badge Status -->
+                        <div class="p-6 border-b-2 border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <div class="w-3 h-3 rounded-full 
+                                            @if($proyek->status == 'Pembayaran') bg-blue-500
+                                            @elseif($proyek->status == 'Pengiriman') bg-purple-500
+                                            @elseif($proyek->status == 'Selesai') bg-green-500
+                                            @elseif($proyek->status == 'Gagal') bg-red-500
+                                            @else bg-gray-500 @endif animate-pulse">
+                                        </div>
+                                        <h3 class="text-xl font-bold text-gray-900">{{ $proyek->nama_barang }}</h3>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-medium text-gray-700 flex items-center">
+                                            <i class="fas fa-building text-blue-600 mr-2"></i>
+                                            {{ $proyek->instansi }} - {{ $proyek->kota_kab }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 flex items-center">
+                                            <i class="fas fa-file-contract text-gray-400 mr-2"></i>
+                                            No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}
+                                        </p>
                                     </div>
                                 </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900">{{ $proyek->nama_klien }}</div>
-                                <div class="text-sm text-gray-500">{{ $proyek->kontak_klien }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm font-medium text-gray-900">
-                                    Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}
-                                </div>
-                                @if($totalDibayarApproved > 0)
-                                <div class="text-xs text-gray-500">
-                                    Dibayar: Rp {{ number_format($totalDibayarApproved, 0, ',', '.') }} ({{ number_format($persenBayar, 1) }}%)
-                                </div>
-                                <div class="text-xs text-orange-600">
-                                    Sisa: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
-                                </div>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($sisaBayar <= 0)
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-check-circle mr-1"></i>
-                                        Lunas
-                                    </span>
-                                @elseif($totalDibayarApproved > 0)
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        <i class="fas fa-clock mr-1"></i>
-                                        Cicilan ({{ number_format($persenBayar, 0) }}%)
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                        <i class="fas fa-times-circle mr-1"></i>
-                                        Belum Bayar
-                                    </span>
-                                @endif
-                                
-                                @php
-                                    $pendingCount = $proyek->pembayaran->where('status_verifikasi', 'Pending')->count();
-                                    $ditolakCount = $proyek->pembayaran->where('status_verifikasi', 'Ditolak')->count();
-                                @endphp
-                                
-                                @if($pendingCount > 0)
-                                <div class="text-xs text-yellow-600 mt-1">
-                                    <i class="fas fa-hourglass-half"></i> {{ $pendingCount }} pending
-                                </div>
-                                @endif
-                                
-                                @if($ditolakCount > 0)
-                                <div class="text-xs text-red-600 mt-1">
-                                    <i class="fas fa-exclamation-triangle"></i> {{ $ditolakCount }} ditolak
-                                </div>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="flex items-center space-x-2">
-                                    @if($sisaBayar > 0)
-                                    <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
-                                       class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                        <i class="fas fa-plus mr-1"></i>
-                                        @if($proyek->status == 'Pengiriman')
-                                            Pelunasan
+                                <div class="text-right space-y-2">
+                                    <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-semibold
+                                        @if($proyek->status == 'Pembayaran') bg-blue-100 text-blue-800 border border-blue-200
+                                        @elseif($proyek->status == 'Pengiriman') bg-purple-100 text-purple-800 border border-purple-200
+                                        @elseif($proyek->status == 'Selesai') bg-green-100 text-green-800 border border-green-200
+                                        @elseif($proyek->status == 'Gagal') bg-red-100 text-red-800 border border-red-200
+                                        @else bg-gray-100 text-gray-800 border border-gray-200 @endif">
+                                        @if($proyek->status == 'Pembayaran')
+                                            <i class="fas fa-credit-card mr-2"></i>
+                                        @elseif($proyek->status == 'Pengiriman')
+                                            <i class="fas fa-shipping-fast mr-2"></i>
                                         @elseif($proyek->status == 'Selesai')
-                                            Sisa Bayar
+                                            <i class="fas fa-check-circle mr-2"></i>
                                         @elseif($proyek->status == 'Gagal')
-                                            Proses Dana
-                                        @else
-                                            Input Bayar
+                                            <i class="fas fa-times-circle mr-2"></i>
                                         @endif
-                                    </a>
-                                    @endif
-                                    
-                                    @if($proyek->pembayaran->count() > 0)
-                                    <a href="{{ route('purchasing.pembayaran.history', $proyek->id_proyek) }}" 
-                                       class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                        <i class="fas fa-history mr-1"></i>
-                                        Riwayat
-                                    </a>
-                                    @endif
+                                        {{ $proyek->status }}
+                                    </span>
+                                    <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                        <p class="text-xs text-gray-500 mb-1">Total Modal ke Vendor</p>
+                                        <p class="text-lg font-bold text-gray-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
+                                    </div>
                                 </div>
-                                
-                                @if($proyek->status == 'Pengiriman' && $sisaBayar > 0)
-                                <div class="mt-2 text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
-                                    <i class="fas fa-info-circle mr-1"></i>
-                                    Barang sudah dikirim, menunggu pelunasan
+                            </div>
+                        </div>
+
+                        <!-- Content Area dengan Background yang Berbeda -->
+                        <div class="p-6 bg-white">
+                            <!-- Panel Informasi Finansial -->
+                            <div class="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 border-l-4 border-emerald-400 rounded-lg">
+                                <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-chart-line text-emerald-600 mr-2"></i>
+                                    Analisis Finansial Proyek
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="text-center p-3 bg-white rounded-lg border border-blue-200">
+                                        <p class="text-xs text-blue-700 font-medium">Harga Penawaran ke Klien</p>
+                                        <p class="text-lg font-bold text-blue-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}</p>
+                                    </div>
+                                    <div class="text-center p-3 bg-white rounded-lg border border-green-200">
+                                        <p class="text-xs text-green-700 font-medium">Total Modal ke Vendor</p>
+                                        <p class="text-lg font-bold text-green-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
+                                    </div>
+                                    <div class="text-center p-3 bg-white rounded-lg border border-purple-200">
+                                        <p class="text-xs text-purple-700 font-medium">Margin Keuntungan</p>
+                                        <p class="text-lg font-bold text-purple-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran - $proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
+                                    </div>
                                 </div>
-                                @elseif($proyek->status == 'Selesai' && $sisaBayar > 0)
-                                <div class="mt-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    Proyek selesai, tersisa pelunasan
+                                <div class="mt-3 p-2 bg-amber-50 rounded border border-amber-200">
+                                    <p class="text-xs text-amber-800 flex items-center">
+                                        <i class="fas fa-info-circle mr-2"></i>
+                                        <strong>Catatan:</strong> Pembayaran ke vendor menggunakan harga modal, klien membayar dengan harga penawaran (sudah termasuk margin)
+                                    </p>
                                 </div>
-                                @elseif($proyek->status == 'Gagal' && $sisaBayar > 0)
-                                <div class="mt-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>
-                                    Proyek gagal, perlu pengembalian dana
+                            </div>
+                            
+                            <!-- Dropdown Vendor dengan Styling yang Lebih Jelas -->
+                            <div class="mb-6">
+                                <button onclick="toggleVendorDetails('proyek-{{ $proyek->id_proyek }}')" 
+                                        class="w-full flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-xl border-2 border-indigo-200 hover:border-indigo-300 transition-all duration-300 shadow-sm hover:shadow-md">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-building text-indigo-600 text-lg"></i>
+                                        </div>
+                                        <div class="text-left">
+                                            <span class="text-lg font-bold text-gray-800 block">
+                                                Detail Vendor yang Perlu Pembayaran
+                                            </span>
+                                            <span class="text-sm text-gray-600">
+                                                {{ $proyek->vendors_data->count() }} vendor terlibat dalam proyek ini
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="text-right">
+                                            <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
+                                                {{ $proyek->vendors_data->where('status_lunas', false)->count() }} Perlu Pembayaran
+                                            </span>
+                                        </div>
+                                        <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center border border-indigo-300">
+                                            <i class="fas fa-chevron-down text-indigo-600 transition-transform duration-300" id="chevron-proyek-{{ $proyek->id_proyek }}"></i>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                            
+                            <!-- Vendor Details (Hidden by default) -->
+                            <div id="vendor-details-proyek-{{ $proyek->id_proyek }}" class="hidden space-y-3">
+                                @foreach($proyek->vendors_data as $vendorData)
+                                <div class="p-4 border rounded-lg 
+                                    @if($vendorData->status_lunas) bg-green-50 border-green-200 
+                                    @else bg-white border-gray-200 @endif">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <h5 class="font-medium text-gray-900">{{ $vendorData->vendor->nama_vendor }}</h5>
+                                                @if($vendorData->status_lunas)
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <i class="fas fa-check-circle mr-1"></i>
+                                                    LUNAS
+                                                </span>
+                                                @else
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                    BELUM LUNAS
+                                                </span>
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                                <div>
+                                                    <p class="text-sm text-gray-600">{{ $vendorData->vendor->jenis_perusahaan }}</p>
+                                                    <p class="text-xs text-gray-500">{{ $vendorData->vendor->email }}</p>
+                                                    @if($vendorData->vendor->no_telp)
+                                                    <p class="text-xs text-gray-500">{{ $vendorData->vendor->no_telp }}</p>
+                                                    @endif
+                                                </div>
+                                                <div class="text-sm">
+                                                    <div class="flex justify-between">
+                                                        <span class="text-gray-600">Total Modal:</span>
+                                                        <span class="font-medium">Rp {{ number_format($vendorData->total_vendor, 0, ',', '.') }}</span>
+                                                    </div>
+                                                    <div class="flex justify-between">
+                                                        <span class="text-gray-600">Dibayar:</span>
+                                                        <span class="font-medium text-green-600">Rp {{ number_format($vendorData->total_dibayar_approved, 0, ',', '.') }}</span>
+                                                    </div>
+                                                    @if(!$vendorData->status_lunas)
+                                                    <div class="flex justify-between">
+                                                        <span class="text-gray-600">Sisa:</span>
+                                                        <span class="font-medium text-red-600">Rp {{ number_format($vendorData->sisa_bayar, 0, ',', '.') }}</span>
+                                                    </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Progress Bar -->
+                                            <div class="mb-3">
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="text-xs text-gray-600">Progress Pembayaran</span>
+                                                    <span class="text-xs font-medium text-gray-700">{{ number_format($vendorData->persen_bayar, 1) }}%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="@if($vendorData->status_lunas) bg-green-600 @else bg-blue-600 @endif h-2 rounded-full transition-all duration-300" 
+                                                         style="width: {{ min($vendorData->persen_bayar, 100) }}%"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Action Buttons -->
+                                            <div class="flex items-center space-x-2">
+                                                @if(!$vendorData->status_lunas)
+                                                <a href="{{ route('purchasing.pembayaran.create', [$proyek->id_proyek, $vendorData->vendor->id_vendor]) }}" 
+                                                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                                    <i class="fas fa-plus mr-1"></i>
+                                                    Input Pembayaran
+                                                </a>
+                                                @endif
+                                                
+                                                @if($proyek->pembayaran->where('id_vendor', $vendorData->vendor->id_vendor)->count() > 0)
+                                                <a href="{{ route('purchasing.pembayaran.history', $proyek->id_proyek) }}?vendor={{ $vendorData->vendor->id_vendor }}" 
+                                                   class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                                    <i class="fas fa-history mr-1"></i>
+                                                    History
+                                                </a>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                @endif
-                            </td>
-                        </tr>
-                        @endif
-                        @endforeach
-                    </tbody>
-                </table>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div> 
                 @else
                 <div class="text-center py-12">
                     <div class="mx-auto h-12 w-12 text-gray-400">
@@ -404,157 +456,291 @@
     
     <div class="overflow-x-auto">
         @if($semuaProyek->count() > 0)
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Penawaran</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress Bayar</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                @foreach($semuaProyek as $proyek)
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4">
+        <div class="space-y-6">
+            @foreach($semuaProyek as $proyek)
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                <!-- Header Proyek -->
+                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_barang }}</div>
-                            <div class="text-sm text-gray-500">{{ $proyek->instansi }} - {{ $proyek->kota_kab }}</div>
-                            <div class="text-xs text-gray-400">No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}</div>
-                            <div class="text-xs text-gray-400">Dibuat: {{ $proyek->created_at->format('d/m/Y H:i') }}</div>
-                            <!-- Status Proyek -->
+                            <h3 class="text-lg font-medium text-gray-900">{{ $proyek->nama_barang }}</h3>
+                            <p class="text-sm text-gray-600">{{ $proyek->instansi }} - {{ $proyek->kota_kab }}</p>
+                            <p class="text-xs text-gray-500">
+                                No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }} | 
+                                Klien: {{ $proyek->nama_klien }} | 
+                                Dibuat: {{ $proyek->created_at->format('d/m/Y H:i') }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
+                                @if($proyek->status == 'Pembayaran') bg-blue-100 text-blue-800
+                                @elseif($proyek->status == 'Pengiriman') bg-purple-100 text-purple-800
+                                @elseif($proyek->status == 'Selesai') bg-green-100 text-green-800
+                                @elseif($proyek->status == 'Gagal') bg-red-100 text-red-800
+                                @else bg-gray-100 text-gray-800 @endif">
+                                @if($proyek->status == 'Pembayaran')
+                                    <i class="fas fa-credit-card mr-1"></i>
+                                @elseif($proyek->status == 'Pengiriman')
+                                    <i class="fas fa-shipping-fast mr-1"></i>
+                                @elseif($proyek->status == 'Selesai')
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                @elseif($proyek->status == 'Gagal')
+                                    <i class="fas fa-times-circle mr-1"></i>
+                                @endif
+                                {{ $proyek->status }}
+                            </span>
                             <div class="mt-1">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                    @if($proyek->status == 'Pembayaran') bg-blue-100 text-blue-800
-                                    @elseif($proyek->status == 'Pengiriman') bg-purple-100 text-purple-800
-                                    @elseif($proyek->status == 'Selesai') bg-green-100 text-green-800
-                                    @elseif($proyek->status == 'Gagal') bg-red-100 text-red-800
-                                    @else bg-gray-100 text-gray-800 @endif">
-                                    @if($proyek->status == 'Pembayaran')
-                                        <i class="fas fa-credit-card mr-1"></i>
-                                    @elseif($proyek->status == 'Pengiriman')
-                                        <i class="fas fa-shipping-fast mr-1"></i>
-                                    @elseif($proyek->status == 'Selesai')
-                                        <i class="fas fa-check-circle mr-1"></i>
-                                    @elseif($proyek->status == 'Gagal')
-                                        <i class="fas fa-times-circle mr-1"></i>
-                                    @endif
-                                    {{ $proyek->status }}
+                                @if($proyek->status_lunas)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Lunas
                                 </span>
+                                @elseif($proyek->total_dibayar_approved > 0)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    Cicilan
+                                </span>
+                                @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="fas fa-times-circle mr-1"></i>
+                                    Belum Bayar
+                                </span>
+                                @endif
                             </div>
                         </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">{{ $proyek->nama_klien }}</div>
-                        <div class="text-sm text-gray-500">{{ $proyek->kontak_klien }}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm font-medium text-gray-900">
-                            Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}
+                    </div>
+                </div>
+
+                <!-- Detail Pembayaran -->
+                <div class="p-4">
+                    <!-- Info Harga dan Margin -->
+                    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex justify-between items-center text-sm">
+                            <div>
+                                <span class="font-medium text-blue-800">Harga Penawaran ke Klien:</span>
+                                <span class="text-blue-900 font-semibold">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-green-800">Total Harga Modal ke Vendor:</span>
+                                <span class="text-green-900 font-semibold">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-purple-800">Margin Keuntungan:</span>
+                                <span class="text-purple-900 font-semibold">Rp {{ number_format($proyek->penawaranAktif->total_penawaran - $proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</span>
+                            </div>
                         </div>
-                        @if($proyek->total_dibayar_approved > 0)
-                        <div class="text-xs text-gray-500">
-                            Dibayar: Rp {{ number_format($proyek->total_dibayar_approved, 0, ',', '.') }}
+                    </div>
+
+                    <!-- Progress Keseluruhan -->
+                    <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">Progress Pembayaran Keseluruhan</span>
+                            <span class="text-sm text-gray-600">{{ number_format($proyek->persen_bayar, 1) }}%</span>
                         </div>
-                        @endif
-                        @if(!$proyek->status_lunas)
-                        <div class="text-xs text-orange-600">
-                            Sisa: Rp {{ number_format($proyek->sisa_bayar, 0, ',', '.') }}
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-blue-600 h-3 rounded-full" style="width: {{ min($proyek->persen_bayar, 100) }}%"></div>
                         </div>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4">
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ min($proyek->persen_bayar, 100) }}%"></div>
-                        </div>
-                        <div class="text-xs text-gray-600">
-                            {{ number_format($proyek->persen_bayar, 1) }}% dari total
-                        </div>
-                        @if($proyek->total_dibayar_approved > 0)
-                        <div class="text-xs text-green-600">
-                            <i class="fas fa-check-circle mr-1"></i>
-                            Rp {{ number_format($proyek->total_dibayar_approved, 0, ',', '.') }} verified
-                        </div>
-                        @endif
-                        
-                        @php
-                            $pendingCount = $proyek->pembayaran->where('status_verifikasi', 'Pending')->count();
-                            $ditolakCount = $proyek->pembayaran->where('status_verifikasi', 'Ditolak')->count();
-                        @endphp
-                        
-                        @if($pendingCount > 0)
-                        <div class="text-xs text-yellow-600">
-                            <i class="fas fa-hourglass-half mr-1"></i>{{ $pendingCount }} pending
-                        </div>
-                        @endif
-                        
-                        @if($ditolakCount > 0)
-                        <div class="text-xs text-red-600">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>{{ $ditolakCount }} ditolak
-                        </div>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4">
-                        @if($proyek->status_lunas)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <i class="fas fa-check-circle mr-1"></i>
-                                Lunas
-                            </span>
-                        @elseif($proyek->total_dibayar_approved > 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                <i class="fas fa-clock mr-1"></i>
-                                Cicilan
-                            </span>
-                        @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                <i class="fas fa-times-circle mr-1"></i>
-                                Belum Bayar
-                            </span>
-                        @endif
-                        
-                        <!-- Total Pembayaran Count -->
-                        <div class="text-xs text-gray-500 mt-1">
-                            <i class="fas fa-receipt mr-1"></i>
-                            {{ $proyek->pembayaran->count() }} pembayaran
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center space-x-2">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Dibayar: Rp {{ number_format($proyek->total_dibayar_approved, 0, ',', '.') }}</span>
                             @if(!$proyek->status_lunas)
-                            <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
-                               class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-white bg-blue-600 hover:bg-blue-700">
-                                <i class="fas fa-plus mr-1"></i>
-                                Input
-                            </a>
+                            <span>Sisa: Rp {{ number_format($proyek->sisa_bayar, 0, ',', '.') }}</span>
                             @endif
-                            
-                            @if($proyek->pembayaran->count() > 0)
-                            <a href="{{ route('purchasing.pembayaran.history', $proyek->id_proyek) }}" 
-                               class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs leading-4 font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                                <i class="fas fa-history mr-1"></i>
-                                History
-                            </a>
-                            @endif
-                            
-                            <!-- Detail Proyek Link -->
-                            <a href="#" 
-                               onclick="showProyekDetail({{ json_encode($proyek) }})"
-                               class="inline-flex items-center px-2 py-1 border border-indigo-300 text-xs leading-4 font-medium rounded text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
-                                <i class="fas fa-eye mr-1"></i>
-                                Detail
-                            </a>
                         </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+                    </div>
+
+                    <!-- Dropdown Detail Vendor -->
+                    <div class="mb-4">
+                        <button onclick="toggleVendorDetails('semua-proyek-{{ $proyek->id_proyek }}')" 
+                                class="w-full flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200">
+                            <div class="flex items-center">
+                                <i class="fas fa-building text-gray-600 mr-2"></i>
+                                <span class="text-sm font-medium text-gray-700">
+                                    Detail Vendor & Pembayaran ({{ $proyek->vendors_data->count() }} vendor)
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs text-gray-500">
+                                    {{ $proyek->vendors_data->where('status_lunas', true)->count() }} lunas, 
+                                    {{ $proyek->vendors_data->where('status_lunas', false)->count() }} belum lunas
+                                </span>
+                                <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="chevron-semua-proyek-{{ $proyek->id_proyek }}"></i>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <!-- Vendor Details (Hidden by default) -->
+                    <div id="vendor-details-semua-proyek-{{ $proyek->id_proyek }}" class="hidden space-y-3 mb-4">
+                        @foreach($proyek->vendors_data as $vendorData)
+                        <div class="p-4 border rounded-lg 
+                            @if($vendorData->status_lunas) bg-green-50 border-green-200 
+                            @else bg-white border-gray-200 @endif">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h5 class="font-medium text-gray-900">{{ $vendorData->vendor->nama_vendor }}</h5>
+                                        @if($vendorData->status_lunas)
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            LUNAS
+                                        </span>
+                                        @else
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                            BELUM LUNAS
+                                        </span>
+                                        @endif
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                        <div>
+                                            <p class="text-sm text-gray-600">{{ $vendorData->vendor->jenis_perusahaan }}</p>
+                                            <p class="text-xs text-gray-500">{{ $vendorData->vendor->email }}</p>
+                                            @if($vendorData->vendor->no_telp)
+                                            <p class="text-xs text-gray-500">{{ $vendorData->vendor->no_telp }}</p>
+                                            @endif
+                                        </div>
+                                        <div class="text-sm">
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Total Modal:</span>
+                                                <span class="font-medium">Rp {{ number_format($vendorData->total_vendor, 0, ',', '.') }}</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Dibayar:</span>
+                                                <span class="font-medium text-green-600">Rp {{ number_format($vendorData->total_dibayar_approved, 0, ',', '.') }}</span>
+                                            </div>
+                                            @if(!$vendorData->status_lunas)
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-600">Sisa:</span>
+                                                <span class="font-medium text-red-600">Rp {{ number_format($vendorData->sisa_bayar, 0, ',', '.') }}</span>
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Progress Bar -->
+                                    <div class="mb-3">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="text-xs text-gray-600">Progress Pembayaran</span>
+                                            <span class="text-xs font-medium text-gray-700">{{ number_format($vendorData->persen_bayar, 1) }}%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="@if($vendorData->status_lunas) bg-green-600 @else bg-blue-600 @endif h-2 rounded-full transition-all duration-300" 
+                                                 style="width: {{ min($vendorData->persen_bayar, 100) }}%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Pembayaran History Summary -->
+                                    @php
+                                        $vendorPembayaran = $proyek->pembayaran->where('id_vendor', $vendorData->vendor->id_vendor);
+                                        $vendorPending = $vendorPembayaran->where('status_verifikasi', 'Pending')->count();
+                                        $vendorApproved = $vendorPembayaran->where('status_verifikasi', 'Approved')->count();
+                                        $vendorDitolak = $vendorPembayaran->where('status_verifikasi', 'Ditolak')->count();
+                                    @endphp
+                                    
+                                    @if($vendorPembayaran->count() > 0)
+                                    <div class="mb-3 p-2 bg-gray-50 rounded text-xs">
+                                        <span class="font-medium text-gray-700">Riwayat Pembayaran:</span>
+                                        <span class="text-gray-600">{{ $vendorPembayaran->count() }} transaksi</span>
+                                        @if($vendorPending > 0)<span class="text-yellow-600">({{ $vendorPending }} pending)</span>@endif
+                                        @if($vendorApproved > 0)<span class="text-green-600">({{ $vendorApproved }} approved)</span>@endif
+                                        @if($vendorDitolak > 0)<span class="text-red-600">({{ $vendorDitolak }} ditolak)</span>@endif
+                                    </div>
+                                    @endif
+                                    
+                                    <!-- Action Buttons -->
+                                    <div class="flex items-center space-x-2">
+                                        @if(!$vendorData->status_lunas)
+                                        <a href="{{ route('purchasing.pembayaran.create', [$proyek->id_proyek, $vendorData->vendor->id_vendor]) }}" 
+                                           class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                            <i class="fas fa-plus mr-1"></i>
+                                            Input Pembayaran
+                                        </a>
+                                        @endif
+                                        
+                                        @if($vendorPembayaran->count() > 0)
+                                        <a href="{{ route('purchasing.pembayaran.history', $proyek->id_proyek) }}?vendor={{ $vendorData->vendor->id_vendor }}" 
+                                           class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            <i class="fas fa-history mr-1"></i>
+                                            History Vendor
+                                        </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Statistik Pembayaran -->
+                    @php
+                        $pendingCount = $proyek->pembayaran->where('status_verifikasi', 'Pending')->count();
+                        $approvedCount = $proyek->pembayaran->where('status_verifikasi', 'Approved')->count();
+                        $ditolakCount = $proyek->pembayaran->where('status_verifikasi', 'Ditolak')->count();
+                        $totalPembayaran = $proyek->pembayaran->count();
+                    @endphp
+                    
+                    @if($totalPembayaran > 0)
+                    <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <h5 class="text-sm font-medium text-gray-700 mb-2">Statistik Pembayaran:</h5>
+                        <div class="flex space-x-4 text-xs">
+                            <span class="text-gray-600">
+                                <i class="fas fa-receipt mr-1"></i>
+                                Total: {{ $totalPembayaran }}
+                            </span>
+                            @if($pendingCount > 0)
+                            <span class="text-yellow-600">
+                                <i class="fas fa-hourglass-half mr-1"></i>
+                                Pending: {{ $pendingCount }}
+                            </span>
+                            @endif
+                            @if($approvedCount > 0)
+                            <span class="text-green-600">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Approved: {{ $approvedCount }}
+                            </span>
+                            @endif
+                            @if($ditolakCount > 0)
+                            <span class="text-red-600">
+                                <i class="fas fa-times-circle mr-1"></i>
+                                Ditolak: {{ $ditolakCount }}
+                            </span>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        @if(!$proyek->status_lunas)
+                        <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
+                           class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                            <i class="fas fa-plus mr-1"></i>
+                            Input Pembayaran
+                        </a>
+                        @endif
+                        
+                        @if($totalPembayaran > 0)
+                        <a href="{{ route('purchasing.pembayaran.history', $proyek->id_proyek) }}" 
+                           class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <i class="fas fa-history mr-1"></i>
+                            History Pembayaran
+                        </a>
+                        @endif
+                        
+                        <a href="#" 
+                           onclick="showProyekDetail({{ json_encode($proyek) }})"
+                           class="inline-flex items-center px-3 py-2 border border-indigo-300 text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
+                            <i class="fas fa-eye mr-1"></i>
+                            Detail Lengkap
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
         
         <!-- Summary Footer -->
-        <div class="bg-gray-50 px-6 py-3 border-t">
+        <div class="mt-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border">
             <div class="flex justify-between items-center text-sm">
                 <div class="flex space-x-6">
                     <span class="text-gray-700">
@@ -665,10 +851,9 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nominal</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                 </tr>
@@ -686,9 +871,11 @@
                         <div class="text-xs text-gray-400">No. {{ $pembayaran->penawaran->no_penawaran }}</div>
                     </td>
                     <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->nama_klien }}</div>
-                        <div class="text-sm text-gray-500">{{ $pembayaran->penawaran->proyek->kontak_klien }}</div>
+                        <div class="text-sm font-medium text-gray-900">{{ $pembayaran->vendor->nama_vendor }}</div>
+                        <div class="text-sm text-gray-500">{{ $pembayaran->vendor->jenis_perusahaan }}</div>
+                        <div class="text-xs text-gray-400">{{ $pembayaran->vendor->email }}</div>
                     </td>
+              
                     <td class="px-6 py-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             @if($pembayaran->jenis_bayar == 'Lunas') bg-green-100 text-green-800
@@ -702,14 +889,18 @@
                             Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
                         </div>
                         @php
-                            $persenNominal = $pembayaran->penawaran->total_penawaran > 0 ? 
-                                ($pembayaran->nominal_bayar / $pembayaran->penawaran->total_penawaran) * 100 : 0;
+                            // Hitung total modal vendor untuk vendor pembayaran ini
+                            $totalModalVendorPembayaran = $pembayaran->penawaran->proyek->penawaranAktif->penawaranDetail
+                                ->where('barang.id_vendor', $pembayaran->id_vendor)
+                                ->sum(function($detail) {
+                                    return $detail->qty * $detail->barang->harga_vendor;
+                                });
+                            $persenNominal = $totalModalVendorPembayaran > 0 ? 
+                                ($pembayaran->nominal_bayar / $totalModalVendorPembayaran) * 100 : 0;
                         @endphp
-                        <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari total</div>
+                        <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari modal vendor</div>
                     </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">{{ $pembayaran->metode_bayar }}</div>
-                    </td>
+            
                     <td class="px-6 py-4">
                         @if($pembayaran->status_verifikasi == 'Pending')
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -1056,5 +1247,67 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById("defaultOpen").click();
     }
 });
+
+// Toggle Vendor Details Dropdown
+function toggleVendorDetails(elementId) {
+    const vendorDetails = document.getElementById(`vendor-details-${elementId}`);
+    const chevronIcon = document.getElementById(`chevron-${elementId}`);
+    
+    if (vendorDetails.classList.contains('hidden')) {
+        // Show the details
+        vendorDetails.classList.remove('hidden');
+        vendorDetails.classList.add('animate-fadeIn');
+        chevronIcon.style.transform = 'rotate(180deg)';
+    } else {
+        // Hide the details
+        vendorDetails.classList.add('hidden');
+        vendorDetails.classList.remove('animate-fadeIn');
+        chevronIcon.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Close all dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    // Check if the click is outside of any dropdown button or content
+    if (!event.target.closest('button[onclick*="toggleVendorDetails"]') && 
+        !event.target.closest('[id*="vendor-details-"]')) {
+        
+        // Find all open dropdowns and close them
+        const openDropdowns = document.querySelectorAll('[id*="vendor-details-"]:not(.hidden)');
+        openDropdowns.forEach(dropdown => {
+            const elementId = dropdown.id.replace('vendor-details-', '');
+            const chevronIcon = document.getElementById(`chevron-${elementId}`);
+            
+            dropdown.classList.add('hidden');
+            dropdown.classList.remove('animate-fadeIn');
+            if (chevronIcon) {
+                chevronIcon.style.transform = 'rotate(0deg)';
+            }
+        });
+    }
+});
 </script>
+
+<!-- Add custom CSS for smooth animations -->
+<style>
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth transition for chevron rotation */
+[id*="chevron-"] {
+    transition: transform 0.3s ease-in-out;
+}
+</style>
 @endpush

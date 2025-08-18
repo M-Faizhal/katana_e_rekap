@@ -50,6 +50,31 @@ class Penawaran extends Model
         return $this->hasOne(Pengiriman::class, 'id_penawaran', 'id_penawaran');
     }
 
+    // Method untuk mendapatkan vendor yang terlibat dalam penawaran ini
+    public function getVendorsAttribute()
+    {
+        return $this->penawaranDetail()
+            ->with('barang.vendor')
+            ->get()
+            ->pluck('barang.vendor')
+            ->unique('id_vendor')
+            ->values();
+    }
+
+    // Method untuk mendapatkan total per vendor (menggunakan harga modal)
+    public function getTotalPerVendor($vendorId)
+    {
+        return $this->penawaranDetail()
+            ->with('barang')
+            ->whereHas('barang', function($query) use ($vendorId) {
+                $query->where('id_vendor', $vendorId);
+            })
+            ->get()
+            ->sum(function($detail) {
+                return $detail->qty * $detail->barang->harga_vendor; // harga modal
+            });
+    }
+
     // Accessor untuk admin purchasing dari proyek
     public function getAdminPurchasingAttribute()
     {

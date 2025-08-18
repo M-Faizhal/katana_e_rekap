@@ -3,14 +3,27 @@
 @section('content')
 
 <!-- Header Section -->
-<div class="bg-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
+<div class="bg-gradient-to-r from-blue-800 to-blue-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-xl mt-4">
     <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Input Pembayaran</h1>
-            <p class="text-blue-100 text-sm sm:text-base lg:text-lg">Input pembayaran dari klien untuk proyek</p>
+        <div class="flex-1">
+            <div class="flex items-center mb-2">
+                <div class="bg-blue-700 rounded-lg p-2 mr-3">
+                    <i class="fas fa-money-bill-wave text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold">Input Pembayaran</h1>
+                    <p class="text-blue-100 text-sm sm:text-base lg:text-lg">Catat pembayaran dari klien untuk proyek</p>
+                </div>
+            </div>
+            <div class="bg-blue-700/30 rounded-lg p-3 mt-4">
+                <div class="text-sm">
+                    <div class="font-medium">{{ $proyek->nama_barang }}</div>
+                    <div class="text-blue-200">{{ $proyek->nama_klien }} • {{ $proyek->instansi }}</div>
+                </div>
+            </div>
         </div>
-        <div class="hidden sm:block lg:block">
-            <i class="fas fa-money-bill text-3xl sm:text-4xl lg:text-6xl"></i>
+        <div class="hidden lg:block">
+            <i class="fas fa-file-invoice-dollar text-5xl opacity-20"></i>
         </div>
     </div>
 </div>
@@ -39,93 +52,135 @@
 </div>
 @endif
 
-<!-- Project Info -->
-<div class="bg-white rounded-lg shadow-lg mb-6">
-    <div class="p-6 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-800">Informasi Proyek</h2>
+<!-- Project Info Card - Enhanced -->
+<div class="bg-white rounded-xl shadow-lg mb-6 border border-gray-100">
+    <div class="p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 rounded-t-xl">
+        <div class="flex items-center">
+            <div class="bg-blue-100 rounded-lg p-2 mr-3">
+                <i class="fas fa-project-diagram text-blue-600"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800">Informasi Proyek</h2>
+        </div>
     </div>
     
     <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Detail Proyek</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Nama Barang:</span>
-                        <span class="font-medium">{{ $proyek->nama_barang }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Klien:</span>
-                        <span class="font-medium">{{ $proyek->nama_klien }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Instansi:</span>
-                        <span class="font-medium">{{ $proyek->instansi }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">No. Penawaran:</span>
-                        <span class="font-medium">{{ $proyek->penawaranAktif->no_penawaran }}</span>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left: Project Details -->
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                        Detail Proyek
+                    </h3>
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div class="flex justify-between items-start">
+                            <span class="text-gray-600 font-medium">Nama Barang:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ $proyek->nama_barang }}</span>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <span class="text-gray-600 font-medium">Klien:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ $proyek->nama_klien }}</span>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <span class="text-gray-600 font-medium">Instansi:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ $proyek->instansi }}</span>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <span class="text-gray-600 font-medium">No. Penawaran:</span>
+                            <span class="font-semibold text-blue-600 text-right">{{ $proyek->penawaranAktif->no_penawaran }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div>
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Status Pembayaran</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Total Penawaran:</span>
-                        <span class="font-bold text-lg text-green-600">
-                            Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}
-                        </span>
-                    </div>
-                    @if($totalDibayar > 0)
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Sudah Dibayar:</span>
-                        <span class="font-medium text-blue-600">
-                            Rp {{ number_format($totalDibayar, 0, ',', '.') }}
-                        </span>
-                    </div>
-                    @endif
-                    <div class="flex justify-between border-t pt-2">
-                        <span class="text-gray-600">Sisa Tagihan:</span>
-                        <span class="font-bold text-lg text-red-600">
-                            Rp {{ number_format($sisaBayar, 0, ',', '.') }}
-                        </span>
+            <!-- Right: Payment Status -->
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-calculator text-green-500 mr-2"></i>
+                        Status Pembayaran
+                    </h3>
+                    <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-4 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 font-medium">Total Modal Vendor:</span>
+                            <span class="font-bold text-lg text-green-700">
+                                Rp {{ number_format($totalModalVendor ?? 0, 0, ',', '.') }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 font-medium text-sm">Total Penawaran Klien:</span>
+                            <span class="font-semibold text-sm text-blue-600">
+                                Rp {{ number_format((float)$proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}
+                            </span>
+                        </div>
+                        @if($totalDibayar > 0)
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 font-medium">Sudah Dibayar:</span>
+                            <span class="font-semibold text-blue-600">
+                                Rp {{ number_format($totalDibayar, 0, ',', '.') }}
+                            </span>
+                        </div>
+                        @endif
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700 font-medium">Sisa Tagihan:</span>
+                                <span class="font-bold text-xl {{ $sisaBayar > 0 ? 'text-red-600' : 'text-green-600' }}">
+                                    Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Progress Bar -->
+                <!-- Progress Bar Enhanced -->
                 @php
-                    $persenBayar = $proyek->penawaranAktif->total_penawaran > 0 ? 
-                        ($totalDibayar / $proyek->penawaranAktif->total_penawaran) * 100 : 0;
+                    $persenBayar = $totalModalVendor > 0 ? 
+                        ($totalDibayar / $totalModalVendor) * 100 : 0;
                 @endphp
-                <div class="mt-4">
-                    <div class="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Progress Pembayaran</span>
-                        <span>{{ number_format($persenBayar, 1) }}%</span>
+                <div>
+                    <div class="flex justify-between text-sm text-gray-600 mb-2">
+                        <span class="font-medium">Progress Pembayaran</span>
+                        <span class="font-bold">{{ number_format($persenBayar, 1) }}%</span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $persenBayar }}%"></div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                        <div class="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out" 
+                             style="width: {{ $persenBayar }}%"></div>
+                    </div>
+                    <div class="mt-2 text-center">
+                        @if($sisaBayar <= 0)
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Pembayaran Lunas
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                                <i class="fas fa-clock mr-1"></i>
+                                Menunggu Pembayaran
+                            </span>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Documents Section -->
+        <!-- Documents Section Enhanced -->
         @if($proyek->penawaranAktif && ($proyek->penawaranAktif->surat_pesanan || $proyek->penawaranAktif->surat_penawaran))
-        <div class="mt-6 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Dokumen Terkait</h3>
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-file-contract text-purple-500 mr-2"></i>
+                Dokumen Terkait
+            </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Surat Pesanan -->
                 @if($proyek->penawaranAktif->surat_pesanan)
-                <div>
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">Surat Pesanan:</h4>
-                    <div class="border border-gray-200 rounded-lg p-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <h4 class="text-sm font-semibold text-blue-800 mb-3">Surat Pesanan</h4>
+                    <div class="bg-white border border-blue-200 rounded-lg p-4">
                         @php
                             $fileSuratPesanan = pathinfo($proyek->penawaranAktif->surat_pesanan, PATHINFO_EXTENSION);
                         @endphp
                         
-                        <div class="flex items-center justify-center h-16 bg-blue-50 rounded-lg mb-3">
+                        <div class="flex items-center justify-center h-16 bg-blue-100 rounded-lg mb-3">
                             @if(in_array(strtolower($fileSuratPesanan), ['pdf']))
                                 <i class="fas fa-file-pdf text-red-500 text-2xl mr-2"></i>
                             @elseif(in_array(strtolower($fileSuratPesanan), ['jpg', 'jpeg', 'png']))
@@ -138,8 +193,8 @@
                         
                         <a href="{{ asset('storage/' . $proyek->penawaranAktif->surat_pesanan) }}" 
                            target="_blank"
-                           class="inline-flex items-center px-3 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 w-full justify-center">
-                            <i class="fas fa-download mr-2"></i>
+                           class="inline-flex items-center px-4 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 w-full justify-center transition-colors">
+                            <i class="fas fa-external-link-alt mr-2"></i>
                             Lihat Surat Pesanan
                         </a>
                     </div>
@@ -148,14 +203,14 @@
                 
                 <!-- Surat Penawaran -->
                 @if($proyek->penawaranAktif->surat_penawaran)
-                <div>
-                    <h4 class="text-sm font-medium text-gray-700 mb-2">Surat Penawaran:</h4>
-                    <div class="border border-gray-200 rounded-lg p-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <h4 class="text-sm font-semibold text-green-800 mb-3">Surat Penawaran</h4>
+                    <div class="bg-white border border-green-200 rounded-lg p-4">
                         @php
                             $fileSuratPenawaran = pathinfo($proyek->penawaranAktif->surat_penawaran, PATHINFO_EXTENSION);
                         @endphp
                         
-                        <div class="flex items-center justify-center h-16 bg-green-50 rounded-lg mb-3">
+                        <div class="flex items-center justify-center h-16 bg-green-100 rounded-lg mb-3">
                             @if(in_array(strtolower($fileSuratPenawaran), ['pdf']))
                                 <i class="fas fa-file-pdf text-red-500 text-2xl mr-2"></i>
                             @elseif(in_array(strtolower($fileSuratPenawaran), ['jpg', 'jpeg', 'png']))
@@ -168,8 +223,8 @@
                         
                         <a href="{{ asset('storage/' . $proyek->penawaranAktif->surat_penawaran) }}" 
                            target="_blank"
-                           class="inline-flex items-center px-3 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 w-full justify-center">
-                            <i class="fas fa-download mr-2"></i>
+                           class="inline-flex items-center px-4 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 w-full justify-center transition-colors">
+                            <i class="fas fa-external-link-alt mr-2"></i>
                             Lihat Surat Penawaran
                         </a>
                     </div>
@@ -181,135 +236,259 @@
     </div>
 </div>
 
-<!-- Payment Form -->
-<div class="bg-white rounded-lg shadow-lg">
-    <div class="p-6 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-800">Form Input Pembayaran</h2>
-        <p class="text-gray-600 mt-1">Masukkan detail pembayaran dari klien</p>
+<!-- Payment Form Enhanced -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-100">
+    <div class="p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 rounded-t-xl">
+        <div class="flex items-center">
+            <div class="bg-green-100 rounded-lg p-2 mr-3">
+                <i class="fas fa-edit text-green-600"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Form Input Pembayaran</h2>
+                <p class="text-gray-600 mt-1">Masukkan detail pembayaran dari klien</p>
+            </div>
+        </div>
     </div>
     
     <form action="{{ route('purchasing.pembayaran.store') }}" method="POST" enctype="multipart/form-data" class="p-6">
         @csrf
         <input type="hidden" name="id_proyek" value="{{ $proyek->id_proyek }}">
+        @if(isset($selectedVendor))
+        <input type="hidden" name="id_vendor" value="{{ $selectedVendor->id_vendor }}">
+        @endif
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Left Column -->
+        <!-- Vendor Selection Section (if not pre-selected) -->
+        @if(!isset($selectedVendor))
+        <div class="mb-8 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+            <h3 class="font-semibold text-purple-800 mb-4 flex items-center">
+                <i class="fas fa-building mr-2"></i>
+                Pilih Vendor untuk Pembayaran
+            </h3>
+            <div class="space-y-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Vendor <span class="text-red-500">*</span>
+                </label>
+                <select name="id_vendor" id="vendor_select" required 
+                        class="w-full px-4 py-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors">
+                    <option value="">-- Pilih Vendor --</option>
+                    @foreach($vendors ?? [] as $vendor)
+                    <option value="{{ $vendor->id_vendor }}" 
+                            data-total="{{ $vendor->total_vendor }}"
+                            data-dibayar="{{ $vendor->total_dibayar }}"
+                            data-sisa="{{ $vendor->sisa_bayar }}">
+                        {{ $vendor->nama_vendor }} 
+                        (Sisa: Rp {{ number_format($vendor->sisa_bayar, 0, ',', '.') }})
+                    </option>
+                    @endforeach
+                </select>
+                
+                <!-- Vendor Info Display -->
+                <div id="vendor_info" class="hidden mt-4 p-3 bg-white rounded-lg border border-purple-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <span class="text-purple-700 font-medium">Total Modal:</span>
+                            <span id="vendor_total" class="font-semibold text-purple-900"></span>
+                        </div>
+                        <div>
+                            <span class="text-purple-700 font-medium">Sudah Dibayar:</span>
+                            <span id="vendor_dibayar" class="font-semibold text-green-600"></span>
+                        </div>
+                        <div>
+                            <span class="text-purple-700 font-medium">Sisa Tagihan:</span>
+                            <span id="vendor_sisa" class="font-semibold text-red-600"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @else
+        <!-- Selected Vendor Info -->
+        <div class="mb-8 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+            <h3 class="font-semibold text-green-800 mb-4 flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                Vendor Dipilih untuk Pembayaran
+            </h3>
+            <div class="bg-white rounded-lg p-4 border border-green-200">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-semibold text-gray-900">{{ $selectedVendor->nama_vendor }}</h4>
+                    <span class="text-sm text-gray-600">{{ $selectedVendor->jenis_perusahaan }}</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-green-700 font-medium">Total Modal:</span>
+                        <span class="font-semibold text-green-900">Rp {{ number_format($selectedVendor->total_vendor ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                    <div>
+                        <span class="text-green-700 font-medium">Sudah Dibayar:</span>
+                        <span class="font-semibold text-blue-600">Rp {{ number_format($selectedVendor->total_dibayar ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                    <div>
+                        <span class="text-green-700 font-medium">Sisa Tagihan:</span>
+                        <span class="font-semibold text-red-600">Rp {{ number_format($selectedVendor->sisa_bayar ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column - Payment Details -->
             <div class="space-y-6">
-                <!-- Jenis Pembayaran -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Jenis Pembayaran <span class="text-red-500">*</span>
-                    </label>
-                    <select name="jenis_bayar" id="jenis_bayar" required 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Pilih Jenis Pembayaran --</option>
-                        <option value="Lunas" {{ old('jenis_bayar') == 'Lunas' ? 'selected' : '' }}>Lunas</option>
-                        <option value="DP" {{ old('jenis_bayar') == 'DP' ? 'selected' : '' }}>DP (Down Payment)</option>
-                        <option value="Cicilan" {{ old('jenis_bayar') == 'Cicilan' ? 'selected' : '' }}>Cicilan</option>
-                    </select>
-                </div>
-                
-                <!-- Nominal Pembayaran -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Nominal Pembayaran <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-2 text-gray-500">Rp</span>
-                        <input type="number" name="nominal_bayar" id="nominal_bayar" required 
-                               min="1" max="{{ $sisaBayar }}"
-                               value="{{ old('nominal_bayar') }}"
-                               class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               placeholder="0">
-                    </div>
-                    <p class="text-sm text-gray-500 mt-1">Maksimal: Rp {{ number_format($sisaBayar, 0, ',', '.') }}</p>
+                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h3 class="font-semibold text-blue-800 mb-4 flex items-center">
+                        <i class="fas fa-money-check mr-2"></i>
+                        Detail Pembayaran
+                    </h3>
                     
-                    <!-- Quick Suggestions -->
-                    <div class="mt-2 flex flex-wrap gap-2" id="suggestions">
-                        <button type="button" class="suggestion-btn px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200" 
-                                data-amount="{{ $sisaBayar }}">
-                            Lunas (Rp {{ number_format($sisaBayar, 0, ',', '.') }})
-                        </button>
-                        @if($sisaBayar > 0)
-                        <button type="button" class="suggestion-btn px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200" 
-                                data-amount="{{ $sisaBayar * 0.3 }}">
-                            30% (Rp {{ number_format($sisaBayar * 0.3, 0, ',', '.') }})
-                        </button>
-                        <button type="button" class="suggestion-btn px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200" 
-                                data-amount="{{ $sisaBayar * 0.5 }}">
-                            50% (Rp {{ number_format($sisaBayar * 0.5, 0, ',', '.') }})
-                        </button>
-                        @endif
+                    <!-- Jenis Pembayaran -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Jenis Pembayaran <span class="text-red-500">*</span>
+                        </label>
+                        <select name="jenis_bayar" id="jenis_bayar" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <option value="">-- Pilih Jenis Pembayaran --</option>
+                            <option value="Lunas" {{ old('jenis_bayar') == 'Lunas' ? 'selected' : '' }}>Lunas</option>
+                            <option value="DP" {{ old('jenis_bayar') == 'DP' ? 'selected' : '' }}>DP (Down Payment)</option>
+                            <option value="Cicilan" {{ old('jenis_bayar') == 'Cicilan' ? 'selected' : '' }}>Cicilan</option>
+                        </select>
                     </div>
-                </div>
-                
-                <!-- Metode Pembayaran -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Metode Pembayaran <span class="text-red-500">*</span>
-                    </label>
-                    <select name="metode_bayar" required 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Pilih Metode --</option>
-                        <option value="Transfer Bank" {{ old('metode_bayar') == 'Transfer Bank' ? 'selected' : '' }}>Transfer Bank</option>
-                        <option value="Cash" {{ old('metode_bayar') == 'Cash' ? 'selected' : '' }}>Cash</option>
-                        <option value="Cek" {{ old('metode_bayar') == 'Cek' ? 'selected' : '' }}>Cek</option>
-                        <option value="Giro" {{ old('metode_bayar') == 'Giro' ? 'selected' : '' }}>Giro</option>
-                    </select>
+                    
+                    <!-- Nominal Pembayaran -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Nominal Pembayaran <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-3 text-gray-500 font-medium">Rp</span>
+                            <input type="number" name="nominal_bayar" id="nominal_bayar" required 
+                                   min="1" max="{{ $sisaBayar }}"
+                                   value="{{ old('nominal_bayar') }}"
+                                   class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="0">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2 flex items-center">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Maksimal: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                        </p>
+                        
+                        <!-- Quick Suggestions Enhanced -->
+                        <div class="mt-3" id="suggestions">
+                            <p class="text-xs text-gray-600 mb-2">Saran cepat:</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" class="suggestion-btn px-3 py-2 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors border border-green-300" 
+                                        data-amount="{{ $sisaBayar }}">
+                                    <i class="fas fa-check mr-1"></i>
+                                    Lunas (Rp {{ number_format($sisaBayar, 0, ',', '.') }})
+                                </button>
+                                @if($sisaBayar > 0)
+                                <button type="button" class="suggestion-btn px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors border border-blue-300" 
+                                        data-amount="{{ $sisaBayar * 0.3 }}">
+                                    30% (Rp {{ number_format($sisaBayar * 0.3, 0, ',', '.') }})
+                                </button>
+                                <button type="button" class="suggestion-btn px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors border border-purple-300" 
+                                        data-amount="{{ $sisaBayar * 0.5 }}">
+                                    50% (Rp {{ number_format($sisaBayar * 0.5, 0, ',', '.') }})
+                                </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Metode Pembayaran -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Metode Pembayaran <span class="text-red-500">*</span>
+                        </label>
+                        <select name="metode_bayar" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <option value="">-- Pilih Metode --</option>
+                            <option value="Transfer Bank" {{ old('metode_bayar') == 'Transfer Bank' ? 'selected' : '' }}>
+                                <i class="fas fa-university mr-2"></i>Transfer Bank
+                            </option>
+                            <option value="Cash" {{ old('metode_bayar') == 'Cash' ? 'selected' : '' }}>
+                                <i class="fas fa-money-bill mr-2"></i>Cash
+                            </option>
+                            <option value="Cek" {{ old('metode_bayar') == 'Cek' ? 'selected' : '' }}>
+                                <i class="fas fa-check mr-2"></i>Cek
+                            </option>
+                            <option value="Giro" {{ old('metode_bayar') == 'Giro' ? 'selected' : '' }}>
+                                <i class="fas fa-money-check mr-2"></i>Giro
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
             
-            <!-- Right Column -->
+            <!-- Right Column - Documents & Notes -->
             <div class="space-y-6">
-                <!-- Bukti Pembayaran -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Bukti Pembayaran <span class="text-red-500">*</span>
-                    </label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                        <div class="mx-auto h-12 w-12 text-gray-400 mb-4">
-                            <i class="fas fa-cloud-upload-alt text-4xl"></i>
-                        </div>
-                        <input type="file" name="bukti_bayar" id="bukti_bayar" required 
-                               accept=".jpg,.jpeg,.png,.pdf"
-                               class="hidden">
-                        <label for="bukti_bayar" class="cursor-pointer">
-                            <span class="text-blue-600 hover:text-blue-500">Upload file</span>
-                            <span class="text-gray-500"> atau drag & drop</span>
+                <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <h3 class="font-semibold text-purple-800 mb-4 flex items-center">
+                        <i class="fas fa-file-upload mr-2"></i>
+                        Dokumen & Catatan
+                    </h3>
+                    
+                    <!-- Bukti Pembayaran -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Bukti Pembayaran <span class="text-red-500">*</span>
                         </label>
-                        <p class="text-xs text-gray-500 mt-2">JPG, JPEG, PNG, PDF (max 5MB)</p>
-                    </div>
-                    <div id="file-info" class="mt-2 hidden">
-                        <div class="flex items-center p-2 bg-gray-50 rounded">
-                            <i class="fas fa-file mr-2 text-gray-400"></i>
-                            <span id="file-name" class="text-sm text-gray-700"></span>
-                            <button type="button" id="remove-file" class="ml-auto text-red-500 hover:text-red-700">
-                                <i class="fas fa-times"></i>
-                            </button>
+                        <div class="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-white hover:bg-purple-50 transition-colors">
+                            <div class="mx-auto h-12 w-12 text-purple-400 mb-4">
+                                <i class="fas fa-cloud-upload-alt text-4xl"></i>
+                            </div>
+                            <input type="file" name="bukti_bayar" id="bukti_bayar" required 
+                                   accept=".jpg,.jpeg,.png,.pdf"
+                                   class="hidden">
+                            <label for="bukti_bayar" class="cursor-pointer">
+                                <span class="text-purple-600 hover:text-purple-500 font-medium">Upload file</span>
+                                <span class="text-gray-500"> atau drag & drop</span>
+                            </label>
+                            <p class="text-xs text-gray-500 mt-2">JPG, JPEG, PNG, PDF (max 5MB)</p>
+                        </div>
+                        <div id="file-info" class="mt-3 hidden">
+                            <div class="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                                <i class="fas fa-file text-green-600 mr-2"></i>
+                                <span id="file-name" class="text-sm text-green-800 flex-1"></span>
+                                <button type="button" id="remove-file" class="text-red-500 hover:text-red-700 transition-colors">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    
+                    <!-- Catatan -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Catatan
+                        </label>
+                        <textarea name="catatan" rows="4" 
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none"
+                                  placeholder="Catatan tambahan (opsional)">{{ old('catatan') }}</textarea>
+                    </div>
                 </div>
                 
-                <!-- Catatan -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Catatan
-                    </label>
-                    <textarea name="catatan" rows="4" 
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="Catatan tambahan (opsional)">{{ old('catatan') }}</textarea>
-                </div>
-                
-                <!-- Info -->
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <!-- Info Enhanced -->
+                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg p-4">
                     <div class="flex items-start">
-                        <i class="fas fa-info-circle text-yellow-400 mt-0.5 mr-2"></i>
-                        <div class="text-sm text-yellow-800">
-                            <p class="font-medium mb-1">Informasi Penting:</p>
-                            <ul class="list-disc list-inside space-y-1">
-                                <li>Pembayaran akan berstatus "Pending" menunggu verifikasi admin keuangan</li>
-                                <li>Pastikan bukti pembayaran jelas dan valid</li>
-                                <li>Admin keuangan akan memverifikasi dalam 1-2 hari kerja</li>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-yellow-500 text-lg"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-semibold text-yellow-800 mb-2">Informasi Penting</h4>
+                            <ul class="text-sm text-yellow-700 space-y-1">
+                                <li class="flex items-start">
+                                    <i class="fas fa-clock text-yellow-500 mr-2 mt-1 text-xs"></i>
+                                    Pembayaran akan berstatus "Pending" menunggu verifikasi admin keuangan
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-yellow-500 mr-2 mt-1 text-xs"></i>
+                                    Pastikan bukti pembayaran jelas dan valid
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-calendar-check text-yellow-500 mr-2 mt-1 text-xs"></i>
+                                    Admin keuangan akan memverifikasi dalam 1-2 hari kerja
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -317,16 +496,16 @@
             </div>
         </div>
         
-        <!-- Action Buttons -->
-        <div class="flex items-center justify-between pt-6 border-t border-gray-200 mt-6">
+        <!-- Action Buttons Enhanced -->
+        <div class="flex items-center justify-between pt-8 border-t border-gray-200 mt-8">
             <a href="{{ route('purchasing.pembayaran') }}" 
-               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+               class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>
-                Kembali
+                Kembali ke Daftar
             </a>
             
             <button type="submit" 
-                    class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    class="inline-flex items-center px-8 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                 <i class="fas fa-save mr-2"></i>
                 Simpan Pembayaran
             </button>
@@ -355,23 +534,100 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInfo.classList.add('hidden');
     });
     
-    // Suggestion buttons
-    document.querySelectorAll('.suggestion-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const amount = this.getAttribute('data-amount');
-            document.getElementById('nominal_bayar').value = Math.round(amount);
+    // Vendor selection handling
+    const vendorSelect = document.getElementById('vendor_select');
+    const vendorInfo = document.getElementById('vendor_info');
+    const nominalInput = document.getElementById('nominal_bayar');
+    const suggestionsContainer = document.getElementById('suggestions');
+    
+    if (vendorSelect) {
+        vendorSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (this.value) {
+                // Show vendor info
+                vendorInfo.classList.remove('hidden');
+                
+                // Update vendor info display
+                const total = parseFloat(selectedOption.dataset.total) || 0;
+                const dibayar = parseFloat(selectedOption.dataset.dibayar) || 0;
+                const sisa = parseFloat(selectedOption.dataset.sisa) || 0;
+                
+                document.getElementById('vendor_total').textContent = 'Rp ' + total.toLocaleString('id-ID');
+                document.getElementById('vendor_dibayar').textContent = 'Rp ' + dibayar.toLocaleString('id-ID');
+                document.getElementById('vendor_sisa').textContent = 'Rp ' + sisa.toLocaleString('id-ID');
+                
+                // Update nominal input max value
+                nominalInput.max = sisa;
+                nominalInput.setAttribute('data-vendor-sisa', sisa);
+                
+                // Update suggestions
+                updateSuggestions(sisa);
+            } else {
+                vendorInfo.classList.add('hidden');
+                nominalInput.max = '';
+                nominalInput.removeAttribute('data-vendor-sisa');
+            }
         });
+    }
+    
+    // Update suggestions based on vendor sisa
+    function updateSuggestions(sisa) {
+        if (!suggestionsContainer) return;
+        
+        const suggestionButtons = suggestionsContainer.querySelectorAll('.suggestion-btn');
+        suggestionButtons.forEach(btn => {
+            const amount = parseFloat(btn.getAttribute('data-amount'));
+            if (amount > sisa) {
+                btn.style.display = 'none';
+            } else {
+                btn.style.display = 'inline-block';
+            }
+        });
+        
+        // Add vendor-specific suggestions
+        const existingVendorSuggestions = suggestionsContainer.querySelectorAll('.vendor-suggestion');
+        existingVendorSuggestions.forEach(btn => btn.remove());
+        
+        // Add lunas button for this vendor
+        const lunasBtn = document.createElement('button');
+        lunasBtn.type = 'button';
+        lunasBtn.className = 'vendor-suggestion suggestion-btn px-3 py-2 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors border border-green-300';
+        lunasBtn.setAttribute('data-amount', sisa);
+        lunasBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Lunas Vendor (Rp ' + sisa.toLocaleString('id-ID') + ')';
+        suggestionsContainer.appendChild(lunasBtn);
+        
+        // Add event listener to new button
+        lunasBtn.addEventListener('click', function() {
+            nominalInput.value = Math.round(sisa);
+        });
+    }
+    
+    // Suggestion buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('suggestion-btn') || e.target.closest('.suggestion-btn')) {
+            const btn = e.target.classList.contains('suggestion-btn') ? e.target : e.target.closest('.suggestion-btn');
+            const amount = btn.getAttribute('data-amount');
+            nominalInput.value = Math.round(amount);
+        }
     });
     
     // Auto-select jenis bayar based on nominal
-    const nominalInput = document.getElementById('nominal_bayar');
     const jenisSelect = document.getElementById('jenis_bayar');
-    const sisaBayar = {{ $sisaBayar }};
     
     nominalInput.addEventListener('input', function() {
         const nominal = parseFloat(this.value) || 0;
-        if (nominal >= sisaBayar && jenisSelect.value === '') {
+        const maxAmount = parseFloat(this.max) || parseFloat(this.getAttribute('data-vendor-sisa')) || {{ $sisaBayar }};
+        
+        if (nominal >= maxAmount && jenisSelect.value === '') {
             jenisSelect.value = 'Lunas';
+        }
+        
+        // Validate against max
+        if (nominal > maxAmount) {
+            this.setCustomValidity('Nominal tidak boleh melebihi sisa tagihan vendor');
+        } else {
+            this.setCustomValidity('');
         }
     });
     

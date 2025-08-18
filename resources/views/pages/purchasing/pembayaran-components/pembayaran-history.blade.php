@@ -2,15 +2,36 @@
 
 @section('content')
 
-<!-- Header Section -->
-<div class="bg-green-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
+<!-- Header Section Enhanced -->
+<div class="bg-gradient-to-r from-green-800 to-emerald-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-xl mt-4">
     <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Riwayat Pembayaran</h1>
-            <p class="text-green-100 text-sm sm:text-base lg:text-lg">{{ $proyek->nama_barang }} - {{ $proyek->nama_klien }}</p>
+        <div class="flex-1">
+            <div class="flex items-center mb-3">
+                <div class="bg-green-700 rounded-lg p-2 mr-3">
+                    <i class="fas fa-history text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold">Riwayat Pembayaran</h1>
+                    <p class="text-green-100 text-sm sm:text-base lg:text-lg">
+                        Catatan lengkap pembayaran proyek
+                    </p>
+                </div>
+            </div>
+            <div class="bg-green-700/30 rounded-lg p-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-green-200">Barang:</span>
+                        <span class="font-semibold ml-2">{{ $proyek->nama_barang }}</span>
+                    </div>
+                    <div>
+                        <span class="text-green-200">Klien:</span>
+                        <span class="font-semibold ml-2">{{ $proyek->nama_klien }} - {{ $proyek->instansi }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="hidden sm:block lg:block">
-            <i class="fas fa-history text-3xl sm:text-4xl lg:text-6xl"></i>
+        <div class="hidden lg:block">
+            <i class="fas fa-chart-line text-5xl opacity-20"></i>
         </div>
     </div>
 </div>
@@ -46,14 +67,20 @@
                 @php
                     $totalPenawaran = $proyek->penawaranAktif->total_penawaran;
                     $totalDibayar = $riwayatPembayaran->where('status_verifikasi', '!=', 'Ditolak')->sum('nominal_bayar');
-                    $sisaBayar = $totalPenawaran - $totalDibayar;
-                    $persenBayar = $totalPenawaran > 0 ? ($totalDibayar / $totalPenawaran) * 100 : 0;
+                    $sisaBayar = $totalModalVendor - $totalDibayar;
+                    $persenBayar = $totalModalVendor > 0 ? ($totalDibayar / $totalModalVendor) * 100 : 0;
                 @endphp
                 <div class="space-y-2">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Total Penawaran:</span>
+                        <span class="text-gray-600">Total Modal Vendor:</span>
                         <span class="font-bold text-green-600">
-                            Rp {{ number_format($totalPenawaran, 0, ',', '.') }}
+                            Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 text-sm">Total Penawaran Klien:</span>
+                        <span class="font-medium text-sm text-blue-600">
+                            Rp {{ number_format((float)$totalPenawaran, 0, ',', '.') }}
                         </span>
                     </div>
                     <div class="flex justify-between">
@@ -221,7 +248,7 @@
                             Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
                         </div>
                         @php
-                            $persenNominal = $totalPenawaran > 0 ? ($pembayaran->nominal_bayar / $totalPenawaran) * 100 : 0;
+                            $persenNominal = $totalModalVendor > 0 ? ($pembayaran->nominal_bayar / $totalModalVendor) * 100 : 0;
                         @endphp
                         <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari total</div>
                     </td>

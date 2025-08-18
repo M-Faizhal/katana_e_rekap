@@ -22,4 +22,9 @@ class Vendor extends Model
     {
         return $this->hasMany(Barang::class, 'id_vendor');
     }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(Pembayaran::class, 'id_vendor');
+    }
 }

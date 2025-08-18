@@ -74,7 +74,7 @@ Route::middleware('auth')->group(function () {
 
         // Pembayaran Routes
         Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('purchasing.pembayaran');
-        Route::get('/pembayaran/create/{id_proyek}', [PembayaranController::class, 'create'])->name('purchasing.pembayaran.create');
+        Route::get('/pembayaran/create/{id_proyek}/{id_vendor?}', [PembayaranController::class, 'create'])->name('purchasing.pembayaran.create');
         Route::post('/pembayaran', [PembayaranController::class, 'store'])->name('purchasing.pembayaran.store');
         Route::get('/pembayaran/{id_pembayaran}', [PembayaranController::class, 'show'])->name('purchasing.pembayaran.show');
         Route::get('/pembayaran/{id_pembayaran}/edit', [PembayaranController::class, 'edit'])->name('purchasing.pembayaran.edit');

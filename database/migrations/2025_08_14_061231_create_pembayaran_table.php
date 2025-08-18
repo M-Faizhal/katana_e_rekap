@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('pembayaran', function (Blueprint $table) {
             $table->id('id_pembayaran');
             $table->unsignedBigInteger('id_penawaran');
+            $table->unsignedBigInteger('id_vendor');
             $table->string('jenis_bayar');
             $table->decimal('nominal_bayar', 15, 2);
             $table->date('tanggal_bayar');
@@ -24,6 +25,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('id_penawaran')->references('id_penawaran')->on('penawaran')->onDelete('cascade');
+            $table->foreign('id_vendor')->references('id_vendor')->on('vendor')->onDelete('cascade');
         });
     }
 

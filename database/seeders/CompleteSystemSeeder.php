@@ -542,7 +542,7 @@ class CompleteSystemSeeder extends Seeder
                 'masa_berlaku' => Carbon::now()->addDays(30),
                 'surat_pesanan' => 'SP-DIN-DIKDKI-2024-001.pdf',
                 'surat_penawaran' => 'SPN-KATANA-2024-001.pdf',
-                'total_penawaran' => 368750000.00,
+                'total_penawaran' => 442500000.00, // Updated: 375,000,000 + 67,500,000
                 'status' => 'ACC',
                 'created_at' => Carbon::now()->subDays(28),
                 'updated_at' => now()
@@ -554,7 +554,7 @@ class CompleteSystemSeeder extends Seeder
                 'masa_berlaku' => Carbon::now()->addDays(25),
                 'surat_pesanan' => 'SP-KT-2024-002.pdf',
                 'surat_penawaran' => 'SPN-KATANA-2024-002.pdf',
-                'total_penawaran' => 151875000.00,
+                'total_penawaran' => 214256250.00, // Updated: 77,625,000 + 38,812,500 + 58,218,750 + 39,600,000
                 'status' => 'ACC',
                 'created_at' => Carbon::now()->subDays(23),
                 'updated_at' => now()
@@ -566,7 +566,7 @@ class CompleteSystemSeeder extends Seeder
                 'masa_berlaku' => Carbon::now()->addDays(30),
                 'surat_pesanan' => 'SP-RSU-CP-2024-003.pdf',
                 'surat_penawaran' => 'SPN-KATANA-2024-003.pdf',
-                'total_penawaran' => 48750000.00,
+                'total_penawaran' => 52500000.00, // Diperbaiki: 37.5M + 11.25M + 3.75M
                 'status' => 'ACC',
                 'created_at' => Carbon::now()->subDays(18),
                 'updated_at' => now()
@@ -627,69 +627,80 @@ class CompleteSystemSeeder extends Seeder
         echo "📝 Seeding penawaran detail...\n";
         
         $details = [
-            // Penawaran 1 - Laptop dan Monitor
+            // Penawaran 1 - Laptop dan Monitor (Multi vendor: Vendor 1 & 2)
             [
                 'id_penawaran' => 1,
-                'id_barang' => 1, // Laptop Dell
+                'id_barang' => 1, // Laptop Dell (Vendor 1) - Harga modal: 12,500,000, Margin: 20%
                 'nama_barang' => 'Laptop Dell Latitude 5420',
                 'spesifikasi' => 'Intel Core i5-1135G7, 8GB RAM, 256GB SSD, 14" FHD, Windows 11',
                 'qty' => 25,
-                'harga_satuan' => 12500000.00,
-                'subtotal' => 312500000.00,
+                'harga_satuan' => 15000000.00, // Harga penawaran (markup 20%)
+                'subtotal' => 375000000.00,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'id_penawaran' => 1,
-                'id_barang' => 2, // Monitor LG
+                'id_barang' => 2, // Monitor LG (Vendor 1) - Harga modal: 2,250,000, Margin: 20%
                 'nama_barang' => 'Monitor LG 24" IPS',
                 'spesifikasi' => '24 inch, IPS Panel, 1920x1080, HDMI, VGA',
                 'qty' => 25,
-                'harga_satuan' => 2250000.00,
-                'subtotal' => 56250000.00,
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-            
-            // Penawaran 2 - Furniture
-            [
-                'id_penawaran' => 2,
-                'id_barang' => 5, // Meja Kerja
-                'nama_barang' => 'Meja Kerja Executive',
-                'spesifikasi' => 'Kayu mahoni, ukuran 160x80x75 cm, dengan laci',
-                'qty' => 15,
-                'harga_satuan' => 4500000.00,
+                'harga_satuan' => 2700000.00, // Harga penawaran (markup 20%)
                 'subtotal' => 67500000.00,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
+            
+            // Penawaran 2 - Furniture Complete Office Setup (Multi vendor: Vendor 3 & 5)
             [
                 'id_penawaran' => 2,
-                'id_barang' => 6, // Kursi Kantor
-                'nama_barang' => 'Kursi Kantor Ergonomis',
-                'spesifikasi' => 'Bahan mesh, adjustable height, lumbar support',
+                'id_barang' => 5, // Meja Kerja (Vendor 3) - Harga modal: 4,500,000, Margin: 15%
+                'nama_barang' => 'Meja Kerja Executive',
+                'spesifikasi' => 'Kayu mahoni, ukuran 160x80x75 cm, dengan laci',
                 'qty' => 15,
-                'harga_satuan' => 2250000.00,
-                'subtotal' => 33750000.00,
+                'harga_satuan' => 5175000.00, // Harga penawaran (markup 15%)
+                'subtotal' => 77625000.00,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'id_penawaran' => 2,
-                'id_barang' => 7, // Lemari Arsip
+                'id_barang' => 6, // Kursi Kantor (Vendor 3) - Harga modal: 2,250,000, Margin: 15%
+                'nama_barang' => 'Kursi Kantor Ergonomis',
+                'spesifikasi' => 'Bahan mesh, adjustable height, lumbar support',
+                'qty' => 15,
+                'harga_satuan' => 2587500.00, // Harga penawaran (markup 15%)
+                'subtotal' => 38812500.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 2,
+                'id_barang' => 7, // Lemari Arsip (Vendor 3) - Harga modal: 3,375,000, Margin: 15%
                 'nama_barang' => 'Lemari Arsip 4 Pintu',
                 'spesifikasi' => 'Bahan besi, 4 pintu, ukuran 180x90x40 cm',
                 'qty' => 15,
-                'harga_satuan' => 3375000.00,
-                'subtotal' => 50625000.00,
+                'harga_satuan' => 3881250.00, // Harga penawaran (markup 15%)
+                'subtotal' => 58218750.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 2,
+                'id_barang' => 11, // AC Split (Vendor 5) - Harga modal: 4,500,000, Margin: 10%
+                'nama_barang' => 'AC Split 1 PK',
+                'spesifikasi' => '1 PK, R32, inverter, low watt',
+                'qty' => 8,
+                'harga_satuan' => 4950000.00, // Harga penawaran (markup 10%)
+                'subtotal' => 39600000.00,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             
-            // Penawaran 3 - Generator dan Pompa
+            // Penawaran 3 - Generator dan Pompa (Multi vendor: Vendor 4 & 2)
             [
                 'id_penawaran' => 3,
-                'id_barang' => 8, // Generator
+                'id_barang' => 8, // Generator (Vendor 4)
                 'nama_barang' => 'Generator Set 5 KVA',
                 'spesifikasi' => 'Silent type, 5000 watt, portable, electric start',
                 'qty' => 2,
@@ -700,7 +711,7 @@ class CompleteSystemSeeder extends Seeder
             ],
             [
                 'id_penawaran' => 3,
-                'id_barang' => 9, // Pompa Air
+                'id_barang' => 9, // Pompa Air (Vendor 4)
                 'nama_barang' => 'Pompa Air Centrifugal',
                 'spesifikasi' => '1 HP, head 35 meter, kapasitas 40 liter/menit',
                 'qty' => 2,
@@ -709,11 +720,22 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
+            [
+                'id_penawaran' => 3,
+                'id_barang' => 3, // Printer HP (Vendor 2) - Tambahan untuk kantor lapangan
+                'nama_barang' => 'Printer HP LaserJet Pro M404n',
+                'spesifikasi' => 'Laser Printer, Monochrome, Network Ready, Auto Duplex',
+                'qty' => 1,
+                'harga_satuan' => 3750000.00,
+                'subtotal' => 3750000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
             
-            // Penawaran 4 - Proyektor dan AC
+            // Penawaran 4 - Complete Presentation Setup (Multi vendor: Vendor 5, 3, 1)
             [
                 'id_penawaran' => 4,
-                'id_barang' => 10, // Proyektor
+                'id_barang' => 10, // Proyektor (Vendor 5)
                 'nama_barang' => 'Proyektor Epson EB-S41',
                 'spesifikasi' => '3300 lumens, SVGA, HDMI, VGA, USB',
                 'qty' => 10,
@@ -724,7 +746,7 @@ class CompleteSystemSeeder extends Seeder
             ],
             [
                 'id_penawaran' => 4,
-                'id_barang' => 11, // AC Split
+                'id_barang' => 11, // AC Split (Vendor 5)
                 'nama_barang' => 'AC Split 1 PK',
                 'spesifikasi' => '1 PK, R32, inverter, low watt',
                 'qty' => 10,
@@ -733,11 +755,33 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
+            [
+                'id_penawaran' => 4,
+                'id_barang' => 6, // Kursi Kantor (Vendor 3) - Untuk ruang presentasi
+                'nama_barang' => 'Kursi Kantor Ergonomis',
+                'spesifikasi' => 'Bahan mesh, adjustable height, lumbar support',
+                'qty' => 20,
+                'harga_satuan' => 2250000.00,
+                'subtotal' => 45000000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 4,
+                'id_barang' => 1, // Laptop Dell (Vendor 1) - Untuk presentasi
+                'nama_barang' => 'Laptop Dell Latitude 5420',
+                'spesifikasi' => 'Intel Core i5-1135G7, 8GB RAM, 256GB SSD, 14" FHD, Windows 11',
+                'qty' => 5,
+                'harga_satuan' => 12500000.00,
+                'subtotal' => 62500000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
 
-            // Penawaran 5 - Printer dan Scanner
+            // Penawaran 5 - Complete IT Office Package (Multi vendor: Vendor 2, 1, 3)
             [
                 'id_penawaran' => 5,
-                'id_barang' => 3, // Printer HP
+                'id_barang' => 3, // Printer HP (Vendor 2)
                 'nama_barang' => 'Printer HP LaserJet Pro M404n',
                 'spesifikasi' => 'Laser Printer, Monochrome, Network Ready, Auto Duplex',
                 'qty' => 20,
@@ -748,7 +792,7 @@ class CompleteSystemSeeder extends Seeder
             ],
             [
                 'id_penawaran' => 5,
-                'id_barang' => 4, // Scanner Canon
+                'id_barang' => 4, // Scanner Canon (Vendor 2)
                 'nama_barang' => 'Scanner Canon CanoScan LiDE 300',
                 'spesifikasi' => 'Flatbed Scanner, 2400x4800 dpi, USB powered',
                 'qty' => 20,
@@ -757,34 +801,112 @@ class CompleteSystemSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now()
             ],
-
-            // Penawaran 6 - Meja dan Kursi untuk Ruang Dosen (Proyek Gagal)
             [
-                'id_penawaran' => 6,
-                'id_barang' => 5, // Meja Kerja Executive
-                'nama_barang' => 'Meja Executive Kayu Solid',
-                'spesifikasi' => 'Kayu jati solid, ukuran 180x90x75 cm, dengan laci dan rak buku',
-                'qty' => 12,
-                'harga_satuan' => 5625000.00,
+                'id_penawaran' => 5,
+                'id_barang' => 1, // Laptop Dell (Vendor 1)
+                'nama_barang' => 'Laptop Dell Latitude 5420',
+                'spesifikasi' => 'Intel Core i5-1135G7, 8GB RAM, 256GB SSD, 14" FHD, Windows 11',
+                'qty' => 15,
+                'harga_satuan' => 12500000.00,
+                'subtotal' => 187500000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 5,
+                'id_barang' => 2, // Monitor LG (Vendor 1)
+                'nama_barang' => 'Monitor LG 24" IPS',
+                'spesifikasi' => '24 inch, IPS Panel, 1920x1080, HDMI, VGA',
+                'qty' => 15,
+                'harga_satuan' => 2250000.00,
+                'subtotal' => 33750000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 5,
+                'id_barang' => 5, // Meja Kerja (Vendor 3)
+                'nama_barang' => 'Meja Kerja Executive',
+                'spesifikasi' => 'Kayu mahoni, ukuran 160x80x75 cm, dengan laci',
+                'qty' => 15,
+                'harga_satuan' => 4500000.00,
                 'subtotal' => 67500000.00,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
-                'id_penawaran' => 6,
-                'id_barang' => 6, // Kursi Direktur
-                'nama_barang' => 'Kursi Direktur Kulit Asli',
-                'spesifikasi' => 'Kulit asli premium, adjustable height, reclining back',
-                'qty' => 12,
-                'harga_satuan' => 2812500.00,
+                'id_penawaran' => 5,
+                'id_barang' => 6, // Kursi Kantor (Vendor 3)
+                'nama_barang' => 'Kursi Kantor Ergonomis',
+                'spesifikasi' => 'Bahan mesh, adjustable height, lumbar support',
+                'qty' => 15,
+                'harga_satuan' => 2250000.00,
                 'subtotal' => 33750000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+
+            // Penawaran 6 - Infrastructure Package (Multi vendor: Vendor 4, 5, 2)
+            [
+                'id_penawaran' => 6,
+                'id_barang' => 8, // Generator (Vendor 4)
+                'nama_barang' => 'Generator Set 5 KVA',
+                'spesifikasi' => 'Silent type, 5000 watt, portable, electric start',
+                'qty' => 1,
+                'harga_satuan' => 18750000.00,
+                'subtotal' => 18750000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 6,
+                'id_barang' => 9, // Pompa Air (Vendor 4)
+                'nama_barang' => 'Pompa Air Centrifugal',
+                'spesifikasi' => '1 HP, head 35 meter, kapasitas 40 liter/menit',
+                'qty' => 3,
+                'harga_satuan' => 5625000.00,
+                'subtotal' => 16875000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 6,
+                'id_barang' => 11, // AC Split (Vendor 5)
+                'nama_barang' => 'AC Split 1 PK',
+                'spesifikasi' => '1 PK, R32, inverter, low watt',
+                'qty' => 5,
+                'harga_satuan' => 4500000.00,
+                'subtotal' => 22500000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 6,
+                'id_barang' => 10, // Proyektor (Vendor 5)
+                'nama_barang' => 'Proyektor Epson EB-S41',
+                'spesifikasi' => '3300 lumens, SVGA, HDMI, VGA, USB',
+                'qty' => 2,
+                'harga_satuan' => 6750000.00,
+                'subtotal' => 13500000.00,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 6,
+                'id_barang' => 3, // Printer HP (Vendor 2)
+                'nama_barang' => 'Printer HP LaserJet Pro M404n',
+                'spesifikasi' => 'Laser Printer, Monochrome, Network Ready, Auto Duplex',
+                'qty' => 2,
+                'harga_satuan' => 3750000.00,
+                'subtotal' => 7500000.00,
                 'created_at' => now(),
                 'updated_at' => now()
             ]
         ];
 
         PenawaranDetail::insert($details);
-        echo "   ✓ Created " . count($details) . " penawaran detail\n";
+        echo "   ✓ Created " . count($details) . " penawaran detail items\n";
+        echo "   ✓ Multi-vendor penawaran created successfully!\n";
     }
 
     private function seedPembayaran()
@@ -792,91 +914,160 @@ class CompleteSystemSeeder extends Seeder
         echo "💰 Seeding pembayaran...\n";
         
         $pembayarans = [
-            // Pembayaran untuk proyek 1 (Selesai) - DP dan Pelunasan (Approved)
+            // Pembayaran untuk proyek 1 (Selesai) - DP dan Pelunasan per vendor (Approved)
+            // Vendor 1 (PT Teknologi Canggih Indonesia) - Laptop & Monitor
             [
                 'id_penawaran' => 1,
+                'id_vendor' => 1,
                 'jenis_bayar' => 'DP',
-                'nominal_bayar' => 184375000.00, // 50% DP
+                'nominal_bayar' => 184375000.00, // 50% dari total vendor 1 (312,500,000 + 56,250,000)
                 'tanggal_bayar' => Carbon::now()->subDays(25),
                 'metode_bayar' => 'Transfer Bank',
-                'bukti_bayar' => 'bukti_dp_proyek1.pdf',
-                'catatan' => 'DP 50% untuk pengadaan laptop dan monitor',
+                'bukti_bayar' => 'bukti_dp_vendor1_proyek1.pdf',
+                'catatan' => 'DP 50% untuk laptop dan monitor dari PT Teknologi Canggih Indonesia',
                 'status_verifikasi' => 'Approved',
                 'created_at' => Carbon::now()->subDays(25),
                 'updated_at' => now()
             ],
             [
                 'id_penawaran' => 1,
+                'id_vendor' => 1,
                 'jenis_bayar' => 'Pelunasan',
-                'nominal_bayar' => 184375000.00, // 50% Pelunasan
+                'nominal_bayar' => 184375000.00, // 50% Pelunasan vendor 1
                 'tanggal_bayar' => Carbon::now()->subDays(10),
                 'metode_bayar' => 'Transfer Bank',
-                'bukti_bayar' => 'bukti_pelunasan_proyek1.pdf',
-                'catatan' => 'Pelunasan setelah barang diterima',
+                'bukti_bayar' => 'bukti_pelunasan_vendor1_proyek1.pdf',
+                'catatan' => 'Pelunasan untuk laptop dan monitor dari PT Teknologi Canggih Indonesia',
                 'status_verifikasi' => 'Approved',
                 'created_at' => Carbon::now()->subDays(10),
                 'updated_at' => now()
             ],
-            
-            // Pembayaran untuk proyek 2 (Pengiriman) - DP saja (Approved)
+
+            // Pembayaran untuk proyek 2 (Pengiriman) - Multi vendor
+            // Vendor 3 (PT Furniture Nusantara) - Furniture
             [
                 'id_penawaran' => 2,
+                'id_vendor' => 3,
                 'jenis_bayar' => 'DP',
-                'nominal_bayar' => 75937500.00, // 50% DP
+                'nominal_bayar' => 75937500.00, // 50% dari total vendor 3 (67,500,000 + 33,750,000 + 50,625,000)
                 'tanggal_bayar' => Carbon::now()->subDays(20),
                 'metode_bayar' => 'Transfer Bank',
-                'bukti_bayar' => 'bukti_dp_proyek2.pdf',
-                'catatan' => 'DP 50% untuk furniture kantor',
+                'bukti_bayar' => 'bukti_dp_vendor3_proyek2.pdf',
+                'catatan' => 'DP 50% untuk furniture dari PT Furniture Nusantara',
                 'status_verifikasi' => 'Approved',
                 'created_at' => Carbon::now()->subDays(20),
                 'updated_at' => now()
             ],
-            
-            // Pembayaran untuk proyek 3 (Pembayaran) - DP sudah Approved, ready untuk kirim
+            // Vendor 5 (PT Alat Kantor Prima) - AC Split
+            [
+                'id_penawaran' => 2,
+                'id_vendor' => 5,
+                'jenis_bayar' => 'DP',
+                'nominal_bayar' => 10000000.00, // DP kecil saja (dari total modal ~36,000,000)
+                'tanggal_bayar' => Carbon::now()->subDays(18),
+                'metode_bayar' => 'Transfer Bank',
+                'bukti_bayar' => 'bukti_dp_vendor5_proyek2.pdf',
+                'catatan' => 'DP 25% untuk AC Split dari PT Alat Kantor Prima',
+                'status_verifikasi' => 'Approved',
+                'created_at' => Carbon::now()->subDays(18),
+                'updated_at' => now()
+            ],
+
+            // Pembayaran untuk proyek 3 (Pembayaran) - Multi vendor, ada yang partial payment
+            // Vendor 4 (UD Mesin Industri Jaya) - Generator & Pompa
             [
                 'id_penawaran' => 3,
+                'id_vendor' => 4,
                 'jenis_bayar' => 'DP',
-                'nominal_bayar' => 24375000.00, // 50% DP
+                'nominal_bayar' => 15000000.00, // DP 30% saja (dari total modal ~48,750,000)
                 'tanggal_bayar' => Carbon::now()->subDays(15),
                 'metode_bayar' => 'Transfer Bank',
-                'bukti_bayar' => 'bukti_dp_proyek3.pdf',
-                'catatan' => 'DP 50% untuk generator dan pompa air',
+                'bukti_bayar' => 'bukti_dp_vendor4_proyek3.pdf',
+                'catatan' => 'DP 30% untuk generator dan pompa dari UD Mesin Industri Jaya',
                 'status_verifikasi' => 'Approved',
                 'created_at' => Carbon::now()->subDays(15),
                 'updated_at' => now()
             ],
-            
-            // Pembayaran untuk proyek 4 (Pembayaran) - masih Pending
+            // Vendor 2 (CV Elektronik Makmur) - Printer (Belum bayar sama sekali)
+            // Tidak ada pembayaran untuk vendor 2 di proyek ini (untuk contoh vendor belum bayar)
+
+            // Pembayaran untuk proyek 4 (Pembayaran) - Multi vendor, mixed status
+            // Vendor 5 (PT Alat Kantor Prima) - Proyektor & AC (Pending)
             [
                 'id_penawaran' => 4,
+                'id_vendor' => 5,
                 'jenis_bayar' => 'DP',
-                'nominal_bayar' => 56250000.00, // 50% DP
-                'tanggal_bayar' => Carbon::now()->subDays(5),
+                'nominal_bayar' => 30000000.00, // DP kecil saja (dari total modal ~112,500,000)
+                'tanggal_bayar' => Carbon::now()->subDays(12),
                 'metode_bayar' => 'Transfer Bank',
-                'bukti_bayar' => 'bukti_dp_proyek4.pdf',
-                'catatan' => 'DP 50% untuk proyektor dan AC - perlu verifikasi',
+                'bukti_bayar' => 'bukti_dp_vendor5_proyek4.pdf',
+                'catatan' => 'DP 50% untuk proyektor dan AC dari PT Alat Kantor Prima',
                 'status_verifikasi' => 'Pending',
-                'created_at' => Carbon::now()->subDays(5),
+                'created_at' => Carbon::now()->subDays(12),
+                'updated_at' => now()
+            ],
+            // Vendor 3 (PT Furniture Nusantara) - Kursi (Approved)
+            [
+                'id_penawaran' => 4,
+                'id_vendor' => 3,
+                'jenis_bayar' => 'Lunas',
+                'nominal_bayar' => 45000000.00, // Full payment vendor 3
+                'tanggal_bayar' => Carbon::now()->subDays(10),
+                'metode_bayar' => 'Transfer Bank',
+                'bukti_bayar' => 'bukti_lunas_vendor3_proyek4.pdf',
+                'catatan' => 'Pembayaran lunas untuk kursi kantor dari PT Furniture Nusantara',
+                'status_verifikasi' => 'Approved',
+                'created_at' => Carbon::now()->subDays(10),
+                'updated_at' => now()
+            ],
+            // Vendor 1 (PT Teknologi Canggih Indonesia) - Laptop (Ditolak & Re-submit Pending)
+            [
+                'id_penawaran' => 4,
+                'id_vendor' => 1,
+                'jenis_bayar' => 'DP',
+                'nominal_bayar' => 31250000.00, // 50% dari total vendor 1 (62,500,000)
+                'tanggal_bayar' => Carbon::now()->subDays(14),
+                'metode_bayar' => 'Transfer Bank',
+                'bukti_bayar' => 'bukti_dp_vendor1_proyek4_ditolak.pdf',
+                'catatan' => 'DP 50% untuk laptop (bukti transfer tidak jelas)',
+                'status_verifikasi' => 'Ditolak',
+                'created_at' => Carbon::now()->subDays(14),
+                'updated_at' => now()
+            ],
+            [
+                'id_penawaran' => 4,
+                'id_vendor' => 1,
+                'jenis_bayar' => 'DP',
+                'nominal_bayar' => 31250000.00, // 50% dari total vendor 1 (re-submit)
+                'tanggal_bayar' => Carbon::now()->subDays(8),
+                'metode_bayar' => 'Transfer Bank',
+                'bukti_bayar' => 'bukti_dp_vendor1_proyek4_revisi.pdf',
+                'catatan' => 'DP 50% untuk laptop (revisi bukti transfer yang jelas)',
+                'status_verifikasi' => 'Pending',
+                'created_at' => Carbon::now()->subDays(8),
                 'updated_at' => now()
             ],
 
-            // Pembayaran untuk proyek 6 (Gagal) - DP sudah dibayar tapi proyek gagal 
+            // Pembayaran untuk proyek 5 (Draft) - Partial payment dari beberapa vendor
+            // Vendor 2 (CV Elektronik Makmur) - Printer & Scanner (Approved)
             [
-                'id_penawaran' => 6,
+                'id_penawaran' => 5,
+                'id_vendor' => 2,
                 'jenis_bayar' => 'DP',
-                'nominal_bayar' => 50625000.00, // 50% DP
-                'tanggal_bayar' => Carbon::now()->subDays(40),
+                'nominal_bayar' => 48750000.00, // 50% dari total vendor 2 (97,500,000)
+                'tanggal_bayar' => Carbon::now()->subDays(6),
                 'metode_bayar' => 'Transfer Bank',
-                'bukti_bayar' => 'bukti_dp_proyek6.pdf',
-                'catatan' => 'DP 50% untuk meja dan kursi ruang dosen',
+                'bukti_bayar' => 'bukti_dp_vendor2_proyek5.pdf',
+                'catatan' => 'DP 50% untuk printer dan scanner dari CV Elektronik Makmur',
                 'status_verifikasi' => 'Approved',
-                'created_at' => Carbon::now()->subDays(40),
+                'created_at' => Carbon::now()->subDays(6),
                 'updated_at' => now()
             ]
         ];
 
         Pembayaran::insert($pembayarans);
-        echo "   ✓ Created " . count($pembayarans) . " pembayaran\n";
+        echo "   ✓ Created " . count($pembayarans) . " pembayaran per vendor\n";
+        echo "   ✓ Multi-vendor payment system implemented!\n";
     }
 
     private function seedPengiriman()

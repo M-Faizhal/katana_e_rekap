@@ -1,16 +1,37 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
+
+<!-- Header Section Enhanced -->
+<div class="bg-gradient-to-r from-red-800 to-red-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-xl mt-4">
     <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Edit Pembayaran</h1>
-            <p class="text-red-100 text-sm sm:text-base lg:text-lg">
-                {{ $proyek->nama_proyek }} - {{ $proyek->nama_klien }}
-            </p>
+        <div class="flex-1">
+            <div class="flex items-center mb-3">
+                <div class="bg-red-700 rounded-lg p-2 mr-3">
+                    <i class="fas fa-edit text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold">Edit Pembayaran</h1>
+                    <p class="text-red-100 text-sm sm:text-base lg:text-lg">
+                        Update informasi pembayaran yang masih pending
+                    </p>
+                </div>
+            </div>
+            <div class="bg-red-700/30 rounded-lg p-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-red-200">Proyek:</span>
+                        <span class="font-semibold ml-2">{{ $proyek->nama_barang }}</span>
+                    </div>
+                    <div>
+                        <span class="text-red-200">Klien:</span>
+                        <span class="font-semibold ml-2">{{ $proyek->nama_klien }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="hidden sm:block lg:block">
-            <i class="fas fa-edit text-3xl sm:text-4xl lg:text-6xl"></i>
+        <div class="hidden lg:block">
+            <i class="fas fa-file-edit text-5xl opacity-20"></i>
         </div>
     </div>
 </div>
@@ -34,29 +55,21 @@
 </div>
 @endif
 
-@if($errors->any())
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-    <div class="flex items-center mb-2">
-        <i class="fas fa-exclamation-triangle mr-2"></i>
-        <span class="font-medium">Terdapat kesalahan pada form:</span>
-    </div>
-    <ul class="list-disc list-inside ml-4">
-        @foreach($errors->all() as $error)
-        <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
-
-<div class="bg-white rounded-lg shadow-lg">
-    <div class="p-6 border-b border-gray-200">
+<!-- Main Edit Form Enhanced -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-100">
+    <div class="p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 rounded-t-xl">
         <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-xl font-semibold text-gray-800">Edit Pembayaran</h2>
-                <p class="text-gray-600 mt-1">Update informasi pembayaran yang masih pending</p>
+            <div class="flex items-center">
+                <div class="bg-orange-100 rounded-lg p-2 mr-3">
+                    <i class="fas fa-edit text-orange-600"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">Edit Pembayaran</h2>
+                    <p class="text-gray-600 mt-1">Update informasi pembayaran yang masih pending</p>
+                </div>
             </div>
             <a href="{{ route('purchasing.pembayaran') }}" 
-               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Kembali
             </a>
@@ -64,48 +77,69 @@
     </div>
 
     <div class="p-6">
-        <!-- Project Info -->
-        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h3 class="text-lg font-medium text-gray-900 mb-3">Informasi Proyek</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <div class="text-sm text-gray-600">Nama Proyek</div>
-                    <div class="font-medium">{{ $proyek->nama_proyek }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-gray-600">Klien</div>
-                    <div class="font-medium">{{ $proyek->nama_klien }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-gray-600">Total Penawaran</div>
-                    <div class="font-medium text-green-600">
-                        Rp {{ number_format($pembayaran->penawaran->total_penawaran, 0, ',', '.') }}
+        <!-- Project Info Enhanced -->
+        <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
+                <i class="fas fa-project-diagram mr-2"></i>
+                Informasi Proyek
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-blue-700 font-medium">Nama Barang:</span>
+                        <span class="font-semibold text-blue-900">{{ $proyek->nama_barang }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-blue-700 font-medium">Klien:</span>
+                        <span class="font-semibold text-blue-900">{{ $proyek->nama_klien }}</span>
                     </div>
                 </div>
-                <div>
-                    <div class="text-sm text-gray-600">Sisa Bayar (setelah update ini)</div>
-                    <div class="font-medium text-orange-600">
-                        Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-blue-700 font-medium">Vendor:</span>
+                        <span class="font-semibold text-blue-900">{{ $pembayaran->vendor->nama_vendor }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-blue-700 font-medium">Total Modal Vendor:</span>
+                        <span class="font-bold text-green-700">
+                            Rp {{ number_format($totalModalVendor ?? 0, 0, ',', '.') }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-blue-700 font-medium">Total Penawaran Klien:</span>
+                        <span class="font-semibold text-blue-600">
+                            Rp {{ number_format($pembayaran->penawaran->total_penawaran, 0, ',', '.') }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-blue-700 font-medium">Sisa Bayar Vendor:</span>
+                        <span class="font-bold text-orange-700">
+                            Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Current Payment Info -->
-        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h3 class="text-lg font-medium text-gray-900 mb-3">Data Pembayaran Saat Ini</h3>
+        <!-- Current Payment Info Enhanced -->
+        <div class="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg">
+            <h3 class="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
+                <i class="fas fa-receipt mr-2"></i>
+                Data Pembayaran Saat Ini
+            </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <div class="text-sm text-gray-600">Jenis Bayar</div>
-                    <div class="font-medium">{{ $pembayaran->jenis_bayar }}</div>
+                <div class="bg-white rounded-lg p-3 border border-yellow-200">
+                    <div class="text-xs text-yellow-700 font-medium">Jenis Bayar</div>
+                    <div class="font-semibold text-yellow-900">{{ $pembayaran->jenis_bayar }}</div>
                 </div>
-                <div>
-                    <div class="text-sm text-gray-600">Nominal</div>
-                    <div class="font-medium">Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}</div>
+                <div class="bg-white rounded-lg p-3 border border-yellow-200">
+                    <div class="text-xs text-yellow-700 font-medium">Nominal</div>
+                    <div class="font-semibold text-yellow-900">Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}</div>
                 </div>
-                <div>
-                    <div class="text-sm text-gray-600">Status</div>
-                    <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                <div class="bg-white rounded-lg p-3 border border-yellow-200">
+                    <div class="text-xs text-yellow-700 font-medium">Status</div>
+                    <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
+                        <i class="fas fa-hourglass-half mr-1"></i>
                         {{ $pembayaran->status_verifikasi }}
                     </div>
                 </div>

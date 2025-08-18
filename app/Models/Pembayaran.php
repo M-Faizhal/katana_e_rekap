@@ -11,6 +11,7 @@ class Pembayaran extends Model
 
     protected $fillable = [
         'id_penawaran',
+        'id_vendor',
         'jenis_bayar',
         'nominal_bayar',
         'tanggal_bayar',
@@ -29,6 +30,11 @@ class Pembayaran extends Model
     public function penawaran()
     {
         return $this->belongsTo(Penawaran::class, 'id_penawaran', 'id_penawaran');
+    }
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class, 'id_vendor', 'id_vendor');
     }
 
     public function proyek()
