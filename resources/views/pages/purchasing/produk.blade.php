@@ -1,5 +1,64 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+    /* Completely remove number input spinners/arrows - ULTIMATE VERSION */
+    input[type="number"] {
+        -moz-appearance: textfield !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+    
+    /* Remove webkit spinners */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    
+    /* Force remove any calendar or date pickers */
+    input[type="number"]::-webkit-calendar-picker-indicator {
+        display: none !important;
+        -webkit-appearance: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
+    
+    /* Firefox specific removal */
+    input[type="number"] {
+        -moz-appearance: textfield !important;
+    }
+    
+    /* IE/Edge specific */
+    input[type="number"]::-ms-clear,
+    input[type="number"]::-ms-reveal {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    
+    /* Additional security - force text appearance */
+    input[type="number"] {
+        background-image: none !important;
+        background: none !important;
+    }
+    
+    /* Focus styling */
+    input[type="number"]:focus {
+        outline: 2px solid #dc2626;
+        outline-offset: 2px;
+    }
+</style>
+@endpush
+
 @section('content')
 <!-- Header Section -->
 <div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
@@ -354,6 +413,32 @@
         selects.forEach(select => {
             select.addEventListener('change', function() {
                 form.submit();
+            });
+        });
+        
+        // Prevent number input from changing when scrolled
+        const numberInputs = document.querySelectorAll('input[type="number"]');
+        numberInputs.forEach(input => {
+            // Disable mouse wheel on number inputs
+            input.addEventListener('wheel', function(e) {
+                e.preventDefault();
+            });
+            
+            // Remove focus when scrolling to prevent accidental changes
+            input.addEventListener('focus', function() {
+                this.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    this.blur();
+                });
+            });
+            
+            // Prevent keyboard arrow keys from changing value when not focused
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    if (document.activeElement !== this) {
+                        e.preventDefault();
+                    }
+                }
             });
         });
     });
