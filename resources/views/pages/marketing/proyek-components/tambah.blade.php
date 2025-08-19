@@ -517,7 +517,7 @@ function collectTambahFormData() {
     // Data tambahan yang diperlukan
     data.nama_klien = 'Klien'; // Default value
     data.kontak_klien = ''; // Default value
-    
+
     // Ambil ID admin marketing dari user yang login
     const adminMarketingId = document.getElementById('currentUserId')?.value;
     data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : 1;
@@ -595,10 +595,10 @@ async function loadAdminPurchasingOptions() {
 document.addEventListener('DOMContentLoaded', function() {
     // Load admin purchasing options
     loadAdminPurchasingOptions();
-    
+
     // Load preview kode proyek
     loadPreviewKodeProyek();
-    
+
     // Load current user data
     loadCurrentUserData();
 
@@ -614,11 +614,11 @@ async function loadCurrentUserData() {
         if (data.success) {
             const nameElement = document.getElementById('currentUserName');
             const idElement = document.getElementById('currentUserId');
-            
+
             if (nameElement && data.data.nama) {
                 nameElement.textContent = data.data.nama;
             }
-            
+
             if (idElement && data.data.id) {
                 idElement.value = data.data.id;
             }

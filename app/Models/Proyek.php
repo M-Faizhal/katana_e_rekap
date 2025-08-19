@@ -68,18 +68,18 @@ class Proyek extends Model
     {
         // Ambil kode proyek terakhir
         $lastProyek = static::orderBy('kode_proyek', 'desc')->first();
-        
+
         if (!$lastProyek || !$lastProyek->kode_proyek) {
             return 'PRJ-001';
         }
-        
+
         // Extract nomor dari kode terakhir
         $lastKode = $lastProyek->kode_proyek;
         $lastNumber = (int) substr($lastKode, 4); // Ambil bagian setelah "PRJ-"
-        
+
         // Generate nomor baru
         $newNumber = $lastNumber + 1;
-        
+
         return 'PRJ-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
     }
 

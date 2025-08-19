@@ -208,6 +208,7 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                                 @if(!empty($proyek['surat_penawaran']) && !empty($proyek['surat_kontrak']))
                                     <!-- Dropdown untuk ubah status jika surat penawaran dan kontrak sudah ada -->
                                     <select onchange="changeStatusQuick({{ $proyek['id'] }}, this.value, this)"
+                                            onclick="event.stopPropagation()"
                                             data-current-status="{{ $proyek['status'] }}"
                                             class="status-dropdown text-xs bg-white border border-gray-300 hover:border-gray-400 text-gray-700 px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-red-500 transition-all duration-200"
                                             title="Ubah Status Cepat">
@@ -230,7 +231,7 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                                     </select>
                                 @else
                                     <!-- Tombol modal untuk ubah status jika surat belum lengkap -->
-                                    <button onclick="openStatusModal({{ $proyek['id'] }})" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full transition-colors duration-200" title="Ubah Status">
+                                    <button onclick="event.stopPropagation(); openStatusModal({{ $proyek['id'] }})" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full transition-colors duration-200" title="Ubah Status">
                                         <i class="fas fa-edit mr-1"></i>Ubah
                                     </button>
                                 @endif
@@ -1027,6 +1028,12 @@ function deleteProyek(id) {
 
 // Function to change status quickly via dropdown
 function changeStatusQuick(proyekId, newStatus, selectElement = null) {
+    // Stop event propagation to prevent card click
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
     if (!newStatus) return; // Jika tidak ada status yang dipilih
 
     const proyek = proyekData.find(p => p.id == proyekId);
@@ -1044,9 +1051,10 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
 
     // Konfirmasi perubahan
     const statusNames = {
-        'kontrak': 'Kontrak',
+        'penawaran': 'Penawaran',
+        'pembayaran': 'Pembayaran',
+        'pengiriman': 'Pengiriman',
         'selesai': 'Selesai',
-        'proses': 'Proses',
         'gagal': 'Gagal'
     };
 
@@ -1065,11 +1073,21 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
         selectElement.classList.add('opacity-50');
     }
 
-    // Simulasi API call
-    setTimeout(() => {
-        try {
+    // Update status via API (simulasi dengan timeout)
+    fetch(`/marketing/proyek/${proyekId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            status: newStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
             // Update data
-            const originalStatus = proyek.status;
             proyek.status = newStatus;
 
             // Update UI
@@ -1092,20 +1110,22 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
 
             // Refresh filter if needed
             filterAndSort();
-
-        } catch (error) {
-            console.error('Error updating status:', error);
-            showErrorMessage('Terjadi kesalahan saat mengubah status!');
-
-            // Reset dropdown on error
-            if (selectElement) {
-                selectElement.disabled = false;
-                selectElement.classList.remove('opacity-50');
-                selectElement.innerHTML = originalOptions;
-                selectElement.value = '';
-            }
+        } else {
+            throw new Error(data.message || 'Gagal mengubah status');
         }
-    }, 1500);
+    })
+    .catch(error => {
+        console.error('Error updating status:', error);
+        showErrorMessage('Terjadi kesalahan saat mengubah status: ' + error.message);
+
+        // Reset dropdown on error
+        if (selectElement) {
+            selectElement.disabled = false;
+            selectElement.classList.remove('opacity-50');
+            selectElement.innerHTML = originalOptions;
+            selectElement.value = '';
+        }
+    });
 }
 
 // Function to show success message with animation

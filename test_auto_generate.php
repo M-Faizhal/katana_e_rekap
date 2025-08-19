@@ -44,12 +44,12 @@ try {
     $testProyek->status = 'Menunggu';
     $testProyek->potensi = 'tidak';
     $testProyek->tahun_potensi = 2025;
-    
+
     $testProyek->save();
-    
+
     echo "Test proyek created with kode: {$testProyek->kode_proyek}\n";
     echo "ID: {$testProyek->id_proyek}\n";
-    
+
 } catch (Exception $e) {
     echo "Error creating test proyek: {$e->getMessage()}\n";
 }

@@ -221,7 +221,7 @@ class ProyekController extends Controller
         $proyek = Proyek::findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:Menunggu,Penawaran,Pembayaran,Pengiriman,Selesai,Gagal'
+            'status' => 'required|in:menunggu,penawaran,pembayaran,pengiriman,selesai,gagal'
         ]);
 
         $proyek->update([
