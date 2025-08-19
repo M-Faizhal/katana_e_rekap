@@ -95,6 +95,14 @@
                         <dd class="text-sm text-gray-900">#{{ $pembayaran->id_pembayaran }}</dd>
                     </div>
                     <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Vendor:</dt>
+                        <dd class="text-sm font-semibold text-gray-900">{{ $pembayaran->vendor->nama_vendor }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Jenis Perusahaan:</dt>
+                        <dd class="text-sm text-gray-900">{{ $pembayaran->vendor->jenis_perusahaan }}</dd>
+                    </div>
+                    <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Jenis Pembayaran:</dt>
                         <dd class="text-sm text-gray-900">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -107,8 +115,20 @@
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Nominal:</dt>
-                        <dd class="text-sm font-bold text-gray-900">
+                        <dd class="text-lg font-bold text-green-600">
                             Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
+                        </dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Total Modal Vendor:</dt>
+                        <dd class="text-sm font-semibold text-gray-900">
+                            Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
+                        </dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Persentase:</dt>
+                        <dd class="text-sm text-gray-900">
+                            {{ number_format($totalModalVendor > 0 ? ($pembayaran->nominal_bayar / $totalModalVendor) * 100 : 0, 1) }}% dari modal vendor
                         </dd>
                     </div>
                     <div class="flex justify-between">
@@ -164,13 +184,13 @@
                         </dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-sm font-medium text-gray-500">Sudah Dibayar:</dt>
+                        <dt class="text-sm font-medium text-gray-500">Sudah Dibayar Vendor:</dt>
                         <dd class="text-sm text-blue-600">
                             Rp {{ number_format($totalApproved, 0, ',', '.') }}
                         </dd>
                     </div>
                     <div class="flex justify-between border-t pt-2">
-                        <dt class="text-sm font-medium text-gray-500">Sisa Setelah Approve:</dt>
+                        <dt class="text-sm font-medium text-gray-500">Sisa Vendor Setelah Approve:</dt>
                         <dd class="text-sm font-bold {{ ($sisaBayar - $pembayaran->nominal_bayar) > 0 ? 'text-red-600' : 'text-green-600' }}">
                             Rp {{ number_format($sisaBayar - $pembayaran->nominal_bayar, 0, ',', '.') }}
                         </dd>
@@ -276,7 +296,18 @@
 
 <!-- Progress Section -->
 @php
-    $persenBayar = $totalPenawaran > 0 ? (($totalApproved + $pembayaran->nominal_bayar) / $totalPenawaran) * 100 : 0;
+    // Debug untuk mengetahui nilai yang dihitung
+    $simulasiTotalDibayar = $totalApproved + $pembayaran->nominal_bayar;
+    
+    // Pastikan tidak ada pembagian dengan nol
+    if ($totalModalVendor > 0) {
+        $persenBayar = ($simulasiTotalDibayar / $totalModalVendor) * 100;
+    } else {
+        $persenBayar = 0;
+    }
+    
+    // Batasi persentase maksimal 100% untuk display
+    $persenBayarDisplay = min($persenBayar, 100);
 @endphp
 
 <div class="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-xl border border-blue-100 mb-6">
@@ -286,11 +317,9 @@
                 <div class="flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
                     <i class="fas fa-chart-line text-lg"></i>
                 </div>
-            </div>
-            <div class="ml-4">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Progress Pembayaran</h2>
-                <p class="text-gray-600 mt-1">Simulasi progress jika pembayaran disetujui</p>
-            </div>
+            </div>        <div class="ml-4">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Progress Pembayaran Vendor</h2>
+            <p class="text-gray-600 mt-1">Simulasi progress pembayaran untuk {{ $pembayaran->vendor->nama_vendor }} jika disetujui</p>
         </div>
     </div>
     
@@ -298,9 +327,12 @@
         <!-- Progress Bar -->
         <div class="mb-8">
             <div class="flex justify-between items-center text-sm text-gray-600 mb-3">
-                <span class="font-medium">Progress Pembayaran</span>
+                <span class="font-medium">Progress Pembayaran Vendor</span>
                 <span class="font-bold text-lg {{ $persenBayar >= 100 ? 'text-green-600' : 'text-blue-600' }}">
                     {{ number_format($persenBayar, 1) }}%
+                    @if($persenBayar > 100)
+                        <span class="text-xs text-red-600">(Melebihi Target)</span>
+                    @endif
                 </span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
@@ -313,7 +345,7 @@
                 <div class="text-center mt-3">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                         <i class="fas fa-check-circle mr-1"></i>
-                        Pembayaran Akan Lunas
+                        Vendor Akan Lunas
                     </span>
                 </div>
             @endif
@@ -336,8 +368,8 @@
                             <div class="text-2xl font-bold text-blue-800">{{ number_format($persenBayar, 1) }}%</div>
                         </div>
                     </div>
-                    <div class="text-sm font-medium text-blue-700">Progress Pembayaran</div>
-                    <div class="text-xs text-blue-600 mt-1">Dari total penawaran</div>
+                    <div class="text-sm font-medium text-blue-700">Progress Vendor</div>
+                    <div class="text-xs text-blue-600 mt-1">Dari modal vendor</div>
                 </div>
             </div>
 
@@ -373,11 +405,20 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-lg font-bold text-orange-800">Rp {{ number_format($sisaBayar - $pembayaran->nominal_bayar, 0, ',', '.') }}</div>
+                            @php
+                                $sisaSetelahApprove = $totalModalVendor - ($totalApproved + $pembayaran->nominal_bayar);
+                            @endphp
+                            <div class="text-lg font-bold {{ $sisaSetelahApprove > 0 ? 'text-orange-800' : 'text-green-800' }}">
+                                Rp {{ number_format($sisaSetelahApprove, 0, ',', '.') }}
+                            </div>
                         </div>
                     </div>
-                    <div class="text-sm font-medium text-orange-700">Sisa Tagihan</div>
-                    <div class="text-xs text-orange-600 mt-1">Setelah pembayaran ini</div>
+                    <div class="text-sm font-medium {{ $sisaSetelahApprove > 0 ? 'text-orange-700' : 'text-green-700' }}">
+                        {{ $sisaSetelahApprove > 0 ? 'Sisa Tagihan' : 'Vendor Lunas' }}
+                    </div>
+                    <div class="text-xs {{ $sisaSetelahApprove > 0 ? 'text-orange-600' : 'text-green-600' }} mt-1">
+                        Setelah pembayaran ini diapprove
+                    </div>
                 </div>
             </div>
         </div>

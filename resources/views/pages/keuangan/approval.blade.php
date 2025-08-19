@@ -1,18 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Header Section -->
-<div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Approval Pembayaran</h1>
-            <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola dan approve permintaan pembayaran</p>
-        </div>
-        <div class="hidden sm:block lg:block">
-            <i class="fas fa-clipboard-check text-3xl sm:text-4xl lg:text-6xl"></i>
+<div class="container mx-auto px-4 py-6">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-red-800 to-red-900 rounded-2xl p-6 lg:p-8 mb-8 text-white shadow-xl">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <h1 class="text-2xl lg:text-4xl font-bold mb-2">Approval Pembayaran</h1>
+                <p class="text-red-100 text-base lg:text-lg opacity-90">Verifikasi dan persetujuan pembayaran per vendor</p>
+            </div>
+            <div class="hidden lg:flex items-center justify-center w-20 h-20 bg-red-700 rounded-2xl">
+                <i class="fas fa-clipboard-check text-4xl opacity-80"></i>
+            </div>
         </div>
     </div>
-</div>
 
 <!-- Alert Messages -->
 @if(session('success'))
@@ -42,7 +43,7 @@
             </div>
             <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Pending</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $stats['pending'] }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $totalPending }}</p>
             </div>
         </div>
     </div>
@@ -54,7 +55,7 @@
             </div>
             <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Approved</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $stats['approved'] }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $totalApproved }}</p>
             </div>
         </div>
     </div>
@@ -66,7 +67,7 @@
             </div>
             <div class="ml-4">
                 <p class="text-sm font-medium text-gray-600">Rejected</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $stats['rejected'] }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $totalRejected }}</p>
             </div>
         </div>
     </div>
@@ -77,8 +78,8 @@
                 <i class="fas fa-money-bill-wave text-2xl"></i>
             </div>
             <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">Total Pending</p>
-                <p class="text-xl font-bold text-gray-900">Rp {{ number_format($stats['total_amount_pending'], 0, ',', '.') }}</p>
+                <p class="text-sm font-medium text-gray-600">Total</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $totalAll }}</p>
             </div>
         </div>
     </div>
@@ -91,9 +92,9 @@
             <a href="{{ route('keuangan.approval') }}" 
                class="py-4 px-1 border-b-2 border-red-500 font-medium text-sm text-red-600">
                 Pending Approval
-                @if($stats['pending'] > 0)
+                @if($totalPending > 0)
                 <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    {{ $stats['pending'] }}
+                    {{ $totalPending }}
                 </span>
                 @endif
             </a>
@@ -123,7 +124,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nominal</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
@@ -140,11 +141,31 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">{{ $pembayaran->penawaran->proyek->nama_barang }}</div>
+                        <div class="text-sm text-gray-600">{{ $pembayaran->penawaran->proyek->nama_klien }}</div>
                         <div class="text-xs text-gray-500">{{ $pembayaran->penawaran->no_penawaran }}</div>
                     </td>
                     <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->nama_klien }}</div>
-                        <div class="text-xs text-gray-500">{{ $pembayaran->penawaran->proyek->instansi }}</div>
+                        <div class="text-sm font-medium text-gray-900">{{ $pembayaran->vendor->nama_vendor }}</div>
+                        <div class="text-sm text-gray-600">{{ $pembayaran->vendor->jenis_perusahaan }}</div>
+                        <div class="text-xs text-gray-500">{{ $pembayaran->vendor->email }}</div>
+                        @php
+                            // Hitung info modal vendor
+                            $totalModalVendor = $pembayaran->penawaran->proyek->penawaranAktif->penawaranDetail
+                                ->where('barang.id_vendor', $pembayaran->id_vendor)
+                                ->sum(function($detail) {
+                                    return $detail->qty * $detail->barang->harga_vendor;
+                                });
+                            $totalDibayarVendor = \App\Models\Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
+                                ->where('id_vendor', $pembayaran->id_vendor)
+                                ->where('status_verifikasi', 'Approved')
+                                ->sum('nominal_bayar');
+                        @endphp
+                        <div class="text-xs text-blue-600 mt-1">
+                            Modal: Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
+                        </div>
+                        <div class="text-xs text-green-600">
+                            Dibayar: Rp {{ number_format($totalDibayarVendor, 0, ',', '.') }}
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -159,10 +180,16 @@
                             Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
                         </div>
                         @php
-                            $persenNominal = $pembayaran->penawaran->total_penawaran > 0 ? 
-                                ($pembayaran->nominal_bayar / $pembayaran->penawaran->total_penawaran) * 100 : 0;
+                            // Hitung persentase berdasarkan modal vendor
+                            $totalModalVendor = $pembayaran->penawaran->proyek->penawaranAktif->penawaranDetail
+                                ->where('barang.id_vendor', $pembayaran->id_vendor)
+                                ->sum(function($detail) {
+                                    return $detail->qty * $detail->barang->harga_vendor;
+                                });
+                            $persenNominal = $totalModalVendor > 0 ? 
+                                ($pembayaran->nominal_bayar / $totalModalVendor) * 100 : 0;
                         @endphp
-                        <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari total</div>
+                        <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari modal vendor</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">{{ $pembayaran->metode_bayar }}</div>
@@ -181,14 +208,14 @@
                         </a>
                         
                         <!-- Modern Approve Button -->
-                        <button onclick="openApproveModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->nama_barang }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}')" 
+                        <button onclick="openApproveModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->nama_barang }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}', '{{ $pembayaran->vendor->nama_vendor }}')" 
                                 class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-all duration-200 shadow-sm">
                             <i class="fas fa-check mr-1.5"></i>
                             Approve
                         </button>
                         
                         <!-- Modern Reject Button -->
-                        <button onclick="openRejectModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->nama_barang }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}')" 
+                        <button onclick="openRejectModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->nama_barang }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}', '{{ $pembayaran->vendor->nama_vendor }}')" 
                                 class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200 shadow-sm">
                             <i class="fas fa-times mr-1.5"></i>
                             Reject
@@ -240,6 +267,10 @@
                     <div class="flex justify-between">
                         <span class="text-sm text-green-700">Proyek:</span>
                         <span class="text-sm font-medium text-green-900" id="approve-project-name"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-green-700">Vendor:</span>
+                        <span class="text-sm font-medium text-green-900" id="approve-vendor-name"></span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-sm text-green-700">Nominal:</span>
@@ -310,6 +341,10 @@
                         <span class="text-sm font-medium text-red-900" id="reject-project-name"></span>
                     </div>
                     <div class="flex justify-between">
+                        <span class="text-sm text-red-700">Vendor:</span>
+                        <span class="text-sm font-medium text-red-900" id="reject-vendor-name"></span>
+                    </div>
+                    <div class="flex justify-between">
                         <span class="text-sm text-red-700">Nominal:</span>
                         <span class="text-sm font-medium text-red-900" id="reject-amount"></span>
                     </div>
@@ -357,11 +392,12 @@
 
 <script>
 // Modern Approve Modal Functions
-function openApproveModal(paymentId, projectName, amount) {
+function openApproveModal(paymentId, projectName, amount, vendorName) {
     const modal = document.getElementById('approveModal');
     const form = document.getElementById('approveForm');
     const projectNameEl = document.getElementById('approve-project-name');
     const amountEl = document.getElementById('approve-amount');
+    const vendorNameEl = document.getElementById('approve-vendor-name');
     
     // Set form action
     form.action = `/keuangan/approval/${paymentId}/approve`;
@@ -369,6 +405,7 @@ function openApproveModal(paymentId, projectName, amount) {
     // Set project details
     projectNameEl.textContent = projectName;
     amountEl.textContent = `Rp ${amount}`;
+    if (vendorNameEl) vendorNameEl.textContent = vendorName;
     
     // Show modal with animation
     modal.classList.remove('hidden');
@@ -392,12 +429,21 @@ function closeApproveModal() {
 }
 
 // Modern Reject Modal Functions
-function openRejectModal(paymentId, projectName, amount) {
+function openRejectModal(paymentId, projectName, amount, vendorName) {
     const modal = document.getElementById('rejectModal');
     const form = document.getElementById('rejectForm');
     const projectNameEl = document.getElementById('reject-project-name');
     const amountEl = document.getElementById('reject-amount');
+    const vendorNameEl = document.getElementById('reject-vendor-name');
     const textarea = document.getElementById('alasan_penolakan');
+    
+    // Set form action
+    form.action = `/keuangan/approval/${paymentId}/reject`;
+    
+    // Set project details
+    projectNameEl.textContent = projectName;
+    amountEl.textContent = `Rp ${amount}`;
+    if (vendorNameEl) vendorNameEl.textContent = vendorName;
     
     // Set form action
     form.action = `/keuangan/approval/${paymentId}/reject`;

@@ -19,24 +19,6 @@ class PembayaranController extends Controller
      */
     public function index()
     {
-        // Log untuk debugging
-        Log::info('PembayaranController@index called');
-        
-        // Debug: Cek semua proyek yang ada
-        $allProyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
-            ->get();
-        Log::info('All proyek count: ' . $allProyek->count());
-        
-        // Debug: Cek proyek dengan penawaran ACC
-        $proyekWithACC = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
-            ->whereHas('penawaranAktif', function ($query) {
-                $query->where('status', 'ACC');
-            })
-            ->get();
-        Log::info('Proyek with ACC count: ' . $proyekWithACC->count());
-        
         // Ambil proyek yang statusnya 'Pembayaran', 'Pengiriman', 'Selesai', atau 'Gagal' dan sudah ada penawaran yang di-ACC
         // Dengan vendor yang terlibat
         $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
@@ -46,15 +28,11 @@ class PembayaranController extends Controller
             })
             ->get()
             ->map(function ($proyek) {
-                Log::info('Processing proyek: ' . $proyek->nama_barang);
-                
                 // Ambil vendor yang terlibat dalam proyek ini
                 $vendors = $proyek->penawaranAktif->penawaranDetail
                     ->pluck('barang.vendor')
                     ->unique('id_vendor')
                     ->filter(); // Remove null values
-
-                Log::info('Vendors count: ' . $vendors->count());
 
                 $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
                     // Hitung total untuk vendor ini (menggunakan harga modal)
@@ -71,8 +49,6 @@ class PembayaranController extends Controller
                         ->sum('nominal_bayar');
 
                     $sisaBayar = $totalVendor - $totalDibayarApproved;
-                    
-                    Log::info("Vendor {$vendor->nama_vendor}: Total={$totalVendor}, Dibayar={$totalDibayarApproved}, Sisa={$sisaBayar}");
 
                     return (object) [
                         'vendor' => $vendor,
@@ -94,8 +70,6 @@ class PembayaranController extends Controller
             ->sortBy('nama_barang')
             ->values();
             
-        Log::info('Final proyekPerluBayar count: ' . $proyekPerluBayar->count());
-
         // Convert collection to paginated result
         $currentPage = request()->get('page', 1);
         $perPage = 5;
@@ -107,8 +81,6 @@ class PembayaranController extends Controller
             $currentPage,
             ['path' => request()->url(), 'pageName' => 'page']
         );
-
-        Log::info('ProyekPerluBayar count: ' . $proyekPerluBayar->count());
 
         // Ambil parameter filter dan search
         $search = request()->get('search');
@@ -150,8 +122,6 @@ class PembayaranController extends Controller
         }
 
         $semuaProyek = $semuaProyekQuery->paginate(5, ['*'], 'proyek_page');
-
-        Log::info('SemuaProyek before calculation count: ' . $semuaProyek->count());
 
         // Hitung statistik untuk setiap proyek (per vendor)
         $semuaProyek->getCollection()->transform(function ($proyek) {
@@ -199,12 +169,8 @@ class PembayaranController extends Controller
                 ($totalKeseluruhanDibayar / $totalKeseluruhanModal) * 100 : 0;
             $proyek->status_lunas = $totalKeseluruhanSisa <= 0;
 
-            Log::info("Proyek {$proyek->nama_barang}: Total Vendors={$vendors->count()}, Sisa={$totalKeseluruhanSisa}, Status Lunas={$proyek->status_lunas}");
-
             return $proyek;
         });
-
-        Log::info('SemuaProyek after calculation count: ' . $semuaProyek->count());
 
         // Filter berdasarkan status proyek (lunas/belum lunas) setelah perhitungan
         if ($proyekStatusFilter && $proyekStatusFilter !== 'all') {
@@ -260,8 +226,6 @@ class PembayaranController extends Controller
         $semuaPembayaran = $semuaPembayaranQuery->orderBy('created_at', 'desc')
             ->paginate(5, ['*'], 'pembayaran_page');
 
-        Log::info('SemuaPembayaran count: ' . $semuaPembayaran->count());
-
         return view('pages.purchasing.pembayaran', compact(
             'proyekPerluBayar', 
             'semuaPembayaran', 
@@ -280,13 +244,8 @@ class PembayaranController extends Controller
      */
     public function create($id_proyek, $id_vendor = null)
     {
-        Log::info("Create payment form - Proyek ID: {$id_proyek}, Vendor ID: " . ($id_vendor ?? 'null'));
-        
         $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran'])
             ->findOrFail($id_proyek);
-
-        Log::info("Proyek loaded: {$proyek->nama_barang}");
-        Log::info("Penawaran detail count: " . $proyek->penawaranAktif->penawaranDetail->count());
 
         // Pastikan proyek memiliki penawaran yang sudah di-ACC
         if (!$proyek->penawaranAktif || $proyek->penawaranAktif->status !== 'ACC') {
@@ -300,8 +259,6 @@ class PembayaranController extends Controller
             ->unique('id_vendor')
             ->filter()
             ->map(function ($vendor) use ($proyek) {
-                Log::info("Processing vendor: {$vendor->nama_vendor} (ID: {$vendor->id_vendor})");
-                
                 // Hitung total untuk vendor ini (menggunakan harga modal)
                 $totalVendor = $proyek->penawaranAktif->penawaranDetail
                     ->where('barang.id_vendor', $vendor->id_vendor)
@@ -317,8 +274,6 @@ class PembayaranController extends Controller
 
                 $sisaBayar = $totalVendor - $totalDibayar;
 
-                Log::info("Vendor {$vendor->nama_vendor}: Total={$totalVendor}, Dibayar={$totalDibayar}, Sisa={$sisaBayar}");
-
                 $vendor->total_vendor = $totalVendor;
                 $vendor->total_dibayar = $totalDibayar;
                 $vendor->sisa_bayar = $sisaBayar;
@@ -328,8 +283,6 @@ class PembayaranController extends Controller
             ->filter(function ($vendor) {
                 return $vendor->sisa_bayar > 0; // Hanya vendor yang belum lunas
             });
-
-        Log::info("Vendors after filtering: " . $vendors->count());
 
         if ($vendors->isEmpty()) {
             return redirect()->route('purchasing.pembayaran')
@@ -355,6 +308,9 @@ class PembayaranController extends Controller
                 
             // Untuk vendor yang dipilih, hitung sisa bayar berdasarkan total vendor tersebut
             $sisaBayar = $selectedVendor->total_vendor - $totalDibayar;
+            
+            // Total modal vendor = modal vendor yang dipilih
+            $totalModalVendor = $selectedVendor->total_vendor;
         } else {
             // Untuk semua vendor combined
             $totalDibayar = $proyek->pembayaran
@@ -370,12 +326,6 @@ class PembayaranController extends Controller
             // Calculate sisa bayar berdasarkan total modal vendor
             $sisaBayar = $totalModalVendor - $totalDibayar;
         }
-            
-        // Calculate total vendor modal (harga modal, bukan harga penawaran)
-        $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
-            ->sum(function($detail) {
-                return $detail->qty * $detail->barang->harga_vendor; // harga modal
-            });
 
         return view('pages.purchasing.pembayaran-components.pembayaran-form', compact('proyek', 'vendors', 'selectedVendor', 'totalDibayar', 'sisaBayar', 'totalModalVendor'));
     }
@@ -467,8 +417,6 @@ class PembayaranController extends Controller
 
             DB::commit();
             
-            Log::info("Pembayaran berhasil disimpan: ID {$pembayaran->id_pembayaran}, File: {$buktiPath}");
-
             return redirect()->route('purchasing.pembayaran')
                 ->with('success', 'Pembayaran berhasil disimpan dan menunggu verifikasi admin keuangan');
 
@@ -480,7 +428,6 @@ class PembayaranController extends Controller
                 $this->deleteFileIfExists($buktiPath);
             }
             
-            Log::error("Error saving pembayaran: " . $e->getMessage());
             return back()->with('error', 'Terjadi kesalahan saat menyimpan pembayaran');
         }
     }
@@ -499,7 +446,13 @@ class PembayaranController extends Controller
                 return $detail->qty * $detail->barang->harga_vendor; // harga modal
             });
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-detail', compact('pembayaran', 'totalModalVendor'));
+        // Hitung total yang sudah dibayar untuk vendor ini saja (hanya approved)
+        $totalDibayarVendor = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
+            ->where('id_vendor', $pembayaran->id_vendor)
+            ->where('status_verifikasi', 'Approved')
+            ->sum('nominal_bayar');
+
+        return view('pages.purchasing.pembayaran-components.pembayaran-detail', compact('pembayaran', 'totalModalVendor', 'totalDibayarVendor'));
     }
 
     /**
@@ -611,13 +564,23 @@ class PembayaranController extends Controller
             'catatan' => 'nullable|string'
         ]);
 
-        // Validasi nominal pembayaran
+        $proyek = $pembayaran->penawaran->proyek;
+        
+        // Hitung total modal untuk vendor ini (menggunakan harga modal)
+        $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
+            ->where('barang.id_vendor', $pembayaran->id_vendor)
+            ->sum(function($detail) {
+                return $detail->qty * $detail->barang->harga_vendor; // harga modal
+            });
+
+        // Validasi nominal pembayaran untuk vendor ini (hanya hitung yang Approved, exclude current)
         $totalDibayar = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
+            ->where('id_vendor', $pembayaran->id_vendor)
             ->where('id_pembayaran', '!=', $id_pembayaran)
-            ->where('status_verifikasi', '!=', 'Ditolak')
+            ->where('status_verifikasi', 'Approved')
             ->sum('nominal_bayar');
 
-        $sisaBayar = $pembayaran->penawaran->total_penawaran - $totalDibayar;
+        $sisaBayar = $totalModalVendor - $totalDibayar;
 
         if ($request->nominal_bayar > $sisaBayar) {
             return back()->with('error', 'Nominal pembayaran melebihi sisa tagihan');
@@ -709,10 +672,9 @@ class PembayaranController extends Controller
         try {
             if ($filePath && Storage::disk('public')->exists($filePath)) {
                 Storage::disk('public')->delete($filePath);
-                Log::info("File deleted: {$filePath}");
             }
         } catch (\Exception $e) {
-            Log::error("Failed to delete file: {$filePath}. Error: " . $e->getMessage());
+            // Silent fail untuk cleanup
         }
     }
 
@@ -736,9 +698,8 @@ class PembayaranController extends Controller
             try {
                 Storage::disk('public')->delete($file);
                 $deletedCount++;
-                Log::info("Orphaned file deleted: {$file}");
             } catch (\Exception $e) {
-                Log::error("Failed to delete orphaned file: {$file}. Error: " . $e->getMessage());
+                // Silent fail untuk file yang tidak bisa dihapus
             }
         }
 

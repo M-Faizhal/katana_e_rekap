@@ -66,7 +66,7 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Status Keuangan</h3>
                 @php
                     $totalPenawaran = $proyek->penawaranAktif->total_penawaran;
-                    $totalDibayar = $riwayatPembayaran->where('status_verifikasi', '!=', 'Ditolak')->sum('nominal_bayar');
+                    $totalDibayar = $riwayatPembayaran->where('status_verifikasi', 'Approved')->sum('nominal_bayar');
                     $sisaBayar = $totalModalVendor - $totalDibayar;
                     $persenBayar = $totalModalVendor > 0 ? ($totalDibayar / $totalModalVendor) * 100 : 0;
                 @endphp

@@ -14,191 +14,207 @@ use Illuminate\Support\Facades\Log;
 class ApprovalController extends Controller
 {
     /**
-     * Display approval dashboard
+     * Display pending payments for approval
      */
     public function index()
     {
-        try {
-            // Ambil semua pembayaran yang statusnya pending
-            $pendingPayments = Pembayaran::with(['penawaran.proyek'])
-                ->where('status_verifikasi', 'Pending')
-                ->orderBy('created_at', 'desc')
-                ->get();
+        $pendingPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
+            ->where('status_verifikasi', 'Pending')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-            // Statistik untuk dashboard
-            $stats = [
-                'pending' => Pembayaran::where('status_verifikasi', 'Pending')->count(),
-                'approved' => Pembayaran::where('status_verifikasi', 'Approved')->count(),
-                'rejected' => Pembayaran::where('status_verifikasi', 'Ditolak')->count(),
-                'total_amount_pending' => Pembayaran::where('status_verifikasi', 'Pending')->sum('nominal_bayar')
-            ];
+        // Statistics
+        $totalPending = Pembayaran::where('status_verifikasi', 'Pending')->count();
+        $totalApproved = Pembayaran::where('status_verifikasi', 'Approved')->count();
+        $totalRejected = Pembayaran::where('status_verifikasi', 'Ditolak')->count();
+        $totalAll = Pembayaran::count();
 
-            // Log untuk debugging
-            Log::info('Approval Controller - Index', [
-                'pending_count' => $pendingPayments->count(),
-                'stats' => $stats
-            ]);
-
-            return view('pages.keuangan.approval', compact('pendingPayments', 'stats'));
-            
-        } catch (\Exception $e) {
-            Log::error('Error in ApprovalController@index: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat memuat data approval.');
-        }
+        return view('pages.keuangan.approval', compact(
+            'pendingPayments',
+            'totalPending',
+            'totalApproved', 
+            'totalRejected',
+            'totalAll'
+        ));
     }
 
     /**
-     * Show detailed view of a payment for approval
-     */
-    public function show($id)
-    {
-        try {
-            $pembayaran = Pembayaran::with(['penawaran.proyek'])
-                ->findOrFail($id);
-
-            // Hitung total pembayaran yang sudah approved untuk proyek ini
-            $totalApproved = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
-                ->where('status_verifikasi', 'Approved')
-                ->where('id_pembayaran', '!=', $id) // Exclude current payment
-                ->sum('nominal_bayar');
-
-            $totalPenawaran = $pembayaran->penawaran->total_penawaran;
-            $sisaBayar = $totalPenawaran - $totalApproved;
-
-            return view('pages.keuangan.approval-components.detail', compact(
-                'pembayaran', 
-                'totalApproved', 
-                'totalPenawaran', 
-                'sisaBayar'
-            ));
-            
-        } catch (\Exception $e) {
-            Log::error('Error in ApprovalController@show: ' . $e->getMessage());
-            return back()->with('error', 'Pembayaran tidak ditemukan.');
-        }
-    }
-
-    /**
-     * Approve a payment
-     */
-    public function approve(Request $request, $id)
-    {
-        try {
-            DB::beginTransaction();
-
-            $pembayaran = Pembayaran::findOrFail($id);
-
-            // Validasi status
-            if ($pembayaran->status_verifikasi !== 'Pending') {
-                return back()->with('error', 'Pembayaran sudah diproses sebelumnya.');
-            }
-
-            // Update status menjadi approved
-            $pembayaran->update([
-                'status_verifikasi' => 'Approved',
-                'catatan' => $request->input('catatan_approval', $pembayaran->catatan)
-            ]);
-
-            DB::commit();
-
-            Log::info('Payment approved', [
-                'payment_id' => $id,
-                'amount' => $pembayaran->nominal_bayar,
-                'approved_by' => Auth::user()->nama
-            ]);
-
-            return redirect()->route('keuangan.approval')
-                ->with('success', 'Pembayaran berhasil disetujui.');
-                
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error approving payment: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat menyetujui pembayaran.');
-        }
-    }
-
-    /**
-     * Reject a payment
-     */
-    public function reject(Request $request, $id)
-    {
-        $request->validate([
-            'alasan_penolakan' => 'required|string|max:500'
-        ], [
-            'alasan_penolakan.required' => 'Alasan penolakan wajib diisi.',
-            'alasan_penolakan.max' => 'Alasan penolakan maksimal 500 karakter.'
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            $pembayaran = Pembayaran::findOrFail($id);
-
-            // Validasi status
-            if ($pembayaran->status_verifikasi !== 'Pending') {
-                return back()->with('error', 'Pembayaran sudah diproses sebelumnya.');
-            }
-
-            // Update status menjadi ditolak
-            $pembayaran->update([
-                'status_verifikasi' => 'Ditolak',
-                'catatan' => $request->input('alasan_penolakan')
-            ]);
-
-            DB::commit();
-
-            Log::info('Payment rejected', [
-                'payment_id' => $id,
-                'amount' => $pembayaran->nominal_bayar,
-                'rejected_by' => Auth::user()->nama,
-                'reason' => $request->input('alasan_penolakan')
-            ]);
-
-            return redirect()->route('keuangan.approval')
-                ->with('success', 'Pembayaran berhasil ditolak.');
-                
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error rejecting payment: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat menolak pembayaran.');
-        }
-    }
-
-    /**
-     * Get all approved payments
+     * Display approved payments
      */
     public function approved()
     {
-        try {
-            $approvedPayments = Pembayaran::with(['penawaran.proyek'])
-                ->where('status_verifikasi', 'Approved')
-                ->orderBy('updated_at', 'desc')
-                ->paginate(20);
+        $approvedPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
+            ->where('status_verifikasi', 'Approved')
+            ->orderBy('updated_at', 'desc')
+            ->paginate(15);
 
-            return view('pages.keuangan.approval-components.approved', compact('approvedPayments'));
+        return view('pages.keuangan.approval-components.approved', compact('approvedPayments'));
+    }
+
+    /**
+     * Display rejected payments
+     */
+    public function rejected()
+    {
+        $rejectedPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
+            ->where('status_verifikasi', 'Ditolak')
+            ->orderBy('updated_at', 'desc')
+            ->paginate(15);
+
+        return view('pages.keuangan.approval-components.rejected', compact('rejectedPayments'));
+    }
+
+    /**
+     * Show payment detail for approval
+     */
+    public function detail($id_pembayaran)
+    {
+        $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
+            ->findOrFail($id_pembayaran);
+
+        $proyek = $pembayaran->penawaran->proyek;
+        $vendorId = $pembayaran->id_vendor;
+
+        // Hitung total modal untuk vendor ini dengan lebih hati-hati
+        $detailsForVendor = $proyek->penawaranAktif->penawaranDetail
+            ->filter(function($detail) use ($vendorId) {
+                return $detail->barang && $detail->barang->id_vendor == $vendorId;
+            });
+
+        $totalModalVendor = $detailsForVendor->sum(function($detail) {
+            return $detail->qty * ($detail->barang->harga_vendor ?? 0);
+        });
+
+        // Hitung total yang sudah dibayar untuk vendor ini (hanya approved)
+        $totalApproved = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
+            ->where('id_vendor', $vendorId)
+            ->where('status_verifikasi', 'Approved')
+            ->sum('nominal_bayar');
+
+        // Hitung total pembayaran keseluruhan proyek (semua vendor)
+        $totalPenawaran = $pembayaran->penawaran->total_penawaran;
+
+        // Hitung sisa bayar untuk vendor ini (modal vendor - yang sudah dibayar)
+        $sisaBayar = $totalModalVendor - $totalApproved;
+
+        return view('pages.keuangan.approval-components.detail', compact(
+            'pembayaran', 
+            'totalModalVendor', 
+            'totalApproved', 
+            'totalPenawaran',
+            'sisaBayar'
+        ));
+    }
+
+    /**
+     * Approve payment
+     */
+    public function approve(Request $request, $id_pembayaran)
+    {
+        $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor'])
+            ->findOrFail($id_pembayaran);
+
+        // Pastikan status masih pending
+        if ($pembayaran->status_verifikasi !== 'Pending') {
+            return redirect()->route('keuangan.approval')
+                ->with('error', 'Pembayaran sudah diproses sebelumnya');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update status pembayaran
+            $pembayaran->update([
+                'status_verifikasi' => 'Approved',
+                'diverifikasi_oleh' => Auth::user()->id_user,
+                'tanggal_verifikasi' => now(),
+                'catatan' => $request->catatan
+            ]);
+
+            // Hitung ulang status lunas untuk vendor ini
+            $proyek = $pembayaran->penawaran->proyek;
             
+            // Hitung total modal untuk vendor ini
+            $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
+                ->where('barang.id_vendor', $pembayaran->id_vendor)
+                ->sum(function($detail) {
+                    return $detail->qty * $detail->barang->harga_vendor;
+                });
+
+            // Hitung total yang sudah dibayar untuk vendor ini (termasuk yang baru di-approve)
+            $totalDibayarVendor = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
+                ->where('id_vendor', $pembayaran->id_vendor)
+                ->where('status_verifikasi', 'Approved')
+                ->sum('nominal_bayar');
+
+            // Check apakah semua vendor sudah lunas
+            $allVendorsData = $proyek->penawaranAktif->penawaranDetail
+                ->groupBy('barang.id_vendor')
+                ->map(function($details, $vendorId) use ($proyek) {
+                    $totalVendor = $details->sum(function($detail) {
+                        return $detail->qty * $detail->barang->harga_vendor;
+                    });
+
+                    $totalDibayarVendor = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
+                        ->where('id_vendor', $vendorId)
+                        ->where('status_verifikasi', 'Approved')
+                        ->sum('nominal_bayar');
+
+                    return $totalVendor <= $totalDibayarVendor;
+                });
+
+            // Update status proyek jika semua vendor sudah lunas
+            if ($allVendorsData->every(function($isLunas) {
+                return $isLunas;
+            })) {
+                $proyek->update(['status' => 'Pengiriman']);
+            }
+
+            DB::commit();
+
+            return redirect()->route('keuangan.approval')
+                ->with('success', 'Pembayaran berhasil disetujui');
+
         } catch (\Exception $e) {
-            Log::error('Error in ApprovalController@approved: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat memuat data pembayaran yang disetujui.');
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan saat menyetujui pembayaran');
         }
     }
 
     /**
-     * Get all rejected payments
+     * Reject payment
      */
-    public function rejected()
+    public function reject(Request $request, $id_pembayaran)
     {
-        try {
-            $rejectedPayments = Pembayaran::with(['penawaran.proyek'])
-                ->where('status_verifikasi', 'Ditolak')
-                ->orderBy('updated_at', 'desc')
-                ->paginate(20);
+        $request->validate([
+            'alasan_penolakan' => 'required|string|min:10'
+        ]);
 
-            return view('pages.keuangan.approval-components.rejected', compact('rejectedPayments'));
-            
+        $pembayaran = Pembayaran::findOrFail($id_pembayaran);
+
+        // Pastikan status masih pending
+        if ($pembayaran->status_verifikasi !== 'Pending') {
+            return redirect()->route('keuangan.approval')
+                ->with('error', 'Pembayaran sudah diproses sebelumnya');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update status pembayaran
+            $pembayaran->update([
+                'status_verifikasi' => 'Ditolak',
+                'diverifikasi_oleh' => Auth::user()->id_user,
+                'tanggal_verifikasi' => now(),
+                'catatan' => $request->alasan_penolakan
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('keuangan.approval')
+                ->with('success', 'Pembayaran berhasil ditolak');
+
         } catch (\Exception $e) {
-            Log::error('Error in ApprovalController@rejected: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat memuat data pembayaran yang ditolak.');
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan saat menolak pembayaran');
         }
     }
 }

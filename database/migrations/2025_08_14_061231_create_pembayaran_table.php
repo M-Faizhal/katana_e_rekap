@@ -22,10 +22,13 @@ return new class extends Migration
             $table->string('bukti_bayar')->nullable();
             $table->text('catatan')->nullable();
             $table->enum('status_verifikasi', ['Pending', 'Approved', 'Ditolak'])->default('Pending');
+            $table->unsignedBigInteger('diverifikasi_oleh')->nullable();
+            $table->timestamp('tanggal_verifikasi')->nullable();
             $table->timestamps();
 
             $table->foreign('id_penawaran')->references('id_penawaran')->on('penawaran')->onDelete('cascade');
             $table->foreign('id_vendor')->references('id_vendor')->on('vendor')->onDelete('cascade');
+            $table->foreign('diverifikasi_oleh')->references('id_user')->on('users')->onDelete('set null');
         });
     }
 

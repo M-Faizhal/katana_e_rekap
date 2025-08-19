@@ -19,11 +19,14 @@ class Pembayaran extends Model
         'bukti_bayar',
         'catatan',
         'status_verifikasi',
+        'diverifikasi_oleh',
+        'tanggal_verifikasi',
     ];
 
     protected $casts = [
         'nominal_bayar' => 'decimal:2',
         'tanggal_bayar' => 'date',
+        'tanggal_verifikasi' => 'datetime',
     ];
 
     // Relationships
@@ -47,5 +50,10 @@ class Pembayaran extends Model
             'id_penawaran', // Local key on pembayaran table
             'id_proyek' // Local key on penawaran table
         );
+    }
+
+    public function verifikator()
+    {
+        return $this->belongsTo(User::class, 'diverifikasi_oleh', 'id_user');
     }
 }

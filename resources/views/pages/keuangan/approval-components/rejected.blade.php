@@ -48,7 +48,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Penolakan</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nominal</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
@@ -66,11 +66,13 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">{{ $pembayaran->penawaran->proyek->nama_barang }}</div>
+                        <div class="text-sm text-gray-600">{{ $pembayaran->penawaran->proyek->nama_klien }}</div>
                         <div class="text-xs text-gray-500">{{ $pembayaran->penawaran->no_penawaran }}</div>
                     </td>
                     <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->nama_klien }}</div>
-                        <div class="text-xs text-gray-500">{{ $pembayaran->penawaran->proyek->instansi }}</div>
+                        <div class="text-sm font-medium text-gray-900">{{ $pembayaran->vendor->nama_vendor }}</div>
+                        <div class="text-sm text-gray-600">{{ $pembayaran->vendor->jenis_perusahaan }}</div>
+                        <div class="text-xs text-gray-500">{{ $pembayaran->vendor->email }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -85,10 +87,16 @@
                             Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
                         </div>
                         @php
-                            $persenNominal = $pembayaran->penawaran->total_penawaran > 0 ? 
-                                ($pembayaran->nominal_bayar / $pembayaran->penawaran->total_penawaran) * 100 : 0;
+                            // Hitung persentase berdasarkan modal vendor
+                            $totalModalVendor = $pembayaran->penawaran->proyek->penawaranAktif->penawaranDetail
+                                ->where('barang.id_vendor', $pembayaran->id_vendor)
+                                ->sum(function($detail) {
+                                    return $detail->qty * $detail->barang->harga_vendor;
+                                });
+                            $persenNominal = $totalModalVendor > 0 ? 
+                                ($pembayaran->nominal_bayar / $totalModalVendor) * 100 : 0;
                         @endphp
-                        <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari total</div>
+                        <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari modal vendor</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">{{ $pembayaran->metode_bayar }}</div>

@@ -116,9 +116,9 @@ Route::middleware('auth')->group(function () {
     Route::prefix('keuangan')->group(function () {
         // Approval routes
         Route::get('/approval', [ApprovalController::class, 'index'])->name('keuangan.approval');
-        Route::get('/approval/{id}', [ApprovalController::class, 'show'])->name('keuangan.approval.detail');
-        Route::post('/approval/{id}/approve', [ApprovalController::class, 'approve'])->name('keuangan.approval.approve');
-        Route::post('/approval/{id}/reject', [ApprovalController::class, 'reject'])->name('keuangan.approval.reject');
+        Route::get('/approval/{id_pembayaran}', [ApprovalController::class, 'detail'])->name('keuangan.approval.detail');
+        Route::post('/approval/{id_pembayaran}/approve', [ApprovalController::class, 'approve'])->name('keuangan.approval.approve');
+        Route::post('/approval/{id_pembayaran}/reject', [ApprovalController::class, 'reject'])->name('keuangan.approval.reject');
         Route::get('/approval-approved', [ApprovalController::class, 'approved'])->name('keuangan.approval.approved');
         Route::get('/approval-rejected', [ApprovalController::class, 'rejected'])->name('keuangan.approval.rejected');
 

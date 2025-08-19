@@ -128,6 +128,12 @@
                             <dt class="text-sm font-medium text-gray-600">Waktu Input:</dt>
                             <dd class="text-sm text-gray-700">{{ $pembayaran->created_at->format('d F Y H:i') }}</dd>
                         </div>
+                        <div class="flex justify-between items-center bg-purple-50 rounded-lg p-3 border border-purple-200">
+                            <dt class="text-sm font-medium text-purple-700">Total Modal Vendor:</dt>
+                            <dd class="text-sm font-bold text-purple-800">
+                                Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
+                            </dd>
+                        </div>
                     </dl>
                     
                     @if($pembayaran->catatan)
@@ -149,12 +155,16 @@
                 <div class="bg-green-50 rounded-lg p-4 border border-green-200">
                     <h3 class="text-lg font-semibold text-green-800 mb-4 flex items-center">
                         <i class="fas fa-project-diagram mr-2"></i>
-                        Informasi Proyek
+                        Informasi Proyek & Vendor
                     </h3>
                     <dl class="space-y-4">
                         <div class="flex justify-between items-start">
                             <dt class="text-sm font-medium text-gray-600">Nama Barang:</dt>
                             <dd class="text-sm font-semibold text-gray-900 text-right max-w-xs">{{ $pembayaran->penawaran->proyek->nama_barang }}</dd>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <dt class="text-sm font-medium text-gray-600">Vendor:</dt>
+                            <dd class="text-sm font-semibold text-purple-700 text-right max-w-xs bg-purple-100 px-2 py-1 rounded">{{ $pembayaran->vendor->nama_vendor ?? 'N/A' }}</dd>
                         </div>
                         <div class="flex justify-between items-start">
                             <dt class="text-sm font-medium text-gray-600">Klien:</dt>
@@ -300,17 +310,16 @@
 <!-- Progress Section -->
 @php
     $totalPenawaran = $pembayaran->penawaran->total_penawaran;
-    $totalDibayar = $pembayaran->penawaran->pembayaran()
-        ->where('status_verifikasi', '!=', 'Ditolak')
-        ->sum('nominal_bayar');
+    // Gunakan data dari controller yang sudah difilter per vendor
+    $totalDibayar = $totalDibayarVendor;
     $sisaBayar = $totalModalVendor - $totalDibayar;
     $persenBayar = $totalModalVendor > 0 ? ($totalDibayar / $totalModalVendor) * 100 : 0;
 @endphp
 
 <div class="bg-white rounded-lg shadow-lg mt-6">
     <div class="p-6 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-800">Progress Pembayaran Proyek</h2>
-        <p class="text-sm text-gray-600 mt-1">Berdasarkan total modal vendor</p>
+        <h2 class="text-xl font-semibold text-gray-800">Progress Pembayaran Vendor</h2>
+        <p class="text-sm text-gray-600 mt-1">{{ $pembayaran->vendor->nama_vendor ?? 'Vendor' }} - Berdasarkan total modal vendor</p>
     </div>
     
     <div class="p-6">
