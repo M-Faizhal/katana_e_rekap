@@ -14,8 +14,10 @@ class Proyek extends Model
     protected $primaryKey = 'id_proyek';
 
     protected $fillable = [
+        'kode_proyek',
         'tanggal',
-        'kota_kab',
+        'id_wilayah',
+        'kab_kota',
         'instansi',
         'nama_klien',
         'kontak_klien',
@@ -31,7 +33,9 @@ class Proyek extends Model
         'id_admin_purchasing',
         'id_penawaran',
         'catatan',
-        'status'
+        'status',
+        'potensi',
+        'tahun_potensi'
     ];
 
     protected $casts = [
@@ -39,10 +43,60 @@ class Proyek extends Model
         'deadline' => 'date',
         'harga_satuan' => 'decimal:2',
         'harga_total' => 'decimal:2',
-        'jumlah' => 'integer'
+        'jumlah' => 'integer',
+        'tahun_potensi' => 'integer'
     ];
 
+    /**
+     * Boot method untuk generate kode proyek otomatis
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($proyek) {
+            if (empty($proyek->kode_proyek)) {
+                $proyek->kode_proyek = static::generateNextKodeProyek();
+            }
+        });
+    }
+
+    /**
+     * Generate kode proyek baru berdasarkan urutan
+     */
+    public static function generateNextKodeProyek()
+    {
+        // Ambil kode proyek terakhir
+        $lastProyek = static::orderBy('kode_proyek', 'desc')->first();
+        
+        if (!$lastProyek || !$lastProyek->kode_proyek) {
+            return 'PRJ-001';
+        }
+        
+        // Extract nomor dari kode terakhir
+        $lastKode = $lastProyek->kode_proyek;
+        $lastNumber = (int) substr($lastKode, 4); // Ambil bagian setelah "PRJ-"
+        
+        // Generate nomor baru
+        $newNumber = $lastNumber + 1;
+        
+        return 'PRJ-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Generate kode proyek baru (untuk kompatibilitas)
+     */
+    public static function generateKodeProyek($id)
+    {
+        return 'PRJ-' . str_pad($id, 3, '0', STR_PAD_LEFT);
+    }
+
     // Relationships
+    public function wilayah()
+    {
+        return $this->belongsTo(Wilayah::class, 'id_wilayah', 'id_wilayah');
+    }
+
     public function adminMarketing()
     {
         return $this->belongsTo(User::class, 'id_admin_marketing', 'id_user');

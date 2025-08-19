@@ -39,10 +39,6 @@
                             <input type="date" id="editTanggal" name="tanggal" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Deadline</label>
-                            <input type="date" id="editDeadline" name="deadline" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                        </div>
-                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kabupaten/Kota</label>
                             <input type="text" id="editKabupatenKota" name="kabupaten_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota">
                         </div>
@@ -58,11 +54,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                             <select id="editStatus" name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih status</option>
+                                <option value="menunggu">Menunggu</option>
                                 <option value="penawaran">Penawaran</option>
-                                <option value="persetujuan">Persetujuan</option>
-                                <option value="kontrak">Kontrak</option>
+                                <option value="pembayaran">Pembayaran</option>
+                                <option value="pengiriman">Pengiriman</option>
                                 <option value="selesai">Selesai</option>
-                                <option value="proses">Proses</option>
                                 <option value="gagal">Gagal</option>
                             </select>
                         </div>
@@ -86,11 +82,6 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
                             <select id="editAdminPurchasing" name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih admin purchasing</option>
-                                <option value="Sari Wijaya">Sari Wijaya</option>
-                                <option value="Maya Indah">Maya Indah</option>
-                                <option value="Roni Hidayat">Roni Hidayat</option>
-                                <option value="Lisa Permata">Lisa Permata</option>
-                                <option value="Nina Kartika">Nina Kartika</option>
                             </select>
                         </div>
                         <div>
@@ -307,32 +298,47 @@ function togglePotensiEdit(value) {
 }
 
 function loadEditData(data) {
+    console.log('Loading edit data:', data);
+
     // Load basic information with null checks
     const setElementValue = (id, value) => {
         const element = document.getElementById(id);
         if (element) {
             element.value = value || '';
+            console.log(`Set ${id} to:`, value);
+        } else {
+            console.warn(`Element ${id} not found`);
         }
     };
 
+    // Set semua data dasar
     setElementValue('editId', data.id);
     setElementValue('editIdProyek', data.kode);
     setElementValue('editNamaProyek', data.nama_proyek);
-    setElementValue('editKabupatenKota', data.kabupaten_kota);
-    setElementValue('editNamaInstansi', data.nama_instansi);
+    setElementValue('editKabupatenKota', data.kabupaten_kota || data.kabupaten);
+    setElementValue('editNamaInstansi', data.nama_instansi || data.instansi);
     setElementValue('editJenisPengadaan', data.jenis_pengadaan);
-    setElementValue('editAdminPurchasing', data.admin_purchasing);
     setElementValue('editTanggal', data.tanggal);
-    setElementValue('editDeadline', data.deadline);
     setElementValue('editCatatan', data.catatan);
     setElementValue('editTahunPotensi', data.tahun_potensi);
     setElementValue('editStatus', data.status);
 
-    // Load admin marketing
+    // Set admin marketing (readonly field)
     setElementValue('editAdminMarketing', data.admin_marketing);
+
+    // Set admin purchasing dengan ID
+    const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
+    if (adminPurchasingSelect && data.id_admin_purchasing) {
+        // Wait for options to load then set value
+        setTimeout(() => {
+            adminPurchasingSelect.value = data.id_admin_purchasing;
+            console.log('Set admin purchasing to:', data.id_admin_purchasing);
+        }, 500);
+    }
 
     // Load potensi
     if (data.potensi) {
+        console.log('Setting potensi to:', data.potensi);
         togglePotensiEdit(data.potensi);
     }
 
@@ -346,25 +352,40 @@ function loadEditData(data) {
         editItemCounter = 0;
 
         const items = data.items || data.daftar_barang || [];
+        console.log('Loading items for edit:', items);
+
         if (items.length > 0) {
             items.forEach((item, index) => {
+                console.log('Adding item:', item);
                 addEditItem(item);
             });
         } else {
+            console.log('No items found, adding empty item');
             addEditItem();
         }
 
         updateEditDeleteButtons();
         hitungTotalKeseluruhanEdit();
     }
-}
-}
-
-// Make function available globally
+}// Make function available globally
 window.loadEditData = loadEditData;
 
 function addEditItem(itemData = null) {
     const container = document.getElementById('daftarBarangEdit');
+
+    // Handle different data structure possibilities
+    let nama = '';
+    let qty = '';
+    let satuan = '';
+    let hargaSatuan = '';
+
+    if (itemData) {
+        nama = itemData.nama || itemData.nama_barang || '';
+        qty = itemData.qty || itemData.jumlah || '';
+        satuan = itemData.satuan || '';
+        hargaSatuan = itemData.harga_satuan || '';
+    }
+
     const itemHtml = `
         <div class="barang-item-edit bg-white border border-gray-200 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
@@ -376,31 +397,31 @@ function addEditItem(itemData = null) {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
-                    <input type="text" name="barang[${editItemCounter}][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Nama barang" value="${itemData ? itemData.nama : ''}">
+                    <input type="text" name="barang[${editItemCounter}][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Nama barang" value="${nama}">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
-                    <input type="number" name="barang[${editItemCounter}][qty]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm qty-input-edit" placeholder="0" min="1" value="${itemData ? itemData.qty : ''}" onchange="hitungTotalEdit(this)">
+                    <input type="number" name="barang[${editItemCounter}][qty]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm qty-input-edit" placeholder="0" min="1" value="${qty}" onchange="hitungTotalEdit(this)">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
                     <select name="barang[${editItemCounter}][satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
                         <option value="">Pilih satuan</option>
-                        <option value="pcs" ${itemData && itemData.satuan === 'pcs' ? 'selected' : ''}>Pcs</option>
-                        <option value="unit" ${itemData && itemData.satuan === 'unit' ? 'selected' : ''}>Unit</option>
-                        <option value="set" ${itemData && itemData.satuan === 'set' ? 'selected' : ''}>Set</option>
-                        <option value="buah" ${itemData && itemData.satuan === 'buah' ? 'selected' : ''}>Buah</option>
-                        <option value="kg" ${itemData && itemData.satuan === 'kg' ? 'selected' : ''}>Kg</option>
-                        <option value="meter" ${itemData && itemData.satuan === 'meter' ? 'selected' : ''}>Meter</option>
-                        <option value="liter" ${itemData && itemData.satuan === 'liter' ? 'selected' : ''}>Liter</option>
-                        <option value="paket" ${itemData && itemData.satuan === 'paket' ? 'selected' : ''}>Paket</option>
-                        <option value="sistem" ${itemData && itemData.satuan === 'sistem' ? 'selected' : ''}>Sistem</option>
-                        <option value="layanan" ${itemData && itemData.satuan === 'layanan' ? 'selected' : ''}>Layanan</option>
+                        <option value="pcs" ${satuan === 'pcs' ? 'selected' : ''}>Pcs</option>
+                        <option value="unit" ${satuan === 'unit' ? 'selected' : ''}>Unit</option>
+                        <option value="set" ${satuan === 'set' ? 'selected' : ''}>Set</option>
+                        <option value="buah" ${satuan === 'buah' ? 'selected' : ''}>Buah</option>
+                        <option value="kg" ${satuan === 'kg' ? 'selected' : ''}>Kg</option>
+                        <option value="meter" ${satuan === 'meter' ? 'selected' : ''}>Meter</option>
+                        <option value="liter" ${satuan === 'liter' ? 'selected' : ''}>Liter</option>
+                        <option value="paket" ${satuan === 'paket' ? 'selected' : ''}>Paket</option>
+                        <option value="sistem" ${satuan === 'sistem' ? 'selected' : ''}>Sistem</option>
+                        <option value="layanan" ${satuan === 'layanan' ? 'selected' : ''}>Layanan</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Satuan</label>
-                    <input type="number" name="barang[${editItemCounter}][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input-edit" placeholder="0" min="0" value="${itemData ? itemData.harga_satuan : ''}" onchange="hitungTotalEdit(this)">
+                    <input type="number" name="barang[${editItemCounter}][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input-edit" placeholder="0" min="0" value="${hargaSatuan}" onchange="hitungTotalEdit(this)">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Total</label>
@@ -414,9 +435,9 @@ function addEditItem(itemData = null) {
     editItemCounter++;
 
     // Calculate total for this item if data provided
-    if (itemData && itemData.qty && itemData.harga_satuan) {
+    if (itemData && qty && hargaSatuan) {
         const newItem = container.lastElementChild;
-        const total = itemData.qty * itemData.harga_satuan;
+        const total = parseFloat(qty) * parseFloat(hargaSatuan);
         newItem.querySelector('.harga-total-input-edit').value = total;
     }
 }
@@ -553,24 +574,232 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Form submission
-document.getElementById('formEditProyek').addEventListener('submit', function(e) {
-    e.preventDefault();
+// Form submission - moved to DOMContentLoaded
+function initializeEditFormSubmission() {
+    const editForm = document.getElementById('formEditProyek');
+    if (!editForm) {
+        console.error('Edit form not found');
+        return;
+    }
 
-    // Simulate form submission
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    const originalText = submitButton.innerHTML;
+    editForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('Form submit triggered');
 
-    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
-    submitButton.disabled = true;
+        // Validasi form
+        if (!validateEditForm()) {
+            console.log('Form validation failed');
+            return;
+        }
 
-    setTimeout(() => {
-        submitButton.innerHTML = originalText;
-        submitButton.disabled = false;
-        closeModal('modalEditProyek');
+        // Ambil ID proyek yang sedang diedit
+        const proyekId = document.getElementById('editId').value;
+        if (!proyekId) {
+            console.error('Proyek ID not found');
+            alert('ID Proyek tidak ditemukan!');
+            return;
+        }
 
-        // Show success message
-        alert('Proyek berhasil diupdate!');
-    }, 2000);
+        console.log('Collecting form data...');
+        // Kumpulkan data form
+        const formData = collectEditFormData();
+        console.log('Form data collected:', formData);
+
+        // Submit data
+        const submitButton = document.querySelector('button[form="formEditProyek"]') ||
+                           e.target.querySelector('button[type="submit"]') ||
+                           document.querySelector('#modalEditProyek button[type="submit"]');
+
+        if (!submitButton) {
+            console.error('Submit button not found');
+            alert('Terjadi kesalahan: Submit button tidak ditemukan');
+            return;
+        }
+
+        const originalText = submitButton.innerHTML;
+
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
+        submitButton.disabled = true;
+
+        // Kirim data ke server
+        fetch(`/marketing/proyek/${proyekId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('modalEditProyek');
+
+                // Show success message
+                if (typeof showSuccessModal === 'function') {
+                    showSuccessModal('Proyek berhasil diupdate!');
+                } else {
+                    alert('Proyek berhasil diupdate!');
+                }
+
+                // Reload page untuk update data
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Terjadi kesalahan saat mengupdate data');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan: ' + error.message);
+        })
+        .finally(() => {
+            if (submitButton) {
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            }
+        });
+    });
+}
+
+// Fungsi validasi form edit
+function validateEditForm() {
+    const requiredFields = [
+        { id: 'editTanggal', label: 'Tanggal' },
+        { id: 'editKabupatenKota', label: 'Kabupaten/Kota' },
+        { id: 'editNamaInstansi', label: 'Nama Instansi' },
+        { id: 'editJenisPengadaan', label: 'Jenis Pengadaan' },
+        { id: 'editAdminPurchasing', label: 'Admin Purchasing' }
+    ];
+
+    for (let field of requiredFields) {
+        const input = document.getElementById(field.id);
+        if (!input || !input.value.trim()) {
+            alert(`${field.label} harus diisi!`);
+            if (input) input.focus();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Fungsi untuk mengumpulkan data form edit
+function collectEditFormData() {
+    const data = {};
+
+    // Helper function to safely get element value
+    const getElementValue = (id, defaultValue = '') => {
+        const element = document.getElementById(id);
+        return element ? element.value : defaultValue;
+    };
+
+    // Data dasar
+    data.tanggal = getElementValue('editTanggal');
+    data.kab_kota = getElementValue('editKabupatenKota');
+    data.instansi = getElementValue('editNamaInstansi');
+    data.jenis_pengadaan = getElementValue('editJenisPengadaan');
+    data.catatan = getElementValue('editCatatan');
+    data.status = getElementValue('editStatus', 'menunggu');
+    data.potensi = getElementValue('editPotensiValue', 'tidak');
+    data.tahun_potensi = parseInt(getElementValue('editTahunPotensi')) || new Date().getFullYear();
+
+    // Data nama proyek dan klien
+    data.nama_barang = getElementValue('editNamaProyek');
+    data.nama_klien = getElementValue('editNamaKlien', 'Klien');
+    data.kontak_klien = getElementValue('editKontakKlien');
+
+    // Admin data
+    const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
+    data.id_admin_purchasing = adminPurchasingSelect ? adminPurchasingSelect.value : null;
+    data.id_admin_marketing = 1; // Ambil dari session user yang login
+
+    // Ambil data barang dari form
+    const barangItems = document.querySelectorAll('.barang-item-edit');
+    if (barangItems.length > 0) {
+        const firstItem = barangItems[0];
+        const namaInput = firstItem.querySelector('input[name*="[nama]"]');
+        const qtyInput = firstItem.querySelector('input[name*="[qty]"]');
+        const satuanSelect = firstItem.querySelector('select[name*="[satuan]"]');
+        const hargaSatuanInput = firstItem.querySelector('input[name*="[harga_satuan]"]');
+
+        if (namaInput) data.nama_barang = namaInput.value || data.nama_barang;
+        if (qtyInput) data.jumlah = parseInt(qtyInput.value) || 1;
+        if (satuanSelect) data.satuan = satuanSelect.value || 'Unit';
+        if (hargaSatuanInput) {
+            data.harga_satuan = parseFloat(hargaSatuanInput.value) || null;
+            if (data.harga_satuan && data.jumlah) {
+                data.harga_total = data.harga_satuan * data.jumlah;
+            }
+        }
+    } else {
+        // Default values jika tidak ada barang
+        data.jumlah = 1;
+        data.satuan = 'Unit';
+        data.spesifikasi = 'Spesifikasi standar';
+        data.harga_satuan = null;
+    }
+
+    // Spesifikasi default
+    data.spesifikasi = getElementValue('editSpesifikasi', 'Spesifikasi standar');
+
+    console.log('Collected edit form data:', data);
+    return data;
+}
+
+// Function to load admin purchasing options for edit
+async function loadEditAdminPurchasingOptions() {
+    try {
+        const response = await fetch('/marketing/proyek/users');
+        const data = await response.json();
+
+        if (data.success) {
+            const select = document.getElementById('editAdminPurchasing');
+            if (select) {
+                // Store current value
+                const currentValue = select.value;
+
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Pilih admin purchasing</option>';
+
+                // Add options for purchasing and admin roles
+                data.data.forEach(user => {
+                    if (user.role === 'admin_purchasing' || user.role === 'superadmin') {
+                        const option = document.createElement('option');
+                        option.value = user.id_user;
+                        option.textContent = user.nama;
+                        select.appendChild(option);
+                    }
+                });
+
+                // Restore current value if it exists
+                if (currentValue) {
+                    select.value = currentValue;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading admin purchasing options for edit:', error);
+    }
+}
+
+// Initialize edit modal
+document.addEventListener('DOMContentLoaded', function() {
+    // Load admin purchasing options
+    loadEditAdminPurchasingOptions();
+
+    // Initialize form submission
+    initializeEditFormSubmission();
+
+    // Ensure form event listener is attached
+    const editForm = document.getElementById('formEditProyek');
+    if (editForm) {
+        console.log('Edit form found and initialized');
+    } else {
+        console.error('Edit form not found during initialization');
+    }
+
+    console.log('Edit modal initialized');
 });
 </script>

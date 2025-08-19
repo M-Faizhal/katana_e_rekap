@@ -22,59 +22,38 @@
             <form id="formEditWilayah" class="space-y-4 sm:space-y-6">
                 <!-- Hidden ID -->
                 <input type="hidden" id="editId" name="id">
-                
-                <!-- Informasi Wilayah & Instansi (Read Only) -->
-                <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+
+                <!-- Informasi Wilayah & Instansi -->
+                <div class="bg-red-50 rounded-lg sm:rounded-xl p-3 sm:p-6">
                     <h4 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
                         <i class="fas fa-map-marker-alt text-red-600 mr-2 text-sm sm:text-base"></i>
                         Informasi Wilayah & Instansi
                     </h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                         <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Kabupaten/Kota</label>
-                            <input type="text" id="editWilayah" name="wilayah" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm sm:text-base" readonly>
-                            <small class="text-gray-500 text-xs mt-1">Data dari penawaran yang sudah diinput</small>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nama Wilayah <span class="text-red-500">*</span></label>
+                            <input type="text" id="editWilayah" name="wilayah" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nama kabupaten/kota" required>
+                            <small class="text-gray-500 text-xs mt-1">Contoh: Jakarta Pusat, Bogor, Depok</small>
                         </div>
                         <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nama Instansi</label>
-                            <input type="text" id="editInstansi" name="instansi" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm sm:text-base" readonly>
-                            <small class="text-gray-500 text-xs mt-1">Data dari penawaran yang sudah diinput</small>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Provinsi <span class="text-red-500">*</span></label>
+                            <input type="text" id="editProvinsi" name="provinsi" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nama provinsi" required>
+                            <small class="text-gray-500 text-xs mt-1">Contoh: DKI Jakarta, Jawa Barat</small>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nama Instansi <span class="text-red-500">*</span></label>
+                            <input type="text" id="editInstansi" name="instansi" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nama instansi" required>
+                            <small class="text-gray-500 text-xs mt-1">Contoh: Dinas Pendidikan, RSUD, BAPPEDA</small>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Kode Wilayah <span class="text-red-500">*</span></label>
+                            <input type="text" id="editKodeWilayah" name="kode_wilayah" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan kode wilayah" required maxlength="10">
+                            <small class="text-gray-500 text-xs mt-1">Contoh: JKT-PST, BDG, SBY (maksimal 10 karakter)</small>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Admin Marketing</label>
-                            <input type="text" id="editAdminMarketing" name="admin_marketing" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm sm:text-base" readonly>
-                            <small class="text-gray-500 text-xs mt-1">Admin yang menangani wilayah ini</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Informasi Kontak Pejabat (Editable) -->
-                <div class="bg-blue-50 rounded-xl p-6">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-user-tie text-blue-600 mr-2"></i>
-                        Informasi Kontak Pejabat
-                        <span class="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">Dapat Diedit</span>
-                    </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Pejabat <span class="text-red-500">*</span></label>
-                            <input type="text" id="editNamaPejabat" name="nama_pejabat" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan nama lengkap pejabat" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jabatan <span class="text-red-500">*</span></label>
-                            <input type="text" id="editJabatan" name="jabatan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan jabatan" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">No. Telepon <span class="text-red-500">*</span></label>
-                            <input type="tel" id="editNoTelp" name="no_telp" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 021-1234567" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email (Opsional)</label>
-                            <input type="email" id="editEmail" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: pejabat@instansi.go.id">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Kantor (Opsional)</label>
-                            <textarea id="editAlamat" name="alamat" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan alamat lengkap kantor"></textarea>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Deskripsi (Opsional)</label>
+                            <textarea id="editDeskripsi" name="deskripsi" rows="3" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan deskripsi wilayah"></textarea>
+                            <small class="text-gray-500 text-xs mt-1">Deskripsi singkat tentang wilayah ini</small>
                         </div>
                     </div>
                 </div>
@@ -86,9 +65,9 @@
                         <div>
                             <h4 class="text-sm font-semibold text-yellow-800 mb-1">Catatan Penting:</h4>
                             <ul class="text-sm text-yellow-700 space-y-1">
-                                <li>• Data wilayah dan instansi tidak dapat diubah karena berasal dari data penawaran</li>
-                                <li>• Hanya informasi kontak pejabat yang dapat diedit</li>
-                                <li>• Pastikan nomor telepon dapat dihubungi untuk keperluan koordinasi</li>
+                                <li>• Pastikan kode wilayah unik dan tidak duplikat</li>
+                                <li>• Perubahan data wilayah akan mempengaruhi data proyek terkait</li>
+                                <li>• Semua field dengan tanda (*) wajib diisi</li>
                             </ul>
                         </div>
                     </div>

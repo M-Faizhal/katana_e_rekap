@@ -1,0 +1,190 @@
+<?php
+
+namespace App\Http\Controllers\Marketing;
+
+use App\Http\Controllers\Controller;
+use App\Models\Proyek;
+use App\Models\Penawaran;
+use App\Models\PenawaranDetail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+
+class PenawaranController extends Controller
+{
+    public function index()
+    {
+        $penawaranData = Penawaran::with(['proyek', 'details'])->get();
+        return view('pages.marketing.penawaran.index', compact('penawaranData'));
+    }
+
+    public function show($proyekId)
+    {
+        // Get project data
+        $proyek = Proyek::findOrFail($proyekId);
+
+        // Get or create penawaran for this project
+        $penawaran = Penawaran::where('id_proyek', $proyek->id_proyek)->first();
+
+        if (!$penawaran) {
+            // Create new penawaran
+            $penawaran = new Penawaran();
+            $penawaran->id_proyek = $proyek->id_proyek;
+            $penawaran->tanggal_penawaran = now();
+            $penawaran->status = 'draft';
+            $penawaran->save();
+        }
+
+        // Get penawaran details
+        $penawaranDetails = PenawaranDetail::where('id_penawaran', $penawaran->id_penawaran)->get();
+
+        // Auto-update total nilai berdasarkan detail yang ada
+        if ($penawaranDetails->count() > 0) {
+            $calculatedTotal = $penawaranDetails->sum('subtotal');
+            if ($penawaran->total_nilai != $calculatedTotal) {
+                $penawaran->total_nilai = $calculatedTotal;
+                $penawaran->save();
+            }
+        }
+
+        return view('pages.marketing.penawaran.detail', compact('proyek', 'penawaran', 'penawaranDetails'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'id_proyek' => 'required|exists:proyek,id_proyek',
+            'tanggal_penawaran' => 'required|date',
+            'total_nilai' => 'required|numeric',
+            'catatan' => 'nullable|string',
+            'surat_penawaran' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'surat_pesanan' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Create or update penawaran
+            $penawaran = Penawaran::updateOrCreate(
+                ['id_proyek' => $request->id_proyek],
+                [
+                    'tanggal_penawaran' => $request->tanggal_penawaran,
+                    'total_nilai' => $request->total_nilai,
+                    'catatan' => $request->catatan,
+                    'status' => 'submitted'
+                ]
+            );
+
+            // Handle file uploads
+            if ($request->hasFile('surat_penawaran')) {
+                // Delete old file if exists
+                if ($penawaran->surat_penawaran && Storage::exists('public/penawaran/' . $penawaran->surat_penawaran)) {
+                    Storage::delete('public/penawaran/' . $penawaran->surat_penawaran);
+                }
+
+                $file = $request->file('surat_penawaran');
+                $filename = time() . '_penawaran_' . $file->getClientOriginalName();
+                $file->storeAs('public/penawaran', $filename);
+                $penawaran->surat_penawaran = $filename;
+            }
+
+            if ($request->hasFile('surat_pesanan')) {
+                // Delete old file if exists
+                if ($penawaran->surat_pesanan && Storage::exists('public/penawaran/' . $penawaran->surat_pesanan)) {
+                    Storage::delete('public/penawaran/' . $penawaran->surat_pesanan);
+                }
+
+                $file = $request->file('surat_pesanan');
+                $filename = time() . '_pesanan_' . $file->getClientOriginalName();
+                $file->storeAs('public/penawaran', $filename);
+                $penawaran->surat_pesanan = $filename;
+            }
+
+            $penawaran->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Penawaran berhasil disimpan!',
+                'data' => $penawaran
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'tanggal_penawaran' => 'required|date',
+            'total_nilai' => 'required|numeric',
+            'catatan' => 'nullable|string',
+            'surat_penawaran' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            'surat_pesanan' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+        ]);
+
+        try {
+            $penawaran = Penawaran::findOrFail($id);
+
+            $penawaran->tanggal_penawaran = $request->tanggal_penawaran;
+            $penawaran->total_nilai = $request->total_nilai;
+            $penawaran->catatan = $request->catatan;
+
+            // Handle file uploads
+            if ($request->hasFile('surat_penawaran')) {
+                // Delete old file if exists
+                if ($penawaran->surat_penawaran && Storage::exists('public/penawaran/' . $penawaran->surat_penawaran)) {
+                    Storage::delete('public/penawaran/' . $penawaran->surat_penawaran);
+                }
+
+                $file = $request->file('surat_penawaran');
+                $filename = time() . '_penawaran_' . $file->getClientOriginalName();
+                $file->storeAs('public/penawaran', $filename);
+                $penawaran->surat_penawaran = $filename;
+            }
+
+            if ($request->hasFile('surat_pesanan')) {
+                // Delete old file if exists
+                if ($penawaran->surat_pesanan && Storage::exists('public/penawaran/' . $penawaran->surat_pesanan)) {
+                    Storage::delete('public/penawaran/' . $penawaran->surat_pesanan);
+                }
+
+                $file = $request->file('surat_pesanan');
+                $filename = time() . '_pesanan_' . $file->getClientOriginalName();
+                $file->storeAs('public/penawaran', $filename);
+                $penawaran->surat_pesanan = $filename;
+            }
+
+            $penawaran->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Penawaran berhasil diupdate!',
+                'data' => $penawaran
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function downloadFile($type, $filename)
+    {
+        $path = 'public/penawaran/' . $filename;
+
+        if (!Storage::exists($path)) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        return Storage::download($path);
+    }
+}

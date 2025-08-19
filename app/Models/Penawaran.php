@@ -20,6 +20,8 @@ class Penawaran extends Model
         'surat_pesanan',
         'surat_penawaran',
         'total_penawaran',
+        'total_nilai',
+        'catatan',
         'status',
     ];
 
@@ -36,6 +38,11 @@ class Penawaran extends Model
     }
 
     public function penawaranDetail()
+    {
+        return $this->hasMany(PenawaranDetail::class, 'id_penawaran', 'id_penawaran');
+    }
+
+    public function details()
     {
         return $this->hasMany(PenawaranDetail::class, 'id_penawaran', 'id_penawaran');
     }
@@ -79,5 +86,19 @@ class Penawaran extends Model
     public function getAdminPurchasingAttribute()
     {
         return $this->proyek->adminPurchasing ?? null;
+    }
+
+    // Method untuk menghitung total otomatis dari detail penawaran
+    public function calculateTotal()
+    {
+        return $this->details()->sum('subtotal');
+    }
+
+    // Method untuk update total nilai berdasarkan detail
+    public function updateTotalNilai()
+    {
+        $total = $this->calculateTotal();
+        $this->update(['total_nilai' => $total]);
+        return $total;
     }
 }

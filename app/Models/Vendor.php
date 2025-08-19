@@ -17,14 +17,32 @@ class Vendor extends Model
         'kontak',
     ];
 
+    // Accessor untuk nama
+    public function getNamaAttribute()
+    {
+        return $this->nama_vendor;
+    }
+
+    // Accessor untuk jenis
+    public function getJenisAttribute()
+    {
+        return $this->jenis_perusahaan;
+    }
+
+    // Accessor untuk status (default aktif)
+    public function getStatusAttribute()
+    {
+        return 'Aktif'; // Default status, bisa disesuaikan jika ada field status
+    }
+
     // Relationships
     public function barang()
     {
         return $this->hasMany(Barang::class, 'id_vendor');
     }
 
-    public function pembayaran()
+    public function penawaran()
     {
-        return $this->hasMany(Pembayaran::class, 'id_vendor');
+        return $this->hasMany(Penawaran::class, 'id_vendor');
     }
 }

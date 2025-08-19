@@ -3,228 +3,6 @@
 @section('content')
 
 @php
-// Data dummy proyek - bisa dipindah ke controller nanti
-$proyekData = [
-    [
-        'id' => 1,
-        'kode' => 'PNW-2024-001',
-        'nama_proyek' => 'Sistem Informasi Manajemen',
-        'kabupaten_kota' => 'Jakarta Pusat',
-        'nama_instansi' => 'Dinas Pendidikan DKI',
-        'jenis_pengadaan' => 'Pelelangan Umum',
-        'tanggal' => '2024-09-15',
-        'deadline' => '2024-09-30',
-        'status' => 'penawaran',
-        'admin_marketing' => 'Andi Prasetyo',
-        'admin_purchasing' => 'Sari Wijaya',
-        'catatan' => 'Proyek pembangunan sistem informasi manajemen pendidikan untuk meningkatkan efisiensi administrasi.',
-        'potensi' => 'ya',
-        'tahun_potensi' => 2024,
-        'total_nilai' => 850000000,
-        'surat_penawaran' => 'SP-2024-001.pdf',
-        'surat_persetujuan' => '',
-        'surat_kontrak' => '',
-        'surat_selesai' => '',
-        'daftar_barang' => [
-            ['nama' => 'Server Database', 'qty' => 2, 'satuan' => 'unit', 'harga_satuan' => 15000000, 'harga_total' => 30000000],
-            ['nama' => 'Workstation', 'qty' => 10, 'satuan' => 'unit', 'harga_satuan' => 8000000, 'harga_total' => 80000000],
-            ['nama' => 'Software License', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 50000000, 'harga_total' => 50000000],
-            ['nama' => 'Training & Support', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 25000000, 'harga_total' => 25000000]
-        ],
-        'penawaran' => [
-            'no_penawaran' => 'PNW-2024-001',
-            'tanggal_penawaran' => '2024-09-10',
-            'status_penawaran' => 'dikirim'
-        ]
-    ],
-    [
-        'id' => 2,
-        'kode' => 'PNW-2024-002',
-        'nama_proyek' => 'Website Portal Layanan',
-        'kabupaten_kota' => 'Bandung',
-        'nama_instansi' => 'Pemkot Bandung',
-        'jenis_pengadaan' => 'Penunjukan Langsung',
-        'tanggal' => '2024-09-20',
-        'deadline' => '2024-10-05',
-        'status' => 'pembayaran',
-        'admin_marketing' => 'Budi Santoso',
-        'admin_purchasing' => 'Maya Indah',
-        'catatan' => 'Pengembangan portal layanan publik online untuk memudahkan akses masyarakat.',
-        'potensi' => 'tidak',
-        'tahun_potensi' => 2025,
-        'total_nilai' => 650000000,
-        'surat_penawaran' => 'SP-2024-002.pdf',
-        'surat_persetujuan' => 'SPJ-2024-002.pdf',
-        'surat_kontrak' => 'SK-2024-002.pdf',
-        'surat_selesai' => '',
-        'daftar_barang' => [
-            ['nama' => 'Web Development', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 45000000, 'harga_total' => 45000000],
-            ['nama' => 'Hosting & Domain', 'qty' => 1, 'satuan' => 'tahun', 'harga_satuan' => 5000000, 'harga_total' => 5000000],
-            ['nama' => 'Maintenance', 'qty' => 1, 'satuan' => 'tahun', 'harga_satuan' => 12000000, 'harga_total' => 12000000]
-        ],
-        'penawaran' => [
-            'no_penawaran' => 'PNW-2024-002',
-            'tanggal_penawaran' => '2024-09-18',
-            'status_penawaran' => 'diterima'
-        ]
-    ],
-    [
-        'id' => 3,
-        'kode' => 'PNW-2024-003',
-        'nama_proyek' => 'Aplikasi Mobile E-Government',
-        'kabupaten_kota' => 'Surabaya',
-        'nama_instansi' => 'Pemkot Surabaya',
-        'jenis_pengadaan' => 'Tender',
-        'tanggal' => '2024-08-25',
-        'deadline' => '2024-09-15',
-        'status' => 'gagal',
-        'admin_marketing' => 'Dewi Lestari',
-        'admin_purchasing' => 'Roni Hidayat',
-        'catatan' => 'Aplikasi mobile untuk layanan e-government yang terintegrasi.',
-        'potensi' => 'ya',
-        'tahun_potensi' => 2024,
-        'total_nilai' => 720000000,
-        'surat_penawaran' => 'SP-2024-003.pdf',
-        'surat_persetujuan' => '',
-        'surat_kontrak' => '',
-        'surat_selesai' => '',
-        'daftar_barang' => [
-            ['nama' => 'Mobile App Development', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 60000000, 'harga_total' => 60000000],
-            ['nama' => 'Backend API', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 40000000, 'harga_total' => 40000000],
-            ['nama' => 'Testing & QA', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 15000000, 'harga_total' => 15000000]
-        ],
-        'penawaran' => [
-            'no_penawaran' => 'PNW-2024-003',
-            'tanggal_penawaran' => '2024-08-20',
-            'status_penawaran' => 'ditolak'
-        ]
-    ],
-    [
-        'id' => 4,
-        'kode' => 'PNW-2024-004',
-        'nama_proyek' => 'Dashboard Analytics Daerah',
-        'kabupaten_kota' => 'Yogyakarta',
-        'nama_instansi' => 'Pemda DIY',
-        'jenis_pengadaan' => 'Pelelangan Umum',
-        'tanggal' => '2024-10-10',
-        'deadline' => '2024-10-25',
-        'status' => 'selesai',
-        'admin_marketing' => 'Fajar Ramadhan',
-        'admin_purchasing' => 'Lisa Permata',
-        'catatan' => 'Dashboard untuk monitoring dan analisis data pembangunan daerah.',
-        'potensi' => 'ya',
-        'tahun_potensi' => 2024,
-        'total_nilai' => 920000000,
-        'surat_penawaran' => 'SP-2024-004.pdf',
-        'surat_persetujuan' => 'SPJ-2024-004.pdf',
-        'surat_kontrak' => 'SK-2024-004.pdf',
-        'surat_selesai' => 'SS-2024-004.pdf',
-        'daftar_barang' => [
-            ['nama' => 'Dashboard System', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 75000000, 'harga_total' => 75000000],
-            ['nama' => 'Data Integration', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 35000000, 'harga_total' => 35000000],
-            ['nama' => 'User Training', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 20000000, 'harga_total' => 20000000]
-        ],
-        'penawaran' => [
-            'no_penawaran' => 'PNW-2024-004',
-            'tanggal_penawaran' => '2024-10-05',
-            'status_penawaran' => 'selesai'
-        ]
-    ],
-    [
-        'id' => 5,
-        'kode' => 'PNW-2024-005',
-        'nama_proyek' => 'Sistem Inventory Aset',
-        'kabupaten_kota' => 'Semarang',
-        'nama_instansi' => 'BPKAD Kota Semarang',
-        'jenis_pengadaan' => 'Pemilihan Langsung',
-        'tanggal' => '2024-09-30',
-        'deadline' => '2024-11-15',
-        'status' => 'pengiriman',
-        'admin_marketing' => 'Agus Setiawan',
-        'admin_purchasing' => 'Nina Kartika',
-        'catatan' => 'Sistem manajemen inventory aset daerah untuk meningkatkan akuntabilitas.',
-        'potensi' => 'ya',
-        'tahun_potensi' => 2024,
-        'total_nilai' => 980000000,
-        'surat_penawaran' => 'SP-2024-005.pdf',
-        'surat_persetujuan' => 'SPJ-2024-005.pdf',
-        'surat_kontrak' => 'SK-2024-005.pdf',
-        'surat_selesai' => '',
-        'daftar_barang' => [
-            ['nama' => 'Inventory System', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 85000000, 'harga_total' => 85000000],
-            ['nama' => 'Barcode Scanner', 'qty' => 10, 'satuan' => 'unit', 'harga_satuan' => 2500000, 'harga_total' => 25000000],
-            ['nama' => 'Installation & Setup', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 15000000, 'harga_total' => 15000000]
-        ],
-        'penawaran' => [
-            'no_penawaran' => 'PNW-2024-005',
-            'tanggal_penawaran' => '2024-09-25',
-            'status_penawaran' => 'diterima'
-        ]
-    ],
-    [
-        'id' => 6,
-        'kode' => 'PNW-2024-006',
-        'nama_proyek' => 'Sistem Keuangan Daerah',
-        'kabupaten_kota' => 'Malang',
-        'nama_instansi' => 'BPKD Kota Malang',
-        'jenis_pengadaan' => 'Tender',
-        'tanggal' => '2024-10-15',
-        'deadline' => '2024-12-01',
-        'status' => 'menunggu',
-        'admin_marketing' => 'Rina Sari',
-        'admin_purchasing' => 'Dedi Kurniawan',
-        'catatan' => 'Implementasi sistem keuangan daerah yang terintegrasi dengan sistem nasional.',
-        'potensi' => 'tidak',
-        'tahun_potensi' => 2025,
-        'total_nilai' => 1200000000,
-        'surat_penawaran' => '',
-        'surat_persetujuan' => '',
-        'surat_kontrak' => '',
-        'surat_selesai' => '',
-        'daftar_barang' => [
-            ['nama' => 'Financial System', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 95000000, 'harga_total' => 95000000],
-            ['nama' => 'Database Server', 'qty' => 2, 'satuan' => 'unit', 'harga_satuan' => 25000000, 'harga_total' => 50000000],
-            ['nama' => 'Security Module', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 30000000, 'harga_total' => 30000000]
-        ],
-        'penawaran' => [
-            'no_penawaran' => 'PNW-2024-006',
-            'tanggal_penawaran' => '2024-10-12',
-            'status_penawaran' => 'dikirim'
-        ]
-    ],
-    [
-        'id' => 7,
-        'kode' => 'PNW-2024-007',
-        'nama_proyek' => 'Platform E-Learning Daerah',
-        'kabupaten_kota' => 'Medan',
-        'nama_instansi' => 'Dinas Pendidikan Sumut',
-        'jenis_pengadaan' => 'Tender',
-        'tanggal' => '2024-07-10',
-        'deadline' => '2024-08-25',
-        'status' => 'gagal',
-        'admin_marketing' => 'Maria Sinaga',
-        'admin_purchasing' => 'Bayu Pratama',
-        'catatan' => 'Platform pembelajaran online untuk sekolah-sekolah di Sumatera Utara. Proyek dibatalkan karena anggaran tidak mencukupi.',
-        'potensi' => 'tidak',
-        'tahun_potensi' => 2025,
-        'total_nilai' => 450000000,
-        'surat_penawaran' => 'SP-2024-007.pdf',
-        'surat_persetujuan' => '',
-        'surat_kontrak' => '',
-        'surat_selesai' => '',
-        'daftar_barang' => [
-            ['nama' => 'LMS Platform', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 35000000, 'harga_total' => 35000000],
-            ['nama' => 'Content Development', 'qty' => 1, 'satuan' => 'paket', 'harga_satuan' => 25000000, 'harga_total' => 25000000],
-            ['nama' => 'Teacher Training', 'qty' => 1, 'satuan' => 'layanan', 'harga_satuan' => 15000000, 'harga_total' => 15000000]
-        ],
-        'penawaran' => [
-            'no_penawaran' => 'PNW-2024-007',
-            'tanggal_penawaran' => '2024-07-05',
-            'status_penawaran' => 'dibatalkan'
-        ]
-    ]
-];
-
 // Fungsi helper untuk menghitung statistik
 function countByStatus($data, $status) {
     return count(array_filter($data, function($item) use ($status) {
@@ -375,7 +153,6 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                 <select id="sortBy" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Urutkan</option>
                     <option value="tanggal">Terbaru</option>
-                    <option value="deadline">Deadline</option>
                     <option value="kabupaten">Kabupaten</option>
                 </select>
             </div>
@@ -387,12 +164,13 @@ $gagalCount = countByStatus($proyekData, 'gagal');
         <div id="proyekContainer" class="grid grid-cols-1 gap-4 sm:gap-6">
             @foreach($proyekData as $index => $proyek)
             <!-- Card {{ $index + 1 }} -->
-            <div class="proyek-card bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200"
+            <div class="proyek-card bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 cursor-pointer relative"
                  data-status="{{ $proyek['status'] }}"
-                 data-kabupaten="{{ strtolower($proyek['kabupaten_kota']) }}"
-                 data-instansi="{{ strtolower($proyek['nama_instansi']) }}"
+                 data-kabupaten="{{ strtolower($proyek['kabupaten']) }}"
+                 data-instansi="{{ strtolower($proyek['instansi']) }}"
                  data-tanggal="{{ $proyek['tanggal'] }}"
-                 data-deadline="{{ $proyek['deadline'] }}">
+                 onclick="buatPenawaran({{ $proyek['id'] }})"
+                 title="Klik untuk membuat penawaran">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                     <div class="flex items-center space-x-3 mb-3 sm:mb-0">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
@@ -459,7 +237,10 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-1 sm:space-x-2 self-start">
+                    <div class="flex items-center space-x-1 sm:space-x-2 self-start" onclick="event.stopPropagation()">
+                        <button onclick="buatPenawaran({{ $proyek['id'] }})" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200" title="Buat Penawaran">
+                            <i class="fas fa-file-invoice text-sm"></i>
+                        </button>
                         <button onclick="viewDetail({{ $proyek['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
                             <i class="fas fa-eye text-sm"></i>
                         </button>
@@ -479,15 +260,11 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                     </div>
                     <div>
                         <p class="text-xs sm:text-sm text-gray-500 mb-1">Kabupaten/Kota</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $proyek['kabupaten_kota'] }}</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $proyek['kabupaten'] }}</p>
                     </div>
                     <div>
                         <p class="text-xs sm:text-sm text-gray-500 mb-1">Nama Instansi</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $proyek['nama_instansi'] }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Deadline</p>
-                        <p class="font-medium text-red-600 text-sm sm:text-base">{{ \Carbon\Carbon::parse($proyek['deadline'])->format('d M Y') }}</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $proyek['instansi'] }}</p>
                     </div>
                 </div>
 
@@ -904,8 +681,8 @@ function filterAndSort() {
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     if (searchTerm) {
         filtered = filtered.filter(proyek =>
-            proyek.nama_instansi.toLowerCase().includes(searchTerm) ||
-            proyek.kabupaten_kota.toLowerCase().includes(searchTerm) ||
+            proyek.instansi.toLowerCase().includes(searchTerm) ||
+            proyek.kabupaten.toLowerCase().includes(searchTerm) ||
             proyek.nama_proyek.toLowerCase().includes(searchTerm)
         );
     }
@@ -923,11 +700,8 @@ function filterAndSort() {
             case 'tanggal':
                 filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
                 break;
-            case 'deadline':
-                filtered.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
-                break;
             case 'kabupaten':
-                filtered.sort((a, b) => a.kabupaten_kota.localeCompare(b.kabupaten_kota));
+                filtered.sort((a, b) => a.kabupaten.localeCompare(b.kabupaten));
                 break;
         }
     }
@@ -973,7 +747,7 @@ function updatePaginationInfo() {
         if (totalVisible === 0) {
             paginationInfo.innerHTML = 'Tidak ada proyek yang ditampilkan';
         } else {
-            paginationInfo.innerHTML = `Menampilkan <span class="font-medium">${totalVisible}</span> dari <span class="font-medium">${totalAll}</span> proyek`;
+            paginationInfo.innerHTML = 'Menampilkan <span class="font-medium">' + totalVisible + '</span> dari <span class="font-medium">' + totalAll + '</span> proyek';
         }
     }
 }
@@ -996,11 +770,10 @@ function viewDetail(id) {
         id: data.id,
         kode: data.kode,
         nama_proyek: data.nama_proyek,
-        instansi: data.nama_instansi,
-        kabupaten: data.kabupaten_kota,
+        instansi: data.instansi,
+        kabupaten: data.kabupaten,
         jenis_pengadaan: data.jenis_pengadaan,
         tanggal: formatTanggal(data.tanggal),
-        deadline: formatTanggal(data.deadline),
         status: data.status,
         admin_marketing: data.admin_marketing,
         admin_purchasing: data.admin_purchasing,
@@ -1017,7 +790,7 @@ function viewDetail(id) {
         if (element) {
             element.textContent = text || '-';
         } else {
-            console.warn(`Element dengan ID ${id} tidak ditemukan`);
+            console.warn('Element dengan ID ' + id + ' tidak ditemukan');
         }
     };
 
@@ -1028,7 +801,6 @@ function viewDetail(id) {
     setElementText('detailKabupatenKota', formattedData.kabupaten);
     setElementText('detailJenisPengadaan', formattedData.jenis_pengadaan);
     setElementText('detailTanggal', formattedData.tanggal);
-    setElementText('detailDeadline', formattedData.deadline);
     setElementText('detailAdminMarketing', formattedData.admin_marketing);
     setElementText('detailAdminPurchasing', formattedData.admin_purchasing);
     setElementText('detailPotensi', formattedData.potensi);
@@ -1058,23 +830,23 @@ function viewDetail(id) {
         formattedData.daftar_barang.forEach((item, index) => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 mb-3';
-            itemDiv.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <h5 class="font-medium text-gray-800">${item.nama}</h5>
-                    <span class="text-lg font-bold text-red-600">${formatRupiah(item.harga_total)}</span>
-                </div>
-                <div class="grid grid-cols-3 gap-4 text-sm text-gray-600">
-                    <div>
-                        <span class="font-medium">Qty:</span> ${item.qty}
-                    </div>
-                    <div>
-                        <span class="font-medium">Satuan:</span> ${item.satuan}
-                    </div>
-                    <div>
-                        <span class="font-medium">Harga Satuan:</span> ${formatRupiah(item.harga_satuan)}
-                    </div>
-                </div>
-            `;
+            itemDiv.innerHTML = [
+                '<div class="flex justify-between items-start mb-2">',
+                    '<h5 class="font-medium text-gray-800">' + item.nama + '</h5>',
+                    '<span class="text-lg font-bold text-red-600">' + formatRupiah(item.harga_total) + '</span>',
+                '</div>',
+                '<div class="grid grid-cols-3 gap-4 text-sm text-gray-600">',
+                    '<div>',
+                        '<span class="font-medium">Qty:</span> ' + item.jumlah,
+                    '</div>',
+                    '<div>',
+                        '<span class="font-medium">Satuan:</span> ' + item.satuan,
+                    '</div>',
+                    '<div>',
+                        '<span class="font-medium">Harga Satuan:</span> ' + formatRupiah(item.harga_satuan),
+                    '</div>',
+                '</div>'
+            ].join('');
             daftarBarangContainer.appendChild(itemDiv);
         });
     } else if (daftarBarangContainer) {
@@ -1093,6 +865,22 @@ function viewDetail(id) {
 
     // Show modal
     openModal('modalDetailProyek');
+}
+
+// Function to create penawaran (redirect to penawaran page)
+function buatPenawaran(id) {
+    console.log('buatPenawaran called with ID:', id);
+
+    const data = proyekData.find(p => p.id == id);
+
+    if (!data) {
+        console.error('Data proyek tidak ditemukan dengan ID:', id);
+        alert('Data proyek tidak ditemukan!');
+        return;
+    }
+
+    // Redirect to penawaran detail page
+    window.location.href = `/marketing/penawaran/${id}`;
 }
 
 // Function to edit proyek
@@ -1114,55 +902,70 @@ function editProyek(id) {
         id: data.id,
         kode: data.kode,
         nama_proyek: data.nama_proyek,
-        kabupaten_kota: data.kabupaten_kota,
-        nama_instansi: data.nama_instansi,
+        kabupaten: data.kabupaten,
+        kabupaten_kota: data.kabupaten, // Mapping field
+        instansi: data.instansi,
+        nama_instansi: data.instansi, // Mapping field
         jenis_pengadaan: data.jenis_pengadaan,
         tanggal: data.tanggal,
-        deadline: data.deadline,
         admin_marketing: data.admin_marketing,
         admin_purchasing: data.admin_purchasing,
+        id_admin_marketing: data.id_admin_marketing,
+        id_admin_purchasing: data.id_admin_purchasing,
         catatan: data.catatan,
         potensi: data.potensi,
         tahun_potensi: data.tahun_potensi,
         status: data.status,
         total_nilai: data.total_nilai,
+        nama_klien: data.nama_klien,
+        kontak_klien: data.kontak_klien,
+        spesifikasi: data.spesifikasi,
+        jumlah: data.jumlah,
+        satuan: data.satuan,
+        harga_satuan: data.harga_satuan,
         daftar_barang: data.daftar_barang || []
     };
 
     // Load data into edit form
     setTimeout(() => {
-        if (typeof window.loadEditData === 'function') {
-            window.loadEditData(editData);
-        } else {
-            // Fallback: directly populate fields
-            const fields = {
-                'editId': editData.id,
-                'editKode': editData.kode,
-                'editNamaProyek': editData.nama_proyek,
-                'editKabupatenKota': editData.kabupaten_kota,
-                'editNamaInstansi': editData.nama_instansi,
-                'editJenisPengadaan': editData.jenis_pengadaan,
-                'editTanggal': editData.tanggal,
-                'editDeadline': editData.deadline,
-                'editAdminMarketing': editData.admin_marketing,
-                'editAdminPurchasing': editData.admin_purchasing,
-                'editCatatan': editData.catatan,
-                'editTahunPotensi': editData.tahun_potensi,
-                'editStatus': editData.status
-            };
+        // Set ID proyek untuk form submission
+        const editIdField = document.getElementById('editId');
+        if (editIdField) editIdField.value = editData.id;
 
-            Object.keys(fields).forEach(fieldId => {
-                const element = document.getElementById(fieldId);
-                if (element) {
-                    element.value = fields[fieldId] || '';
-                }
-            });
-
-            // Handle potensi buttons
-            if (typeof togglePotensiEdit === 'function') {
-                togglePotensiEdit(editData.potensi);
+        // Set field values dengan mapping yang benar
+        const setFieldValue = (id, value) => {
+            const field = document.getElementById(id);
+            if (field) {
+                field.value = value || '';
             }
+        };
+
+        setFieldValue('editIdProyek', editData.kode);
+        setFieldValue('editTanggal', editData.tanggal);
+        setFieldValue('editKabupatenKota', editData.kabupaten);
+        setFieldValue('editNamaInstansi', editData.instansi);
+        setFieldValue('editNamaProyek', editData.nama_proyek);
+        setFieldValue('editJenisPengadaan', editData.jenis_pengadaan);
+        setFieldValue('editAdminMarketing', editData.admin_marketing);
+        setFieldValue('editAdminPurchasing', editData.admin_purchasing);
+        setFieldValue('editStatus', editData.status);
+        setFieldValue('editCatatan', editData.catatan);
+        setFieldValue('editTahunPotensi', editData.tahun_potensi);
+
+        // Handle potensi buttons
+        if (typeof togglePotensiEdit === 'function') {
+            togglePotensiEdit(editData.potensi);
         }
+
+        // Load data barang dan informasi lengkap menggunakan fungsi dari edit modal
+        if (typeof loadEditData === 'function') {
+            console.log('Loading edit data with items:', editData.daftar_barang);
+            loadEditData(editData);
+        } else {
+            console.error('loadEditData function not found');
+        }
+
+        console.log('Edit form populated successfully');
     }, 100);
 
     // Show modal
@@ -1188,8 +991,8 @@ function deleteProyek(id) {
         id: data.id,
         kode: data.kode,
         nama_proyek: data.nama_proyek,
-        instansi: data.nama_instansi,
-        kabupaten: data.kabupaten_kota,
+        instansi: data.instansi,
+        kabupaten: data.kabupaten,
         status: data.status
     };
 
@@ -1212,8 +1015,8 @@ function deleteProyek(id) {
         loadHapusData({
             id: data.id,
             kode: data.kode,
-            nama_instansi: data.nama_instansi,
-            kabupaten_kota: data.kabupaten_kota,
+            instansi: data.instansi,
+            kabupaten: data.kabupaten,
             status: data.status
         });
     }
@@ -1247,7 +1050,7 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
         'gagal': 'Gagal'
     };
 
-    const confirmMessage = `Apakah Anda yakin ingin mengubah status proyek "${proyek.nama_proyek}" menjadi "${statusNames[newStatus]}"?`;
+    const confirmMessage = 'Apakah Anda yakin ingin mengubah status proyek "' + proyek.nama_proyek + '" menjadi "' + statusNames[newStatus] + '"?';
     if (!confirm(confirmMessage)) {
         // Reset dropdown ke nilai awal
         if (selectElement) selectElement.value = '';
@@ -1282,7 +1085,7 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
             }
 
             // Show success message
-            showSuccessMessage(`Status proyek berhasil diubah menjadi "${statusNames[newStatus]}"!`);
+            showSuccessMessage('Status proyek berhasil diubah menjadi "' + statusNames[newStatus] + '"!');
 
             // Update statistics
             updateStatistics();
@@ -1310,12 +1113,12 @@ function showSuccessMessage(message) {
     // Create success notification
     const notification = document.createElement('div');
     notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
-    notification.innerHTML = `
-        <div class="flex items-center">
-            <i class="fas fa-check-circle mr-2"></i>
-            <span>${message}</span>
-        </div>
-    `;
+    notification.innerHTML = [
+        '<div class="flex items-center">',
+            '<i class="fas fa-check-circle mr-2"></i>',
+            '<span>' + message + '</span>',
+        '</div>'
+    ].join('');
 
     document.body.appendChild(notification);
 
@@ -1441,13 +1244,19 @@ function formatRupiah(angka) {
 }
 
 function formatTanggal(tanggal) {
-    if (!tanggal) return '-';
-    const date = new Date(tanggal);
-    return date.toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    });
+    if (!tanggal || tanggal === '-') return '-';
+    try {
+        const date = new Date(tanggal);
+        if (isNaN(date.getTime())) return '-';
+        return date.toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return '-';
+    }
 }
 
 function ucfirst(str) {
@@ -1488,9 +1297,9 @@ if (typeof openModal === 'undefined') {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.classList.add('modal-open');
-            console.log(`Opened modal: ${modalId}`);
+            console.log('Opened modal: ' + modalId);
         } else {
-            console.error(`Modal dengan ID ${modalId} tidak ditemukan`);
+            console.error('Modal dengan ID ' + modalId + ' tidak ditemukan');
         }
     }
 }
@@ -1502,7 +1311,7 @@ if (typeof closeModal === 'undefined') {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             document.body.classList.remove('modal-open');
-            console.log(`Closed modal: ${modalId}`);
+            console.log('Closed modal: ' + modalId);
         }
     }
 }
@@ -1517,12 +1326,12 @@ if (typeof showSuccessModal === 'undefined') {
 function showErrorMessage(message) {
     const notification = document.createElement('div');
     notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
-    notification.innerHTML = `
-        <div class="flex items-center">
-            <i class="fas fa-exclamation-circle mr-2"></i>
-            <span>${message}</span>
-        </div>
-    `;
+    notification.innerHTML = [
+        '<div class="flex items-center">',
+            '<i class="fas fa-exclamation-circle mr-2"></i>',
+            '<span>' + message + '</span>',
+        '</div>'
+    ].join('');
 
     document.body.appendChild(notification);
 

@@ -1,11 +1,8 @@
     @extends('layouts.app')
 
-    @section('content')
-    @extends('layouts.app')
-
-    @section('content')
-    <!-- Header Section -->    <!-- Header Section -->
-    <div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg">
+@section('content')
+<!-- Header Section -->
+<div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg">
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Manajemen Wilayah</h1>
@@ -26,7 +23,7 @@
                 </div>
                 <div class="min-w-0">
                     <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Wilayah</h3>
-                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">15</p>
+                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">{{ $totalWilayah }}</p>
                 </div>
             </div>
         </div>
@@ -37,7 +34,7 @@
                 </div>
                 <div class="min-w-0">
                     <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Instansi Aktif</h3>
-                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">45</p>
+                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{{ $totalInstansi }}</p>
                 </div>
             </div>
         </div>
@@ -48,7 +45,7 @@
                 </div>
                 <div class="min-w-0">
                     <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Kontak Pejabat</h3>
-                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">67</p>
+                    <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{{ $totalKontak }}</p>
                 </div>
             </div>
         </div>
@@ -59,7 +56,7 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800">Admin Marketing</h3>
-                    <p class="text-2xl font-bold text-yellow-600">8</p>
+                    <p class="text-2xl font-bold text-yellow-600">{{ $totalAdminMarketing }}</p>
                 </div>
             </div>
         </div>
@@ -114,26 +111,37 @@
         <!-- List Layout -->
         <div class="p-6">
             <div class="space-y-4">
-                <!-- Item 1 -->
+                @forelse($wilayahData as $wilayah)
+                <!-- Item {{ $wilayah['id'] }} -->
                 <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-4">
                             <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-building text-red-600 text-lg"></i>
+                                @if(strpos(strtolower($wilayah['instansi']), 'dinas') !== false)
+                                    <i class="fas fa-building text-red-600 text-lg"></i>
+                                @elseif(strpos(strtolower($wilayah['instansi']), 'rsud') !== false || strpos(strtolower($wilayah['instansi']), 'rumah sakit') !== false)
+                                    <i class="fas fa-hospital text-blue-600 text-lg"></i>
+                                @elseif(strpos(strtolower($wilayah['instansi']), 'universitas') !== false)
+                                    <i class="fas fa-university text-green-600 text-lg"></i>
+                                @elseif(strpos(strtolower($wilayah['instansi']), 'badan') !== false)
+                                    <i class="fas fa-city text-purple-600 text-lg"></i>
+                                @else
+                                    <i class="fas fa-building text-red-600 text-lg"></i>
+                                @endif
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-gray-800">Jakarta Pusat</h3>
-                                <p class="text-sm text-gray-600">Dinas Pendidikan DKI Jakarta</p>
+                                <h3 class="text-lg font-bold text-gray-800">{{ $wilayah['wilayah'] }}</h3>
+                                <p class="text-sm text-gray-600">{{ $wilayah['instansi'] }}</p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button onclick="detailWilayah(1)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                            <button onclick="detailWilayah({{ $wilayah['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button onclick="editWilayah(1)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
+                            <button onclick="editWilayah({{ $wilayah['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="hapusWilayah(1)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                            <button onclick="hapusWilayah({{ $wilayah['id'] }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -142,180 +150,40 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
-                            <p class="font-medium text-gray-800">Budi Santoso</p>
+                            <p class="font-medium text-gray-800">{{ $wilayah['admin_marketing'] }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Nama Pejabat</p>
-                            <p class="font-medium text-gray-800">Dr. Ahmad Wijaya</p>
+                            <p class="font-medium text-gray-800">{{ $wilayah['nama_pejabat'] }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Jabatan</p>
-                            <p class="font-medium text-gray-800">Kepala Dinas</p>
+                            <p class="font-medium text-gray-800">{{ $wilayah['jabatan'] }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 mb-1">No. Telepon</p>
-                            <p class="font-medium text-gray-800">021-8765432</p>
+                            <p class="font-medium text-gray-800">{{ $wilayah['no_telp'] }}</p>
                         </div>
                     </div>
 
                     <div class="border-t border-gray-200 pt-3">
-                        <p class="text-xs text-gray-500">Terakhir diupdate: 10 Agustus 2025</p>
+                        <p class="text-xs text-gray-500">Terakhir diupdate: {{ $wilayah['updated_at'] }}</p>
                     </div>
                 </div>
-
-                <!-- Item 2 -->
-                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-hospital text-blue-600 text-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-800">Bogor</h3>
-                                <p class="text-sm text-gray-600">RSUD Kota Bogor</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="detailWilayah(2)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="editWilayah(2)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="hapusWilayah(2)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
-                            <p class="font-medium text-gray-800">Sari Indah</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Nama Pejabat</p>
-                            <p class="font-medium text-gray-800">Dr. Siti Nurhaliza</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Jabatan</p>
-                            <p class="font-medium text-gray-800">Direktur RSUD</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">No. Telepon</p>
-                            <p class="font-medium text-gray-800">0251-123456</p>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-gray-200 pt-3">
-                        <p class="text-xs text-gray-500">Terakhir diupdate: 8 Agustus 2025</p>
-                    </div>
+                @empty
+                <!-- No Results Message -->
+                <div class="text-center py-12">
+                    <i class="fas fa-map text-gray-400 text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-600 mb-2">Belum ada data wilayah</h3>
+                    <p class="text-gray-500">Tambahkan proyek untuk melihat data wilayah dan instansi</p>
                 </div>
-
-                <!-- Item 3 -->
-                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-university text-green-600 text-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-800">Depok</h3>
-                                <p class="text-sm text-gray-600">Dinas Komunikasi dan Informatika</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="detailWilayah(3)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="editWilayah(3)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="hapusWilayah(3)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
-                            <p class="font-medium text-gray-800">Andi Pratama</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Nama Pejabat</p>
-                            <p class="font-medium text-gray-800">Ir. Rahman Hakim</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Jabatan</p>
-                            <p class="font-medium text-gray-800">Kepala Dinas</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">No. Telepon</p>
-                            <p class="font-medium text-gray-800">021-7654321</p>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-gray-200 pt-3">
-                        <p class="text-xs text-gray-500">Terakhir diupdate: 5 Agustus 2025</p>
-                    </div>
-                </div>
-
-                <!-- Item 4 -->
-                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-city text-purple-600 text-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-800">Tangerang</h3>
-                                <p class="text-sm text-gray-600">Badan Perencanaan Pembangunan Daerah</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="detailWilayah(4)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="editWilayah(4)" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="hapusWilayah(4)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
-                            <p class="font-medium text-gray-800">Maya Sari</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Nama Pejabat</p>
-                            <p class="font-medium text-gray-800">Drs. Bambang Sutrisno</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Jabatan</p>
-                            <p class="font-medium text-gray-800">Kepala Badan</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">No. Telepon</p>
-                            <p class="font-medium text-gray-800">021-5551234</p>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-gray-200 pt-3">
-                        <p class="text-xs text-gray-500">Terakhir diupdate: 3 Agustus 2025</p>
-                    </div>
-                </div>
-
+                @endforelse
             </div>
 
             <!-- Pagination -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mt-8 pt-6 border-t border-gray-200 space-y-3 sm:space-y-0">
                 <div class="text-sm text-gray-600 text-center sm:text-left">
-                    Menampilkan 1-4 dari 15 data wilayah
+                    Menampilkan 1-{{ count($wilayahData) }} dari {{ count($wilayahData) }} data wilayah
                 </div>
 
                 <!-- Mobile Pagination (Simple) -->
@@ -353,57 +221,14 @@
     @include('components.success-modal')
 
     <script>
-        // Sample data for demonstration
-        const sampleData = {
-            1: {
-                id: 1,
-                wilayah: 'Jakarta Pusat',
-                instansi: 'Dinas Pendidikan DKI Jakarta',
-                admin_marketing: 'Budi Santoso',
-                nama_pejabat: 'Dr. Ahmad Wijaya',
-                jabatan: 'Kepala Dinas',
-                no_telp: '021-8765432',
-                alamat: 'Jl. Letjen S. Parman No. 81, Jakarta Barat',
-                email: 'ahmad.wijaya@jakarta.go.id',
-                updated_at: '10 Agustus 2025'
-            },
-            2: {
-                id: 2,
-                wilayah: 'Bogor',
-                instansi: 'RSUD Kota Bogor',
-                admin_marketing: 'Sari Indah',
-                nama_pejabat: 'Dr. Siti Nurhaliza',
-                jabatan: 'Direktur RSUD',
-                no_telp: '0251-123456',
-                alamat: 'Jl. Ir. H. Juanda No. 1, Bogor',
-                email: 'siti.nurhaliza@rsudbogor.go.id',
-                updated_at: '8 Agustus 2025'
-            },
-            3: {
-                id: 3,
-                wilayah: 'Depok',
-                instansi: 'Dinas Komunikasi dan Informatika',
-                admin_marketing: 'Andi Pratama',
-                nama_pejabat: 'Ir. Rahman Hakim',
-                jabatan: 'Kepala Dinas',
-                no_telp: '021-7654321',
-                alamat: 'Jl. Margonda Raya No. 54, Depok',
-                email: 'rahman.hakim@depok.go.id',
-                updated_at: '5 Agustus 2025'
-            },
-            4: {
-                id: 4,
-                wilayah: 'Tangerang',
-                instansi: 'Badan Perencanaan Pembangunan Daerah',
-                admin_marketing: 'Maya Sari',
-                nama_pejabat: 'Drs. Bambang Sutrisno',
-                jabatan: 'Kepala Badan',
-                no_telp: '021-5551234',
-                alamat: 'Jl. Satria Sudirman No. 1, Tangerang',
-                email: 'bambang.sutrisno@tangerang.go.id',
-                updated_at: '3 Agustus 2025'
-            }
-        };
+        // Data from controller
+        const wilayahData = @json($wilayahData);
+
+        // Convert to object for easy access by ID
+        const sampleData = {};
+        wilayahData.forEach(item => {
+            sampleData[item.id] = item;
+        });
 
         // Function to add new wilayah
         function tambahWilayah() {
@@ -443,11 +268,10 @@
                 // Populate form
                 document.getElementById('editId').value = data.id;
                 document.getElementById('editWilayah').value = data.wilayah;
+                document.getElementById('editProvinsi').value = data.provinsi || '';
                 document.getElementById('editInstansi').value = data.instansi;
-                document.getElementById('editAdminMarketing').value = data.admin_marketing;
-                document.getElementById('editNamaPejabat').value = data.nama_pejabat;
-                document.getElementById('editJabatan').value = data.jabatan;
-                document.getElementById('editNoTelp').value = data.no_telp;
+                document.getElementById('editKodeWilayah').value = data.kode_wilayah || '';
+                document.getElementById('editDeskripsi').value = data.deskripsi || '';
 
                 // Show modal
                 document.getElementById('modalEditWilayah').classList.remove('hidden');
@@ -484,19 +308,49 @@
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
 
-            // Here you would normally send data to backend
-            console.log('Adding new wilayah data:', data);
+            // Disable submit button to prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
 
-            // Close modal
-            closeModal('modalTambahWilayah');
+            // Send data to backend
+            fetch('{{ route("marketing.wilayah.store") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                return response.json().then(data => ({ status: response.status, body: data }));
+            })
+            .then(result => {
+                if (result.status === 200 && result.body.success) {
+                    // Close modal
+                    closeModal('modalTambahWilayah');
 
-            // Show success message
-            alert('Data wilayah berhasil ditambahkan!');
+                    // Show success message
+                    alert(result.body.message || 'Data wilayah berhasil ditambahkan!');
 
-            // Optional: Auto refresh after success modal closes
-            setTimeout(() => {
-                location.reload();
-            }, 2000);
+                    // Refresh page to show new data
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert(result.body.message || 'Gagal menambahkan data wilayah');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menambahkan data wilayah');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
         });
 
         // Handle edit form submission
@@ -506,20 +360,51 @@
             // Get form data
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
+            const id = data.id;
 
-            // Here you would normally send data to backend
-            console.log('Updating wilayah data:', data);
+            // Disable submit button to prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
 
-            // Close edit modal
-            closeModal('modalEditWilayah');
+            // Send data to backend
+            fetch(`{{ route("marketing.wilayah.update", ":id") }}`.replace(':id', id), {
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                return response.json().then(data => ({ status: response.status, body: data }));
+            })
+            .then(result => {
+                if (result.status === 200 && result.body.success) {
+                    // Close edit modal
+                    closeModal('modalEditWilayah');
 
-            // Show success message
-            alert('Data wilayah berhasil diperbarui!');
+                    // Show success message
+                    alert(result.body.message || 'Data wilayah berhasil diperbarui!');
 
-            // Optional: Auto refresh after success modal closes
-            setTimeout(() => {
-                location.reload();
-            }, 2000);
+                    // Refresh page to show updated data
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert(result.body.message || 'Gagal memperbarui data wilayah');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat memperbarui data wilayah');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
         });
 
         // Handle delete form submission
@@ -529,20 +414,52 @@
             // Get form data
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
+            const id = data.id;
 
-            // Here you would normally send data to backend
-            console.log('Deleting wilayah with ID:', data.id);
+            // Disable submit button to prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
 
-            // Close delete modal
-            closeModal('modalHapusWilayah');
+            // Send delete request to backend
+            fetch(`{{ route("marketing.wilayah.destroy", ":id") }}`.replace(':id', id), {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                // Parse JSON response regardless of status
+                return response.json().then(data => ({ status: response.status, body: data }));
+            })
+            .then(result => {
+                if (result.status === 200 && result.body.success) {
+                    // Close delete modal
+                    closeModal('modalHapusWilayah');
 
-            // Show success message
-            alert('Data wilayah berhasil dihapus!');
+                    // Show success message
+                    alert(result.body.message || 'Data wilayah berhasil dihapus!');
 
-            // Optional: Auto refresh after success modal closes
-            setTimeout(() => {
-                location.reload();
-            }, 2000);
+                    // Refresh page to show updated data
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    // Handle error cases (400, 404, 500)
+                    alert(result.body.message || 'Gagal menghapus data wilayah');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat menghapus data wilayah');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
         });
     </script>
     @endsection

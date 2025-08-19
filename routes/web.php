@@ -10,6 +10,10 @@ use App\Http\Controllers\purchasing\KalkulasiController;
 use App\Http\Controllers\purchasing\PembayaranController;
 use App\Http\Controllers\purchasing\PengirimanController;
 use App\Http\Controllers\keuangan\ApprovalController;
+use App\Http\Controllers\Marketing\ProyekController;
+use App\Http\Controllers\Marketing\WilayahController;
+use App\Http\Controllers\Marketing\PotensiController;
+use App\Http\Controllers\Marketing\PenawaranController;
 
 
 
@@ -34,21 +38,34 @@ Route::middleware('auth')->group(function () {
 
     // Marketing Routes
     Route::prefix('marketing')->group(function () {
-        Route::get('/proyek', function () {
-            return view('pages.marketing.proyek');
-        })->name('marketing.proyek');
+        // Proyek Routes
+        Route::get('/proyek', [ProyekController::class, 'index'])->name('marketing.proyek');
+        Route::post('/proyek', [ProyekController::class, 'store'])->name('marketing.proyek.store');
+        Route::put('/proyek/{id}', [ProyekController::class, 'update'])->name('marketing.proyek.update');
+        Route::delete('/proyek/{id}', [ProyekController::class, 'destroy'])->name('marketing.proyek.destroy');
+        Route::put('/proyek/{id}/status', [ProyekController::class, 'updateStatus'])->name('marketing.proyek.status');
+        Route::get('/proyek/users', [ProyekController::class, 'getUsersForSelect'])->name('marketing.proyek.users');
+        Route::get('/proyek/wilayah', [ProyekController::class, 'getWilayahForSelect'])->name('marketing.proyek.wilayah');
+        Route::get('/proyek/next-kode', [ProyekController::class, 'getNextKodeProyek'])->name('marketing.proyek.next-kode');
+        Route::get('/proyek/current-user', [ProyekController::class, 'getCurrentUser'])->name('marketing.proyek.current-user');
 
-        Route::get('/wilayah', function () {
-            return view('pages.marketing.wilayah');
-        })->name('marketing.wilayah');
+        // Wilayah Routes
+        Route::get('/wilayah', [WilayahController::class, 'index'])->name('marketing.wilayah');
+        Route::post('/wilayah', [WilayahController::class, 'store'])->name('marketing.wilayah.store');
+        Route::put('/wilayah/{id}', [WilayahController::class, 'update'])->name('marketing.wilayah.update');
+        Route::delete('/wilayah/{id}', [WilayahController::class, 'destroy'])->name('marketing.wilayah.destroy');
+        Route::get('/wilayah/users', [WilayahController::class, 'getUsersForSelect'])->name('marketing.wilayah.users');
 
-        Route::get('/potensi', function () {
-            return view('pages.marketing.potensi');
-        })->name('marketing.potensi');
+        // Potensi Routes (Read-only)
+        Route::get('/potensi', [PotensiController::class, 'index'])->name('marketing.potensi');
+        Route::get('/potensi/{id}/detail', [PotensiController::class, 'detail'])->name('marketing.potensi.detail');
 
-        Route::get('/penawaran', function () {
-            return view('pages.marketing.penawaran');
-        })->name('marketing.penawaran');
+        // Penawaran Routes
+        Route::get('/penawaran', [PenawaranController::class, 'index'])->name('marketing.penawaran');
+        Route::get('/penawaran/{proyekId}', [PenawaranController::class, 'show'])->name('marketing.penawaran.detail');
+        Route::post('/penawaran', [PenawaranController::class, 'store'])->name('marketing.penawaran.store');
+        Route::put('/penawaran/{id}', [PenawaranController::class, 'update'])->name('marketing.penawaran.update');
+        Route::get('/penawaran/download/{type}/{filename}', [PenawaranController::class, 'downloadFile'])->name('penawaran.download');
     });
 
     // Purchasing Routes
@@ -123,7 +140,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'show'])->name('pengelolaan.akun.show');
         Route::put('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'update'])->name('pengelolaan.akun.update');
         Route::delete('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'destroy'])->name('pengelolaan.akun.destroy');
-        
+
         // Verifikasi Proyek Routes
         Route::get('/verifikasi-proyek', [VerifikasiProyekController::class, 'index'])->name('superadmin.verifikasi-proyek');
         Route::get('/verifikasi-proyek/{id}', [VerifikasiProyekController::class, 'show'])->name('superadmin.verifikasi-proyek.detail');
