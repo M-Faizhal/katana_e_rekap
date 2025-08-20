@@ -1130,10 +1130,40 @@ class CompleteSystemSeeder extends Seeder
     {
         echo "🚚 Seeding pengiriman...\n";
 
+        // Ambil vendor dari penawaran detail untuk setiap proyek
+        $proyek1Vendor = DB::table('penawaran_detail')
+            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
+            ->where('penawaran_detail.id_penawaran', 1)
+            ->distinct()
+            ->pluck('barang.id_vendor')
+            ->first(); // Ambil vendor pertama untuk simplicity
+
+        $proyek2Vendor = DB::table('penawaran_detail')
+            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
+            ->where('penawaran_detail.id_penawaran', 2)
+            ->distinct()
+            ->pluck('barang.id_vendor')
+            ->first();
+
+        $proyek3Vendor = DB::table('penawaran_detail')
+            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
+            ->where('penawaran_detail.id_penawaran', 3)
+            ->distinct()
+            ->pluck('barang.id_vendor')
+            ->first();
+
+        $proyek6Vendor = DB::table('penawaran_detail')
+            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
+            ->where('penawaran_detail.id_penawaran', 6)
+            ->distinct()
+            ->pluck('barang.id_vendor')
+            ->first();
+
         $pengirimans = [
             // Pengiriman untuk proyek 1 (Selesai) - sudah diverifikasi oleh superadmin
             [
                 'id_penawaran' => 1,
+                'id_vendor' => $proyek1Vendor ?? 1, // Fallback ke vendor 1 jika tidak ada
                 'no_surat_jalan' => 'SJ/KATANA/2024/001',
                 'file_surat_jalan' => 'surat_jalan_001.pdf',
                 'tanggal_kirim' => Carbon::now()->subDays(15),
@@ -1153,6 +1183,7 @@ class CompleteSystemSeeder extends Seeder
             // Pengiriman untuk proyek 2 (Sudah sampai, menunggu verifikasi)
             [
                 'id_penawaran' => 2,
+                'id_vendor' => $proyek2Vendor ?? 2,
                 'no_surat_jalan' => 'SJ/KATANA/2024/002',
                 'file_surat_jalan' => 'surat_jalan_002.pdf',
                 'tanggal_kirim' => Carbon::now()->subDays(3),
@@ -1172,6 +1203,7 @@ class CompleteSystemSeeder extends Seeder
             // Pengiriman untuk proyek 3 (Baru sampai, menunggu verifikasi)
             [
                 'id_penawaran' => 3,
+                'id_vendor' => $proyek3Vendor ?? 3,
                 'no_surat_jalan' => 'SJ/KATANA/2024/003',
                 'file_surat_jalan' => 'surat_jalan_003.pdf',
                 'tanggal_kirim' => Carbon::now()->subDays(2),
@@ -1191,6 +1223,7 @@ class CompleteSystemSeeder extends Seeder
             // Pengiriman untuk proyek 6 (Gagal) - barang tidak sesuai spesifikasi
             [
                 'id_penawaran' => 6,
+                'id_vendor' => $proyek6Vendor ?? 1,
                 'no_surat_jalan' => 'SJ/KATANA/2024/006',
                 'file_surat_jalan' => 'surat_jalan_006.pdf',
                 'tanggal_kirim' => Carbon::now()->subDays(35),
@@ -1209,6 +1242,7 @@ class CompleteSystemSeeder extends Seeder
         ];
 
         Pengiriman::insert($pengirimans);
-        echo "   ✓ Created " . count($pengirimans) . " pengiriman\n";
+        echo "   ✓ Created " . count($pengirimans) . " pengiriman per vendor\n";
+        echo "   ✓ Multi-vendor shipping system implemented!\n";
     }
 }

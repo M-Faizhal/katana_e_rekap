@@ -23,7 +23,7 @@
         </div>
         <div class="ml-3">
             <p class="text-sm text-blue-700">
-                <strong>Info:</strong> Hanya proyek dengan pembayaran yang sudah diverifikasi oleh admin keuangan yang bisa dikirim (baik lunas maupun belum lunas).
+                <strong>Info:</strong> Vendor yang sudah memiliki pembayaran dengan status "Approved" dapat melakukan pengiriman, tidak harus lunas 100%. Pengiriman dilakukan per vendor.
             </p>
         </div>
     </div>
@@ -37,7 +37,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-blue-100 text-sm">Ready Kirim</p>
-                    <p class="text-2xl font-bold">{{ count($proyekReady) }}</p>
+                    <p class="text-2xl font-bold">{{ $proyekReady->sum(function($p) { return collect($p->vendors_ready)->where('ready_to_ship', true)->count(); }) }}</p>
                 </div>
                 <i class="fas fa-box text-2xl text-blue-200"></i>
             </div>
@@ -56,7 +56,7 @@
         <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-green-100 text-sm">Selesai</p>
+                    <p class="text-green-100 text-sm">Sampai/Selesai</p>
                     <p class="text-2xl font-bold">{{ count($pengirimanSelesai) }}</p>
                 </div>
                 <i class="fas fa-check-circle text-2xl text-green-200"></i>
@@ -87,7 +87,7 @@
             </button>
             <button id="tabSelesai" onclick="switchTab('selesai')" 
                     class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-check-circle mr-2"></i>Selesai
+                <i class="fas fa-check-circle mr-2"></i>Sampai/Selesai
             </button>
         </nav>
     </div>
@@ -95,8 +95,8 @@
     <!-- Tab Content: Ready Kirim -->
     <div id="contentReady" class="tab-content">
         <div class="mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Proyek Ready untuk Dikirim</h3>
-            <p class="text-sm text-gray-600">Proyek dengan pembayaran yang sudah diverifikasi admin keuangan</p>
+            <h3 class="text-lg font-semibold text-gray-900">Vendor Ready untuk Dikirim</h3>
+            <p class="text-sm text-gray-600">Vendor yang sudah memiliki pembayaran dengan status "Approved" dan siap untuk pengiriman</p>
         </div>
         
         @if(count($proyekReady) > 0)
@@ -104,41 +104,72 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Penawaran</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Proyek</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instansi</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modal Vendor</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Bayar</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($proyekReady as $proyek)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $proyek->no_penawaran }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $proyek->nama_proyek }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $proyek->instansi }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                Rp {{ number_format($proyek->total_harga, 0, ',', '.') }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                    {{ $proyek->status_pembayaran }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="buatPengiriman({{ $proyek->id_penawaran }})" 
-                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-                                    <i class="fas fa-plus mr-1"></i> Buat Pengiriman
-                                </button>
-                            </td>
-                        </tr>
+                            @foreach($proyek->vendors_ready as $vendorData)
+                                @if($vendorData['ready_to_ship'])
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div>
+                                            <div class="font-medium">{{ $proyek->nama_barang }}</div>
+                                            <div class="text-gray-500">{{ $proyek->instansi }}</div>
+                                            <div class="text-xs text-gray-400">{{ $proyek->penawaranAktif->no_penawaran ?? 'N/A' }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div>
+                                            <div class="font-medium">{{ $vendorData['vendor']['nama_vendor'] }}</div>
+                                            <div class="text-gray-500 text-xs">{{ $vendorData['vendor']['jenis_perusahaan'] }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div>
+                                            <div class="font-medium">Rp {{ number_format($vendorData['total_vendor'], 0, ',', '.') }}</div>
+                                            <div class="text-blue-600 text-xs">
+                                                Dibayar: Rp {{ number_format($vendorData['total_dibayar_approved'], 0, ',', '.') }}
+                                            </div>
+                                            @php
+                                                $sisaBayar = $vendorData['total_vendor'] - $vendorData['total_dibayar_approved'];
+                                                $persenBayar = $vendorData['total_vendor'] > 0 ? ($vendorData['total_dibayar_approved'] / $vendorData['total_vendor']) * 100 : 0;
+                                            @endphp
+                                            @if($sisaBayar > 0)
+                                                <div class="text-orange-600 text-xs">
+                                                    Sisa: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($vendorData['status_lunas'])
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                <i class="fas fa-check-circle mr-1"></i>Lunas (100%)
+                                            </span>
+                                        @else
+                                            @php $persenBayar = $vendorData['total_vendor'] > 0 ? ($vendorData['total_dibayar_approved'] / $vendorData['total_vendor']) * 100 : 0; @endphp
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                <i class="fas fa-credit-card mr-1"></i>{{ round($persenBayar) }}% Terbayar
+                                            </span>
+                                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $persenBayar }}%"></div>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button onclick="buatPengiriman({{ $proyek->penawaranAktif->id_penawaran }}, {{ $vendorData['vendor']['id_vendor'] }})" 
+                                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                            <i class="fas fa-plus mr-1"></i> Buat Pengiriman
+                                        </button>
+                                    </td>
+                                </tr>
+                                @endif
+                            @endforeach
                         @endforeach
                     </tbody>
                 </table>
@@ -146,8 +177,8 @@
         @else
             <div class="text-center py-8">
                 <i class="fas fa-box text-4xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500">Tidak ada proyek yang ready untuk dikirim</p>
-                <p class="text-xs text-gray-400 mt-2">Pastikan ada pembayaran yang sudah diverifikasi</p>
+                <p class="text-gray-500">Tidak ada vendor yang ready untuk dikirim</p>
+                <p class="text-xs text-gray-400 mt-2">Pastikan ada vendor yang sudah memiliki pembayaran dengan status "Approved"</p>
             </div>
         @endif
     </div>
@@ -165,10 +196,13 @@
                 <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
-                            <h4 class="font-semibold text-gray-900">{{ $pengiriman->nama_proyek }}</h4>
-                            <p class="text-sm text-gray-600">{{ $pengiriman->instansi }}</p>
-                            <p class="text-sm text-gray-500 mt-1">Surat Jalan: {{ $pengiriman->no_surat_jalan }}</p>
-                            <p class="text-sm text-gray-500">Tanggal Kirim: {{ \Carbon\Carbon::parse($pengiriman->tanggal_kirim)->format('d M Y') }}</p>
+                            <h4 class="font-semibold text-gray-900">{{ $pengiriman->penawaran->proyek->nama_barang }}</h4>
+                            <p class="text-sm text-gray-600">{{ $pengiriman->penawaran->proyek->instansi }}</p>
+                            <div class="text-sm text-gray-500 mt-1 space-y-1">
+                                <div><span class="font-medium">Vendor:</span> {{ $pengiriman->vendor->nama_vendor }}</div>
+                                <div><span class="font-medium">Surat Jalan:</span> {{ $pengiriman->no_surat_jalan }}</div>
+                                <div><span class="font-medium">Tanggal Kirim:</span> {{ \Carbon\Carbon::parse($pengiriman->tanggal_kirim)->format('d M Y') }}</div>
+                            </div>
                             
                             <!-- Status Dokumentasi -->
                             <div class="mt-3">
@@ -220,9 +254,13 @@
                         </div>
                         <div class="text-right ml-4">
                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
-                                {{ $pengiriman->status_verifikasi == 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800' }}">
-                                {{ ucfirst($pengiriman->status_verifikasi) }}
+                                {{ $pengiriman->status_verifikasi == 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                   ($pengiriman->status_verifikasi == 'Dalam_Proses' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
+                                {{ str_replace('_', ' ', $pengiriman->status_verifikasi) }}
                             </span>
+                            <div class="mt-2 text-xs text-gray-500">
+                                <i class="fas fa-building mr-1"></i>{{ $pengiriman->vendor->jenis_perusahaan }}
+                            </div>
                             <div class="mt-2">
                                 <button onclick="updateDokumentasi({{ $pengiriman->id_pengiriman }})" 
                                         class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
@@ -246,7 +284,7 @@
     <div id="contentSelesai" class="tab-content hidden">
         <div class="mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Pengiriman Selesai</h3>
-            <p class="text-sm text-gray-600">Riwayat pengiriman yang sudah completed</p>
+            <p class="text-sm text-gray-600">Pengiriman dengan dokumentasi lengkap atau yang sudah verified (untuk proyek status "Selesai")</p>
         </div>
         
         @if(count($pengirimanSelesai) > 0)
@@ -256,9 +294,10 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Surat Jalan</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instansi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dokumentasi</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
@@ -269,18 +308,62 @@
                                 {{ $pengiriman->no_surat_jalan }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $pengiriman->nama_proyek }}
+                                <div>
+                                    <div class="font-medium">{{ $pengiriman->penawaran->proyek->nama_barang }}</div>
+                                    <div class="text-gray-500 text-xs">{{ $pengiriman->penawaran->proyek->instansi }}</div>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $pengiriman->instansi }}
+                                <div>
+                                    <div class="font-medium">{{ $pengiriman->vendor->nama_vendor }}</div>
+                                    <div class="text-gray-500 text-xs">{{ $pengiriman->vendor->jenis_perusahaan }}</div>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ \Carbon\Carbon::parse($pengiriman->tanggal_kirim)->format('d M Y') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                    Selesai
-                                </span>
+                                @if($pengiriman->status_verifikasi == 'Verified' && $pengiriman->penawaran->proyek->status == 'Selesai')
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i>Verified
+                                    </span>
+                                @elseif($pengiriman->foto_sampai && $pengiriman->tanda_terima)
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        <i class="fas fa-truck mr-1"></i>Dokumentasi Lengkap
+                                    </span>
+                                @else
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-clock mr-1"></i>Menunggu Dokumentasi
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                @php
+                                    $docs = [
+                                        'foto_berangkat' => ['icon' => 'fas fa-camera', 'label' => 'Berangkat'],
+                                        'foto_perjalanan' => ['icon' => 'fas fa-road', 'label' => 'Perjalanan'], 
+                                        'foto_sampai' => ['icon' => 'fas fa-map-marker-alt', 'label' => 'Sampai'],
+                                        'tanda_terima' => ['icon' => 'fas fa-signature', 'label' => 'TTD']
+                                    ];
+                                    $completedDocs = 0;
+                                    foreach($docs as $field => $info) {
+                                        if($pengiriman->$field) $completedDocs++;
+                                    }
+                                @endphp
+                                <div class="flex items-center space-x-1">
+                                    @foreach($docs as $field => $info)
+                                        @if($pengiriman->$field)
+                                            <span class="inline-flex items-center p-1 rounded-full bg-green-100 text-green-600" title="{{ $info['label'] }}">
+                                                <i class="{{ $info['icon'] }} text-xs"></i>
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center p-1 rounded-full bg-gray-100 text-gray-400" title="{{ $info['label'] }}">
+                                                <i class="{{ $info['icon'] }} text-xs"></i>
+                                            </span>
+                                        @endif
+                                    @endforeach
+                                    <span class="text-xs text-gray-500 ml-2">{{ $completedDocs }}/4</span>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <button onclick="lihatDetailSelesai({{ $pengiriman->id_pengiriman }})" 
@@ -297,6 +380,7 @@
             <div class="text-center py-8">
                 <i class="fas fa-check-circle text-4xl text-gray-300 mb-4"></i>
                 <p class="text-gray-500">Belum ada pengiriman yang selesai</p>
+                <p class="text-xs text-gray-400 mt-2">Pengiriman akan muncul di sini ketika dokumentasi lengkap atau proyek sudah selesai</p>
             </div>
         @endif
     </div>
@@ -317,9 +401,10 @@
                 <form action="{{ route('pengiriman.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" id="id_penawaran" name="id_penawaran">
+                    <input type="hidden" id="id_vendor" name="id_vendor">
                     
                     <div id="infoProyek" class="bg-gray-50 p-4 rounded-lg mb-4">
-                        <!-- Info proyek akan diisi via JavaScript -->
+                        <!-- Info proyek dan vendor akan diisi via JavaScript -->
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -502,27 +587,58 @@ function switchTab(tabName) {
 }
 
 // Buat pengiriman
-function buatPengiriman(penawaranId) {
-    // Set ID penawaran
+function buatPengiriman(penawaranId, vendorId) {
+    // Set ID penawaran dan vendor
     document.getElementById('id_penawaran').value = penawaranId;
+    document.getElementById('id_vendor').value = vendorId;
     
-    // Find project data (in real app, this would be from the controller data)
+    // Find project and vendor data
     const proyekData = @json($proyekReady);
-    const proyek = proyekData.find(p => p.id_penawaran == penawaranId);
+    let selectedProyek = null;
+    let selectedVendor = null;
     
-    if (proyek) {
+    // Cari proyek dan vendor yang dipilih
+    for (const proyek of proyekData) {
+        for (const vendorData of proyek.vendors_ready) {
+            if (proyek.penawaranAktif && 
+                proyek.penawaranAktif.id_penawaran == penawaranId && 
+                vendorData.vendor.id_vendor == vendorId) {
+                selectedProyek = proyek;
+                selectedVendor = vendorData;
+                break;
+            }
+        }
+        if (selectedProyek && selectedVendor) break;
+    }
+    
+    if (selectedProyek && selectedVendor) {
         document.getElementById('infoProyek').innerHTML = `
-            <h4 class="font-semibold text-gray-900 mb-2">Informasi Proyek</h4>
+            <h4 class="font-semibold text-gray-900 mb-2">Informasi Proyek & Vendor</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div><span class="text-gray-500">No. Penawaran:</span> <span class="font-medium">${proyek.no_penawaran}</span></div>
-                <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${proyek.nama_proyek}</span></div>
-                <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${proyek.instansi}</span></div>
-                <div><span class="text-gray-500">Nilai:</span> <span class="font-medium">Rp ${new Intl.NumberFormat('id-ID').format(proyek.total_harga)}</span></div>
+                <div><span class="text-gray-500">No. Penawaran:</span> <span class="font-medium">${selectedProyek.penawaranAktif.no_penawaran}</span></div>
+                <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${selectedProyek.nama_barang}</span></div>
+                <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${selectedProyek.instansi}</span></div>
+                <div><span class="text-gray-500">Vendor:</span> <span class="font-medium">${selectedVendor.vendor.nama_vendor}</span></div>
+                <div><span class="text-gray-500">Modal Vendor:</span> <span class="font-medium">Rp ${new Intl.NumberFormat('id-ID').format(selectedVendor.total_vendor)}</span></div>
+                <div><span class="text-gray-500">Dibayar (Approved):</span> <span class="font-medium text-blue-600">Rp ${new Intl.NumberFormat('id-ID').format(selectedVendor.total_dibayar_approved)}</span></div>
+                <div><span class="text-gray-500">Status:</span> <span class="font-medium ${selectedVendor.status_lunas ? 'text-green-600' : 'text-blue-600'}">
+                    <i class="fas ${selectedVendor.status_lunas ? 'fa-check-circle' : 'fa-credit-card'} mr-1"></i>
+                    ${selectedVendor.status_lunas ? 'Lunas' : Math.round((selectedVendor.total_dibayar_approved / selectedVendor.total_vendor) * 100) + '% Terbayar'}
+                </span></div>
             </div>
-        `;                        // Set default alamat
-                        if (proyek.alamat_instansi) {
-                            document.querySelector('textarea[name="alamat_kirim"]').value = proyek.alamat_instansi;
-                        }
+        `;
+
+        // Set default alamat dari vendor atau proyek
+        let defaultAlamat = '';
+        if (selectedVendor.vendor.alamat) {
+            defaultAlamat = selectedVendor.vendor.alamat;
+        } else if (selectedProyek.alamat_instansi) {
+            defaultAlamat = selectedProyek.alamat_instansi;
+        }
+        
+        if (defaultAlamat) {
+            document.querySelector('textarea[name="alamat_kirim"]').value = defaultAlamat;
+        }
     }
 
     // Set default date to today
@@ -546,9 +662,9 @@ function updateDokumentasi(pengirimanId) {
             <h4 class="font-semibold text-gray-900 mb-2">Informasi Pengiriman</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div><span class="text-gray-500">Surat Jalan:</span> <span class="font-medium">${pengiriman.no_surat_jalan}</span></div>
-                <div><span class="text-gray-500">Proyek:</span> <span class="font-medium">${pengiriman.nama_proyek}</span></div>
-                <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${pengiriman.instansi}</span></div>
-                <div><span class="text-gray-500">Status:</span> <span class="font-medium">${pengiriman.status_verifikasi}</span></div>
+                <div><span class="text-gray-500">Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.nama_barang}</span></div>
+                <div><span class="text-gray-500">Vendor:</span> <span class="font-medium">${pengiriman.vendor.nama_vendor}</span></div>
+                <div><span class="text-gray-500">Status:</span> <span class="font-medium">${pengiriman.status_verifikasi.replace('_', ' ')}</span></div>
             </div>
         `;
 
@@ -642,13 +758,19 @@ function lihatDetailSelesai(pengirimanId) {
         document.getElementById('headerDetailSelesai').innerHTML = `
             <div class="flex justify-between items-center">
                 <div>
-                    <h4 class="text-xl font-bold">${pengiriman.nama_proyek}</h4>
-                    <p class="text-green-100">${pengiriman.instansi}</p>
+                    <h4 class="text-xl font-bold">${pengiriman.penawaran.proyek.nama_barang}</h4>
+                    <p class="text-green-100">${pengiriman.penawaran.proyek.instansi}</p>
+                    <p class="text-green-100 text-sm"><i class="fas fa-building mr-1"></i>${pengiriman.vendor.nama_vendor}</p>
                 </div>
                 <div class="text-right">
-                    <span class="bg-white text-green-600 px-3 py-1 rounded-full text-sm font-medium">
-                        <i class="fas fa-check-circle mr-1"></i> Selesai
-                    </span>
+                    ${pengiriman.status_verifikasi === 'Verified' && pengiriman.penawaran.proyek.status === 'Selesai' ? 
+                        `<span class="bg-white text-green-600 px-3 py-1 rounded-full text-sm font-medium">
+                            <i class="fas fa-check-circle mr-1"></i> Verified
+                        </span>` :
+                        `<span class="bg-white text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+                            <i class="fas fa-truck mr-1"></i> Dokumentasi Lengkap
+                        </span>`
+                    }
                     <p class="text-green-100 text-sm mt-1">Surat Jalan: ${pengiriman.no_surat_jalan}</p>
                 </div>
             </div>
@@ -656,16 +778,20 @@ function lihatDetailSelesai(pengirimanId) {
 
         // Fill project info
         document.getElementById('infoProyekDetail').innerHTML = `
-            <div><span class="text-gray-500">No. Penawaran:</span> <span class="font-medium">${pengiriman.no_penawaran}</span></div>
-            <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${pengiriman.nama_proyek}</span></div>
-            <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${pengiriman.instansi}</span></div>
+            <div><span class="text-gray-500">No. Penawaran:</span> <span class="font-medium">${pengiriman.penawaran.no_penawaran || 'N/A'}</span></div>
+            <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.nama_barang}</span></div>
+            <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${pengiriman.penawaran.proyek.instansi}</span></div>
+            <div><span class="text-gray-500">Vendor:</span> <span class="font-medium">${pengiriman.vendor.nama_vendor}</span></div>
             <div><span class="text-gray-500">Tanggal Kirim:</span> <span class="font-medium">${new Date(pengiriman.tanggal_kirim).toLocaleDateString('id-ID')}</span></div>
         `;
 
         // Fill shipping info
         document.getElementById('infoPengirimanDetailSelesai').innerHTML = `
             <div><span class="text-gray-500">No. Surat Jalan:</span> <span class="font-medium">${pengiriman.no_surat_jalan}</span></div>
-            <div><span class="text-gray-500">Status:</span> <span class="font-medium text-green-600">Selesai</span></div>
+            <div><span class="text-gray-500">Status:</span> <span class="font-medium ${pengiriman.status_verifikasi === 'Verified' && pengiriman.penawaran.proyek.status === 'Selesai' ? 'text-green-600' : 'text-blue-600'}">
+                ${pengiriman.status_verifikasi === 'Verified' && pengiriman.penawaran.proyek.status === 'Selesai' ? 'Verified' : 'Dokumentasi Lengkap'}
+            </span></div>
+            <div><span class="text-gray-500">Status Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.status}</span></div>
             <div><span class="text-gray-500">Alamat Kirim:</span> <span class="font-medium">${pengiriman.alamat_kirim || 'Tidak tersedia'}</span></div>
             <div><span class="text-gray-500">Tanggal Update:</span> <span class="font-medium">${new Date(pengiriman.updated_at).toLocaleDateString('id-ID')}</span></div>
         `;

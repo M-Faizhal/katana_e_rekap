@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('pengiriman', function (Blueprint $table) {
             $table->id('id_pengiriman');
             $table->unsignedBigInteger('id_penawaran');
+            $table->unsignedBigInteger('id_vendor');
             $table->string('no_surat_jalan');
             $table->string('file_surat_jalan')->nullable();
             $table->date('tanggal_kirim');
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('id_penawaran')->references('id_penawaran')->on('penawaran')->onDelete('cascade');
+            $table->foreign('id_vendor')->references('id_vendor')->on('vendor')->onDelete('cascade');
             $table->foreign('verified_by')->references('id_user')->on('users')->onDelete('set null');
         });
     }

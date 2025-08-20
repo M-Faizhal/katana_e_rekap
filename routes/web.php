@@ -106,7 +106,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengiriman/{id}/detail', [PengirimanController::class, 'getDetailWithFiles'])->name('pengiriman.detail');
         Route::post('/pengiriman', [PengirimanController::class, 'store'])->name('pengiriman.store');
         Route::put('/pengiriman/{id}/update-dokumentasi', [PengirimanController::class, 'updateDokumentasi'])->name('pengiriman.update-dokumentasi');
-        Route::put('/pengiriman/{id}/update-surat-jalan', [PengirimanController::class, 'updateSuratJalan'])->name('pengiriman.update-surat-jalan');
         Route::put('/pengiriman/{id}/verify', [PengirimanController::class, 'verify'])->name('pengiriman.verify');
         Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy'])->name('pengiriman.destroy');
         Route::post('/pengiriman/cleanup-files', [PengirimanController::class, 'cleanupOrphanedFiles'])->name('pengiriman.cleanup');

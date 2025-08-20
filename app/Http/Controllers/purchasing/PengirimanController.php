@@ -4,73 +4,117 @@ namespace App\Http\Controllers\purchasing;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Proyek;
 use App\Models\Penawaran;
 use App\Models\Pembayaran;
 use App\Models\Pengiriman;
+use App\Models\Vendor;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
 
 class PengirimanController extends Controller
 {
+    /**
+     * Display a listing of projects ready for shipping
+     */
     public function index()
     {
-        // Tab "Ready Kirim": Proyek dengan status "Pembayaran" yang pembayarannya sudah diverifikasi
-        // dan belum ada pengiriman
-        $proyekReady = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('pembayaran', 'penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-            ->leftJoin('pengiriman', 'penawaran.id_penawaran', '=', 'pengiriman.id_penawaran')
-            ->select([
-                'penawaran.id_penawaran',
-                'penawaran.no_penawaran',
-                'proyek.nama_barang as nama_proyek',
-                'proyek.instansi',
-                'penawaran.total_penawaran as total_harga',
-                'proyek.kota_kab as alamat_instansi',
-                'proyek.kontak_klien as kontak_person',
-                'proyek.status as status_proyek',
-                'pembayaran.status_verifikasi as status_pembayaran',
-                'pembayaran.tanggal_bayar'
-            ])
-            ->where('proyek.status', 'Pembayaran') // Status proyek = Pembayaran
-            ->where('pembayaran.status_verifikasi', 'Approved') // Pembayaran sudah diverifikasi
-            ->whereNull('pengiriman.id_pengiriman') // Belum ada pengiriman
-            ->distinct()
+        // Ambil proyek yang statusnya 'Pengiriman' atau 'Selesai'
+        // Dan vendor yang sudah lunas pembayarannya
+        $proyekReady = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran', 'pengiriman'])
+            ->whereIn('status', ['Pengiriman', 'Selesai'])
+            ->whereHas('penawaranAktif', function ($query) {
+                $query->where('status', 'ACC');
+            })
+            ->get()
+            ->map(function ($proyek) {
+                // Ambil vendor yang terlibat dalam proyek ini
+                $vendors = $proyek->penawaranAktif->penawaranDetail
+                    ->pluck('barang.vendor')
+                    ->unique('id_vendor')
+                    ->filter();
+
+                $proyek->vendors_ready = $vendors->map(function ($vendor) use ($proyek) {
+                    // Hitung total untuk vendor ini (menggunakan harga modal)
+                    $totalVendor = $proyek->penawaranAktif->penawaranDetail
+                        ->where('barang.id_vendor', $vendor->id_vendor)
+                        ->sum(function($detail) {
+                            return $detail->qty * $detail->barang->harga_vendor;
+                        });
+
+                    // Hitung yang sudah dibayar untuk vendor ini (approved saja)
+                    $totalDibayarApproved = $proyek->pembayaran
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->where('status_verifikasi', 'Approved')
+                        ->sum('nominal_bayar');
+
+                    $isLunas = $totalVendor <= $totalDibayarApproved;
+                    $hasPembayaranApproved = $totalDibayarApproved > 0; // Ada pembayaran yang sudah approved
+
+                    // Cek apakah sudah ada pengiriman untuk vendor ini
+                    $pengiriman = $proyek->pengiriman
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->first();
+
+                    return [
+                        'vendor' => $vendor->toArray(),
+                        'total_vendor' => $totalVendor,
+                        'total_dibayar_approved' => $totalDibayarApproved,
+                        'status_lunas' => $isLunas,
+                        'has_approved_payment' => $hasPembayaranApproved,
+                        'pengiriman' => $pengiriman ? $pengiriman->toArray() : null,
+                        'ready_to_ship' => $hasPembayaranApproved && !$pengiriman // Bisa kirim jika ada pembayaran approved
+                    ];
+                })->filter(function ($vendorData) {
+                    return $vendorData['has_approved_payment']; // Hanya vendor yang ada pembayaran approved
+                })->values()->toArray(); // Konversi ke array PHP biasa
+
+                return $proyek;
+            })
+            ->filter(function ($proyek) {
+                return count($proyek->vendors_ready) > 0; // Hanya proyek yang ada vendor lunas
+            })
+            ->values();
+
+        // Ambil pengiriman yang sedang berjalan (per vendor)
+        $pengirimanBerjalan = Pengiriman::with(['penawaran.proyek', 'vendor'])
+            ->whereIn('status_verifikasi', ['Pending', 'Dalam_Proses'])
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        // Tab "Dalam Proses": Proyek dengan status "Pengiriman"
-        $pengirimanBerjalan = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('pengiriman', 'penawaran.id_penawaran', '=', 'pengiriman.id_penawaran')
-            ->select([
-                'pengiriman.*',
-                'penawaran.no_penawaran',
-                'proyek.nama_barang as nama_proyek',
-                'proyek.instansi',
-                'proyek.status as status_proyek'
-            ])
-            ->where('proyek.status', 'Pengiriman') // Status proyek = Pengiriman
-            ->whereNotIn('pengiriman.status_verifikasi', ['Verified', 'Rejected']) // Pengiriman belum diverifikasi final
+        // Ambil pengiriman yang sudah selesai (per vendor) 
+        // Kriteria selesai: 
+        // 1. Status Verified (untuk proyek yang sudah Selesai)
+        // 2. Atau dokumen lengkap (foto_sampai + tanda_terima) tapi proyek belum Selesai
+        $pengirimanSelesai = Pengiriman::with(['penawaran.proyek', 'vendor', 'verifiedBy'])
+            ->where(function($query) {
+                // Yang sudah verified dan proyeknya selesai
+                $query->where('status_verifikasi', 'Verified')
+                      ->whereHas('penawaran.proyek', function($proyekQuery) {
+                          $proyekQuery->where('status', 'Selesai');
+                      });
+            })
+            ->orWhere(function($query) {
+                // Atau yang dokumennya sudah lengkap (sampai + tanda terima) tapi belum verified
+                $query->whereNotNull('foto_sampai')
+                      ->whereNotNull('tanda_terima')
+                      ->where('foto_sampai', '!=', '')
+                      ->where('tanda_terima', '!=', '')
+                      ->where('status_verifikasi', '!=', 'Verified');
+            })
+            ->orderBy('updated_at', 'desc')
             ->get();
 
-        // Tab "Selesai": Pengiriman yang sudah diverifikasi oleh superadmin (status proyek = Selesai)
-        $pengirimanSelesai = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('pengiriman', 'penawaran.id_penawaran', '=', 'pengiriman.id_penawaran')
-            ->leftJoin('users as verifier', 'pengiriman.verified_by', '=', 'verifier.id_user')
-            ->select([
-                'pengiriman.*',
-                'penawaran.no_penawaran',
-                'proyek.nama_barang as nama_proyek',
-                'proyek.instansi',
-                'proyek.status as status_proyek',
-                'verifier.nama as verified_by_name'
-            ])
-            ->where('pengiriman.status_verifikasi', 'Verified')
-            ->orWhere('proyek.status', 'Selesai')
-            ->get();
+        // Debug log untuk memastikan struktur data benar
+        Log::info('Proyek Ready Data Structure:', [
+            'count' => $proyekReady->count(),
+            'sample' => $proyekReady->first() ? [
+                'vendors_ready_count' => count($proyekReady->first()->vendors_ready),
+                'vendors_ready_sample' => $proyekReady->first()->vendors_ready[0] ?? 'No vendors ready'
+            ] : 'No projects'
+        ]);
 
         return view('pages.purchasing.pengiriman', compact(
             'proyekReady',
@@ -79,309 +123,323 @@ class PengirimanController extends Controller
         ));
     }
 
+    /**
+     * Store a newly created shipping record
+     */
     public function store(Request $request)
     {
         $request->validate([
             'id_penawaran' => 'required|exists:penawaran,id_penawaran',
-            'no_surat_jalan' => 'required|string|max:255',
+            'id_vendor' => 'required|exists:vendor,id_vendor',
+            'no_surat_jalan' => 'required|string|max:50',
             'tanggal_kirim' => 'required|date',
-            'alamat_kirim' => 'required|string',
+            'alamat_kirim' => 'nullable|string',
             'file_surat_jalan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
         ]);
 
-        $data = $request->only([
-            'id_penawaran',
-            'no_surat_jalan', 
-            'tanggal_kirim',
-            'alamat_kirim'
-        ]);
+        // Pastikan vendor sudah ada pembayaran yang approved (tidak harus lunas)
+        $penawaran = Penawaran::with(['proyek.pembayaran'])->findOrFail($request->id_penawaran);
+        
+        $totalVendor = $penawaran->penawaranDetail
+            ->where('barang.id_vendor', $request->id_vendor)
+            ->sum(function($detail) {
+                return $detail->qty * $detail->barang->harga_vendor;
+            });
 
-        // Upload file surat jalan jika ada
-        if ($request->hasFile('file_surat_jalan')) {
-            $file = $request->file('file_surat_jalan');
-            $filename = 'surat_jalan_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('storage/pengiriman'), $filename);
-            $data['file_surat_jalan'] = 'pengiriman/' . $filename;
-            
-            Log::info("Surat jalan uploaded: {$filename}");
+        $totalDibayar = $penawaran->proyek->pembayaran
+            ->where('id_vendor', $request->id_vendor)
+            ->where('status_verifikasi', 'Approved')
+            ->sum('nominal_bayar');
+
+        if ($totalDibayar <= 0) {
+            return back()->with('error', 'Vendor belum memiliki pembayaran yang di-approve, tidak bisa membuat pengiriman');
         }
 
-        $data['status_verifikasi'] = 'Pending';
+        // Cek apakah sudah ada pengiriman untuk vendor ini
+        $existingPengiriman = Pengiriman::where('id_penawaran', $request->id_penawaran)
+            ->where('id_vendor', $request->id_vendor)
+            ->exists();
 
-        // Buat pengiriman
-        $pengiriman = Pengiriman::create($data);
+        if ($existingPengiriman) {
+            return back()->with('error', 'Pengiriman untuk vendor ini sudah dibuat');
+        }
 
-        // Update status proyek dari "Pembayaran" menjadi "Pengiriman"
-        DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->where('penawaran.id_penawaran', $request->id_penawaran)
-            ->update(['proyek.status' => 'Pengiriman']);
+        DB::beginTransaction();
+        try {
+            // Upload file surat jalan jika ada
+            $filePath = null;
+            if ($request->hasFile('file_surat_jalan')) {
+                $filePath = $request->file('file_surat_jalan')->store('pengiriman/surat_jalan', 'public');
+            }
 
-        return redirect()->back()->with('success', 'Pengiriman berhasil dibuat! Status proyek telah diupdate menjadi "Pengiriman".');
+            // Buat pengiriman
+            $pengiriman = Pengiriman::create([
+                'id_penawaran' => $request->id_penawaran,
+                'id_vendor' => $request->id_vendor,
+                'no_surat_jalan' => $request->no_surat_jalan,
+                'tanggal_kirim' => $request->tanggal_kirim,
+                'alamat_kirim' => $request->alamat_kirim,
+                'file_surat_jalan' => $filePath,
+                'status_verifikasi' => 'Pending'
+            ]);
+
+            // Update status proyek berdasarkan kondisi vendor
+            $this->updateProjectStatusOnShipping($penawaran->proyek);
+
+            DB::commit();
+
+            return redirect()->route('purchasing.pengiriman')
+                ->with('success', 'Pengiriman berhasil dibuat');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            if ($filePath) {
+                Storage::disk('public')->delete($filePath);
+            }
+            
+            return back()->with('error', 'Terjadi kesalahan saat membuat pengiriman');
+        }
     }
 
+    /**
+     * Update dokumentasi pengiriman
+     */
     public function updateDokumentasi(Request $request, $id)
     {
+        $pengiriman = Pengiriman::findOrFail($id);
+
         $request->validate([
             'foto_berangkat' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
-            'foto_perjalanan' => 'nullable|file|mimes:jpg,jpeg,png|max:5120', 
+            'foto_perjalanan' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
             'foto_sampai' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
             'tanda_terima' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
         ]);
 
-        $pengiriman = Pengiriman::findOrFail($id);
-        $data = [];
+        DB::beginTransaction();
+        try {
+            $updateData = [];
 
-        // Upload dokumentasi foto dan hapus file lama jika ada
-        $dokumentasi = ['foto_berangkat', 'foto_perjalanan', 'foto_sampai', 'tanda_terima'];
-        
-        foreach ($dokumentasi as $dok) {
-            if ($request->hasFile($dok)) {
-                // Hapus file lama jika ada
-                if ($pengiriman->$dok) {
-                    $this->deleteFileIfExists($pengiriman->$dok);
+            // Handle file uploads
+            $fileFields = ['foto_berangkat', 'foto_perjalanan', 'foto_sampai', 'tanda_terima'];
+            
+            foreach ($fileFields as $field) {
+                if ($request->hasFile($field)) {
+                    // Hapus file lama jika ada
+                    if ($pengiriman->$field) {
+                        Storage::disk('public')->delete($pengiriman->$field);
+                    }
+                    
+                    // Upload file baru
+                    $updateData[$field] = $request->file($field)->store('pengiriman/dokumentasi', 'public');
                 }
-                
-                // Upload file baru
-                $file = $request->file($dok);
-                $filename = $dok . '_' . $id . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $file->move(public_path('storage/pengiriman'), $filename);
-                $data[$dok] = 'pengiriman/' . $filename;
-                
-                Log::info("File {$dok} updated for pengiriman {$id}: {$filename}");
             }
+
+            // Update status berdasarkan kelengkapan dokumentasi
+            $pengiriman->update($updateData);
+            $pengiriman->refresh();
+
+            // Auto update status berdasarkan dokumentasi yang ada
+            if ($pengiriman->foto_berangkat && !$pengiriman->foto_perjalanan) {
+                $pengiriman->update(['status_verifikasi' => 'Dalam_Proses']);
+            } elseif ($pengiriman->foto_berangkat && $pengiriman->foto_perjalanan && $pengiriman->foto_sampai && $pengiriman->tanda_terima) {
+                $pengiriman->update(['status_verifikasi' => 'Sampai_Tujuan']);
+            }
+
+            DB::commit();
+
+            return redirect()->route('purchasing.pengiriman')
+                ->with('success', 'Dokumentasi pengiriman berhasil diupdate');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan saat mengupdate dokumentasi');
         }
-
-        // Update status berdasarkan dokumentasi yang diupload
-        if ($request->hasFile('tanda_terima')) {
-            $data['status_verifikasi'] = 'Sampai_Tujuan'; // Menunggu verifikasi final dari superadmin
-        } else if ($request->hasFile('foto_perjalanan')) {
-            $data['status_verifikasi'] = 'Dalam_Proses';
-        } else if ($request->hasFile('foto_berangkat')) {
-            $data['status_verifikasi'] = 'Dalam_Proses';
-        }
-
-        $pengiriman->update($data);
-
-        $message = 'Dokumentasi berhasil diupdate!';
-        if (isset($data['status_verifikasi']) && $data['status_verifikasi'] === 'Sampai_Tujuan') {
-            $message .= ' Pengiriman menunggu verifikasi final dari Superadmin.';
-        }
-
-        return redirect()->back()->with('success', $message);
     }
 
-    // Method baru untuk verifikasi oleh superadmin
+    /**
+     * Verify shipping completion (superadmin only)
+     */
     public function verify(Request $request, $id)
     {
-        $request->validate([
-            'action' => 'required|in:approve,reject',
-            'catatan_verifikasi' => 'required|string|max:500'
-        ]);
+        $pengiriman = Pengiriman::with(['penawaran.proyek'])->findOrFail($id);
 
-        $pengiriman = Pengiriman::findOrFail($id);
-        
-        if ($request->action === 'approve') {
+        // Pastikan dokumentasi lengkap
+        if (!$pengiriman->dokumentasi_lengkap) {
+            return back()->with('error', 'Dokumentasi pengiriman belum lengkap');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update status pengiriman
             $pengiriman->update([
                 'status_verifikasi' => 'Verified',
-                'catatan_verifikasi' => $request->catatan_verifikasi,
-                'verified_by' => Auth::id(),
-                'verified_at' => now()
+                'verified_by' => Auth::user()->id_user,
+                'verified_at' => now(),
+                'catatan_verifikasi' => $request->catatan_verifikasi
             ]);
 
-            // Update status proyek menjadi "Selesai" ketika pengiriman diverifikasi
-            DB::table('proyek')
-                ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-                ->where('penawaran.id_penawaran', $pengiriman->id_penawaran)
-                ->update(['proyek.status' => 'Selesai']);
+            // Cek apakah semua vendor dalam proyek ini sudah selesai pengiriman
+            $this->checkAndUpdateProjectStatus($pengiriman->penawaran->proyek);
 
-            return redirect()->back()->with('success', 'Pengiriman berhasil diverifikasi! Status proyek telah diubah menjadi "Selesai".');
-        } else {
-            $pengiriman->update([
-                'status_verifikasi' => 'Rejected',
-                'catatan_verifikasi' => $request->catatan_verifikasi,
-                'verified_by' => Auth::id(),
-                'verified_at' => now()
-            ]);
+            DB::commit();
 
-            return redirect()->back()->with('error', 'Pengiriman ditolak. Silakan perbaiki dokumentasi yang diperlukan.');
-        }
-    }
+            return redirect()->route('purchasing.pengiriman')
+                ->with('success', 'Pengiriman berhasil diverifikasi');
 
-    /**
-     * Helper method to safely delete file from storage
-     */
-    private function deleteFileIfExists($filePath)
-    {
-        try {
-            if ($filePath) {
-                $fullPath = public_path('storage/' . $filePath);
-                if (File::exists($fullPath)) {
-                    File::delete($fullPath);
-                    Log::info("File deleted: {$fullPath}");
-                    return true;
-                }
-            }
         } catch (\Exception $e) {
-            Log::error("Failed to delete file: {$filePath}. Error: " . $e->getMessage());
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan saat verifikasi pengiriman');
         }
-        return false;
     }
 
     /**
-     * Method untuk menghapus pengiriman beserta file-filenya
+     * Check and update project status based on all vendor shipping status
+     */
+    private function checkAndUpdateProjectStatus($proyek)
+    {
+        // Ambil semua vendor yang terlibat dalam proyek
+        $allVendorIds = $proyek->penawaranAktif->penawaranDetail
+            ->pluck('barang.id_vendor')
+            ->unique()
+            ->filter();
+
+        // Cek berapa vendor yang sudah verified pengirimannya
+        $verifiedVendorIds = Pengiriman::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
+            ->where('status_verifikasi', 'Verified')
+            ->pluck('id_vendor')
+            ->unique();
+
+        // Jika semua vendor sudah verified, update status proyek ke Selesai
+        if ($allVendorIds->count() === $verifiedVendorIds->count() && 
+            $allVendorIds->diff($verifiedVendorIds)->isEmpty()) {
+            $proyek->update(['status' => 'Selesai']);
+        }
+    }
+
+    /**
+     * Update project status when vendor starts shipping
+     */
+    private function updateProjectStatusOnShipping($proyek)
+    {
+        // Jika status proyek masih Pembayaran, dan ada vendor yang sudah mulai pengiriman
+        // maka update status ke Pengiriman
+        if ($proyek->status === 'Pembayaran') {
+            // Cek apakah ada vendor yang sudah lunas dan sudah mulai pengiriman
+            $hasShippingVendor = Pengiriman::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
+                ->exists();
+                
+            if ($hasShippingVendor) {
+                $proyek->update(['status' => 'Pengiriman']);
+            }
+        }
+    }
+
+    /**
+     * Get detail with files for modal
+     */
+    public function getDetailWithFiles($id)
+    {
+        $pengiriman = Pengiriman::with(['penawaran.proyek', 'vendor', 'verifiedBy'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'pengiriman' => $pengiriman,
+            'files' => [
+                'file_surat_jalan' => $pengiriman->file_surat_jalan ? Storage::url($pengiriman->file_surat_jalan) : null,
+                'foto_berangkat' => $pengiriman->foto_berangkat ? Storage::url($pengiriman->foto_berangkat) : null,
+                'foto_perjalanan' => $pengiriman->foto_perjalanan ? Storage::url($pengiriman->foto_perjalanan) : null,
+                'foto_sampai' => $pengiriman->foto_sampai ? Storage::url($pengiriman->foto_sampai) : null,
+                'tanda_terima' => $pengiriman->tanda_terima ? Storage::url($pengiriman->tanda_terima) : null,
+            ]
+        ]);
+    }
+
+    /**
+     * Delete shipping record
      */
     public function destroy($id)
     {
         $pengiriman = Pengiriman::findOrFail($id);
-        
-        // Hapus semua file terkait pengiriman
-        $files = [
-            'file_surat_jalan',
-            'foto_berangkat', 
-            'foto_perjalanan',
-            'foto_sampai',
-            'tanda_terima'
-        ];
-        
-        foreach ($files as $fileField) {
-            if ($pengiriman->$fileField) {
-                $this->deleteFileIfExists($pengiriman->$fileField);
-            }
-        }
-        
-        // Hapus record pengiriman
-        $pengiriman->delete();
-        
-        return redirect()->back()->with('success', 'Pengiriman dan semua file terkait berhasil dihapus.');
-    }
 
-    /**
-     * Method untuk update file surat jalan
-     */
-    public function updateSuratJalan(Request $request, $id)
-    {
-        $request->validate([
-            'file_surat_jalan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120'
-        ]);
-
-        $pengiriman = Pengiriman::findOrFail($id);
-
-        // Hapus file surat jalan lama jika ada
-        if ($pengiriman->file_surat_jalan) {
-            $this->deleteFileIfExists($pengiriman->file_surat_jalan);
+        // Hanya bisa hapus jika status masih Pending
+        if ($pengiriman->status_verifikasi !== 'Pending') {
+            return back()->with('error', 'Pengiriman yang sudah berjalan tidak dapat dihapus');
         }
 
-        // Upload file surat jalan baru
-        if ($request->hasFile('file_surat_jalan')) {
-            $file = $request->file('file_surat_jalan');
-            $filename = 'surat_jalan_' . $id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('storage/pengiriman'), $filename);
-            
-            $pengiriman->update([
-                'file_surat_jalan' => 'pengiriman/' . $filename
-            ]);
-            
-            Log::info("Surat jalan updated for pengiriman {$id}: {$filename}");
-        }
-
-        return redirect()->back()->with('success', 'File surat jalan berhasil diperbarui.');
-    }
-
-    /**
-     * Clean up orphaned files (untuk maintenance)
-     */
-    public function cleanupOrphanedFiles()
-    {
-        $pengirimanDir = public_path('storage/pengiriman');
-        
-        if (!File::exists($pengirimanDir)) {
-            return response()->json(['message' => 'Directory tidak ditemukan']);
-        }
-
-        // Ambil semua file di folder pengiriman
-        $allFiles = File::files($pengirimanDir);
-        $allFileNames = array_map(function($file) {
-            return 'pengiriman/' . $file->getFilename();
-        }, $allFiles);
-
-        // Ambil semua path file yang masih digunakan di database
-        $usedFiles = Pengiriman::select([
-            'file_surat_jalan',
-            'foto_berangkat',
-            'foto_perjalanan', 
-            'foto_sampai',
-            'tanda_terima'
-        ])->get()
-        ->flatMap(function ($pengiriman) {
-            return array_filter([
+        DB::beginTransaction();
+        try {
+            // Hapus file-file yang terkait
+            $files = [
                 $pengiriman->file_surat_jalan,
                 $pengiriman->foto_berangkat,
                 $pengiriman->foto_perjalanan,
                 $pengiriman->foto_sampai,
                 $pengiriman->tanda_terima
-            ]);
-        })->toArray();
+            ];
 
-        $orphanedFiles = array_diff($allFileNames, $usedFiles);
+            foreach ($files as $file) {
+                if ($file && Storage::disk('public')->exists($file)) {
+                    Storage::disk('public')->delete($file);
+                }
+            }
+
+            $pengiriman->delete();
+
+            DB::commit();
+
+            return redirect()->route('purchasing.pengiriman')
+                ->with('success', 'Pengiriman berhasil dihapus');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan saat menghapus pengiriman');
+        }
+    }
+
+    /**
+     * Clean up orphaned files
+     */
+    public function cleanupOrphanedFiles()
+    {
+        $folders = ['pengiriman/surat_jalan', 'pengiriman/dokumentasi'];
         $deletedCount = 0;
 
-        foreach ($orphanedFiles as $file) {
-            if ($this->deleteFileIfExists($file)) {
-                $deletedCount++;
+        foreach ($folders as $folder) {
+            $allFiles = Storage::disk('public')->files($folder);
+            
+            $usedFiles = Pengiriman::whereNotNull('file_surat_jalan')
+                ->orWhereNotNull('foto_berangkat')
+                ->orWhereNotNull('foto_perjalanan')
+                ->orWhereNotNull('foto_sampai')
+                ->orWhereNotNull('tanda_terima')
+                ->get()
+                ->flatMap(function ($pengiriman) {
+                    return collect([
+                        $pengiriman->file_surat_jalan,
+                        $pengiriman->foto_berangkat,
+                        $pengiriman->foto_perjalanan,
+                        $pengiriman->foto_sampai,
+                        $pengiriman->tanda_terima
+                    ])->filter();
+                })
+                ->toArray();
+
+            $orphanedFiles = array_diff($allFiles, $usedFiles);
+
+            foreach ($orphanedFiles as $file) {
+                try {
+                    Storage::disk('public')->delete($file);
+                    $deletedCount++;
+                } catch (\Exception $e) {
+                    // Silent fail
+                }
             }
         }
 
         return response()->json([
             'message' => "Cleanup completed. {$deletedCount} orphaned files deleted.",
-            'deleted_count' => $deletedCount,
-            'orphaned_files' => array_values($orphanedFiles)
-        ]);
-    }
-
-    /**
-     * Get pengiriman data with file status for modal display
-     */
-    public function getDetailWithFiles($id)
-    {
-        $pengiriman = Pengiriman::with(['penawaran.proyek'])->findOrFail($id);
-        
-        $fileStatus = [
-            'file_surat_jalan' => [
-                'exists' => !empty($pengiriman->file_surat_jalan),
-                'path' => $pengiriman->file_surat_jalan,
-                'url' => $pengiriman->file_surat_jalan ? asset('storage/' . $pengiriman->file_surat_jalan) : null,
-                'name' => $pengiriman->file_surat_jalan ? basename($pengiriman->file_surat_jalan) : null
-            ],
-            'foto_berangkat' => [
-                'exists' => !empty($pengiriman->foto_berangkat),
-                'path' => $pengiriman->foto_berangkat,
-                'url' => $pengiriman->foto_berangkat ? asset('storage/' . $pengiriman->foto_berangkat) : null,
-                'name' => $pengiriman->foto_berangkat ? basename($pengiriman->foto_berangkat) : null
-            ],
-            'foto_perjalanan' => [
-                'exists' => !empty($pengiriman->foto_perjalanan),
-                'path' => $pengiriman->foto_perjalanan,
-                'url' => $pengiriman->foto_perjalanan ? asset('storage/' . $pengiriman->foto_perjalanan) : null,
-                'name' => $pengiriman->foto_perjalanan ? basename($pengiriman->foto_perjalanan) : null
-            ],
-            'foto_sampai' => [
-                'exists' => !empty($pengiriman->foto_sampai),
-                'path' => $pengiriman->foto_sampai,
-                'url' => $pengiriman->foto_sampai ? asset('storage/' . $pengiriman->foto_sampai) : null,
-                'name' => $pengiriman->foto_sampai ? basename($pengiriman->foto_sampai) : null
-            ],
-            'tanda_terima' => [
-                'exists' => !empty($pengiriman->tanda_terima),
-                'path' => $pengiriman->tanda_terima,
-                'url' => $pengiriman->tanda_terima ? asset('storage/' . $pengiriman->tanda_terima) : null,
-                'name' => $pengiriman->tanda_terima ? basename($pengiriman->tanda_terima) : null
-            ]
-        ];
-        
-        return response()->json([
-            'pengiriman' => $pengiriman,
-            'file_status' => $fileStatus
+            'deleted_count' => $deletedCount
         ]);
     }
 }

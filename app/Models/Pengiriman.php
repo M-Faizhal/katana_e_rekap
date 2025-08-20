@@ -14,6 +14,7 @@ class Pengiriman extends Model
 
     protected $fillable = [
         'id_penawaran',
+        'id_vendor',
         'no_surat_jalan',
         'file_surat_jalan',
         'tanggal_kirim',
@@ -37,6 +38,12 @@ class Pengiriman extends Model
     public function penawaran()
     {
         return $this->belongsTo(Penawaran::class, 'id_penawaran', 'id_penawaran');
+    }
+
+    // Relationship dengan Vendor
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class, 'id_vendor', 'id_vendor');
     }
 
     // Accessor untuk status verifikasi yang lebih readable
