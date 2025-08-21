@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('nama_barang');
             $table->text('spesifikasi');
             $table->integer('qty');
+            $table->string('satuan'); // Satuan yang diambil dari inputan user di tabel barang
             $table->decimal('harga_satuan', 15, 2);
             $table->decimal('subtotal', 15, 2);
             $table->timestamps();

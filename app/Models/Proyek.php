@@ -145,4 +145,16 @@ class Proyek extends Model
             'id_penawaran' // Local key on penawaran table
         );
     }
+    
+    // Relasi langsung ke penagihan dinas
+    public function penagihanDinas()
+    {
+        return $this->hasMany(PenagihanDinas::class, 'proyek_id', 'id_proyek');
+    }
+
+    // Alias untuk kompatibilitas
+    public function penawaran()
+    {
+        return $this->hasMany(Penawaran::class, 'id_proyek', 'id_proyek');
+    }
 }

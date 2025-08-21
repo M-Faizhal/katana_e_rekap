@@ -57,6 +57,11 @@ class Penawaran extends Model
         return $this->hasOne(Pengiriman::class, 'id_penawaran', 'id_penawaran');
     }
 
+    public function penagihanDinas()
+    {
+        return $this->hasOne(PenagihanDinas::class, 'penawaran_id', 'id_penawaran');
+    }
+
     // Method untuk mendapatkan vendor yang terlibat dalam penawaran ini
     public function getVendorsAttribute()
     {

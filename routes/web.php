@@ -10,6 +10,7 @@ use App\Http\Controllers\purchasing\KalkulasiController;
 use App\Http\Controllers\purchasing\PembayaranController;
 use App\Http\Controllers\purchasing\PengirimanController;
 use App\Http\Controllers\keuangan\ApprovalController;
+use App\Http\Controllers\keuangan\PenagihanDinasController;
 use App\Http\Controllers\Marketing\ProyekController;
 use App\Http\Controllers\Marketing\WilayahController;
 use App\Http\Controllers\Marketing\PotensiController;
@@ -121,9 +122,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/approval-approved', [ApprovalController::class, 'approved'])->name('keuangan.approval.approved');
         Route::get('/approval-rejected', [ApprovalController::class, 'rejected'])->name('keuangan.approval.rejected');
 
-        Route::get('/penagihan', function () {
-            return view('pages.keuangan.penagihan');
-        })->name('keuangan.penagihan');
+        // Penagihan Dinas routes
+        Route::get('/penagihan', [PenagihanDinasController::class, 'index'])->name('keuangan.penagihan');
+        Route::get('/penagihan-dinas', [PenagihanDinasController::class, 'index'])->name('penagihan-dinas.index');
+        Route::get('/penagihan-dinas/create/{proyekId}', [PenagihanDinasController::class, 'create'])->name('penagihan-dinas.create');
+        Route::post('/penagihan-dinas', [PenagihanDinasController::class, 'store'])->name('penagihan-dinas.store');
+        Route::get('/penagihan-dinas/{id}', [PenagihanDinasController::class, 'show'])->name('penagihan-dinas.show');
+        Route::get('/penagihan-dinas/{id}/edit', [PenagihanDinasController::class, 'edit'])->name('penagihan-dinas.edit');
+        Route::put('/penagihan-dinas/{id}', [PenagihanDinasController::class, 'update'])->name('penagihan-dinas.update');
+        Route::get('/penagihan-dinas/{id}/pelunasan', [PenagihanDinasController::class, 'showPelunasan'])->name('penagihan-dinas.show-pelunasan');
+        Route::post('/penagihan-dinas/{id}/pelunasan', [PenagihanDinasController::class, 'addPelunasan'])->name('penagihan-dinas.pelunasan');
+        Route::get('/penagihan-dinas/{id}/history', [PenagihanDinasController::class, 'history'])->name('penagihan-dinas.history');
+        Route::get('/penagihan-dinas/{id}/download/{jenis}', [PenagihanDinasController::class, 'downloadDokumen'])->name('penagihan-dinas.download-dokumen');
+        Route::get('/penagihan-dinas/bukti/{id}/download', [PenagihanDinasController::class, 'downloadBuktiPembayaran'])->name('penagihan-dinas.download-bukti');
+        Route::get('/penagihan-dinas/bukti-pembayaran/{id}/download', [PenagihanDinasController::class, 'downloadBuktiPembayaran'])->name('penagihan-dinas.download-bukti-pembayaran');
+        Route::delete('/penagihan-dinas/{id}', [PenagihanDinasController::class, 'destroy'])->name('penagihan-dinas.destroy');
+        Route::delete('/penagihan-dinas/{id}/dokumen/{jenis}', [PenagihanDinasController::class, 'deleteDokumen'])->name('penagihan-dinas.delete-dokumen');
+        Route::delete('/penagihan-dinas/bukti-pembayaran/{buktiId}', [PenagihanDinasController::class, 'deleteBuktiPembayaran'])->name('penagihan-dinas.delete-bukti-pembayaran');
+
     });
 
     Route::get('/produk', [ProdukController::class, 'index_produk'])->name('produk');

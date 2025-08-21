@@ -1,40 +1,5 @@
 @extends('layouts.app')
 
-<!--
-===========================================
-SISTEM KALKULASI HPS MULTI-ITEM SUPPORT
-===========================================
-
-FITUR UTAMA:
-1. Support multi-item permintaan klien
-2. Auto-matching vendor item dengan client request
-3. Perhitungan nett percent per row berdasarkan permintaan klien yang sesuai
-4. Total calculation yang akurat untuk multiple items
-
-FORMAT MULTI-ITEM PERMINTAAN KLIEN:
-- Dapat didefinisikan di field 'deskripsi' proyek dengan format:
-  "NamaBarang1|Qty1|HargaSatuan1;NamaBarang2|Qty2|HargaSatuan2"
-  
-CONTOH:
-"Laptop Dell|5|85000000;Monitor 24 inch|10|15000000;Printer HP|3|8000000"
-
-ALGORITMA MATCHING:
-1. Exact match (nama vendor item = nama client request)
-2. Partial match (vendor contains client atau sebaliknya)
-3. Keyword matching (cocokkan kata kunci)
-4. Default fallback (jika hanya 1 client request)
-
-RUMUS PERHITUNGAN PER ROW:
-- HPP Total = (harga_vendor × qty) - total_diskon
-- HPS Total = HPP + proyeksi_kenaikan + PPH + PPN + ongkir
-- Nett Total = HPS - biaya_operasional
-- Nett % = (Nett Total / Harga Permintaan Client Total) × 100
-
-RUMUS TOTAL KESELURUHAN:
-- Total Nett % = (Sum of All Nett / Sum of All Client Requests) × 100
-===========================================
--->
-
 @section('content')
 <!-- Header Section -->
 <div class="bg-red-800 rounded-lg md:rounded-xl lg:rounded-2xl p-3 sm:p-4 md:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white shadow-lg mt-2 sm:mt-4">
@@ -80,7 +45,7 @@ RUMUS TOTAL KESELURUHAN:
         <h2 class="text-base sm:text-lg font-semibold text-gray-800">Daftar Proyek</h2>
         <p class="text-xs sm:text-sm text-gray-600 mt-1">Klik proyek untuk melakukan kalkulasi HPS</p>
     </div>
-    
+
     <!-- Desktop Table View -->
     <div class="hidden lg:block overflow-x-auto">
         <table class="w-full">
@@ -135,7 +100,6 @@ RUMUS TOTAL KESELURUHAN:
                                 title="Buka Kalkulasi HPS">
                             <i class="fas fa-calculator"></i> Kalkulasi
                         </button>
-                        
                         @if($p->status == 'Menunggu')
                         <button onclick="event.stopPropagation(); createPenawaranAction({{ $p->id_proyek }})" 
                                 class="text-green-600 hover:text-green-900"
