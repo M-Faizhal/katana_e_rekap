@@ -29,6 +29,25 @@
 
     <form action="{{ route('penagihan-dinas.store') }}" method="POST" enctype="multipart/form-data" class="p-6">
         @csrf
+        
+        <!-- Debug: Show validation errors -->
+        @if ($errors->any())
+            <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 class="text-red-800 font-semibold mb-2">Terjadi kesalahan validasi:</h4>
+                <ul class="text-red-700 text-sm space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>• {{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        
+        @if (session('error'))
+            <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-red-800 font-semibold">{{ session('error') }}</p>
+            </div>
+        @endif
+        
         <input type="hidden" name="proyek_id" value="{{ $proyek->id_proyek }}">
         <input type="hidden" name="penawaran_id" value="{{ $penawaran->id_penawaran }}">
         <input type="hidden" name="total_harga" value="{{ $totalHarga }}">
@@ -267,7 +286,7 @@
                     </div>
                     <label class="block text-sm font-semibold text-gray-700 mb-3">Persentase DP (%) *</label>
                     <input type="number" name="persentase_dp" id="persentase_dp" value="{{ old('persentase_dp') }}" 
-                           min="0" max="100" step="0.01" onchange="calculateDp()" onwheel="return false;"
+                           min="0" max="100" step="0.01" onchange="calculateDp()" onwheel="return false;" disabled
                            class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 @error('persentase_dp') border-red-300 @enderror px-4 py-3"
                            placeholder="Masukkan persentase DP">
                     @error('persentase_dp')
@@ -612,9 +631,12 @@ function toggleDpPercentage() {
     if (statusPembayaran === 'dp') {
         dpSection.classList.remove('hidden');
         persentaseDp.setAttribute('required', 'required');
+        persentaseDp.removeAttribute('disabled');
+        persentaseDp.setAttribute('name', 'persentase_dp');
     } else {
         dpSection.classList.add('hidden');
         persentaseDp.removeAttribute('required');
+        persentaseDp.setAttribute('disabled', 'disabled');
         persentaseDp.value = '';
         document.getElementById('dp_calculation').classList.add('hidden');
     }

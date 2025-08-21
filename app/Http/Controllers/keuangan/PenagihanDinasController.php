@@ -80,7 +80,7 @@ class PenagihanDinasController extends Controller
             'nomor_invoice' => 'required|string|unique:penagihan_dinas,nomor_invoice',
             'total_harga' => 'required|numeric|min:0',
             'status_pembayaran' => 'required|in:dp,lunas',
-            'persentase_dp' => 'required_if:status_pembayaran,dp|numeric|min:0|max:100',
+            'persentase_dp' => 'required_if:status_pembayaran,dp|nullable|numeric|min:0|max:100',
             'tanggal_jatuh_tempo' => 'required|date',
             'berita_acara_serah_terima' => 'nullable|file|mimes:pdf|max:2048',
             'invoice' => 'nullable|file|mimes:pdf|max:2048',
@@ -111,9 +111,10 @@ class PenagihanDinasController extends Controller
             // Hitung nilai DP
             $totalHarga = $request->total_harga;
             $jumlahDp = 0;
+            $persentaseDp = $request->persentase_dp;
 
             if ($request->status_pembayaran === 'dp') {
-                $jumlahDp = ($request->persentase_dp / 100) * $totalHarga;
+                $jumlahDp = ($persentaseDp / 100) * $totalHarga;
             }
 
             // Buat penagihan dinas
@@ -123,7 +124,7 @@ class PenagihanDinasController extends Controller
                 'nomor_invoice' => $request->nomor_invoice,
                 'total_harga' => $totalHarga,
                 'status_pembayaran' => $request->status_pembayaran,
-                'persentase_dp' => $request->persentase_dp,
+                'persentase_dp' => $persentaseDp,
                 'jumlah_dp' => $jumlahDp,
                 'tanggal_jatuh_tempo' => $request->tanggal_jatuh_tempo,
                 'keterangan' => $request->keterangan,
