@@ -323,11 +323,11 @@
                                 {{ \Carbon\Carbon::parse($pengiriman->tanggal_kirim)->format('d M Y') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($pengiriman->status_verifikasi == 'Verified' && $pengiriman->penawaran->proyek->status == 'Selesai')
+                                @if($pengiriman->penawaran->proyek->status == 'Selesai')
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                                         <i class="fas fa-check-circle mr-1"></i>Verified
                                     </span>
-                                @elseif($pengiriman->foto_sampai && $pengiriman->tanda_terima)
+                                @elseif($pengiriman->status_verifikasi == 'Sampai_Tujuan' || ($pengiriman->foto_sampai && $pengiriman->tanda_terima))
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                                         <i class="fas fa-truck mr-1"></i>Dokumentasi Lengkap
                                     </span>
@@ -763,7 +763,7 @@ function lihatDetailSelesai(pengirimanId) {
                     <p class="text-green-100 text-sm"><i class="fas fa-building mr-1"></i>${pengiriman.vendor.nama_vendor}</p>
                 </div>
                 <div class="text-right">
-                    ${pengiriman.status_verifikasi === 'Verified' && pengiriman.penawaran.proyek.status === 'Selesai' ? 
+                    ${pengiriman.penawaran.proyek.status === 'Selesai' ? 
                         `<span class="bg-white text-green-600 px-3 py-1 rounded-full text-sm font-medium">
                             <i class="fas fa-check-circle mr-1"></i> Verified
                         </span>` :
@@ -788,8 +788,8 @@ function lihatDetailSelesai(pengirimanId) {
         // Fill shipping info
         document.getElementById('infoPengirimanDetailSelesai').innerHTML = `
             <div><span class="text-gray-500">No. Surat Jalan:</span> <span class="font-medium">${pengiriman.no_surat_jalan}</span></div>
-            <div><span class="text-gray-500">Status:</span> <span class="font-medium ${pengiriman.status_verifikasi === 'Verified' && pengiriman.penawaran.proyek.status === 'Selesai' ? 'text-green-600' : 'text-blue-600'}">
-                ${pengiriman.status_verifikasi === 'Verified' && pengiriman.penawaran.proyek.status === 'Selesai' ? 'Verified' : 'Dokumentasi Lengkap'}
+            <div><span class="text-gray-500">Status:</span> <span class="font-medium ${pengiriman.penawaran.proyek.status === 'Selesai' ? 'text-green-600' : 'text-blue-600'}">
+                ${pengiriman.penawaran.proyek.status === 'Selesai' ? 'Verified' : 'Dokumentasi Lengkap'}
             </span></div>
             <div><span class="text-gray-500">Status Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.status}</span></div>
             <div><span class="text-gray-500">Alamat Kirim:</span> <span class="font-medium">${pengiriman.alamat_kirim || 'Tidak tersedia'}</span></div>

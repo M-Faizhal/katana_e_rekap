@@ -15,6 +15,8 @@ use App\Models\PenawaranDetail;
 use App\Models\Pembayaran;
 use App\Models\Pengiriman;
 use App\Models\Wilayah;
+use App\Models\PenagihanDinas;
+use App\Models\BuktiPembayaran;
 
 class CompleteSystemSeeder extends Seeder
 {
@@ -25,6 +27,8 @@ class CompleteSystemSeeder extends Seeder
 
         // Truncate tables in reverse dependency order
         $tables = [
+            'bukti_pembayaran',
+            'penagihan_dinas',
             'pengiriman',
             'pembayaran',
             'penawaran_detail',
@@ -56,6 +60,8 @@ class CompleteSystemSeeder extends Seeder
         $this->seedPenawaranDetail();
         $this->seedPembayaran();
         $this->seedPengiriman();
+        $this->seedPenagihanDinas();
+        $this->seedBuktiPembayaran();
 
         echo "\n✅ Complete system seeding finished successfully!\n";
         echo "🔐 Login credentials:\n";
@@ -1268,5 +1274,146 @@ class CompleteSystemSeeder extends Seeder
         Pengiriman::insert($pengirimans);
         echo "   ✓ Created " . count($pengirimans) . " pengiriman per vendor\n";
         echo "   ✓ Multi-vendor shipping system implemented!\n";
+    }
+
+    private function seedPenagihanDinas()
+    {
+        echo "💳 Seeding penagihan dinas...\n";
+
+        $penagihanDinas = [
+            // Penagihan untuk proyek 1 (Selesai) - Pembayaran Lunas
+            [
+                'proyek_id' => 1,
+                'penawaran_id' => 1,
+                'nomor_invoice' => 'INV/KATANA/2024/001',
+                'total_harga' => 431250000.00, // Total penawaran detail
+                'status_pembayaran' => 'lunas',
+                'persentase_dp' => 50.00,
+                'jumlah_dp' => 215625000.00, // 50% dari total
+                'tanggal_jatuh_tempo' => Carbon::now()->subDays(20),
+                'berita_acara_serah_terima' => 'bast_001.pdf',
+                'invoice' => 'invoice_001.pdf',
+                'pnbp' => 'pnbp_001.pdf',
+                'faktur_pajak' => 'faktur_pajak_001.pdf',
+                'surat_lainnya' => 'surat_tambahan_001.pdf',
+                'keterangan' => 'Pembayaran untuk pengadaan laptop dan monitor lab komputer SMA Negeri 1 Jakarta',
+                'created_at' => Carbon::now()->subDays(28),
+                'updated_at' => now()
+            ],
+
+            // Penagihan untuk proyek 2 (Pengiriman) - Status DP
+            [
+                'proyek_id' => 2,
+                'penawaran_id' => 2,
+                'nomor_invoice' => 'INV/KATANA/2024/002',
+                'total_harga' => 214256250.00,
+                'status_pembayaran' => 'dp',
+                'persentase_dp' => 40.00,
+                'jumlah_dp' => 85702500.00, // 40% dari total
+                'tanggal_jatuh_tempo' => Carbon::now()->addDays(15),
+                'berita_acara_serah_terima' => 'bast_002.pdf',
+                'invoice' => 'invoice_002.pdf',
+                'pnbp' => null,
+                'faktur_pajak' => 'faktur_pajak_002.pdf',
+                'surat_lainnya' => null,
+                'keterangan' => 'Pembayaran untuk pengadaan furniture kantor PT Kreatif Teknologi',
+                'created_at' => Carbon::now()->subDays(23),
+                'updated_at' => now()
+            ],
+
+            // Penagihan untuk proyek 3 (Pengiriman) - Status Lunas (baru saja lunas)
+            [
+                'proyek_id' => 3,
+                'penawaran_id' => 3,
+                'nomor_invoice' => 'INV/KATANA/2024/003',
+                'total_harga' => 48750000.00, // Sesuai dengan data asli proyek
+                'status_pembayaran' => 'lunas',
+                'persentase_dp' => 30.00,
+                'jumlah_dp' => 14625000.00, // 30% dari total
+                'tanggal_jatuh_tempo' => Carbon::now()->addDays(10),
+                'berita_acara_serah_terima' => 'bast_003.pdf',
+                'invoice' => 'invoice_003.pdf',
+                'pnbp' => 'pnbp_003.pdf',
+                'faktur_pajak' => null,
+                'surat_lainnya' => 'kontrak_003.pdf',
+                'keterangan' => 'Pembayaran untuk generator set dan pompa air CV Maju Bersama',
+                'created_at' => Carbon::now()->subDays(18),
+                'updated_at' => now()
+            ]
+        ];
+
+        PenagihanDinas::insert($penagihanDinas);
+        echo "   ✓ Created " . count($penagihanDinas) . " penagihan dinas\n";
+    }
+
+    private function seedBuktiPembayaran()
+    {
+        echo "📄 Seeding bukti pembayaran...\n";
+
+        $buktiPembayarans = [
+            // Bukti pembayaran untuk penagihan dinas 1 (Proyek 1 - Selesai)
+            // DP
+            [
+                'penagihan_dinas_id' => 1,
+                'jenis_pembayaran' => 'dp',
+                'jumlah_bayar' => 215625000.00,
+                'tanggal_bayar' => Carbon::now()->subDays(25),
+                'bukti_pembayaran' => 'bukti_dp_penagihan_001.pdf',
+                'keterangan' => 'Pembayaran DP 50% untuk pengadaan laptop dan monitor',
+                'created_at' => Carbon::now()->subDays(25),
+                'updated_at' => now()
+            ],
+            // Pelunasan
+            [
+                'penagihan_dinas_id' => 1,
+                'jenis_pembayaran' => 'lunas',
+                'jumlah_bayar' => 215625000.00,
+                'tanggal_bayar' => Carbon::now()->subDays(8),
+                'bukti_pembayaran' => 'bukti_pelunasan_penagihan_001.pdf',
+                'keterangan' => 'Pelunasan pembayaran untuk pengadaan laptop dan monitor',
+                'created_at' => Carbon::now()->subDays(8),
+                'updated_at' => now()
+            ],
+
+            // Bukti pembayaran untuk penagihan dinas 2 (Proyek 2 - DP saja)
+            [
+                'penagihan_dinas_id' => 2,
+                'jenis_pembayaran' => 'dp',
+                'jumlah_bayar' => 85702500.00,
+                'tanggal_bayar' => Carbon::now()->subDays(20),
+                'bukti_pembayaran' => 'bukti_dp_penagihan_002.pdf',
+                'keterangan' => 'Pembayaran DP 40% untuk pengadaan furniture kantor',
+                'created_at' => Carbon::now()->subDays(20),
+                'updated_at' => now()
+            ],
+
+            // Bukti pembayaran untuk penagihan dinas 3 (Proyek 3 - Baru saja lunas)
+            // DP
+            [
+                'penagihan_dinas_id' => 3,
+                'jenis_pembayaran' => 'dp',
+                'jumlah_bayar' => 14625000.00,
+                'tanggal_bayar' => Carbon::now()->subDays(15),
+                'bukti_pembayaran' => 'bukti_dp_penagihan_003.pdf',
+                'keterangan' => 'Pembayaran DP 30% untuk generator dan pompa air',
+                'created_at' => Carbon::now()->subDays(15),
+                'updated_at' => now()
+            ],
+            // Pelunasan (baru saja lunas kemarin)
+            [
+                'penagihan_dinas_id' => 3,
+                'jenis_pembayaran' => 'lunas',
+                'jumlah_bayar' => 34125000.00, // Sisa pembayaran (48,750,000 - 14,625,000)
+                'tanggal_bayar' => Carbon::now()->subDays(1),
+                'bukti_pembayaran' => 'bukti_pelunasan_penagihan_003.pdf',
+                'keterangan' => 'Pelunasan pembayaran untuk generator dan pompa air',
+                'created_at' => Carbon::now()->subDays(1),
+                'updated_at' => now()
+            ]
+        ];
+
+        BuktiPembayaran::insert($buktiPembayarans);
+        echo "   ✓ Created " . count($buktiPembayarans) . " bukti pembayaran\n";
+        echo "   ✓ Penagihan dinas system seeded successfully!\n";
     }
 }

@@ -68,7 +68,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pengiriman</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pembayaran Dinas</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dokumentasi</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
@@ -79,7 +79,7 @@
                         <td class="px-6 py-4">
                             <div>
                                 <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_barang }}</div>
-                                <div class="text-sm text-gray-500">{{ $proyek->no_penawaran }}</div>
+                                <div class="text-sm text-gray-500">{{ $proyek->kode_proyek ?? 'PRJ-' . str_pad($proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
                                 <div class="text-xs text-gray-400 mt-1">
                                     <i class="fas fa-calendar mr-1"></i>{{ \Carbon\Carbon::parse($proyek->tanggal)->format('d M Y') }}
                                 </div>
@@ -89,42 +89,57 @@
                             <div>
                                 <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_klien }}</div>
                                 <div class="text-sm text-gray-500">{{ $proyek->instansi }}</div>
-                                <div class="text-xs text-gray-400">{{ $proyek->kota_kab }}</div>
+                                <div class="text-xs text-gray-400">{{ $proyek->kab_kota }}</div>
                             </div>
                         </td>
                         <td class="px-6 py-4">
                             <div>
-                                <div class="text-sm font-medium text-gray-900">{{ $proyek->no_surat_jalan }}</div>
+                                @php
+                                    $pengirimanAll = collect();
+                                    if ($proyek->penawaran) {
+                                        foreach ($proyek->penawaran as $penawaran) {
+                                            if ($penawaran->pengiriman) {
+                                                $pengirimanAll = $pengirimanAll->merge($penawaran->pengiriman);
+                                            }
+                                        }
+                                    }
+                                    $pengirimanCount = $pengirimanAll->count();
+                                    $pengirimanSampai = $pengirimanAll->whereIn('status_verifikasi', ['Verified', 'Sampai_Tujuan'])->count();
+                                @endphp
+                                <div class="text-sm font-medium text-gray-900">{{ $pengirimanSampai }}/{{ $pengirimanCount }} Sudah Sampai</div>
                                 <div class="text-sm text-gray-500">
-                                    <i class="fas fa-truck mr-1"></i>{{ \Carbon\Carbon::parse($proyek->tanggal_kirim)->format('d M Y') }}
+                                    <i class="fas fa-truck mr-1"></i>
+                                    @if($pengirimanAll->isNotEmpty())
+                                        {{ \Carbon\Carbon::parse($pengirimanAll->first()->tanggal_kirim)->format('d M Y') }}
+                                    @else
+                                        Belum ada pengiriman
+                                    @endif
                                 </div>
                             </div>
                         </td>
                         <td class="px-6 py-4">
                             @php
+                                $penagihanDinas = $proyek->penagihanDinas->first();
+                                $statusPembayaran = $penagihanDinas->status_pembayaran ?? 'belum_bayar';
                                 $statusColor = [
-                                    'Pending' => 'bg-yellow-100 text-yellow-800',
-                                    'Dalam_Proses' => 'bg-blue-100 text-blue-800',
-                                    'Sampai_Tujuan' => 'bg-green-100 text-green-800',
-                                    'Verified' => 'bg-gray-100 text-gray-800',
-                                    'Rejected' => 'bg-red-100 text-red-800'
-                                ][$proyek->status_verifikasi] ?? 'bg-gray-100 text-gray-800';
+                                    'dp' => 'bg-yellow-100 text-yellow-800',
+                                    'lunas' => 'bg-green-100 text-green-800',
+                                    'belum_bayar' => 'bg-red-100 text-red-800'
+                                ][$statusPembayaran] ?? 'bg-gray-100 text-gray-800';
                                 
                                 $statusLabel = [
-                                    'Pending' => 'Menunggu',
-                                    'Dalam_Proses' => 'Dalam Perjalanan',
-                                    'Sampai_Tujuan' => 'Siap Verifikasi',
-                                    'Verified' => 'Terverifikasi',
-                                    'Rejected' => 'Ditolak'
-                                ][$proyek->status_verifikasi] ?? 'Unknown';
+                                    'dp' => 'DP',
+                                    'lunas' => 'Lunas',
+                                    'belum_bayar' => 'Belum Bayar'
+                                ][$statusPembayaran] ?? 'Unknown';
                             @endphp
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColor }}">
-                                @if($proyek->status_verifikasi === 'Sampai_Tujuan')
-                                    <i class="fas fa-exclamation-circle mr-1"></i>
-                                @elseif($proyek->status_verifikasi === 'Dalam_Proses')
-                                    <i class="fas fa-truck mr-1"></i>
-                                @else
+                                @if($statusPembayaran === 'lunas')
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                @elseif($statusPembayaran === 'dp')
                                     <i class="fas fa-clock mr-1"></i>
+                                @else
+                                    <i class="fas fa-exclamation-circle mr-1"></i>
                                 @endif
                                 {{ $statusLabel }}
                             </span>
@@ -132,27 +147,34 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center space-x-2">
                                 @php
-                                    $docs = [
-                                        'foto_berangkat' => $proyek->foto_berangkat,
-                                        'foto_perjalanan' => $proyek->foto_perjalanan,
-                                        'foto_sampai' => $proyek->foto_sampai,
-                                        'tanda_terima' => $proyek->tanda_terima
-                                    ];
-                                    $completed = count(array_filter($docs));
-                                    $total = count($docs);
+                                    $docs = [];
+                                    foreach($pengirimanAll as $pengiriman) {
+                                        $docs = array_merge($docs, [
+                                            $pengiriman->foto_berangkat,
+                                            $pengiriman->foto_perjalanan,
+                                            $pengiriman->foto_sampai,
+                                            $pengiriman->tanda_terima,
+                                            $pengiriman->file_surat_jalan
+                                        ]);
+                                    }
+                                    $docs = array_filter($docs);
+                                    $docCount = count($docs);
                                 @endphp
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-green-500 h-2 rounded-full" style="width: {{ ($completed/$total)*100 }}%"></div>
-                                </div>
-                                <span class="text-xs text-gray-600 whitespace-nowrap">{{ $completed }}/{{ $total }}</span>
+                                
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-file-alt mr-1"></i>
+                                    {{ $docCount }} Dokumen
+                                </span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-center">
-                            <a href="{{ route('superadmin.verifikasi-proyek.detail', $proyek->id_proyek) }}" 
-                               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                                <i class="fas fa-eye mr-2"></i>
-                                Detail & Verifikasi
-                            </a>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-3">
+                                <a href="{{ route('superadmin.verifikasi-proyek.detail', $proyek->id_proyek) }}" 
+                                   class="inline-flex items-center px-3 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                                    <i class="fas fa-eye mr-2"></i>
+                                    Detail
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @endforeach

@@ -497,4 +497,44 @@ class PenagihanDinasController extends Controller
 
         return view('pages.keuangan.penagihan-pelunasan', compact('penagihanDinas', 'sisaPembayaran'));
     }
+
+    public function previewDokumen($id, $jenis)
+    {
+        $penagihanDinas = PenagihanDinas::findOrFail($id);
+        
+        if (!$penagihanDinas->$jenis) {
+            abort(404, 'Dokumen tidak ditemukan.');
+        }
+
+        $filePath = $penagihanDinas->$jenis; // Path sudah lengkap dari database
+        
+        if (!Storage::disk('public')->exists($filePath)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        $file = Storage::disk('public')->get($filePath);
+        $mimeType = Storage::disk('public')->mimeType($filePath);
+        
+        return response($file, 200)
+            ->header('Content-Type', $mimeType)
+            ->header('Content-Disposition', 'inline');
+    }
+
+    public function previewBuktiPembayaran($buktiId)
+    {
+        $buktiPembayaran = BuktiPembayaran::findOrFail($buktiId);
+        
+        $filePath = $buktiPembayaran->bukti_pembayaran; // Path sudah lengkap dari database
+        
+        if (!Storage::disk('public')->exists($filePath)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        $file = Storage::disk('public')->get($filePath);
+        $mimeType = Storage::disk('public')->mimeType($filePath);
+        
+        return response($file, 200)
+            ->header('Content-Type', $mimeType)
+            ->header('Content-Disposition', 'inline');
+    }
 }

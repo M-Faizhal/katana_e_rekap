@@ -8,150 +8,185 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Proyek;
 use App\Models\Pengiriman;
+use App\Models\PenagihanDinas;
+use App\Models\Pembayaran;
+use Carbon\Carbon;
 
 class VerifikasiProyekController extends Controller
 {
     public function index()
     {
-        // Ambil proyek dengan status "Pengiriman" yang menunggu verifikasi
-        $proyekVerifikasi = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('pengiriman', 'penawaran.id_penawaran', '=', 'pengiriman.id_penawaran')
-            ->join('users as admin_marketing', 'proyek.id_admin_marketing', '=', 'admin_marketing.id_user')
-            ->join('users as admin_purchasing', 'proyek.id_admin_purchasing', '=', 'admin_purchasing.id_user')
-            ->leftJoin('users as verifier', 'pengiriman.verified_by', '=', 'verifier.id_user')
-            ->select([
-                'proyek.*',
-                'penawaran.no_penawaran',
-                'penawaran.surat_pesanan',
-                'penawaran.surat_penawaran', 
-                'penawaran.total_penawaran',
-                'penawaran.masa_berlaku',
-                'pengiriman.*',
-                'admin_marketing.nama as admin_marketing_name',
-                'admin_purchasing.nama as admin_purchasing_name',
-                'verifier.nama as verified_by_name'
-            ])
-            ->where('proyek.status', 'Pengiriman')
-            ->whereIn('pengiriman.status_verifikasi', ['Sampai_Tujuan', 'Pending', 'Dalam_Proses'])
-            ->orderBy('pengiriman.updated_at', 'desc')
-            ->get();
+        // Ambil proyek yang memenuhi kriteria:
+        // 1. Semua barang vendor sudah sampai (semua pengiriman verified atau sampai tujuan)
+        // 2. Pembayaran dinas sudah lunas
+        // 3. Status proyek belum "Selesai" atau "Gagal"
+        
+        $proyekVerifikasi = Proyek::with([
+            'penawaran' => function($query) {
+                $query->where('status', 'ACC')->with(['pengiriman']);
+            }, 
+            'penagihanDinas.buktiPembayaran',
+            'adminMarketing:id_user,nama,email',
+            'adminPurchasing:id_user,nama,email'
+        ])
+        ->whereHas('penawaran', function($query) {
+            $query->where('status', 'ACC');
+        })
+        // Pastikan ada pengiriman untuk penawaran proyek ini
+        ->whereHas('penawaran.pengiriman')
+        // Pastikan semua pengiriman sudah sampai (Verified atau Sampai_Tujuan) - tidak ada yang masih dalam perjalanan
+        ->whereDoesntHave('penawaran.pengiriman', function($query) {
+            $query->whereNotIn('status_verifikasi', ['Verified', 'Sampai_Tujuan']);
+        })
+        // Pastikan pembayaran dinas sudah lunas
+        ->whereHas('penagihanDinas', function($query) {
+            $query->where('status_pembayaran', 'lunas');
+        })
+        // Status proyek belum selesai atau gagal
+        ->whereNotIn('status', ['Selesai', 'Gagal'])
+        ->orderBy('updated_at', 'desc')
+        ->get();
 
         return view('pages.superadmin.verifikasi-proyek', compact('proyekVerifikasi'));
     }
 
     public function show($id)
     {
-        // Detail lengkap untuk satu proyek
-        $proyek = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('pengiriman', 'penawaran.id_penawaran', '=', 'pengiriman.id_penawaran')
-            ->join('users as admin_marketing', 'proyek.id_admin_marketing', '=', 'admin_marketing.id_user')
-            ->join('users as admin_purchasing', 'proyek.id_admin_purchasing', '=', 'admin_purchasing.id_user')
-            ->leftJoin('users as verifier', 'pengiriman.verified_by', '=', 'verifier.id_user')
-            ->select([
-                'proyek.*',
-                'penawaran.*',
-                'pengiriman.*',
-                'admin_marketing.nama as admin_marketing_name',
-                'admin_marketing.email as admin_marketing_email',
-                'admin_purchasing.nama as admin_purchasing_name', 
-                'admin_purchasing.email as admin_purchasing_email',
-                'verifier.nama as verified_by_name'
-            ])
-            ->where('proyek.id_proyek', $id)
-            ->first();
+        $proyek = Proyek::with([
+            'penawaran' => function($query) {
+                $query->where('status', 'ACC')->with([
+                    'penawaranDetail.barang.vendor', 
+                    'pengiriman.vendor'
+                ]);
+            }, 
+            'penagihanDinas.buktiPembayaran',
+            'pembayaran.vendor',
+            'adminMarketing:id_user,nama,email',
+            'adminPurchasing:id_user,nama,email'
+        ])->findOrFail($id);
 
-        if (!$proyek) {
-            return redirect()->route('superadmin.verifikasi-proyek')->with('error', 'Proyek tidak ditemukan');
+        // Validasi bahwa proyek memenuhi kriteria verifikasi
+        $pengirimanAll = collect();
+        if ($proyek->penawaran) {
+            foreach ($proyek->penawaran as $penawaran) {
+                $pengirimanAll = $pengirimanAll->merge($penawaran->pengiriman);
+            }
         }
 
-        // Ambil detail penawaran
-        $penawaranDetail = DB::table('penawaran_detail')
-            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
-            ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
-            ->select([
-                'penawaran_detail.*',
-                'barang.brand',
-                'barang.kategori',
-                'vendor.nama_vendor'
-            ])
-            ->where('penawaran_detail.id_penawaran', $proyek->id_penawaran)
-            ->get();
+        $allPengirimanSampai = $pengirimanAll->isNotEmpty() && $pengirimanAll->every(function($pengiriman) {
+            return in_array($pengiriman->status_verifikasi, ['Verified', 'Sampai_Tujuan']);
+        });
 
-        // Ambil riwayat pembayaran
-        $pembayaran = DB::table('pembayaran')
-            ->where('id_penawaran', $proyek->id_penawaran)
-            ->orderBy('tanggal_bayar', 'asc')
-            ->get();
+        $penagihanDinas = $proyek->penagihanDinas->first();
+        $pembayaranDinasLunas = $penagihanDinas && $penagihanDinas->status_pembayaran === 'lunas';
 
-        return view('pages.superadmin.verifikasi-proyek-detail', compact('proyek', 'penawaranDetail', 'pembayaran'));
+        if (!$allPengirimanSampai || !$pembayaranDinasLunas) {
+            return redirect()->route('superadmin.verifikasi-proyek')
+                ->with('error', 'Proyek belum memenuhi kriteria untuk diverifikasi.');
+        }
+
+        // Ambil data pembayaran vendor
+        $pembayaran = $proyek->pembayaran;
+
+        // Ambil semua detail penawaran dari penawaran yang ACC
+        $penawaranDetail = collect();
+        if ($proyek->penawaran) {
+            foreach ($proyek->penawaran as $penawaran) {
+                if ($penawaran->status === 'ACC' && $penawaran->penawaranDetail) {
+                    $penawaranDetail = $penawaranDetail->merge($penawaran->penawaranDetail);
+                }
+            }
+        }
+
+        return view('pages.superadmin.verifikasi-proyek-detail', compact('proyek', 'pembayaran', 'penawaranDetail'));
     }
 
     public function verify(Request $request, $id)
     {
         $request->validate([
             'action' => 'required|in:selesai,gagal',
-            'catatan_verifikasi' => 'required|string|max:1000'
+            'catatan_verifikasi' => 'nullable|string|max:1000'
         ]);
 
-        $proyek = Proyek::findOrFail($id);
-        $pengiriman = Pengiriman::where('id_penawaran', $proyek->id_penawaran)->first();
+        $proyek = Proyek::with(['penawaran.pengiriman', 'penagihanDinas'])->findOrFail($id);
 
-        if (!$pengiriman) {
-            return redirect()->back()->with('error', 'Data pengiriman tidak ditemukan');
+        // Validasi ulang bahwa proyek memenuhi kriteria
+        $pengirimanAll = collect();
+        if ($proyek->penawaran) {
+            foreach ($proyek->penawaran as $penawaran) {
+                $pengirimanAll = $pengirimanAll->merge($penawaran->pengiriman);
+            }
         }
 
-        if ($request->action === 'selesai') {
-            // Update pengiriman
-            $pengiriman->update([
-                'status_verifikasi' => 'Verified',
-                'catatan_verifikasi' => $request->catatan_verifikasi,
-                'verified_by' => Auth::user()->id_user,
-                'verified_at' => now()
+        $allPengirimanVerified = $pengirimanAll->isNotEmpty() && $pengirimanAll->every(function($pengiriman) {
+            return in_array($pengiriman->status_verifikasi, ['Verified', 'Sampai_Tujuan']);
+        });
+
+        $penagihanDinas = $proyek->penagihanDinas->first();
+        $pembayaranDinasLunas = $penagihanDinas && $penagihanDinas->status_pembayaran === 'lunas';
+
+        if (!$allPengirimanVerified || !$pembayaranDinasLunas) {
+            return redirect()->back()
+                ->with('error', 'Proyek belum memenuhi kriteria untuk diverifikasi.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Update status proyek berdasarkan action
+            $statusProyek = $request->action === 'selesai' ? 'Selesai' : 'Gagal';
+            
+            $proyek->update([
+                'status' => $statusProyek,
+                'catatan' => $request->catatan_verifikasi
             ]);
 
-            // Update status proyek menjadi "Selesai"
-            $proyek->update(['status' => 'Selesai']);
+            DB::commit();
 
-            return redirect()->route('superadmin.verifikasi-proyek')->with('success', 'Proyek berhasil diverifikasi sebagai SELESAI!');
-        } else {
-            // Update pengiriman sebagai rejected
-            $pengiriman->update([
-                'status_verifikasi' => 'Rejected',
-                'catatan_verifikasi' => $request->catatan_verifikasi,
-                'verified_by' => Auth::user()->id_user,
-                'verified_at' => now()
-            ]);
+            $message = $request->action === 'selesai' 
+                ? 'Proyek berhasil diverifikasi sebagai SELESAI.' 
+                : 'Proyek berhasil diverifikasi sebagai GAGAL.';
 
-            // Update status proyek menjadi "Gagal"
-            $proyek->update(['status' => 'Gagal']);
+            return redirect()->route('superadmin.verifikasi-proyek')
+                ->with('success', $message);
 
-            return redirect()->route('superadmin.verifikasi-proyek')->with('error', 'Proyek ditandai sebagai GAGAL! Silakan koordinasi dengan tim terkait.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat memverifikasi proyek: ' . $e->getMessage());
         }
     }
 
     public function history()
     {
-        // Ambil semua pengiriman yang sudah diverifikasi (Verified atau Rejected)
-        $historyVerifikasi = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('pengiriman', 'penawaran.id_penawaran', '=', 'pengiriman.id_penawaran')
-            ->join('users as admin_marketing', 'proyek.id_admin_marketing', '=', 'admin_marketing.id_user')
-            ->join('users as admin_purchasing', 'proyek.id_admin_purchasing', '=', 'admin_purchasing.id_user')
-            ->join('users as verifier', 'pengiriman.verified_by', '=', 'verifier.id_user')
-            ->select([
-                'proyek.*',
-                'penawaran.no_penawaran',
-                'penawaran.total_penawaran',
-                'pengiriman.*',
-                'admin_marketing.nama as admin_marketing_name',
-                'admin_purchasing.nama as admin_purchasing_name',
-                'verifier.nama as verified_by_name'
-            ])
-            ->whereIn('pengiriman.status_verifikasi', ['Verified', 'Rejected'])
-            ->orderBy('pengiriman.verified_at', 'desc')
-            ->get();
+        $historyVerifikasi = Proyek::with([
+            'penawaran' => function($query) {
+                $query->where('status', 'ACC')->with(['penawaranDetail']);
+            },
+            'adminMarketing:id_user,nama,email',
+            'adminPurchasing:id_user,nama,email'
+        ])
+        ->whereIn('status', ['Selesai', 'Gagal'])
+        ->orderBy('updated_at', 'desc')
+        ->get()
+        ->map(function($proyek) {
+            // Calculate total penawaran
+            $totalPenawaran = 0;
+            if ($proyek->penawaran && $proyek->penawaran->isNotEmpty()) {
+                foreach ($proyek->penawaran as $penawaran) {
+                    if ($penawaran->penawaranDetail) {
+                        $totalPenawaran += $penawaran->penawaranDetail->sum('subtotal');
+                    }
+                }
+            }
+            $proyek->total_penawaran = $totalPenawaran;
+            
+            // Set nomor penawaran
+            $proyek->no_penawaran = $proyek->penawaran->first()->no_penawaran ?? 'N/A';
+            
+            return $proyek;
+        });
 
         return view('pages.superadmin.verifikasi-proyek-history', compact('historyVerifikasi'));
     }

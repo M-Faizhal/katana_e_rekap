@@ -134,8 +134,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/penagihan-dinas/{id}/pelunasan', [PenagihanDinasController::class, 'addPelunasan'])->name('penagihan-dinas.pelunasan');
         Route::get('/penagihan-dinas/{id}/history', [PenagihanDinasController::class, 'history'])->name('penagihan-dinas.history');
         Route::get('/penagihan-dinas/{id}/download/{jenis}', [PenagihanDinasController::class, 'downloadDokumen'])->name('penagihan-dinas.download-dokumen');
+        Route::get('/penagihan-dinas/{id}/preview/{jenis}', [PenagihanDinasController::class, 'previewDokumen'])->name('penagihan-dinas.preview-dokumen');
         Route::get('/penagihan-dinas/bukti/{id}/download', [PenagihanDinasController::class, 'downloadBuktiPembayaran'])->name('penagihan-dinas.download-bukti');
+        Route::get('/penagihan-dinas/bukti/{id}/preview', [PenagihanDinasController::class, 'previewBuktiPembayaran'])->name('penagihan-dinas.preview-bukti');
         Route::get('/penagihan-dinas/bukti-pembayaran/{id}/download', [PenagihanDinasController::class, 'downloadBuktiPembayaran'])->name('penagihan-dinas.download-bukti-pembayaran');
+        Route::get('/penagihan-dinas/bukti-pembayaran/{id}/preview', [PenagihanDinasController::class, 'previewBuktiPembayaran'])->name('penagihan-dinas.preview-bukti-pembayaran');
         Route::delete('/penagihan-dinas/{id}', [PenagihanDinasController::class, 'destroy'])->name('penagihan-dinas.destroy');
         Route::delete('/penagihan-dinas/{id}/dokumen/{jenis}', [PenagihanDinasController::class, 'deleteDokumen'])->name('penagihan-dinas.delete-dokumen');
         Route::delete('/penagihan-dinas/bukti-pembayaran/{buktiId}', [PenagihanDinasController::class, 'deleteBuktiPembayaran'])->name('penagihan-dinas.delete-bukti-pembayaran');

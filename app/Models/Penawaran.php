@@ -54,7 +54,7 @@ class Penawaran extends Model
 
     public function pengiriman()
     {
-        return $this->hasOne(Pengiriman::class, 'id_penawaran', 'id_penawaran');
+        return $this->hasMany(Pengiriman::class, 'id_penawaran', 'id_penawaran');
     }
 
     public function penagihanDinas()

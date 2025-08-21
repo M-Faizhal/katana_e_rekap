@@ -53,8 +53,8 @@ class PengirimanController extends Controller
                     $isLunas = $totalVendor <= $totalDibayarApproved;
                     $hasPembayaranApproved = $totalDibayarApproved > 0; // Ada pembayaran yang sudah approved
 
-                    // Cek apakah sudah ada pengiriman untuk vendor ini
-                    $pengiriman = $proyek->pengiriman
+                    // Cek apakah sudah ada pengiriman untuk vendor ini di penawaran ini
+                    $pengiriman = Pengiriman::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
                         ->where('id_vendor', $vendor->id_vendor)
                         ->first();
 

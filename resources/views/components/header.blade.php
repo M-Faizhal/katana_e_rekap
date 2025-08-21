@@ -18,8 +18,8 @@
         <!-- Desktop Welcome Section -->
         <div class="hidden lg:flex items-center space-x-4">
             <div class="text-gray-800">
-                <h2 class="text-lg font-semibold">Selamat Datang, {{ auth()->user()->nama }}</h2>
-                <p class="text-sm text-gray-600">{{ ucfirst(str_replace('_', ' ', auth()->user()->role)) }}</p>
+                <h2 class="text-lg font-semibold">Selamat Datang, {{ auth()->check() ? auth()->user()->nama : 'Guest' }}</h2>
+                <p class="text-sm text-gray-600">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->role)) : 'Pengunjung' }}</p>
             </div>
         </div>
 
@@ -41,15 +41,15 @@
             <div class="relative">
                 <button class="flex items-center space-x-2 lg:space-x-3 text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl px-2 lg:px-4 py-2 transition-all duration-200" onclick="toggleUserMenu()">
                     <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                        @if(auth()->user()->foto)
+                        @if(auth()->check() && auth()->user()->foto)
                             <img src="{{ asset('storage/' . auth()->user()->foto) }}" alt="Profile" class="w-full h-full object-cover rounded-xl">
                         @else
                             <i class="fas fa-user text-white text-xs lg:text-sm"></i>
                         @endif
                     </div>
                     <div class="hidden md:block text-left">
-                        <p class="font-semibold text-sm">{{ auth()->user()->nama }}</p>
-                        <p class="text-xs text-gray-500">{{ ucfirst(str_replace('_', ' ', auth()->user()->role)) }}</p>
+                        <p class="font-semibold text-sm">{{ auth()->check() ? auth()->user()->nama : 'Guest' }}</p>
+                        <p class="text-xs text-gray-500">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->role)) : 'Pengunjung' }}</p>
                     </div>
                     <i class="fas fa-chevron-down text-xs lg:text-sm"></i>
                 </button>
@@ -57,9 +57,9 @@
                 <!-- User Dropdown Menu -->
                 <div id="userMenu" class="absolute right-0 mt-3 w-48 lg:w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 hidden z-50">
                     <div class="px-4 py-3 border-b border-gray-100">
-                        <p class="font-semibold text-gray-800">{{ auth()->user()->nama }}</p>
-                        <p class="text-sm text-gray-500">{{ auth()->user()->email }}</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ ucfirst(str_replace('_', ' ', auth()->user()->role)) }}</p>
+                        <p class="font-semibold text-gray-800">{{ auth()->check() ? auth()->user()->nama : 'Guest' }}</p>
+                        <p class="text-sm text-gray-500">{{ auth()->check() ? auth()->user()->email : '' }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->role)) : 'Pengunjung' }}</p>
                     </div>
 
                     <a href="{{ route('pengaturan') }}" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">

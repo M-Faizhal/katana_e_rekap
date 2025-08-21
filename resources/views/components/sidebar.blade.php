@@ -162,7 +162,7 @@
             </li>
 
             <!-- Pengelolaan Akun -->
-            @if(auth()->user()->role === 'superadmin')
+            @if(auth()->check() && auth()->user()->role === 'superadmin')
             <li>
                 <a href="{{ route('pengelolaan.akun') }}"
                    class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengelolaan.akun') ? 'bg-red-200 text-red-800' : '' }}">
@@ -174,16 +174,27 @@
             <!-- Verifikasi Proyek -->
             <li>
                 <a href="{{ route('superadmin.verifikasi-proyek') }}"
-                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('superadmin.verifikasi-proyek') && !request()->routeIs('superadmin.verifikasi-proyek.history') ? 'bg-red-200 text-red-800' : '' }}">
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('superadmin.verifikasi-proyek*') ? 'bg-red-200 text-red-800' : '' }}">
                     <i class="fas fa-check-double w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
                     <span class="font-medium">Verifikasi Proyek</span>
                     @php
-                        $countPendingVerifikasi = \Illuminate\Support\Facades\DB::table('proyek')
-                            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-                            ->join('pengiriman', 'penawaran.id_penawaran', '=', 'pengiriman.id_penawaran')
-                            ->where('proyek.status', 'Pengiriman')
-                            ->whereIn('pengiriman.status_verifikasi', ['Sampai_Tujuan', 'Dalam_Proses'])
-                            ->count();
+                        try {
+                            // Query yang diperbaiki menggunakan Eloquent
+                            $countPendingVerifikasi = \App\Models\Proyek::whereHas('penawaran', function($query) {
+                                    $query->where('status', 'ACC');
+                                })
+                                ->whereHas('penawaran.pengiriman')
+                                ->whereDoesntHave('penawaran.pengiriman', function($query) {
+                                    $query->whereNotIn('status_verifikasi', ['Verified', 'Sampai_Tujuan']);
+                                })
+                                ->whereHas('penagihanDinas', function($query) {
+                                    $query->where('status_pembayaran', 'lunas');
+                                })
+                                ->whereNotIn('status', ['Selesai', 'Gagal'])
+                                ->count();
+                        } catch (\Exception $e) {
+                            $countPendingVerifikasi = 0;
+                        }
                     @endphp
                     @if($countPendingVerifikasi > 0)
                         <span class="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">{{ $countPendingVerifikasi }}</span>
@@ -390,7 +401,7 @@
             </li>
 
             <!-- Pengelolaan Akun -->
-            @if(auth()->user()->role === 'superadmin')
+            @if(auth()->check() && auth()->user()->role === 'superadmin')
             <li>
                 <a href="{{ route('pengelolaan.akun') }}" onclick="closeMobileMenu()"
                    class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengelolaan.akun') ? 'bg-red-200 text-red-800' : '' }}">
