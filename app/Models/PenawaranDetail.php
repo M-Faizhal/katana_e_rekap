@@ -15,6 +15,7 @@ class PenawaranDetail extends Model
         'nama_barang',
         'spesifikasi',
         'qty',
+        'satuan',
         'harga_satuan',
         'subtotal',
     ];

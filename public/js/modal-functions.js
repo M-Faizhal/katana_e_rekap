@@ -571,20 +571,20 @@ function createPenawaran() {
     const projectId = document.getElementById('modal-project-id').textContent;
     
     if (confirm('Yakin ingin membuat penawaran dari kalkulasi ini?')) {
-        fetch('/purchasing/kalkulasi/create-penawaran', {
+        fetch('/purchasing/kalkulasi/penawaran', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             },
             body: JSON.stringify({
-                proyek_id: projectId
+                id_proyek: projectId
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Penawaran berhasil dibuat');
+                alert('Penawaran berhasil dibuat dengan nomor: ' + data.data.no_penawaran);
                 closeHpsModal();
                 // Refresh the main page
                 window.location.reload();

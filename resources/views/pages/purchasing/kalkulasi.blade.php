@@ -164,11 +164,7 @@
                                         title="Buka Kalkulasi HPS">
                                     <i class="fas fa-calculator"></i> Kalkulasi
                                 </button>
-                                <button onclick="event.stopPropagation(); createPenawaranAction({{ $p->id_proyek }})" 
-                                        class="text-green-600 hover:text-green-900"
-                                        title="Buat Penawaran">
-                                    <i class="fas fa-file-contract"></i> Penawaran
-                                </button>
+                         
                             </td>
                         </tr>
                         @empty
@@ -269,10 +265,7 @@
                             <i class="fas fa-calculator mr-1"></i> Kalkulasi
                         </button>
                         
-                        <button onclick="event.stopPropagation(); createPenawaranAction({{ $p->id_proyek }})" 
-                                class="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
-                            <i class="fas fa-file-contract mr-1"></i> Penawaran
-                        </button>
+              
                     </div>
                 </div>
                 @empty
@@ -803,7 +796,7 @@ function createPenawaranAction(proyekId) {
 }
 
 function viewPenawaranDetail(proyekId) {
-    window.location.href = `/purchasing/penawaran/detail/${proyekId}`;
+    window.location.href = `/purchasing/kalkulasi/penawaran/${proyekId}/detail`;
 }
 
 

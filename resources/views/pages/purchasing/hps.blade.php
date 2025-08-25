@@ -243,7 +243,7 @@
                 <i class="fas fa-save mr-2"></i>
                 Simpan Kalkulasi
             </button>
-            <button onclick="createPenawaran()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700" id="btn-create-penawaran" style="display: none;">
+            <button onclick="createPenawaran()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700" id="btn-create-penawaran">
                 <i class="fas fa-file-contract mr-2"></i>
                 Buat Penawaran
             </button>
@@ -385,6 +385,9 @@ async function initializeHPS() {
         // Populate table
         populateKalkulasiTable();
         calculateTotals();
+        
+        // Check initial button visibility
+        checkPenawaranButtonVisibility();
         
     } catch (error) {
         console.error('Error initializing HPS:', error);
@@ -759,6 +762,26 @@ function calculateTotals() {
     if (document.getElementById('total-ongkir')) {
         document.getElementById('total-ongkir').textContent = formatRupiah(summary.totalOngkir || 0);
     }
+    
+    // Check if penawaran button should be shown
+    checkPenawaranButtonVisibility();
+}
+
+function checkPenawaranButtonVisibility() {
+    const btnCreatePenawaran = document.getElementById('btn-create-penawaran');
+    if (!btnCreatePenawaran) return;
+    
+    // Show button if there's valid kalkulasi data
+    const hasValidData = kalkulasiData.length > 0 && 
+                        kalkulasiData.some(item => item.id_barang && item.id_vendor && item.hps > 0);
+    
+    if (hasValidData) {
+        btnCreatePenawaran.style.display = 'inline-block';
+        btnCreatePenawaran.disabled = false;
+    } else {
+        btnCreatePenawaran.style.display = 'none';
+        btnCreatePenawaran.disabled = true;
+    }
 }
 
 function removeItem(index) {
@@ -829,12 +852,14 @@ async function saveKalkulasi() {
         const data = await response.json();
         
         if (data.success) {
-            alert('Kalkulasi berhasil disimpan');
-            document.getElementById('btn-create-penawaran').style.display = 'inline-block';
+            showSuccessMessage('Kalkulasi berhasil disimpan');
             
             const now = new Date().toLocaleString('id-ID');
             document.getElementById('last-updated').textContent = now;
             document.getElementById('last-updated-footer').textContent = now;
+            
+            // Check if penawaran button should be shown
+            checkPenawaranButtonVisibility();
         } else {
             alert(data.message || 'Gagal menyimpan kalkulasi');
         }
@@ -846,31 +871,110 @@ async function saveKalkulasi() {
 
 // Create penawaran
 async function createPenawaran() {
-    if (!confirm('Apakah Anda yakin ingin mengubah status proyek menjadi Penawaran?')) {
+    if (!currentProyekId) {
+        showErrorMessage('ID Proyek tidak ditemukan');
+        return;
+    }
+    
+    if (kalkulasiData.length === 0) {
+        showErrorMessage('Tidak ada data kalkulasi untuk membuat penawaran');
+        return;
+    }
+    
+    // Validasi data kalkulasi
+    const invalidItems = [];
+    kalkulasiData.forEach((item, index) => {
+        if (!item.id_barang || !item.id_vendor) {
+            invalidItems.push(`Item ${index + 1}: Barang dan vendor harus dipilih`);
+        }
+        if (!item.qty || item.qty <= 0) {
+            invalidItems.push(`Item ${index + 1}: Quantity harus lebih dari 0`);
+        }
+        if (!item.harga_vendor || item.harga_vendor <= 0) {
+            invalidItems.push(`Item ${index + 1}: Harga vendor harus lebih dari 0`);
+        }
+        if (!item.hps || item.hps <= 0) {
+            invalidItems.push(`Item ${index + 1}: HPS harus dihitung dan lebih dari 0`);
+        }
+    });
+    
+    if (invalidItems.length > 0) {
+        showErrorMessage('Data tidak lengkap:\n' + invalidItems.join('\n'));
+        return;
+    }
+    
+    // Tampilkan preview sebelum konfirmasi
+    const previewResponse = await fetch('/purchasing/kalkulasi/penawaran/preview', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ id_proyek: currentProyekId })
+    });
+    
+    const previewData = await previewResponse.json();
+    
+    if (!previewData.success) {
+        showErrorMessage('Gagal membuat preview: ' + previewData.message);
+        return;
+    }
+    
+    // Buat preview summary yang lebih detail
+    const previewSummary = previewData.preview;
+    const confirmMessage = `Apakah Anda yakin ingin membuat penawaran dari kalkulasi ini?
+
+PREVIEW PENAWARAN:
+Klien: ${previewSummary.proyek.nama_klien}
+Instansi: ${previewSummary.proyek.instansi}
+Total Items: ${previewSummary.total_items}
+Total Penawaran: ${formatRupiah(previewSummary.total_penawaran)}
+
+DETAIL ITEMS:
+${previewSummary.details.map((detail, index) => 
+    `${index + 1}. ${detail.nama_barang}\n   ${detail.qty} ${detail.satuan} × ${formatRupiah(detail.harga_satuan)} = ${formatRupiah(detail.subtotal)}`
+).join('\n')}
+
+Status proyek akan berubah menjadi "Penawaran".`;
+    
+    if (!confirm(confirmMessage)) {
         return;
     }
     
     try {
+        // Validasi ulang data sebelum dikirim
+        const validatedData = kalkulasiData.map(item => ({
+            ...item,
+            qty: parseInt(item.qty) || 1,
+            harga_vendor: parseFloat(item.harga_vendor) || 0,
+            hps: parseFloat(item.hps) || 0
+        }));
+        
         const response = await fetch('/purchasing/kalkulasi/penawaran', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({ id_proyek: currentProyekId })
+            body: JSON.stringify({ 
+                id_proyek: currentProyekId,
+                debug_data: validatedData // Kirim data untuk debugging
+            })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            alert('Status proyek berhasil diubah menjadi Penawaran');
-            window.location.href = '/purchasing/kalkulasi';
+            showSuccessMessage('Penawaran berhasil dibuat dengan nomor: ' + data.data.no_penawaran);
+            setTimeout(() => {
+                window.location.href = '/purchasing/kalkulasi';
+            }, 2000);
         } else {
-            alert(data.message || 'Gagal mengubah status proyek');
+            showErrorMessage(data.message || 'Gagal membuat penawaran');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Terjadi kesalahan saat mengubah status proyek');
+        showErrorMessage('Terjadi kesalahan saat membuat penawaran');
     }
 }
 

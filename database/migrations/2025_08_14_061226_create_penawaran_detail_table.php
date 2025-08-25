@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('penawaran_detail', function (Blueprint $table) {
             $table->id('id_detail');
             $table->unsignedBigInteger('id_penawaran');
-            $table->unsignedBigInteger('id_barang');
+            $table->unsignedBigInteger('id_barang')->nullable(); // Make nullable to support different item types
             $table->string('nama_barang');
             $table->text('spesifikasi');
             $table->integer('qty');
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('id_penawaran')->references('id_penawaran')->on('penawaran')->onDelete('cascade');
-            $table->foreign('id_barang')->references('id_barang')->on('barang')->onDelete('cascade');
+            $table->foreign('id_barang')->references('id_barang')->on('barang')->onDelete('set null');
         });
     }
 

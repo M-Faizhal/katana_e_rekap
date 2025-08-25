@@ -8,7 +8,11 @@ use App\Models\Proyek;
 use App\Models\KalkulasiHps;
 use App\Models\Barang;
 use App\Models\Vendor;
+use App\Models\Penawaran;
+use App\Models\PenawaranDetail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class KalkulasiController extends Controller
 {
@@ -153,47 +157,71 @@ class KalkulasiController extends Controller
                     'id_vendor' => $item['id_vendor'],
                     'qty' => $item['qty'],
                     'harga_vendor' => $item['harga_vendor'],
-                    'diskon_amount' => $item['diskon_amount'] ?? 0,
                     'total_diskon' => $item['total_diskon'] ?? 0,
-                    'harga_akhir' => $item['harga_akhir'] ?? 0,
-                    'total_harga_hpp' => $item['total_harga_hpp'],
+                    'nilai_diskon' => $item['nilai_diskon'] ?? 0,
+                    'harga_diskon' => $item['harga_diskon'] ?? 0,
+                    'harga_akhir' => $item['harga_akhir'] ?? $item['harga_diskon'] ?? 0,
+                    'total_harga' => $item['total_harga'] ?? 0,
+                    'total_harga_hpp' => $item['total_harga'] ?? 0,
                     'jumlah_volume' => $item['jumlah_volume'] ?? 0,
-                    'kenaikan_percent' => $item['kenaikan_percent'] ?? 0,
+                    'persen_kenaikan' => $item['persen_kenaikan'] ?? 0,
+                    'kenaikan_percent' => $item['persen_kenaikan'] ?? 0,
                     'proyeksi_kenaikan' => $item['proyeksi_kenaikan'] ?? 0,
-                    'pph' => $item['pph'] ?? 0,
-                    'ppn' => $item['ppn'] ?? 0,
+                    'ppn_dinas' => $item['ppn_dinas'] ?? 0,
+                    'pph_dinas' => $item['pph_dinas'] ?? 0,
+                    'pph' => $item['pph_dinas'] ?? 0,
+                    'ppn' => $item['ppn_dinas'] ?? 0,
                     'ongkir' => $item['ongkir'] ?? 0,
-                    'hps' => $item['hps'],
+                    'hps' => $item['hps'] ?? 0,
+                    'harga_per_pcs' => $item['harga_per_pcs'] ?? 0,
+                    'harga_pagu_dinas_per_pcs' => $item['harga_pagu_dinas_per_pcs'] ?? 0,
+                    'pagu_total' => $item['pagu_total'] ?? 0,
+                    'nilai_pagu_anggaran' => $item['pagu_total'] ?? 0,
+                    'selisih_pagu_hps' => $item['selisih_pagu_hps'] ?? 0,
+                    'nilai_selisih' => $item['selisih_pagu_hps'] ?? 0,
+                    'nilai_sp' => $item['nilai_sp'] ?? 0,
+                    'dpp' => $item['dpp'] ?? 0,
+                    'nilai_dpp' => $item['dpp'] ?? 0,
+                    'asumsi_nilai_cair' => $item['asumsi_nilai_cair'] ?? 0,
+                    'nilai_asumsi_cair' => $item['asumsi_nilai_cair'] ?? 0,
+                    'pph_from_dpp' => $item['pph_from_dpp'] ?? 0,
+                    'nilai_pph_badan' => $item['pph_from_dpp'] ?? 0,
+                    'omzet_dinas_percent' => $item['omzet_dinas_percent'] ?? 0,
+                    'omzet_nilai_dinas' => $item['omzet_nilai_dinas'] ?? 0,
+                    'omzet_dinas' => $item['omzet_nilai_dinas'] ?? 0,
+                    'bendera_percent' => $item['bendera_percent'] ?? 0,
+                    'gross_nilai_bendera' => $item['gross_nilai_bendera'] ?? 0,
+                    'gross_bendera' => $item['gross_nilai_bendera'] ?? 0,
+                    'bank_cost_percent' => $item['bank_cost_percent'] ?? 0,
+                    'gross_nilai_bank_cost' => $item['gross_nilai_bank_cost'] ?? 0,
+                    'gross_bank_cost' => $item['gross_nilai_bank_cost'] ?? 0,
+                    'biaya_ops_percent' => $item['biaya_ops_percent'] ?? 0,
+                    'gross_nilai_biaya_ops' => $item['gross_nilai_biaya_ops'] ?? 0,
+                    'gross_biaya_ops' => $item['gross_nilai_biaya_ops'] ?? 0,
+                    'sub_total_biaya_tidak_langsung' => $item['sub_total_biaya_tidak_langsung'] ?? 0,
+                    'gross_income' => $item['gross_income'] ?? 0,
+                    'gross_income_persentase' => $item['gross_income_persentase'] ?? 0,
+                    'gross_income_percent' => $item['gross_income_persentase'] ?? 0,
+                    'nilai_nett_income' => $item['nilai_nett_income'] ?? 0,
+                    'nett_income' => $item['nilai_nett_income'] ?? 0,
+                    'nett' => $item['nilai_nett_income'] ?? 0,
+                    'nett_income_persentase' => $item['nett_income_persentase'] ?? 0,
+                    'nett_income_percent' => $item['nett_income_persentase'] ?? 0,
+                    'nett_percent' => $item['nett_income_persentase'] ?? 0,
+                    'nilai_nett_pcs' => $item['nilai_nett_pcs'] ?? 0,
+                    'total_nilai_nett_per_pcs' => $item['total_nilai_nett_per_pcs'] ?? 0,
+                    'total_nett_pcs' => $item['total_nilai_nett_per_pcs'] ?? 0,
+                    'sub_total_langsung' => $item['sub_total_langsung'] ?? 0,
+                    'nilai_ppn' => $item['nilai_ppn'] ?? 0,
                     'nilai_tkdn_percent' => $item['nilai_tkdn_percent'] ?? 0,
                     'jenis_vendor' => $item['jenis_vendor'] ?? null,
-                    'nilai_pagu_anggaran' => $item['nilai_pagu_anggaran'] ?? 0,
-                    'nilai_penawaran_hps' => $item['nilai_penawaran_hps'] ?? 0,
                     'nilai_pesanan' => $item['nilai_pesanan'] ?? 0,
-                    'nilai_selisih' => $item['nilai_selisih'] ?? 0,
-                    'nilai_dpp' => $item['nilai_dpp'] ?? 0,
+                    'nilai_penawaran_hps' => $item['nilai_penawaran_hps'] ?? 0,
                     'ppn_percent' => $item['ppn_percent'] ?? 11,
                     'pph_badan_percent' => $item['pph_badan_percent'] ?? 1.5,
-                    'nilai_ppn' => $item['nilai_ppn'] ?? 0,
-                    'nilai_pph_badan' => $item['nilai_pph_badan'] ?? 0,
-                    'nilai_asumsi_cair' => $item['nilai_asumsi_cair'] ?? 0,
-                    'sub_total_langsung' => $item['sub_total_langsung'] ?? 0,
                     'bank_cost' => $item['bank_cost'] ?? 0,
                     'biaya_ops' => $item['biaya_ops'] ?? 0,
                     'bendera' => $item['bendera'] ?? 0,
-                    'omzet_dinas_percent' => $item['omzet_dinas_percent'] ?? 0,
-                    'omzet_dinas' => $item['omzet_dinas'] ?? 0,
-                    'gross_bendera' => $item['gross_bendera'] ?? 0,
-                    'gross_bank_cost' => $item['gross_bank_cost'] ?? 0,
-                    'gross_biaya_ops' => $item['gross_biaya_ops'] ?? 0,
-                    'sub_total_tidak_langsung' => $item['sub_total_tidak_langsung'] ?? 0,
-                    'nett' => $item['nett'],
-                    'nett_percent' => $item['nett_percent'],
-                    'nilai_nett_pcs' => $item['nilai_nett_pcs'] ?? 0,
-                    'total_nett_pcs' => $item['total_nett_pcs'] ?? 0,
-                    'gross_income' => $item['gross_income'] ?? 0,
-                    'gross_income_percent' => $item['gross_income_percent'] ?? 0,
-                    'nett_income' => $item['nett_income'] ?? 0,
-                    'nett_income_percent' => $item['nett_income_percent'] ?? 0,
                     'catatan' => $item['catatan'] ?? null,
                     'keterangan_1' => $item['keterangan_1'] ?? null,
                     'keterangan_2' => $item['keterangan_2'] ?? null,
@@ -226,23 +254,262 @@ class KalkulasiController extends Controller
     public function createPenawaran(Request $request)
     {
         try {
-            $proyekId = $request->id_proyek;
+            DB::beginTransaction();
             
-            // Update status proyek menjadi 'Penawaran'
+            $proyekId = $request->input('id_proyek');
+            
+            if (!$proyekId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID Proyek tidak ditemukan'
+                ], 400);
+            }
+            
+            // Ambil data proyek dan kalkulasi
             $proyek = Proyek::findOrFail($proyekId);
-            $proyek->update(['status' => 'Penawaran']);
+            $kalkulasiData = KalkulasiHps::with(['barang', 'vendor'])
+                                        ->where('id_proyek', $proyekId)
+                                        ->get();
+            
+            if ($kalkulasiData->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data kalkulasi untuk membuat penawaran'
+                ], 400);
+            }
+            
+            // Generate nomor penawaran
+            $lastPenawaran = Penawaran::whereYear('created_at', date('Y'))
+                                    ->whereMonth('created_at', date('m'))
+                                    ->orderBy('id_penawaran', 'desc')
+                                    ->first();
+            
+            $counter = $lastPenawaran ? (int)substr($lastPenawaran->no_penawaran, -3) + 1 : 1;
+            $noPenawaran = 'PNW/' . date('Y/m') . '/' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+            
+            // Hitung total penawaran dari HPS
+            $totalPenawaran = $kalkulasiData->sum('hps');
+            
+            // Buat data penawaran
+            $penawaran = Penawaran::create([
+                'id_proyek' => $proyekId,
+                'no_penawaran' => $noPenawaran,
+                'tanggal_penawaran' => now(),
+                'masa_berlaku' => now()->addDays(30), // 30 hari dari sekarang
+                'total_penawaran' => $totalPenawaran,
+                'status' => 'Menunggu'
+            ]);
+            
+            // Buat detail penawaran dari setiap item kalkulasi
+            foreach ($kalkulasiData as $kalkulasi) {
+                // Tentukan nama barang - prioritas dari relasi barang
+                $namaBarang = 'Item Kalkulasi';
+                if ($kalkulasi->barang) {
+                    $namaBarang = $kalkulasi->barang->nama_barang;
+                } elseif ($kalkulasi->keterangan_1) {
+                    $namaBarang = $kalkulasi->keterangan_1;
+                } elseif ($kalkulasi->keterangan_2) {
+                    $namaBarang = $kalkulasi->keterangan_2;
+                }
+                
+                // Cari data proyek barang yang sesuai
+                $proyekBarang = null;
+                if ($kalkulasi->barang) {
+                    $proyekBarang = $proyek->proyekBarang()
+                                         ->where('nama_barang', $kalkulasi->barang->nama_barang)
+                                         ->first();
+                }
+                
+                // === LOGIKA QTY ===
+                $qty = 1; // Default qty
+                
+                // Prioritas 1: Dari kalkulasi qty (field qty langsung)
+                if (isset($kalkulasi->qty) && $kalkulasi->qty > 0) {
+                    $qty = (int) $kalkulasi->qty;
+                }
+                // Prioritas 2: Dari proyek barang (data asli permintaan klien)
+                elseif ($proyekBarang && $proyekBarang->jumlah > 0) {
+                    $qty = (int) $proyekBarang->jumlah;
+                }
+                // Prioritas 3: Fallback ke 1 jika tidak ada yang valid
+                else {
+                    $qty = 1;
+                }
+                
+                // === LOGIKA SATUAN ===
+                $satuan = 'pcs'; // Default satuan
+                
+                // Prioritas 1: Dari data barang master
+                if ($kalkulasi->barang && $kalkulasi->barang->satuan) {
+                    $satuan = $kalkulasi->barang->satuan;
+                }
+                // Prioritas 2: Dari data proyek barang
+                elseif ($proyekBarang && $proyekBarang->satuan) {
+                    $satuan = $proyekBarang->satuan;
+                }
+                
+                // === LOGIKA HARGA SATUAN DAN SUBTOTAL ===
+                $subtotal = $kalkulasi->hps ?: 0; // Subtotal dari HPS (hasil kalkulasi final)
+                $hargaSatuan = 0;
+                
+                // Strategi: Gunakan HPS sebagai subtotal dan hitung harga satuan dari situ
+                if ($subtotal > 0 && $qty > 0) {
+                    // Harga satuan = HPS / qty
+                    $hargaSatuan = $subtotal / $qty;
+                } else {
+                    // Fallback: gunakan harga vendor atau harga dari proyek
+                    if ($kalkulasi->harga_vendor && $kalkulasi->harga_vendor > 0) {
+                        $hargaSatuan = $kalkulasi->harga_vendor;
+                        $subtotal = $hargaSatuan * $qty;
+                    } elseif ($proyekBarang && $proyekBarang->harga_satuan > 0) {
+                        $hargaSatuan = $proyekBarang->harga_satuan;
+                        $subtotal = $hargaSatuan * $qty;
+                    } elseif ($kalkulasi->barang && $kalkulasi->barang->harga_vendor > 0) {
+                        $hargaSatuan = $kalkulasi->barang->harga_vendor;
+                        $subtotal = $hargaSatuan * $qty;
+                    } else {
+                        // Last resort: set minimal values
+                        $hargaSatuan = 1000; // Minimal Rp 1.000
+                        $subtotal = $hargaSatuan * $qty;
+                    }
+                }
+                
+                // Validasi final: pastikan nilai positif dan masuk akal
+                $hargaSatuan = max($hargaSatuan, 100); // Minimal Rp 100
+                $subtotal = max($subtotal, $hargaSatuan); // Minimal sama dengan harga satuan
+                $qty = max($qty, 1); // Minimal qty 1
+                
+                // Tentukan id_barang
+                $idBarang = $kalkulasi->id_barang;
+                if (!$idBarang && $kalkulasi->barang) {
+                    $idBarang = $kalkulasi->barang->id_barang;
+                }
+                
+                // Log data untuk debugging
+                Log::info('Creating penawaran detail', [
+                    'kalkulasi_id' => $kalkulasi->id_kalkulasi ?? 'unknown',
+                    'nama_barang' => $namaBarang,
+                    'qty' => $qty,
+                    'satuan' => $satuan,
+                    'harga_satuan' => $hargaSatuan,
+                    'subtotal' => $subtotal,
+                    'hps_original' => $kalkulasi->hps,
+                    'harga_vendor_original' => $kalkulasi->harga_vendor,
+                    'proyek_barang_found' => $proyekBarang ? true : false,
+                    'proyek_barang_qty' => $proyekBarang ? $proyekBarang->jumlah : null,
+                    'proyek_barang_harga' => $proyekBarang ? $proyekBarang->harga_satuan : null
+                ]);
+                
+                $penawaranDetail = PenawaranDetail::create([
+                    'id_penawaran' => $penawaran->id_penawaran,
+                    'id_barang' => $idBarang,
+                    'nama_barang' => $namaBarang,
+                    'spesifikasi' => $this->generateSpesifikasi($kalkulasi),
+                    'qty' => $qty,
+                    'satuan' => $satuan,
+                    'harga_satuan' => $hargaSatuan,
+                    'subtotal' => $subtotal
+                ]);
+            }
+            
+            // Update status proyek menjadi 'Penawaran' dan set id_penawaran
+            $proyek->update([
+                'status' => 'Penawaran',
+                'id_penawaran' => $penawaran->id_penawaran
+            ]);
+            
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Proyek berhasil diubah status menjadi Penawaran'
+                'message' => 'Penawaran berhasil dibuat dengan nomor: ' . $noPenawaran,
+                'data' => [
+                    'id_penawaran' => $penawaran->id_penawaran,
+                    'no_penawaran' => $noPenawaran,
+                    'total_penawaran' => $totalPenawaran,
+                    'total_items' => $kalkulasiData->count()
+                ]
             ]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengubah status proyek: ' . $e->getMessage()
+                'message' => 'Gagal membuat penawaran: ' . $e->getMessage()
             ], 500);
         }
+    }
+    
+    private function generateSpesifikasi($kalkulasi)
+    {
+        $spesifikasi = [];
+        
+        // Ambil informasi vendor jika ada
+        if ($kalkulasi->vendor) {
+            $spesifikasi[] = 'Vendor: ' . $kalkulasi->vendor->nama_vendor;
+            
+            // Tambahkan jenis vendor dari relasi jika ada
+            if ($kalkulasi->vendor->jenis_perusahaan) {
+                $spesifikasi[] = 'Jenis Perusahaan: ' . $kalkulasi->vendor->jenis_perusahaan;
+            }
+        }
+        
+        // Tambahkan jenis vendor dari kalkulasi jika ada
+        if ($kalkulasi->jenis_vendor) {
+            $spesifikasi[] = 'Kategori Vendor: ' . $kalkulasi->jenis_vendor;
+        }
+        
+        // Tambahkan informasi harga vendor
+        if ($kalkulasi->harga_vendor > 0) {
+            $spesifikasi[] = 'Harga Vendor: Rp ' . number_format($kalkulasi->harga_vendor, 0, ',', '.');
+        }
+        
+        // Tambahkan informasi diskon jika ada
+        if ($kalkulasi->nilai_diskon > 0) {
+            $spesifikasi[] = 'Diskon: ' . number_format($kalkulasi->nilai_diskon, 2) . '%';
+        }
+        
+        // Tambahkan informasi pajak
+        if ($kalkulasi->ppn_percent > 0) {
+            $spesifikasi[] = 'PPN: ' . number_format($kalkulasi->ppn_percent, 1) . '%';
+        }
+        
+        if ($kalkulasi->pph_badan_percent > 0) {
+            $spesifikasi[] = 'PPh: ' . number_format($kalkulasi->pph_badan_percent, 1) . '%';
+        }
+        
+        // Tambahkan keterangan jika ada
+        if ($kalkulasi->keterangan_1) {
+            $spesifikasi[] = 'Keterangan: ' . $kalkulasi->keterangan_1;
+        }
+        
+        if ($kalkulasi->keterangan_2) {
+            $spesifikasi[] = $kalkulasi->keterangan_2;
+        }
+        
+        // Tambahkan catatan jika ada
+        if ($kalkulasi->catatan) {
+            $spesifikasi[] = 'Catatan: ' . $kalkulasi->catatan;
+        }
+        
+        // Tambahkan informasi kualitas jika ada
+        if (stripos($kalkulasi->keterangan_1 ?? '', 'quality') !== false ||
+            stripos($kalkulasi->keterangan_2 ?? '', 'quality') !== false) {
+            // Quality info sudah ada di keterangan
+        } else {
+            // Bisa ditambahkan default quality info jika diperlukan
+            if ($kalkulasi->harga_vendor > 1000000) { // Jika harga tinggi, anggap premium
+                $spesifikasi[] = 'Kualitas: Premium';
+            }
+        }
+        
+        // Jika tidak ada spesifikasi, berikan default
+        if (empty($spesifikasi)) {
+            $spesifikasi[] = 'Spesifikasi sesuai dengan permintaan klien';
+            $spesifikasi[] = 'Kualitas standar sesuai kebutuhan proyek';
+        }
+        
+        return implode('; ', $spesifikasi);
     }
 
     public function getDropdownOptions()
@@ -349,6 +616,172 @@ class KalkulasiController extends Controller
                 'success' => false,
                 'message' => 'Barang tidak ditemukan'
             ], 404);
+        }
+    }
+
+    public function previewPenawaran(Request $request)
+    {
+        try {
+            $proyekId = $request->input('id_proyek');
+            
+            if (!$proyekId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'ID Proyek tidak ditemukan'
+                ], 400);
+            }
+            
+            // Ambil data proyek dan kalkulasi
+            $proyek = Proyek::findOrFail($proyekId);
+            $kalkulasiData = KalkulasiHps::with(['barang', 'vendor'])
+                                        ->where('id_proyek', $proyekId)
+                                        ->get();
+            
+            if ($kalkulasiData->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data kalkulasi untuk membuat penawaran'
+                ], 400);
+            }
+            
+            // Simulate penawaran creation untuk preview
+            $totalPenawaran = $kalkulasiData->sum('hps');
+            $previewDetails = [];
+            
+            foreach ($kalkulasiData as $kalkulasi) {
+                // Simulasi logika yang sama dengan createPenawaran
+                $namaBarang = 'Item Kalkulasi';
+                if ($kalkulasi->barang) {
+                    $namaBarang = $kalkulasi->barang->nama_barang;
+                } elseif ($kalkulasi->keterangan_1) {
+                    $namaBarang = $kalkulasi->keterangan_1;
+                }
+                
+                $proyekBarang = null;
+                if ($kalkulasi->barang) {
+                    $proyekBarang = $proyek->proyekBarang()
+                                         ->where('nama_barang', $kalkulasi->barang->nama_barang)
+                                         ->first();
+                }
+                
+                $qty = 1;
+                if (isset($kalkulasi->qty) && $kalkulasi->qty > 0) {
+                    $qty = (int) $kalkulasi->qty;
+                } elseif ($proyekBarang && $proyekBarang->jumlah > 0) {
+                    $qty = (int) $proyekBarang->jumlah;
+                }
+                
+                $satuan = 'pcs';
+                if ($kalkulasi->barang && $kalkulasi->barang->satuan) {
+                    $satuan = $kalkulasi->barang->satuan;
+                } elseif ($proyekBarang && $proyekBarang->satuan) {
+                    $satuan = $proyekBarang->satuan;
+                }
+                
+                $subtotal = $kalkulasi->hps ?: 0;
+                $hargaSatuan = $qty > 0 ? $subtotal / $qty : $subtotal;
+                $hargaSatuan = max($hargaSatuan, 100);
+                
+                $previewDetails[] = [
+                    'nama_barang' => $namaBarang,
+                    'qty' => $qty,
+                    'satuan' => $satuan,
+                    'harga_satuan' => $hargaSatuan,
+                    'subtotal' => $subtotal,
+                    'spesifikasi' => $this->generateSpesifikasi($kalkulasi)
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'preview' => [
+                    'proyek' => [
+                        'nama_klien' => $proyek->nama_klien,
+                        'instansi' => $proyek->instansi
+                    ],
+                    'total_penawaran' => $totalPenawaran,
+                    'total_items' => $kalkulasiData->count(),
+                    'details' => $previewDetails
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat preview: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function detailPenawaran($proyekId)
+    {
+        try {
+            $proyek = Proyek::with([
+                'adminMarketing', 
+                'adminPurchasing', 
+                'proyekBarang',
+                'penawaranAktif.details.barang'
+            ])->findOrFail($proyekId);
+            
+            if (!$proyek->penawaranAktif) {
+                return redirect()->route('purchasing.kalkulasi')
+                    ->with('error', 'Proyek ini belum memiliki penawaran');
+            }
+            
+            $penawaran = $proyek->penawaranAktif;
+            $kalkulasiData = KalkulasiHps::with(['barang', 'vendor'])
+                                        ->where('id_proyek', $proyekId)
+                                        ->get();
+            
+            return view('pages.purchasing.penawaran-detail', compact('proyek', 'penawaran', 'kalkulasiData'));
+            
+        } catch (\Exception $e) {
+            return redirect()->route('purchasing.kalkulasi')
+                ->with('error', 'Penawaran tidak ditemukan');
+        }
+    }
+
+    public function updatePenawaranStatus(Request $request, $penawaranId)
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:ACC,Ditolak'
+            ]);
+
+            $penawaran = Penawaran::findOrFail($penawaranId);
+            
+            // Check if status can be updated
+            if ($penawaran->status !== 'Menunggu') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status penawaran tidak dapat diubah karena sudah ' . $penawaran->status
+                ], 400);
+            }
+
+            $penawaran->status = $request->status;
+            $penawaran->save();
+
+            Log::info('Penawaran status updated', [
+                'penawaran_id' => $penawaranId,
+                'new_status' => $request->status,
+                'updated_by' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status penawaran berhasil diperbarui menjadi ' . $request->status
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating penawaran status', [
+                'penawaran_id' => $penawaranId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui status penawaran'
+            ], 500);
         }
     }
 }
