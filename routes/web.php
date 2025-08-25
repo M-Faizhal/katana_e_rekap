@@ -84,8 +84,11 @@ Route::middleware('auth')->group(function () {
 
         // Kalkulasi Routes
         Route::get('/kalkulasi', [KalkulasiController::class, 'index'])->name('purchasing.kalkulasi');
+        Route::get('/kalkulasi/{id}/hps', [KalkulasiController::class, 'hps'])->name('purchasing.kalkulasi.hps');
         Route::get('/kalkulasi/proyek/{id}', [KalkulasiController::class, 'getProyekData'])->name('kalkulasi.proyek');
+        Route::get('/kalkulasi/proyek/{id}/items', [KalkulasiController::class, 'getProyekItems'])->name('kalkulasi.proyek.items');
         Route::get('/kalkulasi/barang', [KalkulasiController::class, 'getBarangList'])->name('kalkulasi.barang');
+        Route::get('/kalkulasi/barang/{id}', [KalkulasiController::class, 'getBarangDetails'])->name('kalkulasi.barang.details');
         Route::get('/kalkulasi/vendor', [KalkulasiController::class, 'getVendorList'])->name('kalkulasi.vendor');
         Route::post('/kalkulasi/save', [KalkulasiController::class, 'saveKalkulasi'])->name('kalkulasi.save');
         Route::post('/kalkulasi/penawaran', [KalkulasiController::class, 'createPenawaran'])->name('kalkulasi.penawaran');

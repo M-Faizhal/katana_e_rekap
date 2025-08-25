@@ -18,18 +18,13 @@ return new class extends Migration
             $table->string('instansi');
             $table->string('nama_klien'); // Nama klien yang request
             $table->string('kontak_klien')->nullable(); // Kontak klien (telp/email)
-            $table->string('nama_barang');
-            $table->integer('jumlah');
-            $table->string('satuan');
-            $table->text('spesifikasi');
-            $table->decimal('harga_satuan', 15, 2)->nullable(); // Bisa kosong dulu
-            $table->decimal('harga_total', 15, 2)->nullable(); // Akan diisi setelah ada penawaran
             $table->string('jenis_pengadaan');
             $table->date('deadline')->nullable(); // Deadline dari klien
             $table->unsignedBigInteger('id_admin_marketing');
             $table->unsignedBigInteger('id_admin_purchasing');
             $table->unsignedBigInteger('id_penawaran')->nullable(); // Link ke penawaran aktif
             $table->text('catatan')->nullable();
+            $table->decimal('harga_total', 15, 2)->nullable(); // Akumulasi dari proyek_barang
             $table->enum('status', ['Menunggu', 'Penawaran', 'Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])->default('Menunggu');
             $table->timestamps();
 

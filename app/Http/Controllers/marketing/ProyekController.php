@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Proyek;
+use App\Models\ProyekBarang;
 use App\Models\User;
 use App\Models\Wilayah;
 use Illuminate\Http\Request;
@@ -15,16 +16,31 @@ class ProyekController extends Controller
 {
     public function index()
     {
-        // Ambil semua data proyek dengan relasi admin marketing, purchasing, dan wilayah
-        $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'penawaranAktif.details'])
+        // Ambil semua data proyek dengan relasi admin marketing, purchasing, wilayah, dan proyek barang
+        $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'penawaranAktif.details', 'proyekBarang'])
             ->orderBy('tanggal', 'desc')
             ->get();
 
         // Transform data untuk view
         $proyekData = $proyekData->map(function ($proyek) {
-            // Ambil daftar barang dari penawaran detail jika ada, jika tidak gunakan data proyek
+            // Prioritas daftar barang: proyekBarang -> penawaran detail -> fallback proyek langsung
             $daftarBarang = [];
-            if ($proyek->penawaranAktif && $proyek->penawaranAktif->details) {
+            
+            // Prioritas 1: Dari proyek_barang (multiple barang per permintaan klien)
+            if ($proyek->proyekBarang && $proyek->proyekBarang->count() > 0) {
+                foreach ($proyek->proyekBarang as $barang) {
+                    $daftarBarang[] = [
+                        'nama' => $barang->nama_barang,
+                        'jumlah' => $barang->jumlah,
+                        'satuan' => $barang->satuan,
+                        'spesifikasi' => $barang->spesifikasi,
+                        'harga_satuan' => $barang->harga_satuan ?? 0,
+                        'harga_total' => $barang->harga_total ?? 0
+                    ];
+                }
+            }
+            // Prioritas 2: Dari penawaran detail jika ada
+            elseif ($proyek->penawaranAktif && $proyek->penawaranAktif->details) {
                 foreach ($proyek->penawaranAktif->details as $detail) {
                     $daftarBarang[] = [
                         'nama' => $detail->nama_barang,
@@ -35,21 +51,23 @@ class ProyekController extends Controller
                         'harga_total' => $detail->subtotal
                     ];
                 }
-            } else {
+            } 
+            // Prioritas 3: Fallback ke data proyek langsung (tidak ada lagi karena kolom sudah dihapus)
+            else {
                 $daftarBarang[] = [
-                    'nama' => $proyek->nama_barang,
-                    'jumlah' => $proyek->jumlah,
-                    'satuan' => $proyek->satuan,
-                    'spesifikasi' => $proyek->spesifikasi,
-                    'harga_satuan' => $proyek->harga_satuan ?? 0,
-                    'harga_total' => $proyek->harga_total ?? 0
+                    'nama' => 'Data barang tidak tersedia',
+                    'jumlah' => 0,
+                    'satuan' => '-',
+                    'spesifikasi' => '-',
+                    'harga_satuan' => 0,
+                    'harga_total' => 0
                 ];
             }
 
             return [
                 'id' => $proyek->id_proyek,
                 'kode' => $proyek->kode_proyek ?: 'PRJ-' . str_pad($proyek->id_proyek, 5, '0', STR_PAD_LEFT),
-                'nama_proyek' => $proyek->nama_barang,
+                'nama_proyek' => $daftarBarang[0]['nama'] ?? 'Proyek Tanpa Nama', // Ambil nama dari barang pertama
                 'instansi' => $proyek->instansi,
                 'kabupaten' => $proyek->kab_kota,
                 'wilayah' => $proyek->wilayah ? $proyek->wilayah->nama_lengkap : $proyek->kab_kota,
@@ -66,10 +84,6 @@ class ProyekController extends Controller
                 'catatan' => $proyek->catatan,
                 'nama_klien' => $proyek->nama_klien,
                 'kontak_klien' => $proyek->kontak_klien,
-                'spesifikasi' => $proyek->spesifikasi,
-                'jumlah' => $proyek->jumlah,
-                'satuan' => $proyek->satuan,
-                'harga_satuan' => $proyek->harga_satuan ?? 0,
                 'potensi' => $proyek->potensi ?? 'tidak',
                 'tahun_potensi' => $proyek->tahun_potensi ?? Carbon::now()->year,
                 'daftar_barang' => $daftarBarang,
@@ -97,24 +111,30 @@ class ProyekController extends Controller
             'instansi' => 'required|string|max:255',
             'nama_klien' => 'required|string|max:255',
             'kontak_klien' => 'nullable|string|max:255',
-            'nama_barang' => 'required|string|max:255',
-            'jumlah' => 'required|integer|min:1',
-            'satuan' => 'required|string|max:50',
-            'spesifikasi' => 'required|string',
-            'harga_satuan' => 'nullable|numeric|min:0',
             'jenis_pengadaan' => 'required|string|max:255',
             'deadline' => 'nullable|date',
             'id_admin_marketing' => 'required|exists:users,id_user',
             'id_admin_purchasing' => 'required|exists:users,id_user',
             'catatan' => 'nullable|string',
             'potensi' => 'nullable|in:ya,tidak',
-            'tahun_potensi' => 'nullable|integer|min:2020|max:2030'
+            'tahun_potensi' => 'nullable|integer|min:2020|max:2030',
+            // Support single atau multiple barang
+            'nama_barang' => 'required_without:daftar_barang|string|max:255',
+            'jumlah' => 'required_without:daftar_barang|integer|min:1',
+            'satuan' => 'required_without:daftar_barang|string|max:50',
+            'spesifikasi' => 'required_without:daftar_barang|string',
+            'harga_satuan' => 'nullable|numeric|min:0',
+            // Array barang untuk multiple items
+            'daftar_barang' => 'nullable|array',
+            'daftar_barang.*.nama_barang' => 'required|string|max:255',
+            'daftar_barang.*.jumlah' => 'required|integer|min:1',
+            'daftar_barang.*.satuan' => 'required|string|max:50',
+            'daftar_barang.*.spesifikasi' => 'required|string',
+            'daftar_barang.*.harga_satuan' => 'nullable|numeric|min:0'
         ]);
 
-        $harga_total = null;
-        if ($request->harga_satuan) {
-            $harga_total = $request->harga_satuan * $request->jumlah;
-        }
+        // Ambil nama proyek dari barang pertama
+        $namaProyek = $request->daftar_barang ? $request->daftar_barang[0]['nama_barang'] : $request->nama_barang;
 
         $proyek = Proyek::create([
             'tanggal' => $request->tanggal,
@@ -122,12 +142,6 @@ class ProyekController extends Controller
             'instansi' => $request->instansi,
             'nama_klien' => $request->nama_klien,
             'kontak_klien' => $request->kontak_klien,
-            'nama_barang' => $request->nama_barang,
-            'jumlah' => $request->jumlah,
-            'satuan' => $request->satuan,
-            'spesifikasi' => $request->spesifikasi,
-            'harga_satuan' => $request->harga_satuan,
-            'harga_total' => $harga_total,
             'jenis_pengadaan' => $request->jenis_pengadaan,
             'deadline' => $request->deadline,
             'id_admin_marketing' => $request->id_admin_marketing,
@@ -137,6 +151,35 @@ class ProyekController extends Controller
             'tahun_potensi' => $request->tahun_potensi,
             'status' => 'Menunggu'
         ]);
+
+        // Jika ada daftar barang multiple, simpan ke tabel proyek_barang
+        if ($request->daftar_barang && is_array($request->daftar_barang)) {
+            foreach ($request->daftar_barang as $barang) {
+                $harga_total = $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
+                
+                $proyek->proyekBarang()->create([
+                    'nama_barang' => $barang['nama_barang'],
+                    'jumlah' => $barang['jumlah'],
+                    'satuan' => $barang['satuan'],
+                    'spesifikasi' => $barang['spesifikasi'],
+                    'harga_satuan' => $barang['harga_satuan'] ?? null,
+                    'harga_total' => $harga_total
+                ]);
+            }
+        }
+        // Jika single barang, simpan juga ke proyek_barang untuk konsistensi
+        else {
+            $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
+            
+            $proyek->proyekBarang()->create([
+                'nama_barang' => $request->nama_barang,
+                'jumlah' => $request->jumlah,
+                'satuan' => $request->satuan,
+                'spesifikasi' => $request->spesifikasi,
+                'harga_satuan' => $request->harga_satuan,
+                'harga_total' => $harga_total
+            ]);
+        }
 
         // Refresh model untuk mendapatkan kode_proyek yang sudah di-generate
         $proyek->refresh();

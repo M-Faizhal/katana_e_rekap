@@ -25,18 +25,13 @@ class Proyek extends Model
         'instansi',
         'nama_klien',
         'kontak_klien',
-        'nama_barang',
-        'jumlah',
-        'satuan',
-        'spesifikasi',
-        'harga_satuan',
-        'harga_total',
         'jenis_pengadaan',
         'deadline',
         'id_admin_marketing',
         'id_admin_purchasing',
         'id_penawaran',
         'catatan',
+        'harga_total',
         'status',
         'potensi',
         'tahun_potensi'
@@ -45,9 +40,7 @@ class Proyek extends Model
     protected $casts = [
         'tanggal' => 'date',
         'deadline' => 'date',
-        'harga_satuan' => 'decimal:2',
         'harga_total' => 'decimal:2',
-        'jumlah' => 'integer',
         'tahun_potensi' => 'integer'
     ];
 
@@ -152,9 +145,33 @@ class Proyek extends Model
         return $this->hasMany(PenagihanDinas::class, 'proyek_id', 'id_proyek');
     }
 
-    // Alias untuk kompatibilitas
+    // Alias untuk kompatibilitas - relationship untuk penawaran aktif/terbaru
     public function penawaran()
     {
-        return $this->hasMany(Penawaran::class, 'id_proyek', 'id_proyek');
+        return $this->hasOne(Penawaran::class, 'id_proyek', 'id_proyek')->latest();
+    }
+
+    // Relationship untuk multiple barang per proyek
+    public function proyekBarang()
+    {
+        return $this->hasMany(ProyekBarang::class, 'id_proyek', 'id_proyek');
+    }
+
+    // Method untuk menghitung total harga dari proyek_barang
+    public function calculateHargaTotal()
+    {
+        $total = $this->proyekBarang()->sum('harga_total');
+        $this->update(['harga_total' => $total]);
+        return $total;
+    }
+
+    // Method untuk auto-update harga_total saat proyek_barang berubah
+    public static function updateHargaTotal($idProyek)
+    {
+        $proyek = self::find($idProyek);
+        if ($proyek) {
+            return $proyek->calculateHargaTotal();
+        }
+        return 0;
     }
 }

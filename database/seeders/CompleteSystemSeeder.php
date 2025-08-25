@@ -463,12 +463,6 @@ class CompleteSystemSeeder extends Seeder
                 'instansi' => 'Dinas Pendidikan DKI Jakarta',
                 'nama_klien' => 'Budi Santoso',
                 'kontak_klien' => '0812-3456-7890',
-                'nama_barang' => 'Laptop dan Monitor untuk Lab Komputer',
-                'jumlah' => 25,
-                'satuan' => 'Set',
-                'spesifikasi' => 'Laptop Dell Core i5 + Monitor LG 24 inch untuk lab komputer sekolah',
-                'harga_satuan' => 14750000.00,
-                'harga_total' => 368750000.00,
                 'jenis_pengadaan' => 'Pengadaan Langsung',
                 'deadline' => Carbon::now()->addDays(30),
                 'id_admin_marketing' => 2, // Admin Marketing
@@ -488,12 +482,6 @@ class CompleteSystemSeeder extends Seeder
                 'instansi' => 'PT Kreatif Teknologi',
                 'nama_klien' => 'Sari Dewi',
                 'kontak_klien' => '0813-9876-5432',
-                'nama_barang' => 'Furniture Kantor Complete Set',
-                'jumlah' => 15,
-                'satuan' => 'Set',
-                'spesifikasi' => 'Meja kerja executive, kursi ergonomis, lemari arsip untuk kantor baru',
-                'harga_satuan' => 10125000.00,
-                'harga_total' => 151875000.00,
                 'jenis_pengadaan' => 'Tender Terbatas',
                 'deadline' => Carbon::now()->addDays(20),
                 'id_admin_marketing' => 3, // Manager Marketing
@@ -513,12 +501,6 @@ class CompleteSystemSeeder extends Seeder
                 'instansi' => 'CV Maju Bersama',
                 'nama_klien' => 'Budi Santoso',
                 'kontak_klien' => '0814-5678-9012',
-                'nama_barang' => 'Generator Set dan Pompa Air Backup',
-                'jumlah' => 2,
-                'satuan' => 'Unit',
-                'spesifikasi' => 'Generator 5 KVA + Pompa air centrifugal untuk backup power dan water supply',
-                'harga_satuan' => 24375000.00,
-                'harga_total' => 48750000.00,
                 'jenis_pengadaan' => 'Penunjukan Langsung',
                 'deadline' => Carbon::now()->addDays(25),
                 'id_admin_marketing' => 2,
@@ -538,12 +520,6 @@ class CompleteSystemSeeder extends Seeder
                 'instansi' => 'Universitas Bina Nusantara',
                 'nama_klien' => 'Prof. Maria Susanti',
                 'kontak_klien' => '0815-2468-1357',
-                'nama_barang' => 'Proyektor dan AC untuk Ruang Kuliah',
-                'jumlah' => 10,
-                'satuan' => 'Set',
-                'spesifikasi' => 'Proyektor Epson 3300 lumens + AC split 1 PK untuk ruang kuliah baru',
-                'harga_satuan' => 11250000.00,
-                'harga_total' => 112500000.00,
                 'jenis_pengadaan' => 'Tender Terbuka',
                 'deadline' => Carbon::now()->addDays(35),
                 'id_admin_marketing' => 3,
@@ -563,12 +539,6 @@ class CompleteSystemSeeder extends Seeder
                 'instansi' => 'PT Pelindo II',
                 'nama_klien' => 'Ir. Bambang Wijaya',
                 'kontak_klien' => '0816-1357-2468',
-                'nama_barang' => 'Printer dan Scanner untuk Administrasi',
-                'jumlah' => 20,
-                'satuan' => 'Set',
-                'spesifikasi' => 'Printer HP LaserJet + Scanner Canon untuk keperluan administrasi pelabuhan',
-                'harga_satuan' => 4875000.00,
-                'harga_total' => 97500000.00,
                 'jenis_pengadaan' => 'Pengadaan Langsung',
                 'deadline' => Carbon::now()->addDays(40),
                 'id_admin_marketing' => 2,
@@ -588,12 +558,6 @@ class CompleteSystemSeeder extends Seeder
                 'instansi' => 'Sekolah Tinggi Teknologi Surabaya',
                 'nama_klien' => 'Dr. Agus Pramono',
                 'kontak_klien' => '0817-8888-9999',
-                'nama_barang' => 'Meja dan Kursi Kantor untuk Ruang Dosen',
-                'jumlah' => 12,
-                'satuan' => 'Set',
-                'spesifikasi' => 'Meja executive kayu solid + Kursi direktur kulit untuk ruang dosen',
-                'harga_satuan' => 8437500.00,
-                'harga_total' => 101250000.00,
                 'jenis_pengadaan' => 'Tender Terbatas',
                 'deadline' => Carbon::now()->addDays(15),
                 'id_admin_marketing' => 3,
@@ -603,11 +567,218 @@ class CompleteSystemSeeder extends Seeder
                 'status' => 'Gagal',
                 'created_at' => Carbon::now()->subDays(45),
                 'updated_at' => now()
+            ],
+
+            // PROYEK TAMBAHAN DENGAN STATUS "MENUNGGU"
+            
+            // Proyek 7: Lab Multimedia SMP - Status "Menunggu"
+            [
+                'tanggal' => Carbon::now()->subDays(5),
+                'id_wilayah' => 1, // Jakarta Pusat
+                'kab_kota' => 'Jakarta Pusat',
+                'instansi' => 'SMP Negeri 5 Jakarta',
+                'nama_klien' => 'Dra. Siti Rahayu',
+                'kontak_klien' => '0818-1111-2222',
+                'jenis_pengadaan' => 'Tender Terbuka',
+                'deadline' => Carbon::now()->addDays(50),
+                'id_admin_marketing' => 2,
+                'id_admin_purchasing' => 4,
+                'id_penawaran' => null,
+                'catatan' => 'Pengadaan untuk upgrade lab multimedia SMP',
+                'status' => 'Menunggu',
+                'created_at' => Carbon::now()->subDays(5),
+                'updated_at' => now()
+            ],
+
+            // Proyek 8: Lab Kimia Universitas - Status "Menunggu"
+            [
+                'tanggal' => Carbon::now()->subDays(3),
+                'id_wilayah' => 2, // Jakarta Selatan
+                'kab_kota' => 'Jakarta Selatan',
+                'instansi' => 'Universitas Indonesia',
+                'nama_klien' => 'Prof. Dr. Ahmad Ridwan',
+                'kontak_klien' => '0819-3333-4444',
+                'jenis_pengadaan' => 'Pengadaan Langsung',
+                'deadline' => Carbon::now()->addDays(65),
+                'id_admin_marketing' => 3,
+                'id_admin_purchasing' => 5,
+                'id_penawaran' => null,
+                'catatan' => 'Pengadaan alat lab untuk penelitian mahasiswa S2/S3',
+                'status' => 'Menunggu',
+                'created_at' => Carbon::now()->subDays(3),
+                'updated_at' => now()
+            ],
+
+            // Proyek 9: Server IT Bank - Status "Menunggu"
+            [
+                'tanggal' => Carbon::now()->subDays(2),
+                'id_wilayah' => 4, // Jakarta Barat
+                'kab_kota' => 'Jakarta Barat',
+                'instansi' => 'Bank Mandiri Cabang Kebon Jeruk',
+                'nama_klien' => 'Ir. Bambang Susilo',
+                'kontak_klien' => '0820-5555-6666',
+                'jenis_pengadaan' => 'Tender Terbatas',
+                'deadline' => Carbon::now()->addDays(95),
+                'id_admin_marketing' => 2,
+                'id_admin_purchasing' => 4,
+                'id_penawaran' => null,
+                'catatan' => 'Upgrade infrastructure IT untuk cabang baru',
+                'status' => 'Menunggu',
+                'created_at' => Carbon::now()->subDays(2),
+                'updated_at' => now()
+            ],
+
+            // Proyek 10: Furniture Sekolah Dasar - Status "Menunggu"
+            [
+                'tanggal' => Carbon::now()->subDays(1),
+                'id_wilayah' => 3, // Jakarta Timur
+                'kab_kota' => 'Jakarta Timur',
+                'instansi' => 'SDN Cakung 01',
+                'nama_klien' => 'Ibu Ratna Sari, S.Pd',
+                'kontak_klien' => '0821-7777-8888',
+                'jenis_pengadaan' => 'Pengadaan Langsung',
+                'deadline' => Carbon::now()->addDays(30),
+                'id_admin_marketing' => 3,
+                'id_admin_purchasing' => 5,
+                'id_penawaran' => null,
+                'catatan' => 'Replacement furniture lama yang sudah rusak',
+                'status' => 'Menunggu',
+                'created_at' => Carbon::now()->subDays(1),
+                'updated_at' => now()
+            ],
+
+            // Proyek 11: Sound System Masjid - Status "Menunggu"
+            [
+                'tanggal' => Carbon::now(),
+                'id_wilayah' => 5, // Bandung
+                'kab_kota' => 'Bandung',
+                'instansi' => 'Masjid Al-Ikhlas Bandung',
+                'nama_klien' => 'Ustadz Ahmad Fauzi',
+                'kontak_klien' => '0822-9999-0000',
+                'jenis_pengadaan' => 'Penunjukan Langsung',
+                'deadline' => Carbon::now()->addDays(20),
+                'id_admin_marketing' => 2,
+                'id_admin_purchasing' => 4,
+                'id_penawaran' => null,
+                'catatan' => 'Pengadaan untuk renovasi sound system masjid',
+                'status' => 'Menunggu',
+                'created_at' => Carbon::now(),
+                'updated_at' => now()
+            ],
+
+            // Proyek 12: AC Ruang Operasi Rumah Sakit - Status "Menunggu"
+            [
+                'tanggal' => Carbon::now(),
+                'id_wilayah' => 6, // Surabaya
+                'kab_kota' => 'Surabaya',
+                'instansi' => 'RSU Dr. Soetomo',
+                'nama_klien' => 'Dr. Santi Wijayanti',
+                'kontak_klien' => '0823-1111-2222',
+                'jenis_pengadaan' => 'Tender Terbuka',
+                'deadline' => Carbon::now()->addDays(120),
+                'id_admin_marketing' => 3,
+                'id_admin_purchasing' => 5,
+                'id_penawaran' => null,
+                'catatan' => 'Critical infrastructure untuk ruang operasi baru',
+                'status' => 'Menunggu',
+                'created_at' => Carbon::now(),
+                'updated_at' => now()
             ]
         ];
 
         Proyek::insert($proyeks);
         echo "   ✓ Created " . count($proyeks) . " proyek\n";
+
+        // Seed data proyek_barang untuk setiap proyek
+        $this->seedProyekBarang();
+
+        // Update harga_total untuk semua proyek setelah proyek_barang dibuat
+        $this->updateHargaTotalProyek();
+    }
+
+    private function updateHargaTotalProyek()
+    {
+        echo "💰 Updating harga_total proyek...\n";
+        
+        $proyeks = \App\Models\Proyek::all();
+        foreach ($proyeks as $proyek) {
+            $proyek->calculateHargaTotal();
+        }
+        
+        echo "   ✓ Updated harga_total for all proyek\n";
+    }
+
+    private function seedProyekBarang()
+    {
+        echo "📦 Seeding proyek barang...\n";
+
+        $proyekBarangData = [
+            // Proyek 1: 2 barang - Laptop dan Monitor (Selesai)
+            ['id_proyek' => 1, 'nama_barang' => 'Laptop Dell Core i5', 'jumlah' => 25, 'satuan' => 'Unit', 'spesifikasi' => 'Laptop Dell Core i5, RAM 8GB, SSD 256GB untuk lab komputer', 'harga_satuan' => 12500000, 'harga_total' => 312500000],
+            ['id_proyek' => 1, 'nama_barang' => 'Monitor LG 24 inch', 'jumlah' => 25, 'satuan' => 'Unit', 'spesifikasi' => 'Monitor LG 24 inch IPS full HD untuk lab komputer', 'harga_satuan' => 2250000, 'harga_total' => 56250000],
+            
+            // Proyek 2: 2 barang - Meja dan Kursi (Pengiriman)  
+            ['id_proyek' => 2, 'nama_barang' => 'Meja Kerja Executive', 'jumlah' => 15, 'satuan' => 'Unit', 'spesifikasi' => 'Meja kerja executive kayu mahoni, ukuran 120x80cm', 'harga_satuan' => 4500000, 'harga_total' => 67500000],
+            ['id_proyek' => 2, 'nama_barang' => 'Kursi Ergonomis', 'jumlah' => 15, 'satuan' => 'Unit', 'spesifikasi' => 'Kursi kantor ergonomis dengan sandaran lumbar, bahan kulit sintetis', 'harga_satuan' => 2250000, 'harga_total' => 33750000],
+            
+            // Proyek 3: 2 barang - Generator dan Pompa (Pengiriman)
+            ['id_proyek' => 3, 'nama_barang' => 'Generator Set 5 KVA', 'jumlah' => 2, 'satuan' => 'Unit', 'spesifikasi' => 'Generator set 5 KVA, bahan bakar solar, panel kontrol otomatis', 'harga_satuan' => 18750000, 'harga_total' => 37500000],
+            ['id_proyek' => 3, 'nama_barang' => 'Pompa Air Centrifugal', 'jumlah' => 2, 'satuan' => 'Unit', 'spesifikasi' => 'Pompa air centrifugal 2 HP, kapasitas 100 L/menit', 'harga_satuan' => 5625000, 'harga_total' => 11250000],
+            
+            // Proyek 4: 2 barang - Proyektor dan AC (Pembayaran)
+            ['id_proyek' => 4, 'nama_barang' => 'Proyektor Epson 3300 lumens', 'jumlah' => 10, 'satuan' => 'Unit', 'spesifikasi' => 'Proyektor Epson EB-S41, 3300 lumens, SVGA, HDMI, VGA, USB', 'harga_satuan' => 6750000, 'harga_total' => 67500000],
+            ['id_proyek' => 4, 'nama_barang' => 'AC Split 1 PK Daikin', 'jumlah' => 10, 'satuan' => 'Unit', 'spesifikasi' => 'AC Split Daikin 1 PK, R32, inverter, low watt', 'harga_satuan' => 4500000, 'harga_total' => 45000000],
+            
+            // Proyek 5: 2 barang - Printer dan Scanner (Penawaran)
+            ['id_proyek' => 5, 'nama_barang' => 'Printer HP LaserJet', 'jumlah' => 20, 'satuan' => 'Unit', 'spesifikasi' => 'Printer HP LaserJet P1102, monochrome, USB, A4', 'harga_satuan' => 3750000, 'harga_total' => 75000000],
+            ['id_proyek' => 5, 'nama_barang' => 'Scanner Canon LiDE', 'jumlah' => 20, 'satuan' => 'Unit', 'spesifikasi' => 'Scanner Canon LiDE 400, flatbed, 4800x4800 dpi, USB', 'harga_satuan' => 1125000, 'harga_total' => 22500000],
+            
+            // Proyek 6: 2 barang - Meja dan Kursi (Gagal)
+            ['id_proyek' => 6, 'nama_barang' => 'Meja Executive Mahoni', 'jumlah' => 12, 'satuan' => 'Unit', 'spesifikasi' => 'Meja executive kayu mahoni solid, ukuran 150x90cm, finishing glossy', 'harga_satuan' => 4500000, 'harga_total' => 54000000],
+            ['id_proyek' => 6, 'nama_barang' => 'Kursi Direktur Kulit', 'jumlah' => 12, 'satuan' => 'Unit', 'spesifikasi' => 'Kursi direktur kulit asli, reclining, massage, premium quality', 'harga_satuan' => 3375000, 'harga_total' => 40500000],
+            
+            // PROYEK MENUNGGU - TAMBAHAN DENGAN BANYAK JENIS BARANG
+            
+            // Proyek 7: Lab Multimedia - 4 jenis barang (Menunggu)
+            ['id_proyek' => 7, 'nama_barang' => 'Komputer All-in-One', 'jumlah' => 30, 'satuan' => 'Unit', 'spesifikasi' => 'Komputer All-in-One 21.5 inch, Core i3, 8GB RAM, 256GB SSD', 'harga_satuan' => 8500000, 'harga_total' => 255000000],
+            ['id_proyek' => 7, 'nama_barang' => 'Headset Gaming', 'jumlah' => 30, 'satuan' => 'Unit', 'spesifikasi' => 'Headset gaming stereo dengan microphone, anti-noise', 'harga_satuan' => 750000, 'harga_total' => 22500000],
+            ['id_proyek' => 7, 'nama_barang' => 'Webcam HD', 'jumlah' => 30, 'satuan' => 'Unit', 'spesifikasi' => 'Webcam HD 1080p dengan auto focus dan built-in microphone', 'harga_satuan' => 850000, 'harga_total' => 25500000],
+            ['id_proyek' => 7, 'nama_barang' => 'Speaker Multimedia', 'jumlah' => 15, 'satuan' => 'Set', 'spesifikasi' => 'Speaker multimedia 2.1 dengan subwoofer, 50W RMS', 'harga_satuan' => 1250000, 'harga_total' => 18750000],
+            
+            // Proyek 8: Lab Kimia - 5 jenis barang (Menunggu)
+            ['id_proyek' => 8, 'nama_barang' => 'Mikroskop Digital', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Mikroskop digital dengan kamera 5MP, perbesaran 40x-2000x', 'harga_satuan' => 125000000, 'harga_total' => 125000000],
+            ['id_proyek' => 8, 'nama_barang' => 'pH Meter Digital', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'pH meter digital dengan akurasi ±0.01, auto calibration', 'harga_satuan' => 45000000, 'harga_total' => 45000000],
+            ['id_proyek' => 8, 'nama_barang' => 'Centrifuge', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Centrifuge kecepatan tinggi 12000 rpm, 24 tube capacity', 'harga_satuan' => 75000000, 'harga_total' => 75000000],
+            ['id_proyek' => 8, 'nama_barang' => 'Spektrofotometer', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Spektrofotometer UV-Vis dengan wavelength 190-1100nm', 'harga_satuan' => 150000000, 'harga_total' => 150000000],
+            ['id_proyek' => 8, 'nama_barang' => 'Timbangan Analitik', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Timbangan analitik presisi 0.1mg, kapasitas 220g', 'harga_satuan' => 55000000, 'harga_total' => 55000000],
+            
+            // Proyek 9: Server & Network - 6 jenis barang (Menunggu)
+            ['id_proyek' => 9, 'nama_barang' => 'Server Dell PowerEdge', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Server Dell PowerEdge R750, Xeon Silver, 32GB RAM, 2TB SSD', 'harga_satuan' => 250000000, 'harga_total' => 250000000],
+            ['id_proyek' => 9, 'nama_barang' => 'Switch Managed 48 Port', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Switch managed 48 port gigabit dengan 4 SFP+ uplink', 'harga_satuan' => 75000000, 'harga_total' => 75000000],
+            ['id_proyek' => 9, 'nama_barang' => 'Firewall Enterprise', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Firewall enterprise dengan throughput 10Gbps, VPN support', 'harga_satuan' => 125000000, 'harga_total' => 125000000],
+            ['id_proyek' => 9, 'nama_barang' => 'UPS 10KVA', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'UPS online 10KVA dengan battery backup 30 menit', 'harga_satuan' => 85000000, 'harga_total' => 85000000],
+            ['id_proyek' => 9, 'nama_barang' => 'Rack Server 42U', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Rack server 42U dengan cooling system dan cable management', 'harga_satuan' => 45000000, 'harga_total' => 45000000],
+            ['id_proyek' => 9, 'nama_barang' => 'Access Point WiFi 6', 'jumlah' => 10, 'satuan' => 'Unit', 'spesifikasi' => 'Access Point WiFi 6 indoor dengan PoE+, dual band', 'harga_satuan' => 8500000, 'harga_total' => 85000000],
+            
+            // Proyek 10: Furniture Sekolah - 3 jenis barang (Menunggu)
+            ['id_proyek' => 10, 'nama_barang' => 'Meja Belajar Siswa', 'jumlah' => 120, 'satuan' => 'Set', 'spesifikasi' => 'Meja belajar siswa plastik ergonomis, tinggi adjustable', 'harga_satuan' => 650000, 'harga_total' => 78000000],
+            ['id_proyek' => 10, 'nama_barang' => 'Kursi Belajar Siswa', 'jumlah' => 120, 'satuan' => 'Unit', 'spesifikasi' => 'Kursi belajar siswa plastik ergonomis, tinggi adjustable', 'harga_satuan' => 350000, 'harga_total' => 42000000],
+            ['id_proyek' => 10, 'nama_barang' => 'Loker Siswa', 'jumlah' => 60, 'satuan' => 'Unit', 'spesifikasi' => 'Loker siswa besi 2 pintu dengan kunci, anti karat', 'harga_satuan' => 1750000, 'harga_total' => 105000000],
+            
+            // Proyek 11: Sound System Masjid - 4 jenis barang (Menunggu) 
+            ['id_proyek' => 11, 'nama_barang' => 'Mixer Audio 16 Channel', 'jumlah' => 1, 'satuan' => 'Unit', 'spesifikasi' => 'Mixer audio 16 channel dengan USB recording dan Bluetooth', 'harga_satuan' => 15000000, 'harga_total' => 15000000],
+            ['id_proyek' => 11, 'nama_barang' => 'Speaker Aktif 15 inch', 'jumlah' => 4, 'satuan' => 'Unit', 'spesifikasi' => 'Speaker aktif 15 inch 500W dengan tweeter horn', 'harga_satuan' => 8500000, 'harga_total' => 34000000],
+            ['id_proyek' => 11, 'nama_barang' => 'Microphone Wireless', 'jumlah' => 6, 'satuan' => 'Unit', 'spesifikasi' => 'Microphone wireless handheld dengan receiver diversity', 'harga_satuan' => 2750000, 'harga_total' => 16500000],
+            ['id_proyek' => 11, 'nama_barang' => 'Power Amplifier 1000W', 'jumlah' => 2, 'satuan' => 'Unit', 'spesifikasi' => 'Power amplifier 1000W stereo dengan protection circuit', 'harga_satuan' => 9750000, 'harga_total' => 19500000],
+            
+            // Proyek 12: AC Ruang Operasi - 3 jenis barang (Menunggu)
+            ['id_proyek' => 12, 'nama_barang' => 'AC Presisi Medical', 'jumlah' => 3, 'satuan' => 'Unit', 'spesifikasi' => 'AC presisi medical grade dengan HEPA filter dan humidity control', 'harga_satuan' => 125000000, 'harga_total' => 375000000],
+            ['id_proyek' => 12, 'nama_barang' => 'Exhaust Fan Medical', 'jumlah' => 6, 'satuan' => 'Unit', 'spesifikasi' => 'Exhaust fan medical grade anti-bacterial dengan speed control', 'harga_satuan' => 15000000, 'harga_total' => 90000000],
+            ['id_proyek' => 12, 'nama_barang' => 'Sistem Monitoring Udara', 'jumlah' => 3, 'satuan' => 'Set', 'spesifikasi' => 'Sistem monitoring suhu, kelembaban, dan tekanan udara ruang operasi', 'harga_satuan' => 25000000, 'harga_total' => 75000000],
+        ];
+
+        \App\Models\ProyekBarang::insert($proyekBarangData);
+        echo "   ✓ Created " . count($proyekBarangData) . " proyek barang\n";
     }
 
     private function seedPenawaran()
@@ -671,7 +842,7 @@ class CompleteSystemSeeder extends Seeder
                 'surat_pesanan' => 'SP-PELINDO-2024-005.pdf',
                 'surat_penawaran' => 'SPN-KATANA-2024-005.pdf',
                 'total_penawaran' => 97500000.00,
-                'status' => 'Dikirim',
+                'status' => 'Menunggu',
                 'created_at' => Carbon::now()->subDays(8),
                 'updated_at' => now()
             ],
