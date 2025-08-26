@@ -1,6 +1,34 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Access Control Info -->
+@php
+    $currentUser = Auth::user();
+    $isAdminPurchasing = $currentUser->role === 'admin_purchasing';
+@endphp
+
+@if(!$isAdminPurchasing)
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+    <div class="flex items-center">
+        <i class="fas fa-info-circle text-blue-600 text-lg mr-3"></i>
+        <div>
+            <h4 class="text-sm font-medium text-blue-800">Informasi Akses</h4>
+            <p class="text-xs sm:text-sm text-blue-700">Anda hanya dapat melihat data. Kalkulasi HPS hanya dapat dilakukan oleh admin purchasing.</p>
+        </div>
+    </div>
+</div>
+@elseif($isAdminPurchasing)
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-triangle text-amber-600 text-lg mr-3"></i>
+        <div>
+            <h4 class="text-sm font-medium text-amber-800">Akses Terbatas</h4>
+            <p class="text-xs sm:text-sm text-amber-700">Anda hanya dapat melakukan kalkulasi pada proyek yang ditugaskan kepada Anda.</p>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Header Section -->
 <div class="bg-red-800 rounded-lg md:rounded-xl lg:rounded-2xl p-3 sm:p-4 md:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white shadow-lg mt-2 sm:mt-4">
     <div class="flex items-center justify-between">
@@ -80,8 +108,12 @@
                             $proyekMenunggu = $proyekMenunggu ?? collect();
                         @endphp
                         @forelse($proyekMenunggu as $p)
-                        <tr class="hover:bg-gray-50 cursor-pointer" 
-                            onclick="window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'">>
+                        @php
+                            $currentUser = Auth::user();
+                            $canAccess = $currentUser->role === 'admin_purchasing' && $p->id_admin_purchasing == $currentUser->id_user;
+                        @endphp
+                        <tr class="hover:bg-gray-50 {{ $canAccess ? 'cursor-pointer' : 'cursor-not-allowed opacity-75' }}" 
+                            @if($canAccess) onclick="window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'" @endif>>>
                             
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $loop->iteration }}</td>
                             
@@ -158,13 +190,28 @@
                             </td>
                             
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                               
-                                <button onclick="event.stopPropagation(); openHpsModal({{ $p->id_proyek }})" 
-                                        class="text-red-600 hover:text-red-900 mr-3"
-                                        title="Buka Kalkulasi HPS">
-                                    <i class="fas fa-calculator"></i> Kalkulasi
-                                </button>
-                         
+                                @php
+                                    $currentUser = Auth::user();
+                                    $canAccess = $currentUser->role === 'admin_purchasing' && $p->id_admin_purchasing == $currentUser->id_user;
+                                @endphp
+                                
+                                @if($canAccess)
+                                    <button onclick="event.stopPropagation(); openHpsModal({{ $p->id_proyek }})" 
+                                            class="text-red-600 hover:text-red-900 mr-3"
+                                            title="Buka Kalkulasi HPS">
+                                        <i class="fas fa-calculator"></i> Kalkulasi
+                                    </button>
+                                @else
+                                    @if($currentUser->role !== 'admin_purchasing')
+                                        <span class="text-gray-400 text-xs">
+                                            <i class="fas fa-info-circle"></i> Hanya admin purchasing
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400 text-xs">
+                                            <i class="fas fa-lock"></i> Tidak memiliki akses
+                                        </span>
+                                    @endif
+                                @endif
                             </td>
                         </tr>
                         @empty
@@ -179,8 +226,13 @@
             <!-- Mobile & Tablet Card View -->
             <div class="lg:hidden">
                 @forelse($proyekMenunggu as $p)
-                <div class="border-b border-gray-200 p-3 sm:p-4 hover:bg-gray-50 cursor-pointer" 
-                     onclick="openHpsModal({{ $p->id_proyek }})">
+                @php
+                    $currentUser = Auth::user();
+                    $canAccess = $currentUser->role === 'admin_purchasing' && $p->id_admin_purchasing == $currentUser->id_user;
+                @endphp
+                
+                <div class="border-b border-gray-200 p-3 sm:p-4 hover:bg-gray-50 {{ $canAccess ? 'cursor-pointer' : 'cursor-not-allowed opacity-75' }}" 
+                     @if($canAccess) onclick="openHpsModal({{ $p->id_proyek }})" @endif>>
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex-1">
                             <h3 class="text-sm sm:text-base font-medium text-gray-900 line-clamp-2">
@@ -258,14 +310,22 @@
                     </div>
                     
                     <div class="flex gap-2 pt-2 border-t border-gray-100">
-                    
-                        
-                        <button onclick="event.stopPropagation(); window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'" 
-                                class="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors duration-200">
-                            <i class="fas fa-calculator mr-1"></i> Kalkulasi
-                        </button>
-                        
-              
+                        @if($canAccess)
+                            <button onclick="event.stopPropagation(); window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'" 
+                                    class="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors duration-200">
+                                <i class="fas fa-calculator mr-1"></i> Kalkulasi
+                            </button>
+                        @else
+                            @if($currentUser->role !== 'admin_purchasing')
+                                <div class="flex-1 bg-gray-300 text-gray-500 px-3 py-2 rounded-lg text-sm text-center">
+                                    <i class="fas fa-info-circle mr-1"></i> Hanya Admin Purchasing
+                                </div>
+                            @else
+                                <div class="flex-1 bg-gray-300 text-gray-500 px-3 py-2 rounded-lg text-sm text-center">
+                                    <i class="fas fa-lock mr-1"></i> Tidak Memiliki Akses
+                                </div>
+                            @endif
+                        @endif
                     </div>
                 </div>
                 @empty
@@ -783,14 +843,16 @@ function showTab(tabName) {
     }
 }
 
-// Open HPS Page (instead of modal)
+// Open HPS Page (instead of modal) with permission check
 function openHpsModal(proyekId) {
+    // Note: Backend will handle the permission check
     window.location.href = `/purchasing/kalkulasi/${proyekId}/hps`;
 }
 
-// Action functions
+// Action functions with permission check
 function createPenawaranAction(proyekId) {
     if (confirm('Apakah Anda yakin ingin membuat penawaran untuk proyek ini?')) {
+        // Note: Backend will handle the permission check
         window.location.href = `/purchasing/penawaran/create/${proyekId}`;
     }
 }

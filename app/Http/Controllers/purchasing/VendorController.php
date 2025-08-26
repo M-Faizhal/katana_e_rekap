@@ -8,6 +8,7 @@ use App\Models\Barang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class VendorController extends Controller
 {
@@ -38,6 +39,14 @@ class VendorController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if user has permission
+        if (Auth::user()->role !== 'admin_purchasing') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk menambah vendor'
+            ], 403);
+        }
+
         $request->validate([
             'nama_vendor' => 'required|string|max:255',
             'email' => 'required|email|unique:vendor,email',
@@ -125,6 +134,14 @@ class VendorController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Check if user has permission
+        if (Auth::user()->role !== 'admin_purchasing') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk mengedit vendor'
+            ], 403);
+        }
+
         $vendor = Vendor::findOrFail($id);
 
         $request->validate([
@@ -253,6 +270,14 @@ class VendorController extends Controller
      */
     public function destroy($id)
     {
+        // Check if user has permission
+        if (Auth::user()->role !== 'admin_purchasing') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk menghapus vendor'
+            ], 403);
+        }
+
         DB::beginTransaction();
 
         try {

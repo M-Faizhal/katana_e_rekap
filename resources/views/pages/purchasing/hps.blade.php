@@ -29,6 +29,7 @@
     </div>
 
     <!-- Action Buttons -->
+    @if($canEdit ?? false)
     <div class="bg-gray-50 rounded-lg p-4 mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div class="flex flex-wrap gap-2">
             <button onclick="clearVendorData()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm">
@@ -49,6 +50,17 @@
             <span id="last-updated">{{ $proyek->updated_at ? $proyek->updated_at->format('d/m/Y H:i') : '-' }}</span>
         </div>
     </div>
+    @else
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+            <i class="fas fa-lock text-amber-600 text-lg mr-3"></i>
+            <div>
+                <h4 class="text-sm font-medium text-amber-800">Akses Terbatas</h4>
+                <p class="text-xs sm:text-sm text-amber-700">Anda hanya dapat melihat data kalkulasi. Hanya admin purchasing yang ditugaskan yang dapat melakukan perubahan.</p>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Permintaan Klien Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
@@ -116,10 +128,12 @@
                     Kalkulasi HPS (Harga Perkiraan Sendiri)
                     <span class="text-sm font-normal text-green-600 ml-2">(Area Admin Purchasing)</span>
                 </h2>
+                @if($canEdit ?? false)
                 <button onclick="addVendorItem()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
                     <i class="fas fa-plus"></i>
                     Tambah Item Vendor
                 </button>
+                @endif
             </div>
         </div>
         
@@ -238,6 +252,7 @@
         <div class="text-sm text-gray-600">
             Terakhir diupdate: <span class="font-medium" id="last-updated-footer">{{ $proyek->updated_at ? $proyek->updated_at->format('d/m/Y H:i') : '-' }}</span>
         </div>
+        @if($canEdit ?? false)
         <div class="flex gap-3">
             <button onclick="saveKalkulasi()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
                 <i class="fas fa-save mr-2"></i>
@@ -248,6 +263,12 @@
                 Buat Penawaran
             </button>
         </div>
+        @else
+        <div class="text-sm text-gray-500 italic">
+            <i class="fas fa-eye mr-1"></i>
+            Mode tampilan saja
+        </div>
+        @endif
     </div>
 </div>
 @endsection
@@ -343,6 +364,7 @@
 // Global variables
 let currentProyekId = {{ $proyek->id_proyek ?? 'null' }};
 let currentProject = @json($proyek);
+let canEdit = {{ ($canEdit ?? false) ? 'true' : 'false' }};
 let barangList = [];
 let vendorList = [];
 let kalkulasiData = @json($kalkulasiData ?? []);
@@ -436,7 +458,7 @@ function createKalkulasiTableRow(item, index) {
         <tr class="hover:bg-gray-50">
             <td class="px-2 py-3 text-sm text-gray-900">${index + 1}</td>
             <td class="px-2 py-3">
-                <select onchange="updateBarang(${index}, this.value)" class="no-spin" id="barang-select-${index}">
+                <select onchange="updateBarang(${index}, this.value)" class="no-spin" id="barang-select-${index}" ${!canEdit ? 'disabled' : ''}>
                     <option value="">Pilih Barang</option>
                     ${barangOptions}
                 </select>
@@ -451,13 +473,13 @@ function createKalkulasiTableRow(item, index) {
                 <span>${item.satuan || '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.qty || 1}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16">
+                <input type="number" value="${item.qty || 1}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.harga_vendor || 0}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20">
+                <input type="number" value="${item.harga_vendor || 0}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.total_diskon || 0}" onchange="updateValue(${index}, 'total_diskon', this.value)" class="no-spin text-right w-20">
+                <input type="number" value="${item.total_diskon || 0}" onchange="updateValue(${index}, 'total_diskon', this.value)" class="no-spin text-right w-20" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-yellow-50 text-xs">
                 <span>${formatRupiah(item.nilai_diskon || 0)}</span>
@@ -472,7 +494,7 @@ function createKalkulasiTableRow(item, index) {
                 <span>${formatRupiah(item.jumlah_volume || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.persen_kenaikan || 0}" onchange="updateValue(${index}, 'persen_kenaikan', this.value)" class="no-spin text-right w-16">
+                <input type="number" value="${item.persen_kenaikan || 0}" onchange="updateValue(${index}, 'persen_kenaikan', this.value)" class="no-spin text-right w-16" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-blue-50 text-xs">
                 <span>${formatRupiah(item.proyeksi_kenaikan || 0)}</span>
@@ -490,7 +512,7 @@ function createKalkulasiTableRow(item, index) {
                 <span>${formatRupiah(item.harga_per_pcs || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.harga_pagu_dinas_per_pcs || 0}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20">
+                <input type="number" value="${item.harga_pagu_dinas_per_pcs || 0}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-gray-50 text-xs">
                 <span>${formatRupiah(item.pagu_total || 0)}</span>
@@ -499,7 +521,7 @@ function createKalkulasiTableRow(item, index) {
                 <span class="${(item.selisih_pagu_hps || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${formatRupiah(item.selisih_pagu_hps || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.nilai_sp || 0}" onchange="updateValue(${index}, 'nilai_sp', this.value)" class="no-spin text-right w-20">
+                <input type="number" value="${item.nilai_sp || 0}" onchange="updateValue(${index}, 'nilai_sp', this.value)" class="no-spin text-right w-20" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-orange-50 text-xs">
                 <span>${formatRupiah(item.dpp || 0)}</span>
@@ -508,28 +530,28 @@ function createKalkulasiTableRow(item, index) {
                 <span>${formatRupiah(item.asumsi_nilai_cair || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.ongkir || 0}" onchange="updateValue(${index}, 'ongkir', this.value)" class="no-spin text-right w-16">
+                <input type="number" value="${item.ongkir || 0}" onchange="updateValue(${index}, 'ongkir', this.value)" class="no-spin text-right w-16" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.omzet_dinas_percent || 0}" onchange="updateValue(${index}, 'omzet_dinas_percent', this.value)" class="no-spin text-right w-12">
+                <input type="number" value="${item.omzet_dinas_percent || 0}" onchange="updateValue(${index}, 'omzet_dinas_percent', this.value)" class="no-spin text-right w-12" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
                 <span>${formatRupiah(item.omzet_nilai_dinas || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.bendera_percent || 0}" onchange="updateValue(${index}, 'bendera_percent', this.value)" class="no-spin text-right w-12">
+                <input type="number" value="${item.bendera_percent || 0}" onchange="updateValue(${index}, 'bendera_percent', this.value)" class="no-spin text-right w-12" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
                 <span>${formatRupiah(item.gross_nilai_bendera || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.bank_cost_percent || 0}" onchange="updateValue(${index}, 'bank_cost_percent', this.value)" class="no-spin text-right w-12">
+                <input type="number" value="${item.bank_cost_percent || 0}" onchange="updateValue(${index}, 'bank_cost_percent', this.value)" class="no-spin text-right w-12" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
                 <span>${formatRupiah(item.gross_nilai_bank_cost || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.biaya_ops_percent || 0}" onchange="updateValue(${index}, 'biaya_ops_percent', this.value)" class="no-spin text-right w-12">
+                <input type="number" value="${item.biaya_ops_percent || 0}" onchange="updateValue(${index}, 'biaya_ops_percent', this.value)" class="no-spin text-right w-12" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
                 <span>${formatRupiah(item.gross_nilai_biaya_ops || 0)}</span>
@@ -550,12 +572,12 @@ function createKalkulasiTableRow(item, index) {
                 <span class="font-bold ${(item.nett_income_persentase || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${formatPercent(item.nett_income_persentase || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="text" value="${item.keterangan_1 || ''}" onchange="updateValue(${index}, 'keterangan_1', this.value)" class="w-20 text-xs">
+                <input type="text" value="${item.keterangan_1 || ''}" onchange="updateValue(${index}, 'keterangan_1', this.value)" class="w-20 text-xs" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
-                <button onclick="removeItem(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">
+                ${canEdit ? `<button onclick="removeItem(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">
                     <i class="fas fa-trash"></i>
-                </button>
+                </button>` : '<span class="text-gray-400 text-xs">-</span>'}
             </td>
         </tr>
     `;
@@ -605,6 +627,10 @@ function createJenisVendorOptions(selectedJenis) {
 
 // Add vendor item
 function addVendorItem() {
+    if (!canEdit) {
+        alert('Anda tidak memiliki akses untuk menambah item.');
+        return;
+    }
     const newItem = window.hpsCalculator.addVendorItem();
     populateKalkulasiTable();
 }
@@ -785,6 +811,10 @@ function checkPenawaranButtonVisibility() {
 }
 
 function removeItem(index) {
+    if (!canEdit) {
+        alert('Anda tidak memiliki akses untuk menghapus item.');
+        return;
+    }
     if (confirm('Apakah Anda yakin ingin menghapus item ini?')) {
         kalkulasiData.splice(index, 1);
         populateKalkulasiTable();
@@ -793,6 +823,10 @@ function removeItem(index) {
 }
 
 function clearVendorData() {
+    if (!canEdit) {
+        alert('Anda tidak memiliki akses untuk menghapus data.');
+        return;
+    }
     if (confirm('Apakah Anda yakin ingin menghapus semua data vendor?')) {
         kalkulasiData = [];
         populateKalkulasiTable();
@@ -820,6 +854,11 @@ function validateCalculation() {
 
 // Save kalkulasi
 async function saveKalkulasi() {
+    if (!canEdit) {
+        alert('Anda tidak memiliki akses untuk menyimpan kalkulasi.');
+        return;
+    }
+    
     if (!currentProyekId) {
         alert('ID Proyek tidak ditemukan');
         return;
@@ -871,6 +910,11 @@ async function saveKalkulasi() {
 
 // Create penawaran
 async function createPenawaran() {
+    if (!canEdit) {
+        alert('Anda tidak memiliki akses untuk membuat penawaran.');
+        return;
+    }
+    
     if (!currentProyekId) {
         showErrorMessage('ID Proyek tidak ditemukan');
         return;

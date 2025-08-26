@@ -142,6 +142,25 @@ class KalkulasiController extends Controller
     public function saveKalkulasi(Request $request)
     {
         try {
+            // Check if user is admin_purchasing and assigned to this project
+            $user = Auth::user();
+            $proyekId = $request->input('id_proyek');
+            
+            if ($user->role !== 'admin_purchasing') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Hanya admin purchasing yang dapat melakukan kalkulasi.'
+                ], 403);
+            }
+            
+            $proyek = Proyek::find($proyekId);
+            if (!$proyek || $proyek->id_admin_purchasing != $user->id_user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Anda tidak memiliki akses untuk melakukan kalkulasi pada proyek ini.'
+                ], 403);
+            }
+            
             DB::beginTransaction();
 
             $proyekId = $request->id_proyek;
@@ -254,6 +273,25 @@ class KalkulasiController extends Controller
     public function createPenawaran(Request $request)
     {
         try {
+            // Check if user is admin_purchasing and assigned to this project
+            $user = Auth::user();
+            $proyekId = $request->input('id_proyek');
+            
+            if ($user->role !== 'admin_purchasing') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Hanya admin purchasing yang dapat membuat penawaran.'
+                ], 403);
+            }
+            
+            $proyek = Proyek::find($proyekId);
+            if (!$proyek || $proyek->id_admin_purchasing != $user->id_user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Anda tidak memiliki akses untuk membuat penawaran pada proyek ini.'
+                ], 403);
+            }
+            
             DB::beginTransaction();
             
             $proyekId = $request->input('id_proyek');
@@ -545,14 +583,24 @@ class KalkulasiController extends Controller
     public function hps($id)
     {
         try {
+            // Check if user is admin_purchasing
+            $user = Auth::user();
+            
+            if ($user->role !== 'admin_purchasing') {
+                return redirect()->route('purchasing.kalkulasi')->with('error', 'Akses ditolak. Hanya admin purchasing yang dapat mengakses halaman kalkulasi HPS.');
+            }
+            
             $proyek = Proyek::with(['adminMarketing', 'adminPurchasing', 'proyekBarang'])->findOrFail($id);
+            
+            // Check if user is assigned to this project for actions, but allow viewing
+            $canEdit = ($proyek->id_admin_purchasing == $user->id_user);
             
             // Get existing kalkulasi data
             $kalkulasiData = KalkulasiHps::with(['barang', 'vendor'])
                                         ->where('id_proyek', $id)
                                         ->get();
 
-            return view('pages.purchasing.hps', compact('proyek', 'kalkulasiData'));
+            return view('pages.purchasing.hps', compact('proyek', 'kalkulasiData', 'canEdit'));
         } catch (\Exception $e) {
             return redirect()->route('purchasing.kalkulasi')->with('error', 'Proyek tidak ditemukan');
         }

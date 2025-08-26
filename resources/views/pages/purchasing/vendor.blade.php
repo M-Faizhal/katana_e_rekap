@@ -62,6 +62,25 @@
     </div>
 </div>
 
+<!-- Role Information Alert -->
+@auth
+    @if(auth()->user()->role !== 'admin_purchasing')
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-yellow-600 text-lg"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-800">
+                        <span class="font-medium">Info:</span> 
+                        Anda hanya memiliki akses untuk melihat detail vendor. Hanya admin purchasing yang dapat menambah, mengedit, atau menghapus data vendor.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+@endauth
+
 <!-- Vendor Table -->
 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-20">
     <div class="p-4 sm:p-6 border-b border-gray-200">
@@ -128,15 +147,19 @@
                     <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm text-gray-600">{{ $vendor->kontak }}</td>
                     <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-1 lg:space-x-2">
-                            <button onclick="detailVendor({{ $vendor->id_vendor }})" class="text-blue-600 hover:text-blue-800 transition-colors p-1.5 lg:p-2">
+                            <button onclick="detailVendor({{ $vendor->id_vendor }})" class="text-blue-600 hover:text-blue-800 transition-colors p-1.5 lg:p-2" title="Lihat Detail">
                                 <i class="fas fa-eye text-sm lg:text-base"></i>
                             </button>
-                            <button onclick="editVendor({{ $vendor->id_vendor }})" class="text-yellow-600 hover:text-yellow-800 transition-colors p-1.5 lg:p-2">
-                                <i class="fas fa-edit text-sm lg:text-base"></i>
-                            </button>
-                            <button onclick="hapusVendor({{ $vendor->id_vendor }})" class="text-red-600 hover:text-red-800 transition-colors p-1.5 lg:p-2">
-                                <i class="fas fa-trash text-sm lg:text-base"></i>
-                            </button>
+                            @auth
+                                @if(auth()->user()->role === 'admin_purchasing')
+                                    <button onclick="editVendor({{ $vendor->id_vendor }})" class="text-yellow-600 hover:text-yellow-800 transition-colors p-1.5 lg:p-2" title="Edit Vendor">
+                                        <i class="fas fa-edit text-sm lg:text-base"></i>
+                                    </button>
+                                    <button onclick="hapusVendor({{ $vendor->id_vendor }})" class="text-red-600 hover:text-red-800 transition-colors p-1.5 lg:p-2" title="Hapus Vendor">
+                                        <i class="fas fa-trash text-sm lg:text-base"></i>
+                                    </button>
+                                @endif
+                            @endauth
                         </div>
                     </td>
                 </tr>
@@ -173,12 +196,16 @@
                                 <button onclick="detailVendor({{ $vendor->id_vendor }})" class="text-blue-600 hover:text-blue-900 transition-colors p-2" title="Lihat Detail">
                                     <i class="fas fa-eye text-lg"></i>
                                 </button>
-                                <button onclick="editVendor({{ $vendor->id_vendor }})" class="text-yellow-600 hover:text-yellow-900 transition-colors p-2" title="Edit">
-                                    <i class="fas fa-edit text-lg"></i>
-                                </button>
-                                <button onclick="hapusVendor({{ $vendor->id_vendor }})" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus">
-                                    <i class="fas fa-trash text-lg"></i>
-                                </button>
+                                @auth
+                                    @if(auth()->user()->role === 'admin_purchasing')
+                                        <button onclick="editVendor({{ $vendor->id_vendor }})" class="text-yellow-600 hover:text-yellow-900 transition-colors p-2" title="Edit Vendor">
+                                            <i class="fas fa-edit text-lg"></i>
+                                        </button>
+                                        <button onclick="hapusVendor({{ $vendor->id_vendor }})" class="text-red-600 hover:text-red-900 transition-colors p-2" title="Hapus Vendor">
+                                            <i class="fas fa-trash text-lg"></i>
+                                        </button>
+                                    @endif
+                                @endauth
                             </div>
                         </div>
                     </div>
@@ -224,9 +251,13 @@
 </div>
 
 <!-- Floating Action Button -->
-<button onclick="tambahVendor()" class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 lg:bottom-16 lg:right-16 bg-red-600 hover:bg-red-700 text-white w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50">
-    <i class="fas fa-plus text-lg sm:text-xl"></i>
-</button>
+@auth
+    @if(auth()->user()->role === 'admin_purchasing')
+        <button onclick="tambahVendor()" class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 lg:bottom-16 lg:right-16 bg-red-600 hover:bg-red-700 text-white w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50" title="Tambah Vendor Baru">
+            <i class="fas fa-plus text-lg sm:text-xl"></i>
+        </button>
+    @endif
+@endauth
 
 @include('pages.purchasing.vendor-components.tambah')
 @include('pages.purchasing.vendor-components.edit')
@@ -240,9 +271,15 @@ let vendorProducts = [];
 let editVendorProducts = [];
 let productIdCounter = 1;
 let allVendors = @json($vendors);
+let userRole = @json(auth()->user()->role ?? 'guest');
 
 // Modal functions
 function tambahVendor() {
+    if (userRole !== 'admin_purchasing') {
+        showToast('Anda tidak memiliki izin untuk menambah vendor', 'error');
+        return;
+    }
+    
     // Reset form
     document.getElementById('formTambahVendor').reset();
     vendorProducts = [];
@@ -251,6 +288,11 @@ function tambahVendor() {
 }
 
 function editVendor(id) {
+    if (userRole !== 'admin_purchasing') {
+        showToast('Anda tidak memiliki izin untuk mengedit vendor', 'error');
+        return;
+    }
+    
     // Fetch vendor data
     fetch(`/purchasing/vendor/${id}`)
         .then(response => response.json())
@@ -326,6 +368,11 @@ function detailVendor(id) {
 }
 
 function hapusVendor(id) {
+    if (userRole !== 'admin_purchasing') {
+        showToast('Anda tidak memiliki izin untuk menghapus vendor', 'error');
+        return;
+    }
+    
     const vendor = allVendors.find(v => v.id_vendor == id);
     if (vendor) {
         document.getElementById('hapusVendorId').value = id;
@@ -367,6 +414,11 @@ function closeHapusVendor() { closeModal('modalHapusVendor'); }
 
 // Form submit functions
 function submitTambahVendor() {
+    if (userRole !== 'admin_purchasing') {
+        showToast('Anda tidak memiliki izin untuk menambah vendor', 'error');
+        return;
+    }
+    
     const form = document.getElementById('formTambahVendor');
     const formData = new FormData(form);
     
@@ -408,6 +460,11 @@ function submitTambahVendor() {
 }
 
 function submitEditVendor() {
+    if (userRole !== 'admin_purchasing') {
+        showToast('Anda tidak memiliki izin untuk mengedit vendor', 'error');
+        return;
+    }
+    
     const vendorId = document.getElementById('editVendorId').value;
     const form = document.getElementById('formEditVendor');
     const formData = new FormData(form);
@@ -455,6 +512,11 @@ function submitEditVendor() {
 }
 
 function confirmHapusVendor() {
+    if (userRole !== 'admin_purchasing') {
+        showToast('Anda tidak memiliki izin untuk menghapus vendor', 'error');
+        return;
+    }
+    
     const vendorId = document.getElementById('hapusVendorId').value;
     
     fetch(`/purchasing/vendor/${vendorId}`, {
