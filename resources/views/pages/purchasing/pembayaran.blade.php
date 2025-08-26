@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Access Control Info -->
+@php
+    $currentUser = Auth::user();
+    $isAdminPurchasing = $currentUser->role === 'admin_purchasing';
+@endphp
+
+
 <div class="container mx-auto px-4 py-6">
     <!-- Header Section -->
     <div class="bg-gradient-to-r from-red-800 to-red-900 rounded-2xl p-6 lg:p-8 mb-8 text-white shadow-xl">
@@ -338,12 +345,27 @@
                                             
                                             <!-- Action Buttons -->
                                             <div class="flex items-center space-x-2">
+                                                @php
+                                                    $canAccess = $currentUser->role === 'admin_purchasing' && $proyek->id_admin_purchasing == $currentUser->id_user;
+                                                @endphp
+                                                
                                                 @if(!$vendorData->status_lunas)
-                                                <a href="{{ route('purchasing.pembayaran.create', [$proyek->id_proyek, $vendorData->vendor->id_vendor]) }}" 
-                                                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                                    <i class="fas fa-plus mr-1"></i>
-                                                    Input Pembayaran
-                                                </a>
+                                                    @if($canAccess)
+                                                    <a href="{{ route('purchasing.pembayaran.create', [$proyek->id_proyek, $vendorData->vendor->id_vendor]) }}" 
+                                                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                                        <i class="fas fa-plus mr-1"></i>
+                                                        Input Pembayaran
+                                                    </a>
+                                                    @else
+                                                    <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
+                                                        <i class="fas fa-lock mr-1"></i>
+                                                        @if($currentUser->role !== 'admin_purchasing')
+                                                            Hanya Admin Purchasing
+                                                        @else
+                                                            Tidak Memiliki Akses
+                                                        @endif
+                                                    </span>
+                                                    @endif
                                                 @endif
                                                 
                                                 @if($proyek->pembayaran->where('id_vendor', $vendorData->vendor->id_vendor)->count() > 0)
@@ -650,11 +672,22 @@
                                     <!-- Action Buttons -->
                                     <div class="flex items-center space-x-2">
                                         @if(!$vendorData->status_lunas)
-                                        <a href="{{ route('purchasing.pembayaran.create', [$proyek->id_proyek, $vendorData->vendor->id_vendor]) }}" 
-                                           class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                            <i class="fas fa-plus mr-1"></i>
-                                            Input Pembayaran
-                                        </a>
+                                            @if($canAccess)
+                                            <a href="{{ route('purchasing.pembayaran.create', [$proyek->id_proyek, $vendorData->vendor->id_vendor]) }}" 
+                                               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                                <i class="fas fa-plus mr-1"></i>
+                                                Input Pembayaran
+                                            </a>
+                                            @else
+                                            <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
+                                                <i class="fas fa-lock mr-1"></i>
+                                                @if($currentUser->role !== 'admin_purchasing')
+                                                    Hanya Admin Purchasing
+                                                @else
+                                                    Tidak Memiliki Akses
+                                                @endif
+                                            </span>
+                                            @endif
                                         @endif
                                         
                                         @if($vendorPembayaran->count() > 0)
@@ -712,11 +745,22 @@
                     <!-- Action Buttons -->
                     <div class="mt-4 flex flex-wrap gap-2">
                         @if(!$proyek->status_lunas)
-                        <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
-                           class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                            <i class="fas fa-plus mr-1"></i>
-                            Input Pembayaran
-                        </a>
+                            @if($canAccess)
+                            <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
+                               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                <i class="fas fa-plus mr-1"></i>
+                                Input Pembayaran
+                            </a>
+                            @else
+                            <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
+                                <i class="fas fa-lock mr-1"></i>
+                                @if($currentUser->role !== 'admin_purchasing')
+                                    Hanya Admin Purchasing
+                                @else
+                                    Tidak Memiliki Akses
+                                @endif
+                            </span>
+                            @endif
                         @endif
                         
                         @if($totalPembayaran > 0)
@@ -941,24 +985,39 @@
                             @endif
                             
                             @if($pembayaran->status_verifikasi == 'Pending')
-                            <a href="{{ route('purchasing.pembayaran.edit', $pembayaran->id_pembayaran) }}" 
-                               class="inline-flex items-center px-2 py-1 border border-yellow-300 text-xs leading-4 font-medium rounded text-yellow-700 bg-yellow-50 hover:bg-yellow-100">
-                                <i class="fas fa-edit mr-1"></i>
-                                Edit
-                            </a>
-                            
-                            <form action="{{ route('purchasing.pembayaran.destroy', $pembayaran->id_pembayaran) }}" 
-                                  method="POST" 
-                                  class="inline"
-                                  onsubmit="return confirm('Apakah Anda yakin ingin menghapus pembayaran ini? File bukti pembayaran juga akan dihapus.')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                        class="inline-flex items-center px-2 py-1 border border-red-300 text-xs leading-4 font-medium rounded text-red-700 bg-red-50 hover:bg-red-100">
-                                    <i class="fas fa-trash mr-1"></i>
-                                    Hapus
-                                </button>
-                            </form>
+                                @php
+                                    $canAccessPembayaran = $currentUser->role === 'admin_purchasing' && $pembayaran->penawaran->proyek->id_admin_purchasing == $currentUser->id_user;
+                                @endphp
+                                
+                                @if($canAccessPembayaran)
+                                <a href="{{ route('purchasing.pembayaran.edit', $pembayaran->id_pembayaran) }}" 
+                                   class="inline-flex items-center px-2 py-1 border border-yellow-300 text-xs leading-4 font-medium rounded text-yellow-700 bg-yellow-50 hover:bg-yellow-100">
+                                    <i class="fas fa-edit mr-1"></i>
+                                    Edit
+                                </a>
+                                
+                                <form action="{{ route('purchasing.pembayaran.destroy', $pembayaran->id_pembayaran) }}" 
+                                      method="POST" 
+                                      class="inline"
+                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus pembayaran ini? File bukti pembayaran juga akan dihapus.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="inline-flex items-center px-2 py-1 border border-red-300 text-xs leading-4 font-medium rounded text-red-700 bg-red-50 hover:bg-red-100">
+                                        <i class="fas fa-trash mr-1"></i>
+                                        Hapus
+                                    </button>
+                                </form>
+                                @else
+                                <span class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs leading-4 font-medium rounded text-gray-500 bg-gray-100 cursor-not-allowed">
+                                    <i class="fas fa-lock mr-1"></i>
+                                    @if($currentUser->role !== 'admin_purchasing')
+                                        Hanya Admin Purchasing
+                                    @else
+                                        Tidak Memiliki Akses
+                                    @endif
+                                </span>
+                                @endif
                             @endif
                         </div>
                     </td>
@@ -1048,6 +1107,10 @@
 </div>
 
 <script>
+// Global variables for access control
+window.currentUserId = {{ $currentUser->id_user }};
+window.currentUserRole = '{{ $currentUser->role }}';
+
 function showProyekDetail(proyek) {
     const modal = document.getElementById('proyekDetailModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -1059,6 +1122,11 @@ function showProyekDetail(proyek) {
     const pendingCount = proyek.pembayaran.filter(p => p.status_verifikasi === 'Pending').length;
     const approvedCount = proyek.pembayaran.filter(p => p.status_verifikasi === 'Approved').length;
     const ditolakCount = proyek.pembayaran.filter(p => p.status_verifikasi === 'Ditolak').length;
+    
+    // Get current user info from global variables
+    const currentUserId = window.currentUserId;
+    const currentUserRole = window.currentUserRole;
+    const canAccess = currentUserRole === 'admin_purchasing' && proyek.id_admin_purchasing == currentUserId;
     
     modalContent.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1128,14 +1196,46 @@ function showProyekDetail(proyek) {
             </div>
         </div>
         
+        ${!canAccess && currentUserRole !== 'admin_purchasing' ? `
+            <!-- Access Info Banner for Non-Admin -->
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    <span class="text-blue-700 text-sm font-medium">
+                        Anda dapat melihat detail proyek ini namun tidak dapat melakukan aksi pembayaran.
+                    </span>
+                </div>
+            </div>
+        ` : ''}
+        
+        ${!canAccess && currentUserRole === 'admin_purchasing' ? `
+            <!-- Access Info Banner for Other Admin Purchasing -->
+            <div class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-lock text-orange-500 mr-2"></i>
+                    <span class="text-orange-700 text-sm font-medium">
+                        Proyek ini ditangani oleh admin purchasing lain. Anda hanya dapat melihat detail.
+                    </span>
+                </div>
+            </div>
+        ` : ''}
+        
         <!-- Action Buttons -->
         <div class="mt-6 flex flex-wrap gap-2">
-            ${!proyek.status_lunas ? `
+            ${canAccess && !proyek.status_lunas ? `
                 <a href="/purchasing/pembayaran/create/${proyek.id_proyek}" 
                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                     <i class="fas fa-plus mr-2"></i>
                     Input Pembayaran Baru
                 </a>
+            ` : ''}
+            
+            ${!canAccess && !proyek.status_lunas ? `
+                <button disabled
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
+                    <i class="fas fa-lock mr-2"></i>
+                    Input Pembayaran (Terkunci)
+                </button>
             ` : ''}
             
             ${totalPembayaran > 0 ? `

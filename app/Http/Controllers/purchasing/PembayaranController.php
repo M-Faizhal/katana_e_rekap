@@ -11,6 +11,7 @@ use App\Models\Vendor;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PembayaranController extends Controller
 {
@@ -244,8 +245,20 @@ class PembayaranController extends Controller
      */
     public function create($id_proyek, $id_vendor = null)
     {
+        // Check if user is admin_purchasing and assigned to this project
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Hanya admin purchasing yang dapat menginput pembayaran.');
+        }
+
         $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran'])
             ->findOrFail($id_proyek);
+
+        if ($proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk menginput pembayaran pada proyek ini.');
+        }
 
         // Pastikan proyek memiliki penawaran yang sudah di-ACC
         if (!$proyek->penawaranAktif || $proyek->penawaranAktif->status !== 'ACC') {
@@ -335,6 +348,19 @@ class PembayaranController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if user is admin_purchasing and assigned to this project
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Hanya admin purchasing yang dapat menginput pembayaran.');
+        }
+
+        $proyek = Proyek::find($request->id_proyek);
+        if (!$proyek || $proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk menginput pembayaran pada proyek ini.');
+        }
+
         $request->validate([
             'id_proyek' => 'required|exists:proyek,id_proyek',
             'id_vendor' => 'required|exists:vendor,id_vendor',
@@ -481,7 +507,22 @@ class PembayaranController extends Controller
      */
     public function calculateSuggestion(Request $request)
     {
+        // Role-based access control: Only allow assigned admin_purchasing
+        if (Auth::user()->role !== 'admin_purchasing') {
+            return response()->json([
+                'error' => 'Tidak memiliki akses untuk fitur ini. Hanya admin purchasing yang dapat menggunakan kalkulator saran pembayaran.'
+            ], 403);
+        }
+
         $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor'])->findOrFail($request->id_proyek);
+        
+        // Check if current user is assigned to this project
+        if ($proyek->id_admin_purchasing != Auth::user()->id_user) {
+            return response()->json([
+                'error' => 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat menggunakan kalkulator saran pembayaran.'
+            ], 403);
+        }
+
         $id_vendor = $request->id_vendor;
         
         if ($id_vendor) {
@@ -514,7 +555,20 @@ class PembayaranController extends Controller
      */
     public function edit($id_pembayaran)
     {
+        // Check if user is admin_purchasing and assigned to this project
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Hanya admin purchasing yang dapat mengedit pembayaran.');
+        }
+
         $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor'])->findOrFail($id_pembayaran);
+        
+        // Check if user is assigned to this project
+        if ($pembayaran->penawaran->proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk mengedit pembayaran pada proyek ini.');
+        }
         
         // Hanya bisa edit jika status masih pending
         if ($pembayaran->status_verifikasi !== 'Pending') {
@@ -548,7 +602,20 @@ class PembayaranController extends Controller
      */
     public function update(Request $request, $id_pembayaran)
     {
+        // Check if user is admin_purchasing and assigned to this project
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Hanya admin purchasing yang dapat mengupdate pembayaran.');
+        }
+
         $pembayaran = Pembayaran::with(['penawaran.proyek'])->findOrFail($id_pembayaran);
+        
+        // Check if user is assigned to this project
+        if ($pembayaran->penawaran->proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk mengupdate pembayaran pada proyek ini.');
+        }
         
         // Hanya bisa update jika status masih pending
         if ($pembayaran->status_verifikasi !== 'Pending') {
@@ -633,7 +700,20 @@ class PembayaranController extends Controller
      */
     public function destroy($id_pembayaran)
     {
-        $pembayaran = Pembayaran::findOrFail($id_pembayaran);
+        // Check if user is admin_purchasing and assigned to this project
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Hanya admin purchasing yang dapat menghapus pembayaran.');
+        }
+
+        $pembayaran = Pembayaran::with(['penawaran.proyek'])->findOrFail($id_pembayaran);
+        
+        // Check if user is assigned to this project
+        if ($pembayaran->penawaran->proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk menghapus pembayaran pada proyek ini.');
+        }
         
         // Hanya bisa hapus jika status masih pending
         if ($pembayaran->status_verifikasi !== 'Pending') {

@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $currentUser = Auth::user();
+    $canAccess = $currentUser->role === 'admin_purchasing' && $proyek->id_admin_purchasing == $currentUser->id_user;
+    $sisaBayar = $proyek->sisa_bayar ?? 0;
+@endphp
 
 <!-- Header Section Enhanced -->
 <div class="bg-gradient-to-r from-green-800 to-emerald-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-xl mt-4">
@@ -205,11 +210,19 @@
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold text-gray-800">Riwayat Pembayaran</h2>
             @if($sisaBayar > 0)
-            <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
-               class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                <i class="fas fa-plus mr-2"></i>
-                Tambah Pembayaran
-            </a>
+                @if($canAccess)
+                    <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>
+                        Tambah Pembayaran
+                    </a>
+                @else
+                    <button disabled
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed">
+                        <i class="fas fa-lock mr-2"></i>
+                        Tambah Pembayaran (Terkunci)
+                    </button>
+                @endif
             @endif
         </div>
     </div>
@@ -318,11 +331,19 @@
             <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada riwayat pembayaran</h3>
             <p class="mt-1 text-sm text-gray-500">Tambahkan pembayaran pertama untuk proyek ini.</p>
             <div class="mt-6">
-                <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
-                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                    <i class="fas fa-plus mr-2"></i>
-                    Tambah Pembayaran
-                </a>
+                @if($canAccess)
+                    <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>
+                        Tambah Pembayaran
+                    </a>
+                @else
+                    <button disabled
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
+                        <i class="fas fa-lock mr-2"></i>
+                        Tambah Pembayaran (Terkunci)
+                    </button>
+                @endif
             </div>
         </div>
         @endif
@@ -339,11 +360,19 @@
     
     <div class="flex space-x-3">
         @if($sisaBayar > 0)
-        <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
-           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-            <i class="fas fa-plus mr-2"></i>
-            Tambah Pembayaran
-        </a>
+            @if($canAccess)
+                <a href="{{ route('purchasing.pembayaran.create', $proyek->id_proyek) }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    <i class="fas fa-plus mr-2"></i>
+                    Tambah Pembayaran
+                </a>
+            @else
+                <button disabled
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-400 bg-gray-100 cursor-not-allowed">
+                    <i class="fas fa-lock mr-2"></i>
+                    Tambah Pembayaran (Terkunci)
+                </button>
+            @endif
         @endif
     </div>
 </div>

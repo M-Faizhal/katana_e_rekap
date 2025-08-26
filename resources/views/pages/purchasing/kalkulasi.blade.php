@@ -7,27 +7,6 @@
     $isAdminPurchasing = $currentUser->role === 'admin_purchasing';
 @endphp
 
-@if(!$isAdminPurchasing)
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-    <div class="flex items-center">
-        <i class="fas fa-info-circle text-blue-600 text-lg mr-3"></i>
-        <div>
-            <h4 class="text-sm font-medium text-blue-800">Informasi Akses</h4>
-            <p class="text-xs sm:text-sm text-blue-700">Anda hanya dapat melihat data. Kalkulasi HPS hanya dapat dilakukan oleh admin purchasing.</p>
-        </div>
-    </div>
-</div>
-@elseif($isAdminPurchasing)
-<div class="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-    <div class="flex items-center">
-        <i class="fas fa-exclamation-triangle text-amber-600 text-lg mr-3"></i>
-        <div>
-            <h4 class="text-sm font-medium text-amber-800">Akses Terbatas</h4>
-            <p class="text-xs sm:text-sm text-amber-700">Anda hanya dapat melakukan kalkulasi pada proyek yang ditugaskan kepada Anda.</p>
-        </div>
-    </div>
-</div>
-@endif
 
 <!-- Header Section -->
 <div class="bg-red-800 rounded-lg md:rounded-xl lg:rounded-2xl p-3 sm:p-4 md:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white shadow-lg mt-2 sm:mt-4">
