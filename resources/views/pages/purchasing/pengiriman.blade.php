@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Access Control Info -->
+@php
+    $currentUser = Auth::user();
+    $isAdminPurchasing = $currentUser->role === 'admin_purchasing';
+@endphp
+
+
 
 <!-- Header Section -->
 <div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
@@ -162,10 +169,26 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button onclick="buatPengiriman({{ $proyek->penawaranAktif->id_penawaran }}, {{ $vendorData['vendor']['id_vendor'] }})" 
-                                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-                                            <i class="fas fa-plus mr-1"></i> Buat Pengiriman
-                                        </button>
+                                        @php
+                                            $canAccess = $currentUser->role === 'admin_purchasing' && $proyek->id_admin_purchasing == $currentUser->id_user;
+                                        @endphp
+                                        
+                                        @if($canAccess)
+                                            <button onclick="buatPengiriman({{ $proyek->penawaranAktif->id_penawaran }}, {{ $vendorData['vendor']['id_vendor'] }})" 
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                                <i class="fas fa-plus mr-1"></i> Buat Pengiriman
+                                            </button>
+                                        @else
+                                            <button disabled
+                                                    class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm cursor-not-allowed">
+                                                <i class="fas fa-lock mr-1"></i> 
+                                                @if($currentUser->role !== 'admin_purchasing')
+                                                    Tidak Ada Akses
+                                                @else
+                                                    Bukan Proyek Anda
+                                                @endif
+                                            </button>
+                                        @endif
                                     </td>
                                 </tr>
                                 @endif
@@ -262,10 +285,26 @@
                                 <i class="fas fa-building mr-1"></i>{{ $pengiriman->vendor->jenis_perusahaan }}
                             </div>
                             <div class="mt-2">
-                                <button onclick="updateDokumentasi({{ $pengiriman->id_pengiriman }})" 
-                                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                                    <i class="fas fa-upload mr-1"></i>Update
-                                </button>
+                                @php
+                                    $canAccessUpdate = $currentUser->role === 'admin_purchasing' && $pengiriman->penawaran->proyek->id_admin_purchasing == $currentUser->id_user;
+                                @endphp
+                                
+                                @if($canAccessUpdate)
+                                    <button onclick="updateDokumentasi({{ $pengiriman->id_pengiriman }})" 
+                                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                                        <i class="fas fa-upload mr-1"></i>Update
+                                    </button>
+                                @else
+                                    <button disabled
+                                            class="bg-gray-300 text-gray-500 px-3 py-1 rounded text-sm cursor-not-allowed">
+                                        <i class="fas fa-lock mr-1"></i>
+                                        @if($currentUser->role !== 'admin_purchasing')
+                                            Terkunci
+                                        @else
+                                            Bukan Proyek Anda
+                                        @endif
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -564,6 +603,10 @@
 </div>
 
 <script>
+// Global variables for access control
+window.currentUserId = {{ $currentUser->id_user }};
+window.currentUserRole = '{{ $currentUser->role }}';
+
 // Tab switching
 function switchTab(tabName) {
     // Hide all tab contents
@@ -588,6 +631,12 @@ function switchTab(tabName) {
 
 // Buat pengiriman
 function buatPengiriman(penawaranId, vendorId) {
+    // Check access control
+    if (window.currentUserRole !== 'admin_purchasing') {
+        alert('Tidak memiliki akses untuk membuat pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+        return;
+    }
+
     // Set ID penawaran dan vendor
     document.getElementById('id_penawaran').value = penawaranId;
     document.getElementById('id_vendor').value = vendorId;
@@ -612,6 +661,12 @@ function buatPengiriman(penawaranId, vendorId) {
     }
     
     if (selectedProyek && selectedVendor) {
+        // Check if current user is assigned to this project
+        if (selectedProyek.id_admin_purchasing != window.currentUserId) {
+            alert('Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat membuat pengiriman untuk proyek ini.');
+            return;
+        }
+
         document.getElementById('infoProyek').innerHTML = `
             <h4 class="font-semibold text-gray-900 mb-2">Informasi Proyek & Vendor</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -650,12 +705,24 @@ function buatPengiriman(penawaranId, vendorId) {
 
 // Update dokumentasi
 function updateDokumentasi(pengirimanId) {
+    // Check access control
+    if (window.currentUserRole !== 'admin_purchasing') {
+        alert('Tidak memiliki akses untuk mengupdate dokumentasi pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+        return;
+    }
+
     // Set form action - gunakan route Laravel yang benar
     document.getElementById('formUpdateDokumentasi').action = `/purchasing/pengiriman/${pengirimanId}/update-dokumentasi`;
     
     // Find pengiriman data
     const pengirimanData = @json($pengirimanBerjalan);
     const pengiriman = pengirimanData.find(p => p.id_pengiriman == pengirimanId);
+    
+    // Check if current user is assigned to this project
+    if (pengiriman && pengiriman.penawaran.proyek.id_admin_purchasing != window.currentUserId) {
+        alert('Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat mengupdate dokumentasi pengiriman untuk proyek ini.');
+        return;
+    }
     
     if (pengiriman) {
         document.getElementById('infoPengirimanUpdate').innerHTML = `

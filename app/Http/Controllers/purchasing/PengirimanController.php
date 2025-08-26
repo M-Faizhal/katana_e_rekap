@@ -128,6 +128,12 @@ class PengirimanController extends Controller
      */
     public function store(Request $request)
     {
+        // Role-based access control: Only allow admin_purchasing
+        if (Auth::user()->role !== 'admin_purchasing') {
+            return redirect()->route('purchasing.pengiriman')
+                ->with('error', 'Tidak memiliki akses untuk membuat pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+        }
+
         $request->validate([
             'id_penawaran' => 'required|exists:penawaran,id_penawaran',
             'id_vendor' => 'required|exists:vendor,id_vendor',
@@ -139,6 +145,12 @@ class PengirimanController extends Controller
 
         // Pastikan vendor sudah ada pembayaran yang approved (tidak harus lunas)
         $penawaran = Penawaran::with(['proyek.pembayaran'])->findOrFail($request->id_penawaran);
+        
+        // Check if current user is assigned to this project
+        if ($penawaran->proyek->id_admin_purchasing != Auth::user()->id_user) {
+            return redirect()->route('purchasing.pengiriman')
+                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat membuat pengiriman untuk proyek ini.');
+        }
         
         $totalVendor = $penawaran->penawaranDetail
             ->where('barang.id_vendor', $request->id_vendor)
@@ -207,7 +219,19 @@ class PengirimanController extends Controller
      */
     public function updateDokumentasi(Request $request, $id)
     {
-        $pengiriman = Pengiriman::findOrFail($id);
+        // Role-based access control: Only allow admin_purchasing
+        if (Auth::user()->role !== 'admin_purchasing') {
+            return redirect()->route('purchasing.pengiriman')
+                ->with('error', 'Tidak memiliki akses untuk mengupdate dokumentasi pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+        }
+
+        $pengiriman = Pengiriman::with(['penawaran.proyek'])->findOrFail($id);
+        
+        // Check if current user is assigned to this project
+        if ($pengiriman->penawaran->proyek->id_admin_purchasing != Auth::user()->id_user) {
+            return redirect()->route('purchasing.pengiriman')
+                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat mengupdate dokumentasi pengiriman untuk proyek ini.');
+        }
 
         $request->validate([
             'foto_berangkat' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
@@ -262,6 +286,12 @@ class PengirimanController extends Controller
      */
     public function verify(Request $request, $id)
     {
+        // Role-based access control: Only allow superadmin
+        if (Auth::user()->role !== 'superadmin') {
+            return redirect()->route('purchasing.pengiriman')
+                ->with('error', 'Tidak memiliki akses untuk memverifikasi pengiriman. Hanya superadmin yang dapat melakukan aksi ini.');
+        }
+
         $pengiriman = Pengiriman::with(['penawaran.proyek'])->findOrFail($id);
 
         // Pastikan dokumentasi lengkap
@@ -360,7 +390,19 @@ class PengirimanController extends Controller
      */
     public function destroy($id)
     {
-        $pengiriman = Pengiriman::findOrFail($id);
+        // Role-based access control: Only allow admin_purchasing
+        if (Auth::user()->role !== 'admin_purchasing') {
+            return redirect()->route('purchasing.pengiriman')
+                ->with('error', 'Tidak memiliki akses untuk menghapus pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+        }
+
+        $pengiriman = Pengiriman::with(['penawaran.proyek'])->findOrFail($id);
+        
+        // Check if current user is assigned to this project
+        if ($pengiriman->penawaran->proyek->id_admin_purchasing != Auth::user()->id_user) {
+            return redirect()->route('purchasing.pengiriman')
+                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat menghapus pengiriman untuk proyek ini.');
+        }
 
         // Hanya bisa hapus jika status masih Pending
         if ($pengiriman->status_verifikasi !== 'Pending') {
