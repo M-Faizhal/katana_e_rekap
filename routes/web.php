@@ -16,6 +16,7 @@ use App\Http\Controllers\Marketing\WilayahController;
 use App\Http\Controllers\Marketing\PotensiController;
 use App\Http\Controllers\Marketing\PenawaranController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\DashboardController;
 
 
 
@@ -30,9 +31,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // Protected routes with authentication
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('pages.dashboard');
-    })->name('dashboard');
+    // Dashboard Routes
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/realtime', [DashboardController::class, 'getRealtimeData'])->name('dashboard.realtime');
+    Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartData'])->name('dashboard.chart');
 
     // Laporan Routes
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
