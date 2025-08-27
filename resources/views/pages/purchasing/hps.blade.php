@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Kalkulasi HPS - ' . ($proyek->nama_klien ?? 'Unknown'))
+@section('title', 'Kalkulasi HPS - ' . ($proyek->nama_klien ?? 'Unknown') . ' - Cyber KATANA')
 
 @section('content')
 <div class="container mx-auto px-4 py-6 max-w-7xl">

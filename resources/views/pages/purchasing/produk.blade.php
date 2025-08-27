@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Produk - Cyber KATANA')
+
 @push('styles')
 <style>
     /* Completely remove number input spinners/arrows - ULTIMATE VERSION */

@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Proyek - Cyber KATANA')
+
 @section('content')
 
 @php

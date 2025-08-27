@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - KATANA E-Rekap</title>
+  <title>Login - Cyber KATANA</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -29,7 +30,7 @@
             <div class="w-36 h-36 bg-white rounded-full flex items-center justify-center mr-3 overflow-hidden">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo KATANA" class="w-36 h-36 object-contain">
             </div>
-            <span class="text-4xl font-bold">KATANA E-Rekap</span>
+            <span class="text-4xl font-bold">CYBER KATANA</span>
             </div>
 
             <h1 class="text-7xl font-bold mb-4 leading-tight">

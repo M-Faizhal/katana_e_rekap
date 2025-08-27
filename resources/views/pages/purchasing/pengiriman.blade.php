@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Pengiriman - Cyber KATANA')
+
 @section('content')
 <!-- Access Control Info -->
 @php
@@ -855,9 +857,7 @@ function lihatDetailSelesai(pengirimanId) {
         // Fill shipping info
         document.getElementById('infoPengirimanDetailSelesai').innerHTML = `
             <div><span class="text-gray-500">No. Surat Jalan:</span> <span class="font-medium">${pengiriman.no_surat_jalan}</span></div>
-            <div><span class="text-gray-500">Status:</span> <span class="font-medium ${pengiriman.penawaran.proyek.status === 'Selesai' ? 'text-green-600' : 'text-blue-600'}">
-                ${pengiriman.penawaran.proyek.status === 'Selesai' ? 'Verified' : 'Dokumentasi Lengkap'}
-            </span></div>
+            <div><span class="text-gray-500">Status:</span> <span class="font-medium">${pengiriman.penawaran.proyek.status === 'Selesai' ? 'Verified' : 'Dokumentasi Lengkap'}</span></div>
             <div><span class="text-gray-500">Status Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.status}</span></div>
             <div><span class="text-gray-500">Alamat Kirim:</span> <span class="font-medium">${pengiriman.alamat_kirim || 'Tidak tersedia'}</span></div>
             <div><span class="text-gray-500">Tanggal Update:</span> <span class="font-medium">${new Date(pengiriman.updated_at).toLocaleDateString('id-ID')}</span></div>

@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Pembayaran - Cyber KATANA')
+
 @section('content')
 <!-- Access Control Info -->
 @php
@@ -1297,7 +1299,7 @@ function openTab(evt, tabName) {
     badges.forEach(badge => {
         if (badge.classList.contains('bg-gray-200')) {
             badge.classList.remove('bg-gray-200', 'text-gray-700');
-            badge.classList.add('bg-red-100', 'text-red-800');
+                       badge.classList.add('bg-red-100', 'text-red-800');
         }
     });
     

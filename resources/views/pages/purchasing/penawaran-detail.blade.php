@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Penawaran - ' . ($penawaran->no_penawaran ?? 'Unknown'))
+@section('title', 'Detail Penawaran - ' . ($penawaran->no_penawaran ?? 'Unknown') . ' - Cyber KATANA')
 
 @section('content')
 <div class="container mx-auto px-4 py-6 max-w-7xl">

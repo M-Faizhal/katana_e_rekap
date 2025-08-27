@@ -1,4 +1,6 @@
-    @extends('layouts.app')
+@extends('layouts.app')
+
+@section('title', 'Wilayah - Cyber KATANA')
 
 @section('content')
 <!-- Header Section -->

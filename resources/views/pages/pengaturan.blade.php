@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pengaturan Akun')
+@section('title', 'Pengaturan Akun - Cyber KATANA')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-4 sm:py-6 lg:py-8">

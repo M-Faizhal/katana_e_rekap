@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Kalkulasi - Cyber KATANA')
+
 @section('content')
 <!-- Access Control Info -->
 @php

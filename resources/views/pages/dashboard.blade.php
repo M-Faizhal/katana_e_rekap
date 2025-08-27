@@ -1,12 +1,14 @@
 @extends('layouts.app')
 
+@section('title', 'Dashboard - Cyber KATANA')
+
 @section('content')
 <div class="max-w-7xl mx-auto">
 <!-- Welcome Banner -->
 <div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Dashboard E-Rekap KATANA</h1>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Dashboard Cyber KATANA</h1>
             <p class="text-red-100 text-sm sm:text-base lg:text-lg">Monitoring Omset, Hutang, dan Piutang Perusahaan</p>
         </div>
         <div class="hidden lg:block">

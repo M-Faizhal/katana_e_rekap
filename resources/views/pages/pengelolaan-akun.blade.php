@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pengelolaan Akun')
+@section('title', 'Pengelolaan Akun - Cyber KATANA')
 
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
