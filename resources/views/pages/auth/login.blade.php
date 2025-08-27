@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - KATANA E-Rekap</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -138,20 +138,22 @@
             @enderror
           </div>
 
-          <!-- Remember Me -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <input
-                id="remember"
-                name="remember"
-                type="checkbox"
-                class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-              >
-              <label for="remember" class="ml-2 block text-sm text-gray-700">
-                Ingat saya
-              </label>
-            </div>
+          
+          <!-- reCAPTCHA -->
+          <div class="flex justify-center">
+            <div class="g-recaptcha" 
+                 data-sitekey="{{ config('services.recaptcha.site_key') }}"
+                 data-callback="onRecaptchaSuccess"
+                 data-expired-callback="onRecaptchaExpired"
+                 data-error-callback="onRecaptchaError"
+                 data-theme="light"
+                 data-size="normal"></div>
           </div>
+          @error('g-recaptcha-response')
+            <p class="mt-1 text-sm text-red-500 text-center">
+              <i class="fas fa-exclamation-triangle mr-1"></i>{{ $message }}
+            </p>
+          @enderror
 
           <!-- Submit Button -->
           <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -198,11 +200,36 @@
     document.addEventListener('DOMContentLoaded', function() {
       const form = document.querySelector('form');
       const submitButton = form.querySelector('button[type="submit"]');
+      let isSubmitting = false;
       
-      form.addEventListener('submit', function() {
-        // Disable submit button to prevent double submission
+      form.addEventListener('submit', function(e) {
+        // Prevent double submission
+        if (isSubmitting) {
+          e.preventDefault();
+          return false;
+        }
+
+        // Check if reCAPTCHA is completed
+        if (typeof grecaptcha !== 'undefined') {
+          const recaptchaResponse = grecaptcha.getResponse();
+          if (recaptchaResponse.length === 0) {
+            e.preventDefault();
+            alert('Mohon selesaikan verifikasi reCAPTCHA terlebih dahulu.');
+            return false;
+          }
+        }
+
+        // Set submitting state
+        isSubmitting = true;
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memproses...';
+        
+        // Reset state after 30 seconds as fallback
+        setTimeout(function() {
+          isSubmitting = false;
+          submitButton.disabled = false;
+          submitButton.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Masuk';
+        }, 30000);
       });
 
       // Add interactive feedback for inputs
@@ -217,6 +244,21 @@
         });
       });
     });
+
+    // reCAPTCHA callback functions
+    function onRecaptchaSuccess() {
+      console.log('reCAPTCHA verified successfully');
+    }
+
+    function onRecaptchaExpired() {
+      console.log('reCAPTCHA expired');
+      alert('Verifikasi reCAPTCHA telah kedaluwarsa. Mohon verifikasi ulang.');
+    }
+
+    function onRecaptchaError() {
+      console.log('reCAPTCHA error');
+      alert('Terjadi kesalahan pada verifikasi reCAPTCHA. Mohon coba lagi.');
+    }
   </script>
 </body>
 </html>

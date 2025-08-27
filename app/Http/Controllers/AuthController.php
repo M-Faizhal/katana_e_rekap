@@ -26,7 +26,18 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|string',
             'password' => 'required',
+            'g-recaptcha-response' => 'required',
+        ], [
+            'g-recaptcha-response.required' => 'Mohon selesaikan verifikasi reCAPTCHA.',
         ]);
+
+        // Verify reCAPTCHA
+        $recaptchaResponse = $request->input('g-recaptcha-response');
+        if (!$this->verifyRecaptcha($recaptchaResponse)) {
+            return back()->withErrors([
+                'g-recaptcha-response' => 'Verifikasi reCAPTCHA gagal. Mohon coba lagi.',
+            ])->withInput($request->only('email'));
+        }
 
         $loginField = $request->input('email');
         $password = $request->input('password');
@@ -80,5 +91,43 @@ class AuthController extends Controller
             default:
                 return redirect()->route('dashboard');
         }
+    }
+
+    /**
+     * Verify reCAPTCHA response
+     */
+    private function verifyRecaptcha($recaptchaResponse)
+    {
+        $secretKey = config('services.recaptcha.secret_key');
+        
+        if (empty($secretKey) || empty($recaptchaResponse)) {
+            return false;
+        }
+        
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => 'https://www.google.com/recaptcha/api/siteverify',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => http_build_query([
+                'secret' => $secretKey,
+                'response' => $recaptchaResponse,
+                'remoteip' => request()->ip()
+            ]),
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        
+        $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        
+        if ($httpCode !== 200 || $response === false) {
+            return false;
+        }
+        
+        $result = json_decode($response, true);
+        
+        return isset($result['success']) && $result['success'] === true;
     }
 }
