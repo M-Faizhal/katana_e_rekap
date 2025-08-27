@@ -3,12 +3,25 @@
 @section('title', 'Penagihan - Cyber KATANA')
 
 @section('content')
+<!-- Access Control Info -->
+@php
+    $user = auth()->user();
+    $isAdminKeuangan = $user->role === 'admin_keuangan';
+@endphp
+
+
 <!-- Header Section -->
 <div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Penagihan Dinas</h1>
-            <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola penagihan dan pembayaran dari dinas/instansi</p>
+            <p class="text-red-100 text-sm sm:text-base lg:text-lg">
+                @if($isAdminKeuangan)
+                    Kelola penagihan dan pembayaran dari dinas/instansi
+                @else
+                    Monitor penagihan dan pembayaran dari dinas/instansi (Mode Hanya Lihat)
+                @endif
+            </p>
         </div>
         <div class="hidden sm:block lg:block">
             <i class="fas fa-file-invoice-dollar text-3xl sm:text-4xl lg:text-6xl text-red-200"></i>
@@ -57,11 +70,21 @@
     <div id="belum-bayar" class="tab-pane">
         <div class="bg-white rounded-lg shadow-lg">
             <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-clock text-yellow-500 mr-2"></i>
-                    Proyek Belum Bayar
-                </h2>
-                <p class="text-gray-600 mt-1">Daftar proyek yang sudah di ACC klien namun belum dibuat penagihan</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                            Proyek Belum Bayar
+                        </h2>
+                        <p class="text-gray-600 mt-1">Daftar proyek yang sudah di ACC klien namun belum dibuat penagihan</p>
+                    </div>
+                    @if(!$isAdminKeuangan)
+                    <div class="flex items-center px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <i class="fas fa-eye text-blue-600 mr-2"></i>
+                        <span class="text-sm font-medium text-blue-700">Mode Lihat Saja</span>
+                    </div>
+                    @endif
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -135,11 +158,19 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm font-medium">
-                                <a href="{{ route('penagihan-dinas.create', $proyek->id_proyek) }}" 
-                                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
-                                    <i class="fas fa-file-invoice mr-2"></i>
-                                    Buat Penagihan
-                                </a>
+                                @if($isAdminKeuangan)
+                                    <a href="{{ route('penagihan-dinas.create', $proyek->id_proyek) }}" 
+                                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                                        <i class="fas fa-file-invoice mr-2"></i>
+                                        Buat Penagihan
+                                    </a>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 bg-gray-100 border border-gray-200"
+                                          title="Hanya Admin Keuangan yang dapat membuat penagihan">
+                                        <i class="fas fa-lock mr-2 text-gray-400"></i>
+                                        Akses Terbatas
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                         @empty
@@ -243,21 +274,29 @@
                                         <i class="fas fa-eye mr-1"></i>
                                         Detail
                                     </a>
-                                    <a href="{{ route('penagihan-dinas.show-pelunasan', $penagihan->id) }}" 
-                                       class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-green-600 bg-green-100 hover:bg-green-200 transition-colors duration-200">
-                                        <i class="fas fa-money-check-alt mr-1"></i>
-                                        Lunasi
-                                    </a>
-                                    <a href="{{ route('penagihan-dinas.edit', $penagihan->id) }}" 
-                                       class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-yellow-600 bg-yellow-100 hover:bg-yellow-200 transition-colors duration-200">
-                                        <i class="fas fa-edit mr-1"></i>
-                                        Edit
-                                    </a>
                                     <a href="{{ route('penagihan-dinas.history', $penagihan->id) }}" 
                                        class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-purple-600 bg-purple-100 hover:bg-purple-200 transition-colors duration-200">
                                         <i class="fas fa-history mr-1"></i>
                                         History
                                     </a>
+                                    @if($isAdminKeuangan)
+                                        <a href="{{ route('penagihan-dinas.show-pelunasan', $penagihan->id) }}" 
+                                           class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-green-600 bg-green-100 hover:bg-green-200 transition-colors duration-200">
+                                            <i class="fas fa-money-check-alt mr-1"></i>
+                                            Lunasi
+                                        </a>
+                                        <a href="{{ route('penagihan-dinas.edit', $penagihan->id) }}" 
+                                           class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-yellow-600 bg-yellow-100 hover:bg-yellow-200 transition-colors duration-200">
+                                            <i class="fas fa-edit mr-1"></i>
+                                            Edit
+                                        </a>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded text-gray-600 bg-gray-100 border border-gray-200"
+                                              title="Hanya Admin Keuangan yang dapat melakukan pelunasan dan edit">
+                                            <i class="fas fa-lock mr-1 text-gray-400"></i>
+                                            Akses Terbatas
+                                        </span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -364,11 +403,19 @@
                                         <i class="fas fa-history mr-1"></i>
                                         History
                                     </a>
-                                    <a href="{{ route('penagihan-dinas.edit', $penagihan->id) }}" 
-                                       class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-yellow-600 bg-yellow-100 hover:bg-yellow-200 transition-colors duration-200">
-                                        <i class="fas fa-edit mr-1"></i>
-                                        Edit
-                                    </a>
+                                    @if($isAdminKeuangan)
+                                        <a href="{{ route('penagihan-dinas.edit', $penagihan->id) }}" 
+                                           class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-yellow-600 bg-yellow-100 hover:bg-yellow-200 transition-colors duration-200">
+                                            <i class="fas fa-edit mr-1"></i>
+                                            Edit
+                                        </a>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded text-gray-600 bg-gray-100 border border-gray-200"
+                                              title="Hanya Admin Keuangan yang dapat melakukan edit">
+                                            <i class="fas fa-lock mr-1 text-gray-400"></i>
+                                            Akses Terbatas
+                                        </span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

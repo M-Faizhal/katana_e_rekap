@@ -111,6 +111,12 @@ class ApprovalController extends Controller
      */
     public function approve(Request $request, $id_pembayaran)
     {
+        // Role-based access control
+        if (Auth::user()->role !== 'admin_keuangan') {
+            return redirect()->route('keuangan.approval')
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat melakukan approve pembayaran.');
+        }
+
         $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor'])
             ->findOrFail($id_pembayaran);
 
@@ -185,6 +191,12 @@ class ApprovalController extends Controller
      */
     public function reject(Request $request, $id_pembayaran)
     {
+        // Role-based access control
+        if (Auth::user()->role !== 'admin_keuangan') {
+            return redirect()->route('keuangan.approval')
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat melakukan reject pembayaran.');
+        }
+
         $request->validate([
             'alasan_penolakan' => 'required|string|min:10'
         ]);
