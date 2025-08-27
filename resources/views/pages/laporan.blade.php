@@ -25,9 +25,9 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Proyek Selesai</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">12</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{{ $stats['proyek_selesai'] }}</p>
                 <p class="text-xs sm:text-sm text-green-500">
-                    <i class="fas fa-arrow-up"></i> +3 bulan ini
+                    <i class="fas fa-arrow-up"></i> +{{ $stats['proyek_selesai_bulan_ini'] }} bulan ini
                 </p>
             </div>
         </div>
@@ -40,7 +40,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Nilai Proyek</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp 2.5M</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ number_format($stats['total_nilai_proyek'] / 1000000, 1) }}M</p>
                 <p class="text-xs sm:text-sm text-blue-500">
                     <i class="fas fa-money-bill-wave"></i> Disetujui
                 </p>
@@ -55,7 +55,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Vendor Aktif</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">8</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">{{ $stats['vendor_aktif'] }}</p>
                 <p class="text-xs sm:text-sm text-purple-500">
                     <i class="fas fa-handshake"></i> Partner
                 </p>
@@ -70,7 +70,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Jenis Produk</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">24</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">{{ $stats['jenis_produk'] }}</p>
                 <p class="text-xs sm:text-sm text-yellow-500">
                     <i class="fas fa-tags"></i> Kategori
                 </p>
@@ -99,11 +99,11 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Periode Laporan</label>
                 <select id="periode-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Periode</option>
-                    <option value="bulan-ini">Bulan Ini</option>
-                    <option value="3-bulan">3 Bulan Terakhir</option>
-                    <option value="6-bulan">6 Bulan Terakhir</option>
-                    <option value="tahun-ini">Tahun Ini</option>
-                    <option value="custom">Custom Range</option>
+                    <option value="bulan-ini" {{ request('periode') == 'bulan-ini' ? 'selected' : '' }}>Bulan Ini</option>
+                    <option value="3-bulan" {{ request('periode') == '3-bulan' ? 'selected' : '' }}>3 Bulan Terakhir</option>
+                    <option value="6-bulan" {{ request('periode') == '6-bulan' ? 'selected' : '' }}>6 Bulan Terakhir</option>
+                    <option value="tahun-ini" {{ request('periode') == 'tahun-ini' ? 'selected' : '' }}>Tahun Ini</option>
+                    <option value="custom" {{ request('periode') == 'custom' ? 'selected' : '' }}>Custom Range</option>
                 </select>
             </div>
 
@@ -112,14 +112,13 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
                 <select id="vendor-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Vendor</option>
-                    <option value="pt-abc-corp">PT. ABC Corporation</option>
-                    <option value="cv-xyz-trading">CV. XYZ Trading</option>
-                    <option value="pt-global-solutions">PT. Global Solutions</option>
-                    <option value="pt-tech-innovation">PT. Tech Innovation</option>
-                    <option value="cv-mitra-sejahtera">CV. Mitra Sejahtera</option>
-                    <option value="pt-digital-media">PT. Digital Media</option>
-                    <option value="cv-karya-mandiri">CV. Karya Mandiri</option>
-                    <option value="pt-prima-industri">PT. Prima Industri</option>
+                    @if(isset($filterOptions['vendors']))
+                        @foreach($filterOptions['vendors'] as $vendor)
+                            <option value="{{ $vendor->nama_vendor }}" {{ request('vendor') == $vendor->nama_vendor ? 'selected' : '' }}>
+                                {{ $vendor->nama_vendor }}
+                            </option>
+                        @endforeach
+                    @endif
                 </select>
             </div>
 
@@ -128,14 +127,15 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Kategori Produk</label>
                 <select id="kategori-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Kategori</option>
-                    <option value="elektronik">Elektronik</option>
-                    <option value="furniture">Furniture</option>
-                    <option value="alat-tulis">Alat Tulis Kantor</option>
-                    <option value="peralatan">Peralatan</option>
-                    <option value="bahan-baku">Bahan Baku</option>
-                    <option value="jasa">Jasa</option>
-                    <option value="software">Software</option>
-                    <option value="maintenance">Maintenance</option>
+                    @if(isset($filterOptions['categories']))
+                        @foreach($filterOptions['categories'] as $category)
+                            @if($category->kategori)
+                                <option value="{{ $category->kategori }}" {{ request('kategori') == $category->kategori ? 'selected' : '' }}>
+                                    {{ $category->kategori }}
+                                </option>
+                            @endif
+                        @endforeach
+                    @endif
                 </select>
             </div>
 
@@ -144,9 +144,9 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Status Verifikasi</label>
                 <select id="status-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Status</option>
-                    <option value="verified">Diverifikasi</option>
-                    <option value="completed">Selesai</option>
-                    <option value="paid">Pembayaran Selesai</option>
+                    <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>Diverifikasi</option>
+                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Selesai</option>
+                    <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Pembayaran Selesai</option>
                 </select>
             </div>
         </div>
@@ -157,14 +157,13 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Produk Spesifik</label>
                 <select id="produk-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Produk</option>
-                    <option value="laptop-dell">Laptop Dell Inspiron 15</option>
-                    <option value="printer-hp">Printer HP LaserJet Pro</option>
-                    <option value="meja-kantor">Meja Kantor Executive</option>
-                    <option value="kursi-kantor">Kursi Kantor Ergonomis</option>
-                    <option value="kertas-a4">Kertas A4 80gsm</option>
-                    <option value="tinta-printer">Tinta Printer Original</option>
-                    <option value="kabel-lan">Kabel LAN Cat6</option>
-                    <option value="mouse-wireless">Mouse Wireless</option>
+                    @if(isset($filterOptions['products']))
+                        @foreach($filterOptions['products'] as $product)
+                            <option value="{{ $product->nama_barang }}" {{ request('produk') == $product->nama_barang ? 'selected' : '' }}>
+                                {{ $product->nama_barang }}
+                            </option>
+                        @endforeach
+                    @endif
                 </select>
             </div>
 
@@ -174,10 +173,7 @@
                     <option value="">Semua Departemen</option>
                     <option value="marketing">Marketing</option>
                     <option value="purchasing">Purchasing</option>
-                    <option value="it">IT</option>
-                    <option value="hr">HR</option>
-                    <option value="finance">Finance</option>
-                    <option value="operations">Operations</option>
+                    <option value="finance">Keuangan</option>
                 </select>
             </div>
 
@@ -185,26 +181,26 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Range Nilai</label>
                 <select id="nilai-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Nilai</option>
-                    <option value="0-5jt">Rp 0 - 5 Juta</option>
-                    <option value="5-10jt">Rp 5 - 10 Juta</option>
-                    <option value="10-25jt">Rp 10 - 25 Juta</option>
-                    <option value="25-50jt">Rp 25 - 50 Juta</option>
-                    <option value="50jt+">Rp 50 Juta+</option>
+                    <option value="0-5jt" {{ request('nilai') == '0-5jt' ? 'selected' : '' }}>Rp 0 - 5 Juta</option>
+                    <option value="5-10jt" {{ request('nilai') == '5-10jt' ? 'selected' : '' }}>Rp 5 - 10 Juta</option>
+                    <option value="10-25jt" {{ request('nilai') == '10-25jt' ? 'selected' : '' }}>Rp 10 - 25 Juta</option>
+                    <option value="25-50jt" {{ request('nilai') == '25-50jt' ? 'selected' : '' }}>Rp 25 - 50 Juta</option>
+                    <option value="50jt+" {{ request('nilai') == '50jt+' ? 'selected' : '' }}>Rp 50 Juta+</option>
                 </select>
             </div>
         </div>
 
         <!-- Custom Date Range (Hidden by default) -->
-        <div id="custom-date-range" class="grid-cols-1 md:grid-cols-2 gap-4 mb-6 hidden"
-             style="display: none;"
+        <div id="custom-date-range" class="grid-cols-1 md:grid-cols-2 gap-4 mb-6 {{ request('periode') == 'custom' ? 'grid' : 'hidden' }}"
+             style="{{ request('periode') == 'custom' ? 'display: grid;' : 'display: none;' }}"
              data-grid="true">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
-                <input type="date" id="start-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <input type="date" id="start-date" value="{{ request('start_date') }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
-                <input type="date" id="end-date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <input type="date" id="end-date" value="{{ request('end_date') }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
             </div>
         </div>
 
@@ -215,9 +211,6 @@
             </button>
             <button onclick="resetFilters()" class="flex-1 sm:flex-none border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200">
                 <i class="fas fa-undo mr-2"></i>Reset Filter
-            </button>
-            <button onclick="exportReport()" class="flex-1 sm:flex-none bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all duration-200">
-                <i class="fas fa-file-excel mr-2"></i>Export Excel
             </button>
         </div>
     </div>
@@ -239,10 +232,10 @@
             </div>
             <div class="flex gap-2">
                 <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <i class="fas fa-check-circle mr-1"></i>12 Terverifikasi
+                    <i class="fas fa-check-circle mr-1"></i>{{ $stats['proyek_selesai'] }} Terverifikasi
                 </span>
                 <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    <i class="fas fa-clock mr-1"></i>3 Menunggu
+                    <i class="fas fa-clock mr-1"></i>{{ $projects->total() - $stats['proyek_selesai'] }} Menunggu
                 </span>
             </div>
         </div>
@@ -279,201 +272,91 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200" id="projects-table-body">
-                <!-- Project 1 -->
+                @forelse($projects as $project)
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                                <i class="fas fa-laptop text-blue-600"></i>
+                                <i class="fas fa-project-diagram text-blue-600"></i>
                             </div>
                             <div>
-                                <div class="text-sm font-medium text-gray-900">Pengadaan Laptop</div>
-                                <div class="text-sm text-gray-500">PRJ-2024-001</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $project->jenis_pengadaan }}</div>
+                                <div class="text-sm text-gray-500">{{ $project->kode_proyek }}</div>
                             </div>
                         </div>
                     </td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">PT. Tech Innovation</div>
-                        <div class="text-sm text-gray-500">Teknologi</div>
+                        @if($project->penawaran && $project->penawaran->penawaranDetail->first())
+                            <div class="text-sm text-gray-900">{{ $project->penawaran->penawaranDetail->first()->barang->vendor->nama_vendor }}</div>
+                            <div class="text-sm text-gray-500">{{ $project->penawaran->penawaranDetail->first()->barang->kategori ?? 'Lainnya' }}</div>
+                        @else
+                            <div class="text-sm text-gray-500">-</div>
+                        @endif
                     </td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">Laptop Dell Inspiron 15</div>
-                        <div class="text-sm text-gray-500">Elektronik - 25 Unit</div>
+                        @if($project->penawaran && $project->penawaran->penawaranDetail->first())
+                            <div class="text-sm text-gray-900">{{ $project->penawaran->penawaranDetail->first()->barang->nama_barang }}</div>
+                            <div class="text-sm text-gray-500">{{ $project->penawaran->penawaranDetail->first()->barang->kategori ?? 'Lainnya' }} - {{ $project->penawaran->penawaranDetail->first()->jumlah }} {{ $project->penawaran->penawaranDetail->first()->barang->satuan }}</div>
+                        @else
+                            <div class="text-sm text-gray-500">-</div>
+                        @endif
                     </td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            IT Department
+                            {{ $project->adminMarketing->role ?? 'Admin' }}
                         </span>
                     </td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">Rp 375,000,000</div>
-                        <div class="text-sm text-gray-500">15 jt/unit</div>
+                        <div class="text-sm font-medium text-gray-900">Rp {{ number_format($project->harga_total, 0, ',', '.') }}</div>
+                        @if($project->penawaran && $project->penawaran->penawaranDetail->first())
+                            <div class="text-sm text-gray-500">{{ number_format($project->penawaran->penawaranDetail->first()->harga_satuan, 0, ',', '.') }}/{{ $project->penawaran->penawaranDetail->first()->barang->satuan }}</div>
+                        @endif
                     </td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <i class="fas fa-check-circle mr-1"></i>Selesai
+                        @php
+                            $statusColors = [
+                                'selesai' => 'bg-green-100 text-green-800',
+                                'pengiriman' => 'bg-orange-100 text-orange-800',
+                                'pembayaran' => 'bg-purple-100 text-purple-800',
+                                'penawaran' => 'bg-blue-100 text-blue-800',
+                                'menunggu' => 'bg-gray-100 text-gray-800'
+                            ];
+                            $statusIcons = [
+                                'selesai' => 'fas fa-check-circle',
+                                'pengiriman' => 'fas fa-truck',
+                                'pembayaran' => 'fas fa-credit-card',
+                                'penawaran' => 'fas fa-file-alt',
+                                'menunggu' => 'fas fa-clock'
+                            ];
+                        @endphp
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$project->status] ?? 'bg-gray-100 text-gray-800' }}">
+                            <i class="{{ $statusIcons[$project->status] ?? 'fas fa-question' }} mr-1"></i>{{ ucfirst($project->status) }}
                         </span>
                     </td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div>15 Des 2024</div>
-                        <div class="text-xs">Verifikasi: 18 Des</div>
+                        <div>{{ $project->tanggal->format('d M Y') }}</div>
+                        <div class="text-xs">Updated: {{ $project->updated_at->format('d M') }}</div>
                     </td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-red-600 hover:text-red-900 mr-3" onclick="viewProjectDetail('PRJ-2024-001')">
+                        <button class="text-red-600 hover:text-red-900 mr-3" onclick="viewProjectDetail('{{ $project->id_proyek }}')">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="text-blue-600 hover:text-blue-900" onclick="downloadReport('PRJ-2024-001')">
+                        <button class="text-blue-600 hover:text-blue-900" onclick="downloadReport('{{ $project->kode_proyek }}')">
                             <i class="fas fa-download"></i>
                         </button>
                     </td>
                 </tr>
-
-                <!-- Project 2 -->
-                <tr class="hover:bg-gray-50 transition-colors duration-150">
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                                <i class="fas fa-chair text-green-600"></i>
-                            </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">Furniture Kantor</div>
-                                <div class="text-sm text-gray-500">PRJ-2024-002</div>
-                            </div>
+                @empty
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500 text-lg font-medium">Tidak ada data proyek</p>
+                            <p class="text-gray-400 text-sm">Belum ada proyek yang memenuhi kriteria filter</p>
                         </div>
                     </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">CV. Mitra Sejahtera</div>
-                        <div class="text-sm text-gray-500">Furniture</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">Meja & Kursi Executive</div>
-                        <div class="text-sm text-gray-500">Furniture - 50 Set</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Operations
-                        </span>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">Rp 125,000,000</div>
-                        <div class="text-sm text-gray-500">2.5 jt/set</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <i class="fas fa-check-circle mr-1"></i>Selesai
-                        </span>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div>12 Des 2024</div>
-                        <div class="text-xs">Verifikasi: 16 Des</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-red-600 hover:text-red-900 mr-3" onclick="viewProjectDetail('PRJ-2024-002')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="text-blue-600 hover:text-blue-900" onclick="downloadReport('PRJ-2024-002')">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </td>
                 </tr>
-
-                <!-- Project 3 -->
-                <tr class="hover:bg-gray-50 transition-colors duration-150">
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
-                                <i class="fas fa-print text-yellow-600"></i>
-                            </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">Peralatan Printing</div>
-                                <div class="text-sm text-gray-500">PRJ-2024-003</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">PT. Digital Media</div>
-                        <div class="text-sm text-gray-500">Teknologi</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">Printer HP LaserJet Pro</div>
-                        <div class="text-sm text-gray-500">Peralatan - 10 Unit</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Marketing
-                        </span>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">Rp 85,000,000</div>
-                        <div class="text-sm text-gray-500">8.5 jt/unit</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            <i class="fas fa-money-bill-wave mr-1"></i>Dibayar
-                        </span>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div>10 Des 2024</div>
-                        <div class="text-xs">Verifikasi: 14 Des</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-red-600 hover:text-red-900 mr-3" onclick="viewProjectDetail('PRJ-2024-003')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="text-blue-600 hover:text-blue-900" onclick="downloadReport('PRJ-2024-003')">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </td>
-                </tr>
-
-                <!-- Project 4 -->
-                <tr class="hover:bg-gray-50 transition-colors duration-150">
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
-                                <i class="fas fa-file-alt text-indigo-600"></i>
-                            </div>
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">ATK & Supplies</div>
-                                <div class="text-sm text-gray-500">PRJ-2024-004</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">CV. Karya Mandiri</div>
-                        <div class="text-sm text-gray-500">Stationery</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">Kertas A4 & Supplies</div>
-                        <div class="text-sm text-gray-500">ATK - Bulk Order</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            HR
-                        </span>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">Rp 25,500,000</div>
-                        <div class="text-sm text-gray-500">Bulk pricing</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <i class="fas fa-check-circle mr-1"></i>Selesai
-                        </span>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div>08 Des 2024</div>
-                        <div class="text-xs">Verifikasi: 12 Des</div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-red-600 hover:text-red-900 mr-3" onclick="viewProjectDetail('PRJ-2024-004')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="text-blue-600 hover:text-blue-900" onclick="downloadReport('PRJ-2024-004')">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </td>
-                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -482,18 +365,41 @@
     <div class="px-4 sm:px-6 py-4 border-t border-gray-200">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="text-sm text-gray-700">
-                Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">4</span> dari <span class="font-medium">12</span> proyek
+                Menampilkan <span class="font-medium">{{ $projects->firstItem() ?? 0 }}</span> sampai <span class="font-medium">{{ $projects->lastItem() ?? 0 }}</span> dari <span class="font-medium">{{ $projects->total() }}</span> proyek
             </div>
             <div class="flex items-center space-x-2">
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="px-3 py-2 text-sm bg-red-600 text-white rounded-md">1</button>
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">2</button>
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">3</button>
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                @if ($projects->hasPages())
+                    {{-- Previous Page Link --}}
+                    @if ($projects->onFirstPage())
+                        <button class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    @else
+                        <a href="{{ $projects->previousPageUrl() }}" class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    @endif
+
+                    {{-- Pagination Elements --}}
+                    @foreach ($projects->getUrlRange(1, $projects->lastPage()) as $page => $url)
+                        @if ($page == $projects->currentPage())
+                            <button class="px-3 py-2 text-sm bg-red-600 text-white rounded-md">{{ $page }}</button>
+                        @else
+                            <a href="{{ $url }}" class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">{{ $page }}</a>
+                        @endif
+                    @endforeach
+
+                    {{-- Next Page Link --}}
+                    @if ($projects->hasMorePages())
+                        <a href="{{ $projects->nextPageUrl() }}" class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    @else
+                        <button class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50" disabled>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    @endif
+                @endif
             </div>
         </div>
     </div>
@@ -509,28 +415,139 @@ function applyFilters() {
     const produk = document.getElementById('produk-filter').value;
     const departemen = document.getElementById('departemen-filter').value;
     const nilai = document.getElementById('nilai-filter').value;
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
 
-    console.log('Applying filters:', {
-        periode, vendor, kategori, status, produk, departemen, nilai
-    });
+    // Build URL with query parameters
+    const params = new URLSearchParams();
+    if (periode) params.append('periode', periode);
+    if (vendor) params.append('vendor', vendor);
+    if (kategori) params.append('kategori', kategori);
+    if (status) params.append('status', status);
+    if (produk) params.append('produk', produk);
+    if (departemen) params.append('departemen', departemen);
+    if (nilai) params.append('nilai', nilai);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
 
-    // Here you would typically make an AJAX call to filter the data
-    // For demo purposes, we'll just show a loading state
-    const tableBody = document.getElementById('projects-table-body');
-    tableBody.innerHTML = `
-        <tr>
-            <td colspan="8" class="px-6 py-12 text-center">
-                <div class="flex flex-col items-center justify-center">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mb-4"></div>
-                    <p class="text-gray-500">Memuat data...</p>
+    // Redirect to laporan page with filters
+    window.location.href = '{{ route("laporan") }}?' + params.toString();
+}
+
+function resetFilters() {
+    // Redirect to laporan page without any filters
+    window.location.href = '{{ route("laporan") }}';
+}
+
+function exportReport() {
+    // Get current URL parameters for export
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Build export URL with same filters
+    const exportUrl = '{{ route("laporan.export") }}?' + urlParams.toString();
+
+    // Show export notification
+    showNotification('Export sedang diproses...', 'info');
+
+    // Trigger download
+    window.location.href = exportUrl;
+
+    // Show success notification after a delay
+    setTimeout(() => {
+        showNotification('Export berhasil! File sedang diunduh...', 'success');
+    }, 1000);
+}
+
+function viewProjectDetail(projectId) {
+    // Fetch project detail from API
+    fetch(`{{ url('/laporan/project') }}/${projectId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showProjectDetailModal(data.data);
+            } else {
+                showNotification('Gagal memuat detail proyek', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Terjadi kesalahan saat memuat detail proyek', 'error');
+        });
+}
+
+function showProjectDetailModal(project) {
+    // Create modal for project detail
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 backdrop-blur-xs bg-black/30 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-800">Detail Proyek ${project.kode_proyek}</h2>
+                    <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
                 </div>
-            </td>
-        </tr>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Informasi Proyek</h3>
+                        <div class="space-y-3">
+                            <div><span class="font-medium">Nama Klien:</span> ${project.nama_klien}</div>
+                            <div><span class="font-medium">Instansi:</span> ${project.instansi}</div>
+                            <div><span class="font-medium">Jenis Pengadaan:</span> ${project.jenis_pengadaan}</div>
+                            <div><span class="font-medium">Tanggal:</span> ${project.tanggal}</div>
+                            <div><span class="font-medium">Deadline:</span> ${project.deadline}</div>
+                            <div><span class="font-medium">Status:</span> <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">${project.status}</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Tim & Nilai</h3>
+                        <div class="space-y-3">
+                            <div><span class="font-medium">Admin Marketing:</span> ${project.admin_marketing}</div>
+                            <div><span class="font-medium">Admin Purchasing:</span> ${project.admin_purchasing}</div>
+                            <div><span class="font-medium">Total Nilai:</span> <span class="text-lg font-bold text-green-600">Rp ${project.total_nilai}</span></div>
+                            <div><span class="font-medium">Catatan:</span> ${project.catatan}</div>
+                        </div>
+                    </div>
+                </div>
+                ${project.penawaran ? `
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold mb-4">Detail Penawaran</h3>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div><span class="font-medium">No. Penawaran:</span> ${project.penawaran.no_penawaran}</div>
+                            <div><span class="font-medium">Tanggal:</span> ${project.penawaran.tanggal_penawaran}</div>
+                            <div><span class="font-medium">Total:</span> Rp ${project.penawaran.total_nilai}</div>
+                        </div>
+                    </div>
+                    <h4 class="font-medium mb-3">Daftar Barang</h4>
+                    <div class="space-y-3">
+                        ${project.penawaran.detail_barang.map(item => `
+                        <div class="border rounded-lg p-3">
+                            <div class="font-medium">${item.nama_barang}</div>
+                            <div class="text-sm text-gray-600">Vendor: ${item.vendor} | Kategori: ${item.kategori}</div>
+                            <div class="text-sm text-gray-600">Jumlah: ${item.jumlah} ${item.satuan} × Rp ${item.harga_satuan} = Rp ${item.subtotal}</div>
+                        </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        </div>
     `;
 
-    // Simulate loading and restore data after 2 seconds
+    document.body.appendChild(modal);
+}
+
+function downloadReport(projectCode) {
+    showNotification(`Mengunduh laporan untuk proyek ${projectCode}...`, 'info');
+
+    // Here you would typically generate a specific project report
+    // For now, we'll just show a success message
     setTimeout(() => {
-        location.reload();
+        showNotification(`Laporan proyek ${projectCode} berhasil diunduh!`, 'success');
     }, 2000);
 }
 
@@ -565,7 +582,7 @@ function viewProjectDetail(projectId) {
 
     // Create modal for project detail
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.className = 'fixed inset-0 backdrop-blur-xs bg-black/30 flex items-center justify-center z-50';
     modal.innerHTML = `
         <div class="bg-white rounded-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-6 border-b border-gray-200">

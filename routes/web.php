@@ -15,6 +15,7 @@ use App\Http\Controllers\Marketing\ProyekController;
 use App\Http\Controllers\Marketing\WilayahController;
 use App\Http\Controllers\Marketing\PotensiController;
 use App\Http\Controllers\Marketing\PenawaranController;
+use App\Http\Controllers\LaporanController;
 
 
 
@@ -33,9 +34,11 @@ Route::middleware('auth')->group(function () {
         return view('pages.dashboard');
     })->name('dashboard');
 
-    Route::get('/laporan', function () {
-        return view('pages.laporan');
-    })->name('laporan');
+    // Laporan Routes
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
+    Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
+    Route::get('/laporan/project/{id}', [LaporanController::class, 'getProjectDetail'])->name('laporan.project.detail');
+    Route::get('/laporan/data', [LaporanController::class, 'getFilteredData'])->name('laporan.data');
 
     // Marketing Routes
     Route::prefix('marketing')->group(function () {
