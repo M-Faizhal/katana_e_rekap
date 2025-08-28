@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.coolify
     container_name: katana-app
     restart: unless-stopped
     environment:
