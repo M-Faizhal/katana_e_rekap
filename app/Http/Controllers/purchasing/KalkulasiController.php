@@ -832,4 +832,88 @@ class KalkulasiController extends Controller
             ], 500);
         }
     }
+
+    public function updateProyekStatusFromPenawaran(Request $request, $penawaranId)
+    {
+        try {
+            $request->validate([
+                'action' => 'required|in:setuju,tidak_setuju',
+                'proyek_id' => 'required|exists:proyek,id_proyek',
+                'penawaran_status' => 'required|in:ACC,Ditolak',
+                'proyek_status' => 'required|in:Menunggu,Pembayaran'
+            ]);
+
+            DB::beginTransaction();
+
+            // Get the penawaran and proyek
+            $penawaran = Penawaran::findOrFail($penawaranId);
+            $proyek = Proyek::findOrFail($request->proyek_id);
+
+            // Validate that this penawaran belongs to the proyek
+            if ($penawaran->id_proyek !== $proyek->id_proyek) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Penawaran tidak sesuai dengan proyek'
+                ], 400);
+            }
+
+            // Check if penawaran can be updated
+            if ($penawaran->status !== 'Menunggu') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status penawaran tidak dapat diubah karena sudah ' . $penawaran->status
+                ], 400);
+            }
+
+            // Check if proyek can be updated
+            if ($proyek->status !== 'Penawaran') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status proyek tidak dapat diubah karena tidak dalam tahap Penawaran'
+                ], 400);
+            }
+
+            // Update penawaran status
+            $penawaran->status = $request->penawaran_status;
+            $penawaran->save();
+
+            // Update proyek status
+            $proyek->status = $request->proyek_status;
+            $proyek->save();
+
+            DB::commit();
+
+            $message = $request->action === 'setuju' 
+                ? 'Penawaran disetujui! Status proyek berubah menjadi Pembayaran'
+                : 'Penawaran ditolak! Status proyek berubah kembali ke Menunggu';
+
+            Log::info('Proyek status updated from penawaran approval', [
+                'penawaran_id' => $penawaranId,
+                'proyek_id' => $request->proyek_id,
+                'action' => $request->action,
+                'penawaran_status' => $request->penawaran_status,
+                'proyek_status' => $request->proyek_status,
+                'updated_by' => Auth::id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error('Error updating proyek status from penawaran', [
+                'penawaran_id' => $penawaranId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
