@@ -96,9 +96,9 @@
                             <div>
                                 @php
                                     $pengirimanAll = collect();
-                                    if ($proyek->penawaran) {
-                                        foreach ($proyek->penawaran as $penawaran) {
-                                            if ($penawaran->pengiriman) {
+                                    if ($proyek->semuaPenawaran) {
+                                        foreach ($proyek->semuaPenawaran as $penawaran) {
+                                            if ($penawaran && $penawaran->pengiriman) {
                                                 $pengirimanAll = $pengirimanAll->merge($penawaran->pengiriman);
                                             }
                                         }

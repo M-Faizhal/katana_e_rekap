@@ -101,8 +101,8 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($proyekBelumBayar as $proyek)
                         @php
-                            $penawaran = $proyek->penawaran->first();
-                            $totalHarga = $penawaran->penawaranDetail->sum('subtotal');
+                            $penawaran = $proyek->penawaranAktif;
+                            $totalHarga = $penawaran ? $penawaran->penawaranDetail->sum('subtotal') : 0;
                         @endphp
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">

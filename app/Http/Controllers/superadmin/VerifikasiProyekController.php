@@ -22,20 +22,20 @@ class VerifikasiProyekController extends Controller
         // 3. Status proyek belum "Selesai" atau "Gagal"
         
         $proyekVerifikasi = Proyek::with([
-            'penawaran' => function($query) {
+            'semuaPenawaran' => function($query) {
                 $query->where('status', 'ACC')->with(['pengiriman']);
             }, 
             'penagihanDinas.buktiPembayaran',
             'adminMarketing:id_user,nama,email',
             'adminPurchasing:id_user,nama,email'
         ])
-        ->whereHas('penawaran', function($query) {
+        ->whereHas('semuaPenawaran', function($query) {
             $query->where('status', 'ACC');
         })
         // Pastikan ada pengiriman untuk penawaran proyek ini
-        ->whereHas('penawaran.pengiriman')
+        ->whereHas('semuaPenawaran.pengiriman')
         // Pastikan semua pengiriman sudah sampai (Verified atau Sampai_Tujuan) - tidak ada yang masih dalam perjalanan
-        ->whereDoesntHave('penawaran.pengiriman', function($query) {
+        ->whereDoesntHave('semuaPenawaran.pengiriman', function($query) {
             $query->whereNotIn('status_verifikasi', ['Verified', 'Sampai_Tujuan']);
         })
         // Pastikan pembayaran dinas sudah lunas
@@ -53,7 +53,7 @@ class VerifikasiProyekController extends Controller
     public function show($id)
     {
         $proyek = Proyek::with([
-            'penawaran' => function($query) {
+            'semuaPenawaran' => function($query) {
                 $query->where('status', 'ACC')->with([
                     'penawaranDetail.barang.vendor', 
                     'pengiriman.vendor'
@@ -67,9 +67,11 @@ class VerifikasiProyekController extends Controller
 
         // Validasi bahwa proyek memenuhi kriteria verifikasi
         $pengirimanAll = collect();
-        if ($proyek->penawaran) {
-            foreach ($proyek->penawaran as $penawaran) {
-                $pengirimanAll = $pengirimanAll->merge($penawaran->pengiriman);
+        if ($proyek->semuaPenawaran) {
+            foreach ($proyek->semuaPenawaran as $penawaran) {
+                if ($penawaran && $penawaran->pengiriman) {
+                    $pengirimanAll = $pengirimanAll->merge($penawaran->pengiriman);
+                }
             }
         }
 
@@ -90,8 +92,8 @@ class VerifikasiProyekController extends Controller
 
         // Ambil semua detail penawaran dari penawaran yang ACC
         $penawaranDetail = collect();
-        if ($proyek->penawaran) {
-            foreach ($proyek->penawaran as $penawaran) {
+        if ($proyek->semuaPenawaran) {
+            foreach ($proyek->semuaPenawaran as $penawaran) {
                 if ($penawaran->status === 'ACC' && $penawaran->penawaranDetail) {
                     $penawaranDetail = $penawaranDetail->merge($penawaran->penawaranDetail);
                 }
@@ -108,13 +110,15 @@ class VerifikasiProyekController extends Controller
             'catatan_verifikasi' => 'nullable|string|max:1000'
         ]);
 
-        $proyek = Proyek::with(['penawaran.pengiriman', 'penagihanDinas'])->findOrFail($id);
+        $proyek = Proyek::with(['semuaPenawaran.pengiriman', 'penagihanDinas'])->findOrFail($id);
 
         // Validasi ulang bahwa proyek memenuhi kriteria
         $pengirimanAll = collect();
-        if ($proyek->penawaran) {
-            foreach ($proyek->penawaran as $penawaran) {
-                $pengirimanAll = $pengirimanAll->merge($penawaran->pengiriman);
+        if ($proyek->semuaPenawaran) {
+            foreach ($proyek->semuaPenawaran as $penawaran) {
+                if ($penawaran && $penawaran->pengiriman) {
+                    $pengirimanAll = $pengirimanAll->merge($penawaran->pengiriman);
+                }
             }
         }
 
@@ -161,7 +165,7 @@ class VerifikasiProyekController extends Controller
     public function history()
     {
         $historyVerifikasi = Proyek::with([
-            'penawaran' => function($query) {
+            'semuaPenawaran' => function($query) {
                 $query->where('status', 'ACC')->with(['penawaranDetail']);
             },
             'adminMarketing:id_user,nama,email',
@@ -173,8 +177,8 @@ class VerifikasiProyekController extends Controller
         ->map(function($proyek) {
             // Calculate total penawaran
             $totalPenawaran = 0;
-            if ($proyek->penawaran && $proyek->penawaran->isNotEmpty()) {
-                foreach ($proyek->penawaran as $penawaran) {
+            if ($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty()) {
+                foreach ($proyek->semuaPenawaran as $penawaran) {
                     if ($penawaran->penawaranDetail) {
                         $totalPenawaran += $penawaran->penawaranDetail->sum('subtotal');
                     }
@@ -183,7 +187,7 @@ class VerifikasiProyekController extends Controller
             $proyek->total_penawaran = $totalPenawaran;
             
             // Set nomor penawaran
-            $proyek->no_penawaran = $proyek->penawaran->first()->no_penawaran ?? 'N/A';
+            $proyek->no_penawaran = $proyek->semuaPenawaran->first()->no_penawaran ?? 'N/A';
             
             return $proyek;
         });

@@ -46,8 +46,8 @@
                     <span class="text-gray-600">Total Penawaran:</span>
                     @php
                         $totalPenawaran = 0;
-                        if ($proyek->penawaran && $proyek->penawaran->isNotEmpty()) {
-                            foreach ($proyek->penawaran as $penawaran) {
+                        if ($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty()) {
+                            foreach ($proyek->semuaPenawaran as $penawaran) {
                                 if ($penawaran->penawaranDetail) {
                                     $totalPenawaran += $penawaran->penawaranDetail->sum('subtotal');
                                 }
@@ -171,14 +171,14 @@
     </div>
 
     <!-- Dokumen Penawaran dari Vendor -->
-    @if($proyek->penawaran && $proyek->penawaran->isNotEmpty())
+    @if($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty())
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
             <i class="fas fa-file-signature mr-2 text-blue-500"></i>
             Dokumen Penawaran Vendor
         </h3>
         <div class="space-y-4">
-            @foreach($proyek->penawaran as $penawaran)
+            @foreach($proyek->semuaPenawaran as $penawaran)
                 @if($penawaran->status === 'ACC')
                 <div class="border border-gray-200 rounded-lg p-4">
                     <h4 class="font-medium text-gray-900 mb-3">Penawaran ID: {{ $penawaran->id_penawaran }}</h4>
@@ -510,14 +510,14 @@
     @endif
 
     <!-- Informasi Pengiriman per Vendor -->
-    @if($proyek->penawaran && $proyek->penawaran->isNotEmpty())
+    @if($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty())
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
             <i class="fas fa-shipping-fast mr-2 text-red-500"></i>
             Informasi Pengiriman per Vendor
         </h3>
         <div class="space-y-6">
-            @foreach($proyek->penawaran as $penawaran)
+            @foreach($proyek->semuaPenawaran as $penawaran)
                 @if($penawaran->status === 'ACC' && $penawaran->pengiriman && $penawaran->pengiriman->isNotEmpty())
                     @foreach($penawaran->pengiriman as $pengiriman)
                     <div class="border border-gray-200 rounded-lg p-4">
@@ -662,8 +662,8 @@
         $allPengirimanSampai = true;
         $hasValidPengiriman = false;
         
-        if ($proyek->penawaran && $proyek->penawaran->isNotEmpty()) {
-            foreach ($proyek->penawaran as $penawaran) {
+        if ($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty()) {
+            foreach ($proyek->semuaPenawaran as $penawaran) {
                 if ($penawaran->status === 'ACC' && $penawaran->pengiriman && $penawaran->pengiriman->isNotEmpty()) {
                     $hasValidPengiriman = true;
                     foreach ($penawaran->pengiriman as $pengiriman) {
