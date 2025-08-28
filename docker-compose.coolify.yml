@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile.coolify
     container_name: katana-app
     restart: unless-stopped
-    environment:
+        environment:
       - APP_ENV=production
       - APP_DEBUG=false
       - APP_KEY=${APP_KEY}
@@ -17,12 +17,11 @@ services:
       - DB_DATABASE=${DB_DATABASE:-katana_db}
       - DB_USERNAME=${DB_USERNAME:-katana_user}
       - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=redis
-      - REDIS_PASSWORD=null
-      - REDIS_PORT=6379
       - CACHE_DRIVER=redis
       - SESSION_DRIVER=redis
       - QUEUE_CONNECTION=redis
+      - REDIS_URL=redis://katana:2wlH9s10XEhAVg9aN3UdLV0HVGWsZvJ1NMZgDqFdSQuNK836fbx7dAt8ZU46LF77@katana-redis:6379/0
+
     volumes:
       - storage_data:/var/www/html/storage
       - public_storage:/var/www/html/public/storage
