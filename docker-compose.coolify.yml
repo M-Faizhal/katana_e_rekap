@@ -17,16 +17,14 @@ services:
       - DB_DATABASE=${DB_DATABASE:-katana_db}
       - DB_USERNAME=${DB_USERNAME:-katana_user}
       - DB_PASSWORD=${DB_PASSWORD:-your_db_password}
-      - CACHE_DRIVER=redis
-      - SESSION_DRIVER=redis
-      - QUEUE_CONNECTION=redis
-      - REDIS_URL=${REDIS_URL:-redis://username:password@katana-redis:6379/0}
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - QUEUE_CONNECTION=sync
     volumes:
       - storage_data:/var/www/html/storage
       - public_storage:/var/www/html/public/storage
     depends_on:
       - db
-      - redis
     networks:
       - katana-network
     labels:
@@ -54,24 +52,11 @@ services:
     labels:
       - "coolify.managed=true"
 
-  redis:
-    image: redis:7-alpine
-    container_name: katana-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    networks:
-      - katana-network
-    labels:
-      - "coolify.managed=true"
-
 networks:
   katana-network:
     driver: bridge
 
 volumes:
   db_data:
-  redis_data:
   storage_data:
   public_storage:
