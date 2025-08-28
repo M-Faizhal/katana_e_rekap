@@ -10,11 +10,11 @@
             <div class="flex-1 min-w-0">
                 <h1 class="text-xl font-semibold text-gray-900 truncate">Detail Penawaran</h1>
                 <div class="text-sm text-gray-600 mt-1 flex flex-wrap items-center gap-2">
-                    <span class="font-medium">No. Penawaran:</span>
+                    <span class="font-medium">No. Penawaran:</span> 
                     <span class="text-blue-600 font-semibold">{{ $penawaran->no_penawaran ?? '-' }}</span>
                     <span class="hidden sm:inline">|</span>
-                    <span class="font-medium">Status:</span>
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                    <span class="font-medium">Status:</span> 
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
                         @if($penawaran->status === 'ACC') bg-green-100 text-green-800
                         @elseif($penawaran->status === 'Ditolak') bg-red-100 text-red-800
                         @else bg-yellow-100 text-yellow-800 @endif">
@@ -23,20 +23,6 @@
                 </div>
             </div>
             <div class="flex gap-2">
-                <!-- Approval Buttons - Show only if proyek status is penawaran and penawaran status is Menunggu -->
-                @if($proyek->status === 'Penawaran' && $penawaran->status === 'Menunggu')
-                    <button onclick="updateProyekStatus('tidak_setuju', {{ $proyek->id_proyek }}, {{ $penawaran->id_penawaran }})" 
-                            class="approval-btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-times mr-2"></i>
-                        Tidak Setuju
-                    </button>
-                    <button onclick="updateProyekStatus('setuju', {{ $proyek->id_proyek }}, {{ $penawaran->id_penawaran }})" 
-                            class="approval-btn bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-check mr-2"></i>
-                        Setuju
-                    </button>
-                @endif
-                
                 <a href="{{ route('purchasing.kalkulasi') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Kembali
@@ -44,57 +30,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Status Action Section -->
-    @if($proyek->status === 'Penawaran' && $penawaran->status === 'Menunggu')
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <i class="fas fa-exclamation-triangle text-yellow-400 text-xl"></i>
-            </div>
-            <div class="ml-3 flex-1">
-                <h3 class="text-sm font-medium text-yellow-800">
-                    Penawaran Menunggu Persetujuan
-                </h3>
-                <p class="text-sm text-yellow-700 mt-1">
-                    Penawaran ini membutuhkan persetujuan Anda. Silakan tinjau detail penawaran dan pilih "Setuju" untuk melanjutkan ke tahap pembayaran atau "Tidak Setuju" untuk mengembalikan ke tahap menunggu.
-                </p>
-            </div>
-        </div>
-    </div>
-    @elseif($penawaran->status === 'ACC')
-    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <i class="fas fa-check-circle text-green-400 text-xl"></i>
-            </div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-green-800">
-                    Penawaran Disetujui
-                </h3>
-                <p class="text-sm text-green-700 mt-1">
-                    Penawaran ini telah disetujui dan proyek dapat dilanjutkan ke tahap pembayaran.
-                </p>
-            </div>
-        </div>
-    </div>
-    @elseif($penawaran->status === 'Ditolak')
-    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <i class="fas fa-times-circle text-red-400 text-xl"></i>
-            </div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-red-800">
-                    Penawaran Ditolak
-                </h3>
-                <p class="text-sm text-red-700 mt-1">
-                    Penawaran ini telah ditolak dan proyek dikembalikan ke tahap menunggu untuk evaluasi ulang.
-                </p>
-            </div>
-        </div>
-    </div>
-    @endif
 
     <!-- Informasi Proyek -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
@@ -161,7 +96,7 @@
                     <p class="text-green-600 font-bold text-lg">{{ 'Rp ' . number_format($penawaran->total_penawaran, 0, ',', '.') }}</p>
                 </div>
             </div>
-
+            
             @if($penawaran->surat_penawaran || $penawaran->surat_pesanan)
             <div class="mt-4 pt-4 border-t border-gray-200">
                 <label class="text-sm font-medium text-gray-500 block mb-2">Dokumen</label>
@@ -197,7 +132,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50">
@@ -277,7 +212,7 @@
             </h2>
             <p class="text-sm text-gray-600 mt-1">Semua perhitungan dan analisis yang digunakan dalam penawaran</p>
         </div>
-
+        
         <div class="overflow-x-auto">
             <table class="w-full text-xs">
                 <thead class="bg-orange-50">
@@ -467,72 +402,6 @@
         </div>
     </div>
 </div>
-
-<style>
-/* Approval buttons styling */
-.approval-btn {
-    position: relative;
-    overflow: hidden;
-}
-
-.approval-btn:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.approval-btn:hover:before {
-    left: 100%;
-}
-
-.approval-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-.approval-btn:disabled:hover:before {
-    display: none;
-}
-
-/* Success message animation */
-.status-success {
-    animation: statusPulse 2s ease-in-out;
-}
-
-@keyframes statusPulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
-    }
-}
-
-/* Rejected message animation */
-.status-rejected {
-    animation: statusShake 0.5s ease-in-out;
-}
-
-@keyframes statusShake {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    25% {
-        transform: translateX(-5px);
-    }
-    75% {
-        transform: translateX(5px);
-    }
-}
-</style>
-
 @endsection
 
 @push('scripts')
@@ -541,7 +410,7 @@
 function showFullSpec(detailId) {
     const detail = @json($penawaran->details);
     const selectedDetail = detail.find(d => d.id_detail == detailId);
-
+    
     if (selectedDetail) {
         document.getElementById('spec-content').textContent = selectedDetail.spesifikasi;
         document.getElementById('spec-modal').classList.remove('hidden');
@@ -559,167 +428,5 @@ document.getElementById('spec-modal').addEventListener('click', function(e) {
         closeSpecModal();
     }
 });
-
-// Update Proyek Status based on approval/rejection
-function updateProyekStatus(action, proyekId, penawaranId) {
-    let confirmMessage, newStatus, penawaranStatus;
-    
-    if (action === 'setuju') {
-        confirmMessage = 'Apakah Anda yakin ingin menyetujui penawaran ini?\n\nSetelah disetujui:\n• Status penawaran akan menjadi "ACC"\n• Status proyek akan berubah menjadi "Pembayaran"\n• Proyek dapat dilanjutkan ke tahap pembayaran';
-        newStatus = 'Pembayaran';
-        penawaranStatus = 'ACC';
-    } else {
-        confirmMessage = 'Apakah Anda yakin ingin menolak penawaran ini?\n\nSetelah ditolak:\n• Status penawaran akan menjadi "Ditolak"\n• Status proyek akan berubah kembali ke "Menunggu"\n• Proyek perlu dievaluasi ulang';
-        newStatus = 'Menunggu';
-        penawaranStatus = 'Ditolak';
-    }
-    
-    if (!confirm(confirmMessage)) {
-        return;
-    }
-    
-    // Show loading overlay
-    showLoadingOverlay(true);
-    
-    // Disable buttons and show loading
-    const buttons = document.querySelectorAll('button[onclick*="updateProyekStatus"]');
-    buttons.forEach(btn => {
-        btn.disabled = true;
-        const originalContent = btn.innerHTML;
-        btn.setAttribute('data-original-content', originalContent);
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memproses...';
-        btn.classList.add('opacity-50', 'cursor-not-allowed');
-    });
-    
-    fetch(`/purchasing/penawaran/${penawaranId}/update-status`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-            action: action,
-            proyek_id: proyekId,
-            penawaran_status: penawaranStatus,
-            proyek_status: newStatus
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        showLoadingOverlay(false);
-        
-        if (data.success) {
-            // Show success animation
-            showSuccessMessage(data.message, action === 'setuju' ? 'success' : 'warning');
-            
-            // Reload page after a short delay to see the animation
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } else {
-            showErrorMessage(data.message);
-            resetButtons();
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showLoadingOverlay(false);
-        showErrorMessage('Terjadi kesalahan saat memproses permintaan. Silakan coba lagi.');
-        resetButtons();
-    });
-}
-
-function showLoadingOverlay(show) {
-    let overlay = document.getElementById('loading-overlay');
-    
-    if (show) {
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'loading-overlay';
-            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            overlay.innerHTML = `
-                <div class="bg-white rounded-lg p-6 shadow-xl">
-                    <div class="flex items-center space-x-3">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <span class="text-gray-700 font-medium">Memproses permintaan...</span>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-        }
-        overlay.classList.remove('hidden');
-    } else {
-        if (overlay) {
-            overlay.classList.add('hidden');
-        }
-    }
-}
-
-function showSuccessMessage(message, type = 'success') {
-    const bgColor = type === 'success' ? 'bg-green-500' : 'bg-orange-500';
-    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
-    
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300`;
-    notification.innerHTML = `
-        <div class="flex items-center space-x-3">
-            <i class="fas ${icon} text-xl"></i>
-            <span class="font-medium">${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Slide in
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 100);
-    
-    // Slide out after 3 seconds
-    setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
-}
-
-function showErrorMessage(message) {
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
-    notification.innerHTML = `
-        <div class="flex items-center space-x-3">
-            <i class="fas fa-exclamation-circle text-xl"></i>
-            <span class="font-medium">${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Slide in
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 100);
-    
-    // Slide out after 5 seconds (longer for error messages)
-    setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 5000);
-}
-
-function resetButtons() {
-    const buttons = document.querySelectorAll('button[onclick*="updateProyekStatus"]');
-    buttons.forEach(btn => {
-        btn.disabled = false;
-        const originalContent = btn.getAttribute('data-original-content');
-        if (originalContent) {
-            btn.innerHTML = originalContent;
-        }
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
-    });
-}
 </script>
 @endpush

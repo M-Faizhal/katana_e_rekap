@@ -100,7 +100,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/kalkulasi/penawaran/preview', [KalkulasiController::class, 'previewPenawaran'])->name('kalkulasi.penawaran.preview');
         Route::get('/kalkulasi/penawaran/{proyekId}/detail', [KalkulasiController::class, 'detailPenawaran'])->name('kalkulasi.penawaran.detail');
         Route::put('/kalkulasi/penawaran/{penawaranId}/status', [KalkulasiController::class, 'updatePenawaranStatus'])->name('kalkulasi.penawaran.status');
-        Route::post('/penawaran/{penawaranId}/update-status', [KalkulasiController::class, 'updateProyekStatusFromPenawaran'])->name('purchasing.penawaran.update-status');
 
         // Pembayaran Routes
         Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('purchasing.pembayaran');

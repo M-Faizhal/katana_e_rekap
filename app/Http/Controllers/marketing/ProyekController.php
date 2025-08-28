@@ -25,7 +25,7 @@ class ProyekController extends Controller
         $proyekData = $proyekData->map(function ($proyek) {
             // Prioritas daftar barang: proyekBarang -> penawaran detail -> fallback proyek langsung
             $daftarBarang = [];
-
+            
             // Prioritas 1: Dari proyek_barang (multiple barang per permintaan klien)
             if ($proyek->proyekBarang && $proyek->proyekBarang->count() > 0) {
                 foreach ($proyek->proyekBarang as $barang) {
@@ -51,7 +51,7 @@ class ProyekController extends Controller
                         'harga_total' => $detail->subtotal
                     ];
                 }
-            }
+            } 
             // Prioritas 3: Fallback ke data proyek langsung (tidak ada lagi karena kolom sudah dihapus)
             else {
                 $daftarBarang[] = [
@@ -156,7 +156,7 @@ class ProyekController extends Controller
         if ($request->daftar_barang && is_array($request->daftar_barang)) {
             foreach ($request->daftar_barang as $barang) {
                 $harga_total = $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
-
+                
                 $proyek->proyekBarang()->create([
                     'nama_barang' => $barang['nama_barang'],
                     'jumlah' => $barang['jumlah'],
@@ -170,7 +170,7 @@ class ProyekController extends Controller
         // Jika single barang, simpan juga ke proyek_barang untuk konsistensi
         else {
             $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
-
+            
             $proyek->proyekBarang()->create([
                 'nama_barang' => $request->nama_barang,
                 'jumlah' => $request->jumlah,
