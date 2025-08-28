@@ -46,13 +46,6 @@ curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
    - **MySQL Password**: `secure_password_change_this`
 4. Klik **"Deploy"**
 
-#### b. Tambah Redis Service
-1. Klik **"+ New Resource"** lagi
-2. Pilih **"Database"** → **"Redis"**
-3. Konfigurasi:
-   - **Name**: `katana-redis`
-4. Klik **"Deploy"**
-
 ### 4. Deploy Aplikasi Laravel
 
 #### a. Tambah Application Service
@@ -88,8 +81,9 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=katana-redis
-      - REDIS_PORT=6379
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - QUEUE_CONNECTION=sync
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.katana.rule=Host(\`${DOMAIN}\`)"
@@ -115,12 +109,11 @@ DB_DATABASE=katana_db
 DB_USERNAME=katana_user
 DB_PASSWORD=secure_password_change_this
 
-CACHE_STORE=redis
-REDIS_HOST=katana-redis
-REDIS_PORT=6379
+CACHE_STORE=file
+CACHE_DRIVER=file
 
-SESSION_DRIVER=redis
-QUEUE_CONNECTION=redis
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
 
 DOMAIN=your-domain.com
 ```
