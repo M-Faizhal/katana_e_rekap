@@ -31,6 +31,35 @@ class Penawaran extends Model
         'total_penawaran' => 'decimal:2',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($penawaran) {
+            if (empty($penawaran->no_penawaran)) {
+                $penawaran->no_penawaran = static::generateNoPenawaran();
+            }
+
+            // Set default values if not provided
+            if (empty($penawaran->masa_berlaku)) {
+                $penawaran->masa_berlaku = now()->addDays(30);
+            }
+
+            if (empty($penawaran->total_penawaran)) {
+                $penawaran->total_penawaran = 0;
+            }
+        });
+    }
+
+    public static function generateNoPenawaran()
+    {
+        $lastPenawaran = static::whereYear('created_at', date('Y'))
+                              ->whereMonth('created_at', date('m'))
+                              ->orderBy('id_penawaran', 'desc')
+                              ->first();
+
+        $counter = $lastPenawaran ? (int)substr($lastPenawaran->no_penawaran, -3) + 1 : 1;
+        return 'PNW/' . date('Y/m') . '/' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+    }
+
     // Relationships
     public function proyek()
     {
