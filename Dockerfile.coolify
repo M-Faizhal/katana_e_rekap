@@ -13,15 +13,24 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    nodejs \
-    npm \
     libzip-dev \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libmcrypt-dev \
     libpq-dev \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    netcat-openbsd \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip
+
+# Install Node.js 20.x (LTS)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Verify Node.js and npm installation
+RUN node --version && npm --version
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -35,6 +44,17 @@ RUN a2enmod rewrite
 # Copy Apache configuration
 COPY docker/apache/vhost.conf /etc/apache2/sites-available/000-default.conf
 
+# Copy package.json and package-lock.json first (for better caching)
+COPY package*.json ./
+
+# Install Node.js dependencies
+RUN if [ -f "package.json" ]; then \
+        echo "Installing Node.js dependencies..." && \
+        npm ci --only=production --silent; \
+    else \
+        echo "No package.json found, skipping Node.js dependencies"; \
+    fi
+
 # Copy existing application directory contents
 COPY . /var/www/html
 
@@ -42,10 +62,15 @@ COPY . /var/www/html
 COPY --chown=www-data:www-data . /var/www/html
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Install Node.js dependencies and build assets
-RUN npm ci --only=production && npm run build
+# Build assets if build script exists
+RUN if [ -f "package.json" ] && npm run --silent | grep -q "build"; then \
+        echo "Building assets..." && \
+        npm run build; \
+    else \
+        echo "No build script found or package.json missing, skipping asset build"; \
+    fi
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
