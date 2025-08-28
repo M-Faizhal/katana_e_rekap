@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: katana-app
+    restart: unless-stopped
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-katana_db}
+      - DB_USERNAME=${DB_USERNAME:-katana_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=null
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+    volumes:
+      - storage_data:/var/www/html/storage
+      - public_storage:/var/www/html/public/storage
+    depends_on:
+      - db
+      - redis
+    networks:
+      - katana-network
+    labels:
+      - "coolify.managed=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.katana.rule=Host(`${DOMAIN:-katana.localhost}`)"
+      - "traefik.http.routers.katana.entrypoints=websecure"
+      - "traefik.http.routers.katana.tls.certresolver=letsencrypt"
+      - "traefik.http.services.katana.loadbalancer.server.port=80"
+
+  db:
+    image: mysql:8.0
+    container_name: katana-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-katana_db}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME:-katana_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - katana-network
+    labels:
+      - "coolify.managed=true"
+
+  redis:
+    image: redis:7-alpine
+    container_name: katana-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - katana-network
+    labels:
+      - "coolify.managed=true"
+
+networks:
+  katana-network:
+    driver: bridge
+
+volumes:
+  db_data:
+  redis_data:
+  storage_data:
+  public_storage:
