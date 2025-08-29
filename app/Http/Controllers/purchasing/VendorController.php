@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class VendorController extends Controller
 {
@@ -39,33 +40,77 @@ class VendorController extends Controller
      */
     public function store(Request $request)
     {
-        // Check if user has permission
-        if (Auth::user()->role !== 'admin_purchasing') {
+        try {
+            // Debug log request
+            Log::info('=== VENDOR STORE REQUEST START ===');
+            Log::info('Request method: ' . $request->method());
+            Log::info('Request URL: ' . $request->url());
+            Log::info('Request headers: ', $request->headers->all());
+            Log::info('Form data: ', $request->except(['barang']));
+            Log::info('Barang data exists: ' . ($request->has('barang') ? 'YES' : 'NO'));
+            if ($request->has('barang')) {
+                Log::info('Barang count: ' . count($request->barang));
+                Log::info('Barang data: ', $request->barang);
+            }
+            Log::info('Files: ', $request->allFiles());
+            
+            // Check if user has permission
+            if (Auth::user()->role !== 'admin_purchasing') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki izin untuk menambah vendor'
+                ], 403);
+            }
+
+            // Validate basic vendor data first
+            $basicValidation = $request->validate([
+                'nama_vendor' => 'required|string|max:255',
+                'email' => 'required|email|unique:vendor,email',
+                'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
+                'kontak' => 'required|string|max:255',
+                'alamat' => 'nullable|string',
+            ]);
+            
+            Log::info('Basic validation passed');
+            
+            // Validate barang data if present
+            if ($request->has('barang') && is_array($request->barang)) {
+                Log::info('Validating barang data...');
+                $request->validate([
+                    'barang' => 'array',
+                    'barang.*.nama_barang' => 'required|string|max:255',
+                    'barang.*.brand' => 'required|string|max:255',
+                    'barang.*.kategori' => 'required|in:Elektronik,Meubel,Mesin,Lain-lain',
+                    'barang.*.satuan' => 'required|string|max:255',
+                    'barang.*.spesifikasi' => 'nullable|string',
+                    'barang.*.harga_vendor' => 'required|numeric|min:0',
+                    'barang.*.foto_barang' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+                ]);
+                Log::info('Barang validation passed');
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki izin untuk menambah vendor'
-            ], 403);
+                'message' => 'Data tidak valid',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
-
-        $request->validate([
-            'nama_vendor' => 'required|string|max:255',
-            'email' => 'required|email|unique:vendor,email',
-            'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
-            'kontak' => 'required|string|max:255',
-            'alamat' => 'nullable|string',
-            'barang' => 'nullable|array',
-            'barang.*.nama_barang' => 'required_with:barang|string|max:255',
-            'barang.*.brand' => 'required_with:barang|string|max:255',
-            'barang.*.kategori' => 'required_with:barang|in:Elektronik,Meubel,Mesin,Lain-lain',
-            'barang.*.satuan' => 'required_with:barang|string|max:255',
-            'barang.*.spesifikasi' => 'required_with:barang|string',
-            'barang.*.harga_vendor' => 'required_with:barang|numeric|min:0',
-            'barang.*.foto_barang' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
 
         DB::beginTransaction();
 
         try {
+            // Debug log
+            Log::info('Vendor store request data:', [
+                'vendor_data' => $request->only(['nama_vendor', 'email', 'jenis_perusahaan', 'kontak', 'alamat']),
+                'barang_count' => $request->has('barang') ? count($request->barang) : 0,
+                'barang_keys' => $request->has('barang') ? array_keys($request->barang) : []
+            ]);
+
             // Create vendor
             $vendor = Vendor::create([
                 'nama_vendor' => $request->nama_vendor,
@@ -78,12 +123,24 @@ class VendorController extends Controller
             // Create barang if provided
             if ($request->has('barang') && is_array($request->barang)) {
                 foreach ($request->barang as $index => $barangData) {
+                    // Skip if required fields are empty
+                    if (empty($barangData['nama_barang']) || empty($barangData['brand']) || 
+                        empty($barangData['kategori']) || empty($barangData['satuan']) || 
+                        empty($barangData['harga_vendor'])) {
+                        continue;
+                    }
+
                     $fotoPath = null;
                     
                     // Handle foto upload
                     if ($request->hasFile("barang.{$index}.foto_barang")) {
-                        $foto = $request->file("barang.{$index}.foto_barang");
-                        $fotoPath = $foto->store('barang', 'public');
+                        try {
+                            $foto = $request->file("barang.{$index}.foto_barang");
+                            $fotoPath = $foto->store('barang', 'public');
+                        } catch (\Exception $e) {
+                            // Continue without photo if upload fails
+                            Log::error('Failed to upload photo for barang: ' . $e->getMessage());
+                        }
                     }
 
                     Barang::create([
@@ -92,7 +149,7 @@ class VendorController extends Controller
                         'brand' => $barangData['brand'],
                         'kategori' => $barangData['kategori'],
                         'satuan' => $barangData['satuan'],
-                        'spesifikasi' => $barangData['spesifikasi'],
+                        'spesifikasi' => $barangData['spesifikasi'] ?? '',
                         'harga_vendor' => $barangData['harga_vendor'],
                         'foto_barang' => $fotoPath,
                     ]);
@@ -100,6 +157,8 @@ class VendorController extends Controller
             }
 
             DB::commit();
+            
+            Log::info('Vendor created successfully with ID: ' . $vendor->id_vendor);
 
             return response()->json([
                 'success' => true,
@@ -107,8 +166,18 @@ class VendorController extends Controller
                 'vendor' => $vendor->load('barang')
             ]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
+            Log::error('Validation error: ', $e->errors());
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Error creating vendor: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menambahkan vendor: ' . $e->getMessage()
@@ -155,7 +224,7 @@ class VendorController extends Controller
             'barang.*.brand' => 'required_with:barang|string|max:255',
             'barang.*.kategori' => 'required_with:barang|in:Elektronik,Meubel,Mesin,Lain-lain',
             'barang.*.satuan' => 'required_with:barang|string|max:255',
-            'barang.*.spesifikasi' => 'required_with:barang|string',
+            'barang.*.spesifikasi' => 'nullable|string', // FIXED: Changed from required_with:barang to nullable
             'barang.*.harga_vendor' => 'required_with:barang|numeric|min:0',
             'barang.*.foto_barang' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
@@ -196,7 +265,7 @@ class VendorController extends Controller
                             'brand' => $barangData['brand'],
                             'kategori' => $barangData['kategori'],
                             'satuan' => $barangData['satuan'],
-                            'spesifikasi' => $barangData['spesifikasi'],
+                            'spesifikasi' => $barangData['spesifikasi'] ?? '', // Handle nullable field properly
                             'harga_vendor' => $barangData['harga_vendor'],
                         ];
 
@@ -218,7 +287,7 @@ class VendorController extends Controller
                             'brand' => $barangData['brand'],
                             'kategori' => $barangData['kategori'],
                             'satuan' => $barangData['satuan'],
-                            'spesifikasi' => $barangData['spesifikasi'],
+                            'spesifikasi' => $barangData['spesifikasi'] ?? '', // Handle nullable field properly
                             'harga_vendor' => $barangData['harga_vendor'],
                             'foto_barang' => $fotoPath,
                         ]);

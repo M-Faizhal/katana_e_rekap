@@ -421,11 +421,16 @@ function submitTambahVendor() {
         return;
     }
     
+    console.log('=== SUBMITTING VENDOR ===');
+    console.log('User role:', userRole);
+    console.log('Vendor products:', vendorProducts);
+    
     const form = document.getElementById('formTambahVendor');
     const formData = new FormData(form);
     
     // Add barang data
     vendorProducts.forEach((product, index) => {
+        console.log(`Adding product ${index}:`, product);
         formData.append(`barang[${index}][nama_barang]`, product.nama_barang);
         formData.append(`barang[${index}][brand]`, product.brand);
         formData.append(`barang[${index}][kategori]`, product.kategori);
@@ -434,6 +439,7 @@ function submitTambahVendor() {
         formData.append(`barang[${index}][harga_vendor]`, product.harga_vendor);
         
         if (product.foto_barang && product.foto_barang instanceof File) {
+            console.log(`Adding photo for product ${index}:`, product.foto_barang.name);
             formData.append(`barang[${index}][foto_barang]`, product.foto_barang);
         }
     });
@@ -441,23 +447,61 @@ function submitTambahVendor() {
     fetch('/purchasing/vendor', {
         method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json', // Ensure JSON response
         },
-        body: formData
+        body: formData,
+        credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        // For 422 errors, we still want to parse the JSON to see validation errors
+        if (response.status === 422) {
+            return response.json().then(data => {
+                console.error('Validation failed:', data);
+                throw new Error(`Validation Error: ${data.message}`);
+            });
+        }
+        
+        // Check content type for other errors
+        const contentType = response.headers.get('content-type');
+        console.log('Content-Type:', contentType);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // Check if response is JSON
+        if (!contentType || !contentType.includes('application/json')) {
+            return response.text().then(text => {
+                console.error('Expected JSON but received:', text.substring(0, 500));
+                throw new Error('Server returned non-JSON response. Check server logs.');
+            });
+        }
+        
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             showSuccessModal(data.message);
             closeModal('modalTambahVendor');
             location.reload();
         } else {
-            alert(data.message || 'Gagal menambahkan vendor');
+            showToast(data.message || 'Gagal menambahkan vendor', 'error');
+            if (data.errors) {
+                console.error('Validation errors:', data.errors);
+                // Show first validation error
+                const firstError = Object.values(data.errors)[0][0];
+                showToast(firstError, 'error');
+            }
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan saat menambahkan vendor');
+        console.error('Full error object:', error);
+        showToast(error.message || 'Terjadi kesalahan saat menambahkan vendor', 'error');
     });
 }
 
@@ -468,48 +512,168 @@ function submitEditVendor() {
     }
     
     const vendorId = document.getElementById('editVendorId').value;
-    const form = document.getElementById('formEditVendor');
-    const formData = new FormData(form);
     
+    // Create FormData manually to ensure all fields are included
+    const formData = new FormData();
+    
+    // Add vendor data manually
     formData.append('_method', 'PUT');
+    formData.append('nama_vendor', document.getElementById('editNamaVendor').value || '');
+    formData.append('email', document.getElementById('editEmailVendor').value || '');
+    formData.append('jenis_perusahaan', document.getElementById('editJenisPerusahaan').value || '');
+    formData.append('kontak', document.getElementById('editKontakVendor').value || '');
+    formData.append('alamat', document.getElementById('editAlamatVendor').value || '');
     
-    // Add barang data
-    editVendorProducts.forEach((product, index) => {
-        if (product.id_barang) {
-            formData.append(`barang[${index}][id_barang]`, product.id_barang);
+    // Validate required fields before sending
+    const requiredFields = {
+        'nama_vendor': document.getElementById('editNamaVendor').value,
+        'email': document.getElementById('editEmailVendor').value,
+        'jenis_perusahaan': document.getElementById('editJenisPerusahaan').value,
+        'kontak': document.getElementById('editKontakVendor').value
+    };
+    
+    // Check for empty required fields
+    for (const [field, value] of Object.entries(requiredFields)) {
+        if (!value || value.trim() === '') {
+            showToast(`Field ${field.replace('_', ' ')} wajib diisi!`, 'error');
+            return;
         }
-        formData.append(`barang[${index}][nama_barang]`, product.nama_barang);
-        formData.append(`barang[${index}][brand]`, product.brand);
-        formData.append(`barang[${index}][kategori]`, product.kategori);
-        formData.append(`barang[${index}][satuan]`, product.satuan);
-        formData.append(`barang[${index}][spesifikasi]`, product.spesifikasi);
-        formData.append(`barang[${index}][harga_vendor]`, product.harga_vendor);
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(requiredFields.email)) {
+        showToast('Format email tidak valid!', 'error');
+        return;
+    }
+    
+    console.log('Vendor data being sent:', requiredFields);
+    
+    // Add barang data with validation
+    let validProductCount = 0;
+    editVendorProducts.forEach((product, index) => {
+        // Validate each product before adding
+        const requiredProductFields = {
+            'nama_barang': product.nama_barang,
+            'brand': product.brand,
+            'kategori': product.kategori,
+            'satuan': product.satuan,
+            'harga_vendor': product.harga_vendor
+        };
         
-        if (product.foto_barang && product.foto_barang instanceof File) {
-            formData.append(`barang[${index}][foto_barang]`, product.foto_barang);
+        // Check if all required fields are filled
+        let isValidProduct = true;
+        for (const [field, value] of Object.entries(requiredProductFields)) {
+            if (!value || (typeof value === 'string' && value.trim() === '')) {
+                console.warn(`Product ${index}: Missing ${field}`);
+                isValidProduct = false;
+                break;
+            }
+        }
+        
+        // Check if harga_vendor is a valid number
+        if (isValidProduct && (isNaN(product.harga_vendor) || parseFloat(product.harga_vendor) < 0)) {
+            console.warn(`Product ${index}: Invalid harga_vendor`);
+            isValidProduct = false;
+        }
+        
+        if (isValidProduct) {
+            if (product.id_barang) {
+                formData.append(`barang[${validProductCount}][id_barang]`, product.id_barang);
+            }
+            formData.append(`barang[${validProductCount}][nama_barang]`, product.nama_barang);
+            formData.append(`barang[${validProductCount}][brand]`, product.brand);
+            formData.append(`barang[${validProductCount}][kategori]`, product.kategori);
+            formData.append(`barang[${validProductCount}][satuan]`, product.satuan);
+            formData.append(`barang[${validProductCount}][spesifikasi]`, product.spesifikasi || '');
+            formData.append(`barang[${validProductCount}][harga_vendor]`, product.harga_vendor);
+            
+            if (product.foto_barang && product.foto_barang instanceof File) {
+                formData.append(`barang[${validProductCount}][foto_barang]`, product.foto_barang);
+            }
+            
+            validProductCount++;
+        } else {
+            console.error(`Product ${index} validation failed:`, product);
         }
     });
+    
+    console.log(`Valid products to send: ${validProductCount} out of ${editVendorProducts.length}`);
+    
+    // Debug: Log all formData entries
+    console.log('Complete FormData being sent:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key, ':', value);
+    }
     
     fetch(`/purchasing/vendor/${vendorId}`, {
         method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
         },
-        body: formData
+        body: formData,
+        credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        // For 422 errors, we want to parse the JSON to see validation errors
+        if (response.status === 422) {
+            return response.json().then(data => {
+                console.error('Validation failed:', data);
+                
+                // Show detailed validation errors
+                if (data.errors) {
+                    const errorMessages = [];
+                    for (const [field, messages] of Object.entries(data.errors)) {
+                        errorMessages.push(`${field}: ${messages.join(', ')}`);
+                    }
+                    console.error('Detailed validation errors:', errorMessages);
+                    showToast(`Validation Error: ${errorMessages[0]}`, 'error');
+                } else {
+                    showToast(`Validation Error: ${data.message}`, 'error');
+                }
+                
+                throw new Error(`Validation Error: ${data.message}`);
+            });
+        }
+        
+        const contentType = response.headers.get('content-type');
+        console.log('Content-Type:', contentType);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        if (!contentType || !contentType.includes('application/json')) {
+            return response.text().then(text => {
+                console.error('Expected JSON but received:', text.substring(0, 500));
+                throw new Error('Server returned non-JSON response. Check server logs.');
+            });
+        }
+        
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             showSuccessModal(data.message);
             closeModal('modalEditVendor');
             location.reload();
         } else {
-            alert(data.message || 'Gagal mengupdate vendor');
+            showToast(data.message || 'Gagal mengupdate vendor', 'error');
+            if (data.errors) {
+                console.error('Validation errors:', data.errors);
+                const firstError = Object.values(data.errors)[0][0];
+                showToast(firstError, 'error');
+            }
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan saat mengupdate vendor');
+        console.error('Full error object:', error);
+        showToast(error.message || 'Terjadi kesalahan saat mengupdate vendor', 'error');
     });
 }
 
@@ -526,7 +690,8 @@ function confirmHapusVendor() {
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Content-Type': 'application/json'
-        }
+        },
+
     })
     .then(response => response.json())
     .then(data => {
