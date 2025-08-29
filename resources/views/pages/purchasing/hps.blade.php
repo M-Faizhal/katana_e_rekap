@@ -416,16 +416,20 @@ async function initializeHPS() {
         alert('Terjadi kesalahan saat memuat data');
     }
 }
-
 // Load barang list
 async function loadBarangList() {
     try {
         const response = await fetch('/purchasing/kalkulasi/barang');
         barangList = await response.json();
+
+        // Urutkan berdasarkan nama_barang (A-Z)
+        barangList.sort((a, b) => a.nama_barang.localeCompare(b.nama_barang));
+
     } catch (error) {
         console.error('Error loading barang:', error);
     }
 }
+
 
 // Load vendor list
 async function loadVendorList() {
