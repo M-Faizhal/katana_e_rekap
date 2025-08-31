@@ -10,6 +10,7 @@ use App\Models\Wilayah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class ProyekController extends Controller
@@ -25,7 +26,7 @@ class ProyekController extends Controller
         $proyekData = $proyekData->map(function ($proyek) {
             // Prioritas daftar barang: proyekBarang -> penawaran detail -> fallback proyek langsung
             $daftarBarang = [];
-            
+
             // Prioritas 1: Dari proyek_barang (multiple barang per permintaan klien)
             if ($proyek->proyekBarang && $proyek->proyekBarang->count() > 0) {
                 foreach ($proyek->proyekBarang as $barang) {
@@ -51,7 +52,7 @@ class ProyekController extends Controller
                         'harga_total' => $detail->subtotal
                     ];
                 }
-            } 
+            }
             // Prioritas 3: Fallback ke data proyek langsung (tidak ada lagi karena kolom sudah dihapus)
             else {
                 $daftarBarang[] = [
@@ -105,6 +106,9 @@ class ProyekController extends Controller
 
     public function store(Request $request)
     {
+        // Debug: Log data yang diterima
+        Log::info('Data proyek yang diterima:', $request->all());
+
         $request->validate([
             'tanggal' => 'required|date',
             'kab_kota' => 'required|string|max:255',
@@ -154,23 +158,27 @@ class ProyekController extends Controller
 
         // Jika ada daftar barang multiple, simpan ke tabel proyek_barang
         if ($request->daftar_barang && is_array($request->daftar_barang)) {
-            foreach ($request->daftar_barang as $barang) {
-                $harga_total = $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
-                
-                $proyek->proyekBarang()->create([
+            Log::info('Menyimpan multiple barang:', ['jumlah' => count($request->daftar_barang), 'data' => $request->daftar_barang]);
+
+            foreach ($request->daftar_barang as $index => $barang) {
+                $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
+
+                $proyekBarang = $proyek->proyekBarang()->create([
                     'nama_barang' => $barang['nama_barang'],
                     'jumlah' => $barang['jumlah'],
                     'satuan' => $barang['satuan'],
-                    'spesifikasi' => $barang['spesifikasi'],
+                    'spesifikasi' => $barang['spesifikasi'] ?? 'Spesifikasi standar',
                     'harga_satuan' => $barang['harga_satuan'] ?? null,
                     'harga_total' => $harga_total
                 ]);
+
+                Log::info('Barang disimpan:', ['index' => $index + 1, 'id' => $proyekBarang->id_proyek_barang, 'nama' => $barang['nama_barang']]);
             }
         }
         // Jika single barang, simpan juga ke proyek_barang untuk konsistensi
         else {
             $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
-            
+
             $proyek->proyekBarang()->create([
                 'nama_barang' => $request->nama_barang,
                 'jumlah' => $request->jumlah,

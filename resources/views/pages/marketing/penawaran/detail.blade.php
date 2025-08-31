@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-
 <!-- Header Section -->
 <div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
     <div class="flex items-center justify-between">
@@ -17,7 +16,13 @@
         <div class="hidden sm:block">
             <div class="text-right">
                 <p class="text-red-100 text-sm">Status Penawaran</p>
-                <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-white bg-opacity-20 text-white">
+                <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full
+                    @if($penawaran->status === 'selesai') bg-green-500 text-white
+                    @elseif($penawaran->status === 'disetujui') bg-blue-500 text-white
+                    @elseif($penawaran->status === 'pending') bg-yellow-500 text-gray-900
+                    @elseif($penawaran->status === 'ditolak') bg-red-500 text-white
+                    @else bg-gray-600 text-white
+                    @endif">
                     {{ ucfirst($penawaran->status ?? 'draft') }}
                 </span>
             </div>
@@ -67,15 +72,11 @@
                         @elseif($proyek->status === 'pengiriman') bg-orange-100 text-orange-800
                         @elseif($proyek->status === 'pembayaran') bg-purple-100 text-purple-800
                         @elseif($proyek->status === 'penawaran') bg-blue-100 text-blue-800
-                        @elseif($proyek->status === 'menunggu') bg-gray-100 text-gray-800
+                        @elseif($proyek->status === 'Menunggu') bg-gray-100 text-gray-800
                         @else bg-red-100 text-red-800
                         @endif">
                         {{ ucfirst($proyek->status) }}
                     </span>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="text-sm font-medium text-gray-500">Nama Barang/Layanan</label>
-                    <p class="text-base font-semibold text-gray-800">{{ $proyek->nama_barang ?? '-' }}</p>
                 </div>
                 @if($proyek->catatan)
                 <div class="md:col-span-2">
@@ -87,76 +88,167 @@
         </div>
 
         <!-- Penawaran Details -->
+        @if($proyek->status !== 'Menunggu')
         <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                    <i class="fas fa-file-invoice text-red-600 mr-2"></i>
-                    Detail Penawaran
-                </h3>
-                <button onclick="openEditPenawaranModal()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">
-                    <i class="fas fa-edit mr-1"></i>
-                    Edit Penawaran
-                </button>
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-file-invoice text-red-600 mr-2"></i>
+                Detail Penawaran
+            </h3>
+            {{-- <button onclick="openEditPenawaranModal()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">
+                <i class="fas fa-edit mr-1"></i>
+                Edit Penawaran
+            </button> --}}
             </div>
 
             @if($penawaranDetails && $penawaranDetails->count() > 0)
-                <div class="space-y-4">
-                    @foreach($penawaranDetails as $detail)
-                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="text-xs text-gray-500">Nama Barang</label>
-                                <p class="font-medium text-gray-800">{{ $detail->nama_barang }}</p>
-                            </div>
-                            <div>
-                                <label class="text-xs text-gray-500">Qty</label>
-                                <p class="font-medium text-gray-800">{{ $detail->qty }}</p>
-                            </div>
-                            <div>
-                                <label class="text-xs text-gray-500">Harga Satuan</label>
-                                <p class="font-medium text-gray-800">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</p>
-                            </div>
-                            <div>
-                                <label class="text-xs text-gray-500">Subtotal</label>
-                                <p class="font-medium text-red-600">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</p>
-                            </div>
-                        </div>
-                        @if($detail->spesifikasi)
-                        <div class="mt-3">
-                            <label class="text-xs text-gray-500">Spesifikasi</label>
-                            <p class="text-sm text-gray-700">{{ $detail->spesifikasi }}</p>
-                        </div>
-                        @endif
-                    </div>
-                    @endforeach
+            <!-- Info Banner -->
+            {{-- <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div class="flex items-center">
+                <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                <span class="text-sm text-blue-700">
+                    Data barang otomatis di-load dari proyek. Anda dapat mengedit harga dan detail penawaran di bawah ini.
+                </span>
+                </div>
+            </div> --}}
 
-                    <!-- Total -->
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-lg font-semibold text-gray-800">Total Penawaran:</span>
-                            <span class="text-2xl font-bold text-red-600">
-                                Rp {{ number_format($penawaranDetails->sum('subtotal'), 0, ',', '.') }}
-                            </span>
-                        </div>
-                        @if($penawaran->total_nilai != $penawaranDetails->sum('subtotal'))
-                        <div class="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                            Total tersimpan (Rp {{ number_format($penawaran->total_nilai ?? 0, 0, ',', '.') }}) berbeda dengan perhitungan detail
-                        </div>
+            <div class="space-y-4">
+                @foreach($penawaranDetails as $detail)
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                    <label class="text-xs text-gray-500">Nama Barang</label>
+                    <p class="font-medium text-gray-800">{{ $detail->nama_barang }}</p>
+                    </div>
+                    <div>
+                    <label class="text-xs text-gray-500">Qty</label>
+                    <p class="font-medium text-gray-800">{{ $detail->qty }}</p>
+                    </div>
+                    <div>
+                    <label class="text-xs text-gray-500">Harga Satuan</label>
+                    <p class="font-medium text-gray-800">
+                        @if($detail->harga_satuan > 0)
+                        Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}
+                        @else
+                        <span class="text-orange-600 text-sm">Belum diset</span>
                         @endif
+                    </p>
+                    </div>
+                    <div>
+                    <label class="text-xs text-gray-500">Subtotal</label>
+                    <p class="font-medium text-red-600">
+                        @if($detail->subtotal > 0)
+                        Rp {{ number_format($detail->subtotal, 0, ',', '.') }}
+                        @else
+                        <span class="text-orange-600 text-sm">Rp 0</span>
+                        @endif
+                    </p>
                     </div>
                 </div>
-            @else
-                <div class="text-center py-8">
-                    <i class="fas fa-file-alt text-gray-300 text-4xl mb-4"></i>
-                    <p class="text-gray-500">Belum ada detail penawaran</p>
-                    <button onclick="openEditPenawaranModal()" class="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">
-                        <i class="fas fa-plus mr-1"></i>
-                        Tambah Detail Penawaran
-                    </button>
+                @if($detail->spesifikasi)
+                <div class="mt-3">
+                    <label class="text-xs text-gray-500">Spesifikasi</label>
+                    <p class="text-sm text-gray-700">{{ $detail->spesifikasi }}</p>
                 </div>
+                @endif
+                </div>
+                @endforeach
+
+                <!-- Total -->
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-lg font-semibold text-gray-800">Total Penawaran:</span>
+                    <span class="text-2xl font-bold text-red-600">
+                    Rp {{ number_format($penawaranDetails->sum('subtotal'), 0, ',', '.') }}
+                    </span>
+                </div>
+                @if($penawaran->total_nilai != $penawaranDetails->sum('subtotal'))
+                <div class="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    Total tersimpan (Rp {{ number_format($penawaran->total_nilai ?? 0, 0, ',', '.') }}) berbeda dengan perhitungan detail
+                </div>
+                @endif
+                </div>
+            </div>
+            @else
+            <div class="text-center py-8">
+                <i class="fas fa-box-open text-gray-300 text-4xl mb-4"></i>
+                <h4 class="text-lg font-medium text-gray-700 mb-2">Belum Ada Data Barang</h4>
+                <p class="text-gray-500 mb-4">Proyek ini belum memiliki data barang. Silakan tambah data barang terlebih dahulu di proyek.</p>
+                <div class="space-y-2">
+                <button onclick="openEditPenawaranModal()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">
+                    <i class="fas fa-plus mr-1"></i>
+                    Tambah Detail Penawaran Manual
+                </button>
+                <p class="text-xs text-gray-400">atau edit proyek untuk menambah data barang</p>
+                </div>
+            </div>
             @endif
         </div>
+        @endif
+
+        <!-- Data Barang Proyek (Reference) -->
+        @if($proyek->proyekBarang && $proyek->proyekBarang->count() > 0)
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-boxes text-blue-600 mr-2"></i>
+                Data Barang Proyek
+                <span class="ml-2 bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs font-medium">Referensi</span>
+            </h3>
+
+            {{-- <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                    <span class="text-sm text-blue-700">
+                        Data barang ini dari proyek. Jika detail penawaran kosong, data ini akan otomatis di-copy ke detail penawaran.
+                    </span>
+                </div>
+            </div> --}}
+
+            <div class="space-y-3">
+                @foreach($proyek->proyekBarang as $barang)
+                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div>
+                            <label class="text-xs text-gray-500">Nama Barang</label>
+                            <p class="font-medium text-gray-800">{{ $barang->nama_barang }}</p>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">Qty</label>
+                            <p class="font-medium text-gray-800">{{ $barang->jumlah }} {{ $barang->satuan }}</p>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">Harga Satuan</label>
+                            <p class="font-medium text-gray-800">
+                                @if($barang->harga_satuan > 0)
+                                    Rp {{ number_format($barang->harga_satuan, 0, ',', '.') }}
+                                @else
+                                    <span class="text-gray-400 text-sm">Belum diset</span>
+                                @endif
+                            </p>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">Total</label>
+                            <p class="font-medium text-blue-600">
+                                @if($barang->harga_total > 0)
+                                    Rp {{ number_format($barang->harga_total, 0, ',', '.') }}
+                                @else
+                                    <span class="text-gray-400 text-sm">Rp 0</span>
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                    @if($barang->spesifikasi)
+                    <div class="mt-2">
+                        <label class="text-xs text-gray-500">Spesifikasi</label>
+                        <p class="text-sm text-gray-700">{{ $barang->spesifikasi }}</p>
+                    </div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
 
     </div>
 
@@ -184,8 +276,8 @@
                 </div>
 
                 <!-- Total Nilai -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                {{-- <div> --}}
+                    {{-- <label class="block text-sm font-medium text-gray-700 mb-2">
                         Total Nilai Penawaran
                         @if($penawaranDetails && $penawaranDetails->count() > 0)
                         <button type="button" onclick="calculateTotal()" class="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200">
@@ -197,14 +289,14 @@
                     <input type="number" name="total_nilai" id="total_nilai"
                            value="{{ $penawaranDetails && $penawaranDetails->count() > 0 ? $penawaranDetails->sum('subtotal') : ($penawaran->total_nilai ?? '') }}"
                            placeholder="0" min="0" step="0.01"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
-                    @if($penawaranDetails && $penawaranDetails->count() > 0)
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required> --}}
+                    {{-- @if($penawaranDetails && $penawaranDetails->count() > 0)
                     <p class="text-xs text-gray-500 mt-1">
                         <i class="fas fa-info-circle mr-1"></i>
                         Total dihitung dari {{ $penawaranDetails->count() }} item detail penawaran
                     </p>
-                    @endif
-                </div>
+                    @endif --}}
+                {{-- </div> --}}
 
                 <!-- Surat Penawaran -->
                 <div>

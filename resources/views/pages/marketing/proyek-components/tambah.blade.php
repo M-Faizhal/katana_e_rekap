@@ -1,4 +1,103 @@
 <!-- Modal Tambah Proyek -->
+<style>
+    .hover-effect-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(0);
+    }
+
+    .hover-effect-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .barang-item {
+        transition: all 0.3s ease;
+    }
+
+    .barang-item:hover {
+        transform: translateY(-2px);
+    }
+
+    .input-focus:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        border-color: #ef4444;
+    }
+
+    .btn-hover-white:hover {
+        background-color: white !important;
+        border: 2px solid currentColor !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    #barangCounter {
+        transition: all 0.3s ease;
+    }
+
+    /* Custom Alert Styles */
+    .custom-alert-overlay {
+        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .custom-alert {
+        transform: scale(0.9);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .custom-alert.show {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .alert-error {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+</style>
+
+<!-- Custom Alert Modal -->
+<div id="customAlertOverlay" class="fixed inset-0 z-[60] hidden items-center justify-center custom-alert-overlay">
+    <div id="customAlert" class="custom-alert bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <!-- Alert Header -->
+        <div id="alertHeader" class="px-6 py-4 text-white">
+            <div class="flex items-center">
+                <div id="alertIcon" class="w-8 h-8 mr-3 flex items-center justify-center rounded-full bg-white bg-opacity-20">
+                    <i id="alertIconClass" class="text-lg"></i>
+                </div>
+                <h3 id="alertTitle" class="text-lg font-bold">Alert</h3>
+            </div>
+        </div>
+
+        <!-- Alert Body -->
+        <div class="px-6 py-4">
+            <p id="alertMessage" class="text-gray-700 text-base leading-relaxed"></p>
+        </div>
+
+        <!-- Alert Footer -->
+        <div id="alertFooter" class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+            <button id="alertCancel" class="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:shadow-md transition-all duration-200 hidden">
+                Batal
+            </button>
+            <button id="alertConfirm" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="modalTambahProyek" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-screen overflow-hidden my-4 mx-auto">
         <!-- Modal Header -->
@@ -12,7 +111,7 @@
                     <p class="text-red-100 text-sm">Buat proyek baru</p>
                 </div>
             </div>
-            <button onclick="closeModal('modalTambahProyek')" class="text-white hover:bg-white hover:text-red-800 p-2">
+            <button onclick="closeModal('modalTambahProyek')" class="text-white hover:bg-white hover:text-red-800 hover:border-2 hover:border-white rounded-lg p-2 transition-all duration-200">
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
@@ -77,10 +176,10 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Potensi</label>
                             <div class="flex gap-2">
-                                <button type="button" id="potensiYa" onclick="togglePotensi('ya')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-gray-50 transition-colors duration-200 potensi-btn">
+                                <button type="button" id="potensiYa" onclick="togglePotensi('ya')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-white hover:text-green-600 hover:border-green-600 transition-all duration-200 potensi-btn shadow-sm hover:shadow-md">
                                     <i class="fas fa-thumbs-up mr-2"></i>Ya
                                 </button>
-                                <button type="button" id="potensiTidak" onclick="togglePotensi('tidak')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-gray-50 transition-colors duration-200 potensi-btn">
+                                <button type="button" id="potensiTidak" onclick="togglePotensi('tidak')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-white hover:text-red-600 hover:border-red-600 transition-all duration-200 potensi-btn shadow-sm hover:shadow-md">
                                     <i class="fas fa-thumbs-down mr-2"></i>Tidak
                                 </button>
                             </div>
@@ -105,8 +204,9 @@
                         <h4 class="text-lg font-semibold text-gray-800 flex items-center">
                             <i class="fas fa-boxes text-red-600 mr-2"></i>
                             Daftar Barang
+                            <span id="barangCounter" class="ml-2 bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">1 item</span>
                         </h4>
-                        <button type="button" onclick="tambahBarang()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center">
+                        <button type="button" onclick="tambahBarang()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-white hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 flex items-center shadow-md hover:shadow-lg">
                             <i class="fas fa-plus mr-2"></i>
                             Tambah Barang
                         </button>
@@ -114,25 +214,28 @@
 
                     <div id="daftarBarang" class="space-y-4">
                         <!-- Item Barang Template -->
-                        <div class="barang-item bg-white border border-gray-200 rounded-lg p-4">
+                        <div class="barang-item bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-red-300 hover:shadow-md transition-all duration-200">
                             <div class="flex items-center justify-between mb-3">
-                                <h5 class="font-medium text-gray-800">Item 1</h5>
-                                <button type="button" onclick="hapusBarang(this)" class="text-red-600 hover:bg-red-100 rounded-lg p-2 transition-colors duration-200" style="display: none;">
+                                <h5 class="font-medium text-gray-800 flex items-center">
+                                    <i class="fas fa-box text-red-600 mr-2"></i>
+                                    Item 1
+                                </h5>
+                                <button type="button" onclick="hapusBarang(this)" class="text-red-600 hover:bg-red-100 hover:text-red-700 rounded-lg p-2 transition-all duration-200 hover:shadow-md" style="display: none;">
                                     <i class="fas fa-trash text-sm"></i>
                                 </button>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-                                <div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
-                                    <input type="text" name="barang[0][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Nama barang">
+                                    <input type="text" name="barang[0][nama]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Nama barang" required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
-                                    <input type="number" name="barang[0][qty]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm qty-input" placeholder="0" min="1" onchange="hitungTotal(this)">
+                                    <input type="number" name="barang[0][qty]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm qty-input" placeholder="0" min="1" onchange="hitungTotal(this)" required>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
-                                    <select name="barang[0][satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                                    <select name="barang[0][satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" required>
                                         <option value="">Pilih satuan</option>
                                         <option value="pcs">Pcs</option>
                                         <option value="unit">Unit</option>
@@ -146,24 +249,38 @@
                                         <option value="layanan">Layanan</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Harga Satuan</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Harga Satuan (Rp)</label>
                                     <input type="number" name="barang[0][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input" placeholder="0" min="0" onchange="hitungTotal(this)">
+                                    <small class="text-gray-500 text-xs">Opsional - untuk estimasi</small>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Harga Total</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Harga Total (Rp)</label>
                                     <input type="number" name="barang[0][harga_total]" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm harga-total-input" placeholder="0" readonly>
                                 </div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi</label>
+                                <textarea name="barang[0][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Deskripsi atau spesifikasi barang (opsional)"></textarea>
                             </div>
                         </div>
                     </div>
 
                     <!-- Total Keseluruhan -->
-                    <div class="mt-6 bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="mt-6 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-lg p-4">
                         <div class="flex justify-between items-center">
-                            <h5 class="text-lg font-semibold text-gray-800">Total Keseluruhan:</h5>
+                            <h5 class="text-lg font-semibold text-gray-800 flex items-center">
+                                <i class="fas fa-calculator text-red-600 mr-2"></i>
+                                Total Estimasi Keseluruhan:
+                            </h5>
                             <div class="text-2xl font-bold text-red-600" id="totalKeseluruhan">Rp 0</div>
                         </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Total ini adalah estimasi berdasarkan harga yang diinput
+                        </p>
                     </div>
                 </div>
             </form>
@@ -171,10 +288,10 @@
 
         <!-- Modal Footer -->
         <div class="bg-gray-50 px-6 py-4 flex items-center justify-end space-x-3 border-t border-gray-200 flex-shrink-0">
-            <button type="button" onclick="closeModal('modalTambahProyek')" class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+            <button type="button" onclick="closeModal('modalTambahProyek')" class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-700 hover:text-white hover:border-gray-700 transition-all duration-200 shadow-sm hover:shadow-md">
                 Batal
             </button>
-            <button type="submit" form="formTambahProyek" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center">
+            <button type="submit" form="formTambahProyek" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-white hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 flex items-center shadow-md hover:shadow-lg">
                 <i class="fas fa-save mr-2"></i>
                 Simpan Proyek
             </button>
@@ -222,6 +339,7 @@ function tambahBarang() {
         return;
     }
 
+    // Clone template
     const clonedTemplate = template.cloneNode(true);
 
     // Update header dan input names
@@ -230,49 +348,129 @@ function tambahBarang() {
         titleElement.textContent = `Item ${itemCounter + 1}`;
     }
 
-    clonedTemplate.querySelectorAll('input, select').forEach(input => {
+    // Update semua input names dan reset values
+    clonedTemplate.querySelectorAll('input, select, textarea').forEach(input => {
         const name = input.getAttribute('name');
         if (name) {
             input.setAttribute('name', name.replace('[0]', `[${itemCounter}]`));
         }
-        if (input.type !== 'hidden') {
+
+        // Reset values
+        if (input.type === 'text' || input.type === 'number' || input.tagName === 'TEXTAREA') {
             input.value = '';
+        } else if (input.tagName === 'SELECT') {
+            input.selectedIndex = 0;
+        }
+
+        // Remove readonly untuk input yang baru
+        if (input.hasAttribute('readonly')) {
+            input.removeAttribute('readonly');
+            // Tambahkan kembali readonly untuk harga total
+            if (input.classList.contains('harga-total-input')) {
+                input.setAttribute('readonly', true);
+            }
         }
     });
 
-    // Show delete button for new items
+    // Show delete button untuk item baru
     const deleteButton = clonedTemplate.querySelector('button[onclick="hapusBarang(this)"]');
     if (deleteButton) {
         deleteButton.style.display = 'block';
     }
 
+    // Tambahkan animasi fade in
+    clonedTemplate.style.opacity = '0';
+    clonedTemplate.style.transform = 'translateY(-10px)';
     container.appendChild(clonedTemplate);
+
+    // Animate in
+    setTimeout(() => {
+        clonedTemplate.style.transition = 'all 0.3s ease';
+        clonedTemplate.style.opacity = '1';
+        clonedTemplate.style.transform = 'translateY(0)';
+    }, 10);
+
     itemCounter++;
     updateDeleteButtons();
+    updateBarangCounter();
+
+    // Focus pada input nama barang yang baru
+    const namaBarangInput = clonedTemplate.querySelector('input[name*="[nama]"]');
+    if (namaBarangInput) {
+        setTimeout(() => namaBarangInput.focus(), 100);
+    }
+
+    console.log(`Item ${itemCounter} berhasil ditambahkan`);
+
+    // Show notification
+        // Show notification
+    showNotification(`Item ${itemCounter} berhasil ditambahkan`, 'success');
 }
 
-function hapusBarang(button) {
+async function hapusBarang(button) {
+}async function hapusBarang(button) {
     const item = button.closest('.barang-item');
-    item.remove();
-    updateItemNumbers();
-    hitungTotalKeseluruhan();
-    updateDeleteButtons();
+    const itemName = item.querySelector('h5').textContent;
+
+    // Konfirmasi hapus dengan custom alert
+    const confirmed = await showConfirmAlert(`Apakah Anda yakin ingin menghapus ${itemName}?`, 'Konfirmasi Hapus');
+    if (!confirmed) {
+        return;
+    }
+
+    // Animasi fade out
+    item.style.transition = 'all 0.3s ease';
+    item.style.opacity = '0';
+    item.style.transform = 'translateY(-10px)';
+
+    setTimeout(() => {
+        item.remove();
+        updateItemNumbers();
+        hitungTotalKeseluruhan();
+        updateDeleteButtons();
+        console.log(`${itemName} berhasil dihapus`);
+        showNotification(`${itemName} berhasil dihapus`, 'info');
+    }, 300);
 }
 
 function updateItemNumbers() {
     const items = document.querySelectorAll('.barang-item');
+    itemCounter = items.length; // Reset counter berdasarkan jumlah item saat ini
+
     items.forEach((item, index) => {
-        item.querySelector('h5').textContent = `Item ${index + 1}`;
-        item.querySelectorAll('input, select').forEach(input => {
+        // Update title
+        const titleElement = item.querySelector('h5');
+        if (titleElement) {
+            titleElement.textContent = `Item ${index + 1}`;
+        }
+
+        // Update input names
+        item.querySelectorAll('input, select, textarea').forEach(input => {
             const name = input.getAttribute('name');
-            if (name) {
+            if (name && name.includes('[')) {
                 input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
             }
         });
     });
+
+    // Update counter badge
+    updateBarangCounter();
 }
 
-function updateDeleteButtons() {
+function updateBarangCounter() {
+    const counter = document.getElementById('barangCounter');
+    const items = document.querySelectorAll('.barang-item');
+    if (counter) {
+        const count = items.length;
+        counter.textContent = `${count} item${count > 1 ? 's' : ''}`;
+
+        // Animasi perubahan
+        counter.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            counter.style.transform = 'scale(1)';
+        }, 200);
+    }
+}function updateDeleteButtons() {
     const items = document.querySelectorAll('.barang-item');
     items.forEach((item, index) => {
         const deleteButton = item.querySelector('button[onclick="hapusBarang(this)"]');
@@ -322,6 +520,60 @@ function formatRupiah(angka) {
     return 'Rp ' + angka.toLocaleString('id-ID');
 }
 
+// Function to show notification
+function showNotification(message, type = 'success') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `custom-notification fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+
+    let bgColor, textColor, icon;
+    switch (type) {
+        case 'success':
+            bgColor = 'bg-green-500';
+            textColor = 'text-white';
+            icon = 'fas fa-check-circle';
+            break;
+        case 'error':
+            bgColor = 'bg-red-500';
+            textColor = 'text-white';
+            icon = 'fas fa-exclamation-circle';
+            break;
+        case 'info':
+            bgColor = 'bg-blue-500';
+            textColor = 'text-white';
+            icon = 'fas fa-info-circle';
+            break;
+        default:
+            bgColor = 'bg-gray-500';
+            textColor = 'text-white';
+            icon = 'fas fa-bell';
+    }
+
+    notification.className += ` ${bgColor} ${textColor}`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="${icon} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(full)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 // Function to clear file input in tambah modal
 function clearTambahFile(inputId) {
     const input = document.getElementById(inputId);
@@ -351,7 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (file) {
                     // Check file size (5MB limit)
                     if (file.size > 5 * 1024 * 1024) {
-                        alert('Ukuran file terlalu besar. Maksimal 5MB.');
+                        showErrorAlert('Ukuran file terlalu besar. Maksimal 5MB.', 'File Terlalu Besar');
                         this.value = '';
                         preview.classList.add('hidden');
                         return;
@@ -368,11 +620,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Form submission
-document.getElementById('formTambahProyek').addEventListener('submit', function(e) {
+document.getElementById('formTambahProyek').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     // Validasi form
-    if (!validateTambahForm()) {
+    const isValid = await validateTambahForm();
+    if (!isValid) {
         return;
     }
 
@@ -384,7 +637,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', function(
 
     if (!submitButton) {
         console.error('Submit button not found');
-        alert('Terjadi kesalahan: tombol submit tidak ditemukan');
+        showErrorAlert('Terjadi kesalahan: tombol submit tidak ditemukan', 'Error Sistem');
         return;
     }
 
@@ -414,7 +667,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', function(
             if (typeof showSuccessModal === 'function') {
                 showSuccessModal('Proyek berhasil ditambahkan!');
             } else {
-                alert('Proyek berhasil ditambahkan!');
+                showSuccessAlert('Proyek berhasil ditambahkan!', 'Berhasil');
             }
 
             // Reload page untuk update data
@@ -427,7 +680,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', function(
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Terjadi kesalahan: ' + error.message);
+        showErrorAlert('Terjadi kesalahan: ' + error.message, 'Error');
     })
     .finally(() => {
         if (submitButton) {
@@ -438,7 +691,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', function(
 });
 
 // Fungsi validasi form tambah
-function validateTambahForm() {
+async function validateTambahForm() {
     const requiredFields = [
         { name: 'tanggal', label: 'Tanggal' },
         { name: 'kabupaten_kota', label: 'Kabupaten/Kota' },
@@ -450,7 +703,7 @@ function validateTambahForm() {
     for (let field of requiredFields) {
         const input = document.querySelector(`[name="${field.name}"]`);
         if (!input || !input.value.trim()) {
-            alert(`${field.label} harus diisi!`);
+            await showWarningAlert(`${field.label} harus diisi!`, 'Data Tidak Lengkap');
             if (input) input.focus();
             return false;
         }
@@ -459,28 +712,45 @@ function validateTambahForm() {
     // Validasi admin marketing sudah terisi
     const adminMarketingId = document.getElementById('currentUserId')?.value;
     if (!adminMarketingId) {
-        alert('Data user login tidak ditemukan. Silakan refresh halaman dan coba lagi.');
+        await showErrorAlert('Data user login tidak ditemukan. Silakan refresh halaman dan coba lagi.', 'Error Login');
         return false;
     }
 
-    // Validasi minimal ada 1 barang
+    // Validasi minimal ada 1 barang yang lengkap
     const barangItems = document.querySelectorAll('.barang-item');
     let hasValidItem = false;
+    let invalidItems = [];
 
-    for (let item of barangItems) {
+    barangItems.forEach((item, index) => {
         const namaBarang = item.querySelector('input[name*="[nama]"]');
         const qty = item.querySelector('input[name*="[qty]"]');
         const satuan = item.querySelector('select[name*="[satuan]"]');
 
-        if (namaBarang && namaBarang.value.trim() && qty && qty.value && satuan && satuan.value) {
+        // Cek apakah item ini lengkap
+        const isComplete = namaBarang?.value?.trim() && qty?.value && satuan?.value;
+
+        if (isComplete) {
             hasValidItem = true;
-            break;
+        } else {
+            // Jika ada data parsial (ada yang diisi tapi tidak lengkap)
+            const hasPartialData = namaBarang?.value?.trim() || qty?.value || satuan?.value;
+            if (hasPartialData) {
+                invalidItems.push(`Item ${index + 1}`);
+            }
         }
-    }
+    });
 
     if (!hasValidItem) {
-        alert('Minimal harus ada 1 barang yang lengkap datanya!');
+        await showWarningAlert('Minimal harus ada 1 barang yang lengkap datanya (Nama, Qty, dan Satuan)!', 'Data Barang Tidak Lengkap');
         return false;
+    }
+
+    // Peringatan untuk item yang tidak lengkap
+    if (invalidItems.length > 0) {
+        const proceed = await showConfirmAlert(`${invalidItems.join(', ')} memiliki data yang tidak lengkap dan akan diabaikan. Lanjutkan?`, 'Data Tidak Lengkap');
+        if (!proceed) {
+            return false;
+        }
     }
 
     return true;
@@ -504,14 +774,47 @@ function collectTambahFormData() {
     data.potensi = formData.get('potensi') || 'tidak';
     data.tahun_potensi = parseInt(formData.get('tahun_potensi')) || new Date().getFullYear();
 
-    // Ambil data barang pertama untuk kompatibilitas dengan struktur database
-    const firstItem = document.querySelector('.barang-item');
-    if (firstItem) {
-        data.nama_barang = firstItem.querySelector('input[name*="[nama]"]')?.value || '';
-        data.jumlah = parseInt(firstItem.querySelector('input[name*="[qty]"]')?.value) || 1;
-        data.satuan = firstItem.querySelector('select[name*="[satuan]"]')?.value || '';
-        data.harga_satuan = parseFloat(firstItem.querySelector('input[name*="[harga_satuan]"]')?.value) || null;
-        data.spesifikasi = 'Spesifikasi standar'; // Default value
+    // Kumpulkan data SEMUA barang, bukan hanya yang pertama
+    const daftarBarang = [];
+    const barangItems = document.querySelectorAll('.barang-item');
+
+    barangItems.forEach((item, index) => {
+        const namaBarang = item.querySelector('input[name*="[nama]"]')?.value?.trim();
+        const qty = item.querySelector('input[name*="[qty]"]')?.value;
+        const satuan = item.querySelector('select[name*="[satuan]"]')?.value;
+        const hargaSatuan = item.querySelector('input[name*="[harga_satuan]"]')?.value;
+        const spesifikasi = item.querySelector('textarea[name*="[spesifikasi]"]')?.value?.trim();
+
+        // Hanya tambahkan barang yang memiliki data minimal (nama, qty, satuan)
+        if (namaBarang && qty && satuan) {
+            daftarBarang.push({
+                nama_barang: namaBarang,
+                jumlah: parseInt(qty) || 1,
+                satuan: satuan,
+                harga_satuan: hargaSatuan ? parseFloat(hargaSatuan) : null,
+                spesifikasi: spesifikasi || 'Spesifikasi standar'
+            });
+        }
+    });
+
+    // Jika ada multiple barang, kirim sebagai daftar_barang
+    if (daftarBarang.length > 0) {
+        data.daftar_barang = daftarBarang;
+
+        // Ambil data dari barang pertama untuk kompatibilitas (fallback)
+        const firstBarang = daftarBarang[0];
+        data.nama_barang = firstBarang.nama_barang;
+        data.jumlah = firstBarang.jumlah;
+        data.satuan = firstBarang.satuan;
+        data.harga_satuan = firstBarang.harga_satuan;
+        data.spesifikasi = firstBarang.spesifikasi;
+    } else {
+        // Jika tidak ada barang valid, buat data default
+        data.nama_barang = 'Barang Default';
+        data.jumlah = 1;
+        data.satuan = 'Unit';
+        data.harga_satuan = null;
+        data.spesifikasi = 'Spesifikasi standar';
     }
 
     // Data tambahan yang diperlukan
@@ -521,6 +824,17 @@ function collectTambahFormData() {
     // Ambil ID admin marketing dari user yang login
     const adminMarketingId = document.getElementById('currentUserId')?.value;
     data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : 1;
+
+    console.log('Data yang akan dikirim:', data);
+    console.log('Jumlah barang:', daftarBarang.length);
+
+    // Tampilkan preview data barang di console untuk debugging
+    if (daftarBarang.length > 0) {
+        console.log('Detail barang yang akan disimpan:');
+        daftarBarang.forEach((barang, index) => {
+            console.log(`  ${index + 1}. ${barang.nama_barang} - ${barang.jumlah} ${barang.satuan}`);
+        });
+    }
 
     return data;
 }
@@ -560,6 +874,7 @@ function resetTambahModal() {
     }
     itemCounter = 1;
     updateDeleteButtons();
+    updateBarangCounter();
     hitungTotalKeseluruhan();
 }
 
@@ -653,4 +968,154 @@ async function loadPreviewKodeProyek() {
         console.error('Error loading preview kode proyek:', error);
     }
 }
+
+// ================================
+// CUSTOM ALERT SYSTEM
+// ================================
+
+// Custom Alert Function
+function showCustomAlert(message, type = 'info', title = null, showCancel = false) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('customAlertOverlay');
+        const alert = document.getElementById('customAlert');
+        const header = document.getElementById('alertHeader');
+        const icon = document.getElementById('alertIconClass');
+        const titleElement = document.getElementById('alertTitle');
+        const messageElement = document.getElementById('alertMessage');
+        const confirmBtn = document.getElementById('alertConfirm');
+        const cancelBtn = document.getElementById('alertCancel');
+
+        // Set alert type and styling
+        const alertConfig = {
+            success: {
+                headerClass: 'alert-success',
+                icon: 'fas fa-check-circle',
+                title: title || 'Berhasil',
+                confirmText: 'OK',
+                confirmClass: 'bg-green-600 hover:bg-green-700 hover:shadow-lg hover:-translate-y-0.5'
+            },
+            error: {
+                headerClass: 'alert-error',
+                icon: 'fas fa-exclamation-circle',
+                title: title || 'Error',
+                confirmText: 'OK',
+                confirmClass: 'bg-red-600 hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5'
+            },
+            warning: {
+                headerClass: 'alert-warning',
+                icon: 'fas fa-exclamation-triangle',
+                title: title || 'Peringatan',
+                confirmText: 'OK',
+                confirmClass: 'bg-orange-600 hover:bg-orange-700 hover:shadow-lg hover:-translate-y-0.5'
+            },
+            info: {
+                headerClass: 'alert-info',
+                icon: 'fas fa-info-circle',
+                title: title || 'Informasi',
+                confirmText: 'OK',
+                confirmClass: 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5'
+            },
+            confirm: {
+                headerClass: 'alert-warning',
+                icon: 'fas fa-question-circle',
+                title: title || 'Konfirmasi',
+                confirmText: 'Ya',
+                confirmClass: 'bg-red-600 hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5'
+            }
+        };
+
+        const config = alertConfig[type] || alertConfig.info;
+
+        // Apply styling
+        header.className = `px-6 py-4 text-white ${config.headerClass}`;
+        icon.className = config.icon;
+        titleElement.textContent = config.title;
+        messageElement.textContent = message;
+        confirmBtn.textContent = config.confirmText;
+        confirmBtn.className = `px-6 py-2 text-white rounded-lg transition-all duration-200 ${config.confirmClass}`;
+
+        // Show/hide cancel button
+        if (showCancel || type === 'confirm') {
+            cancelBtn.classList.remove('hidden');
+        } else {
+            cancelBtn.classList.add('hidden');
+        }
+
+        // Show alert with animation
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+
+        setTimeout(() => {
+            alert.classList.add('show');
+        }, 10);
+
+        // Event handlers
+        const handleConfirm = () => {
+            closeAlert();
+            resolve(true);
+        };
+
+        const handleCancel = () => {
+            closeAlert();
+            resolve(false);
+        };
+
+        const closeAlert = () => {
+            alert.classList.remove('show');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }, 300);
+
+            // Remove event listeners
+            confirmBtn.removeEventListener('click', handleConfirm);
+            cancelBtn.removeEventListener('click', handleCancel);
+            overlay.removeEventListener('click', handleOverlayClick);
+        };
+
+        const handleOverlayClick = (e) => {
+            if (e.target === overlay) {
+                closeAlert();
+                resolve(false);
+            }
+        };
+
+        // Add event listeners
+        confirmBtn.addEventListener('click', handleConfirm);
+        cancelBtn.addEventListener('click', handleCancel);
+        overlay.addEventListener('click', handleOverlayClick);
+
+        // Auto close for success messages after 3 seconds
+        if (type === 'success' && !showCancel) {
+            setTimeout(() => {
+                if (overlay.classList.contains('flex')) {
+                    closeAlert();
+                    resolve(true);
+                }
+            }, 3000);
+        }
+    });
+}
+
+// Wrapper functions for easier use
+function showSuccessAlert(message, title = null) {
+    return showCustomAlert(message, 'success', title);
+}
+
+function showErrorAlert(message, title = null) {
+    return showCustomAlert(message, 'error', title);
+}
+
+function showWarningAlert(message, title = null) {
+    return showCustomAlert(message, 'warning', title);
+}
+
+function showInfoAlert(message, title = null) {
+    return showCustomAlert(message, 'info', title);
+}
+
+function showConfirmAlert(message, title = null) {
+    return showCustomAlert(message, 'confirm', title, true);
+}
+
 </script>
