@@ -243,26 +243,25 @@
     <!-- Product Cards Grid -->
     <div class="p-4 sm:p-6">
         @if($produk->count() > 0)
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
+            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-6">
                 @foreach($produk as $item)
-                    <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onclick="showProductDetail({{ $item->id_barang }})">
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col" onclick="showProductDetail({{ $item->id_barang }})">
                         <div class="relative">
                             <!-- Product Image -->
-                            <div class="w-full h-48 bg-gray-100 overflow-hidden">
+                            <div class="w-full h-28 sm:h-48 bg-gray-100 overflow-hidden">
                                 @if($item->foto_barang)
                                     <img src="{{ asset('storage/' . $item->foto_barang) }}" 
                                          alt="{{ $item->nama_barang }}" 
                                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                                        <i class="fas fa-image text-4xl text-gray-400"></i>
+                                        <i class="fas fa-image text-2xl sm:text-4xl text-gray-400"></i>
                                     </div>
                                 @endif
                             </div>
-                            
                             <!-- Category Badge -->
-                            <div class="absolute top-3 right-3">
-                                <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                            <div class="absolute top-2 right-2">
+                                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full
                                     @if($item->kategori == 'Elektronik') bg-blue-100 text-blue-800
                                     @elseif($item->kategori == 'Mesin') bg-green-100 text-green-800
                                     @elseif($item->kategori == 'Meubel') bg-yellow-100 text-yellow-800
@@ -271,25 +270,18 @@
                                     {{ $item->kategori }}
                                 </span>
                             </div>
-                            
                             <!-- Product Code -->
-                            <div class="absolute top-3 left-3">
-                                <span class="bg-gray-800 text-white text-xs px-2 py-1 rounded-md">PRD-{{ str_pad($item->id_barang, 3, '0', STR_PAD_LEFT) }}</span>
+                            <div class="absolute top-2 left-2">
+                                <span class="bg-gray-800 text-white text-xs px-2 py-0.5 rounded-md">PRD-{{ str_pad($item->id_barang, 3, '0', STR_PAD_LEFT) }}</span>
                             </div>
                         </div>
-                        
                         <!-- Product Info -->
-                        <div class="p-4">
-                            <!-- Product Name -->
-                            <h3 class="font-semibold text-gray-900 text-lg mb-2 line-clamp-1">{{ $item->nama_barang }}</h3>
-                            
-                            <!-- Brand & Vendor -->
-                            <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ $item->brand }} - {{ $item->vendor->nama_vendor }}</p>
-                            
-                            <!-- Price -->
-                            <div class="text-center mt-3">
+                        <div class="p-2 sm:p-4 flex-1 flex flex-col justify-between">
+                            <h3 class="font-semibold text-gray-900 text-xs sm:text-lg mb-1 sm:mb-2 line-clamp-1">{{ $item->nama_barang }}</h3>
+                            <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 line-clamp-2">{{ $item->brand }} - {{ $item->vendor->nama_vendor }}</p>
+                            <div class="text-center mt-auto">
                                 <p class="text-xs text-gray-500">Harga Vendor</p>
-                                <p class="text-lg font-bold text-red-600">
+                                <p class="text-sm sm:text-lg font-bold text-red-600">
                                     Rp {{ number_format($item->harga_vendor, 0, ',', '.') }}
                                 </p>
                                 <p class="text-xs text-gray-400">per {{ $item->satuan }}</p>
