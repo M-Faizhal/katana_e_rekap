@@ -268,49 +268,49 @@
                             {{ number_format($kalkulasi->harga_akhir ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->total_harga ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->jumlah_volume ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->persen_kenaikan ?? 0, 1) }}%
+                            {{ number_format($kalkulasi->kenaikan_percent ?? 0, 1) }}%
                         </td>
                         <td class="px-2 py-2 text-right border-r">
                             {{ number_format($kalkulasi->proyeksi_kenaikan ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->ppn_dinas ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nilai_ppn ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->pph_dinas ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nilai_pph_badan ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right font-bold bg-yellow-50 border-r">
                             {{ number_format($kalkulasi->hps ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->dpp ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nilai_dpp ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->asumsi_nilai_cair ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nilai_asumsi_cair ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
                             {{ number_format($kalkulasi->ongkir ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->omzet_nilai_dinas ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->omzet_dinas ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->gross_nilai_bendera ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->bendera ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->gross_nilai_bank_cost ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->bank_cost ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->gross_nilai_biaya_ops ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->biaya_ops ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right font-bold bg-green-50 border-r">
-                            {{ number_format($kalkulasi->nilai_nett_income ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nett_income ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right font-bold bg-green-50">
-                            {{ number_format($kalkulasi->nett_income_persentase ?? 0, 2) }}%
+                            {{ number_format($kalkulasi->nett_income_percent ?? 0, 1) }}%
                         </td>
                     </tr>
                     @endforeach

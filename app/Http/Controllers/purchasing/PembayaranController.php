@@ -24,7 +24,7 @@ class PembayaranController extends Controller
         // Ambil proyek yang statusnya 'Pembayaran', 'Pengiriman', 'Selesai', atau 'Gagal' dan sudah ada penawaran yang di-ACC
         // Dengan vendor yang terlibat
         $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']) // Hapus 'Gagal' dari filter
             ->whereHas('penawaranAktif', function ($query) {
                 $query->where('status', 'ACC');
             })
@@ -37,12 +37,10 @@ class PembayaranController extends Controller
                     ->filter(); // Remove null values
 
                 $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
-                    // Hitung total untuk vendor ini (menggunakan harga_akhir dari kalkulasi_hps)
                     $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
                         ->where('id_vendor', $vendor->id_vendor)
                         ->sum('harga_akhir');
 
-                    // Hitung yang sudah dibayar untuk vendor ini
                     $totalDibayarApproved = $proyek->pembayaran
                         ->where('id_vendor', $vendor->id_vendor)
                         ->where('status_verifikasi', 'Approved')
@@ -50,16 +48,22 @@ class PembayaranController extends Controller
 
                     $sisaBayar = $totalVendor - $totalDibayarApproved;
 
+                    // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
+                    $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+
                     return (object) [
                         'vendor' => $vendor,
                         'total_vendor' => $totalVendor,
                         'total_dibayar_approved' => $totalDibayarApproved,
                         'sisa_bayar' => $sisaBayar,
                         'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
-                        'status_lunas' => $sisaBayar <= 0
+                        'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
+                        'warning_hps' => $warning_hps
                     ];
-                })->filter(function ($vendorData) {
-                    return $vendorData->sisa_bayar > 0; // Hanya yang belum lunas
+                })
+                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
+                ->filter(function ($vendorData) {
+                    return $vendorData->sisa_bayar > 0 || $vendorData->warning_hps;
                 });
 
                 return $proyek;
@@ -151,7 +155,8 @@ class PembayaranController extends Controller
                     'total_dibayar_approved' => $totalDibayarApproved,
                     'sisa_bayar' => $sisaBayar,
                     'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
-                    'status_lunas' => $sisaBayar <= 0
+                    'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
+                    'warning_hps' => $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null
                 ];
             });
 

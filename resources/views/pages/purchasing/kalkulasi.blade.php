@@ -7,6 +7,7 @@
 @php
     $currentUser = Auth::user();
     $isAdminPurchasing = $currentUser->role === 'admin_purchasing';
+    $isSuperadmin = $currentUser->role === 'superadmin';
 @endphp
 
 
@@ -91,7 +92,8 @@
                         @forelse($proyekMenunggu as $p)
                         @php
                             $currentUser = Auth::user();
-                            $canAccess = $currentUser->role === 'admin_purchasing' && $p->id_admin_purchasing == $currentUser->id_user;
+                            $isSuperadmin = $currentUser->role === 'superadmin';
+                            $canAccess = ($currentUser->role === 'admin_purchasing' && $p->id_admin_purchasing == $currentUser->id_user) || $isSuperadmin;
                         @endphp
                         <tr class="hover:bg-gray-50 {{ $canAccess ? 'cursor-pointer' : 'cursor-not-allowed opacity-75' }}" 
                             @if($canAccess) onclick="window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'" @endif>>>
@@ -171,17 +173,15 @@
                             </td>
                             
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                @php
-                                    $currentUser = Auth::user();
-                                    $canAccess = $currentUser->role === 'admin_purchasing' && $p->id_admin_purchasing == $currentUser->id_user;
-                                @endphp
-                                
                                 @if($canAccess)
                                     <button onclick="event.stopPropagation(); openHpsModal({{ $p->id_proyek }})" 
                                             class="text-red-600 hover:text-red-900 mr-3"
                                             title="Buka Kalkulasi HPS">
                                         <i class="fas fa-calculator"></i> Kalkulasi
                                     </button>
+                                    @if($isSuperadmin)
+                                        <span class="text-xs text-green-600 ml-2"><i class="fas fa-user-shield"></i> Superadmin: akses penuh</span>
+                                    @endif
                                 @else
                                     @if($currentUser->role !== 'admin_purchasing')
                                         <span class="text-gray-400 text-xs">
@@ -241,7 +241,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Tanggal</p>
-                            <p class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</p>
+                            <p class="text-sm font-medium text-gray-900">{{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</p>
                         </div>
                     </div>
                     

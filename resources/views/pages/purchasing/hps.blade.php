@@ -29,12 +29,11 @@
     </div>
 
     <!-- Action Buttons -->
-    @if($canEdit ?? false)
+    @if($canEdit || (Auth::user()->role === 'superadmin'))
     <div class="bg-gray-50 rounded-lg p-4 mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div class="flex flex-wrap gap-2">
             <button onclick="clearVendorData()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm">
-                <i class="fas fa-trash-alt mr-1"></i>
-                Hapus Data
+                Hapus Semua Data Vendor
             </button>
             <button onclick="recalculateAll()" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm">
                 <i class="fas fa-calculator mr-1"></i>
@@ -46,18 +45,15 @@
             </button>
         </div>
         <div class="text-sm text-gray-600 flex items-center">
-            <i class="fas fa-clock mr-1"></i>
-            <span id="last-updated">{{ $proyek->updated_at ? $proyek->updated_at->format('d/m/Y H:i') : '-' }}</span>
+            @if(Auth::user()->role === 'superadmin')
+                <span class="text-green-600 ml-2"><i class="fas fa-user-shield"></i> Superadmin: akses penuh</span>
+            @endif
         </div>
     </div>
     @else
     <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
         <div class="flex items-center">
-            <i class="fas fa-lock text-amber-600 text-lg mr-3"></i>
-            <div>
-                <h4 class="text-sm font-medium text-amber-800">Akses Terbatas</h4>
-                <p class="text-xs sm:text-sm text-amber-700">Anda hanya dapat melihat data kalkulasi. Hanya admin purchasing yang ditugaskan yang dapat melakukan perubahan.</p>
-            </div>
+            <span class="text-amber-700"><i class="fas fa-lock mr-2"></i> Anda tidak memiliki akses untuk mengedit kalkulasi HPS pada proyek ini.</span>
         </div>
     </div>
     @endif
@@ -895,11 +891,13 @@ async function saveKalkulasi() {
         
         if (data.success) {
             showSuccessMessage('Kalkulasi berhasil disimpan');
-            
             const now = new Date().toLocaleString('id-ID');
-            document.getElementById('last-updated').textContent = now;
-            document.getElementById('last-updated-footer').textContent = now;
-            
+            if (document.getElementById('last-updated')) {
+                document.getElementById('last-updated').textContent = now;
+            }
+            if (document.getElementById('last-updated-footer')) {
+                document.getElementById('last-updated-footer').textContent = now;
+            }
             // Check if penawaran button should be shown
             checkPenawaranButtonVisibility();
         } else {
