@@ -148,15 +148,15 @@
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Satuan</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Qty</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Harga Vendor</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Total Diskon</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Nilai Diskon</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Total Diskon</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Harga Diskon</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Total Harga</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Jumlah Volume</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Kenaikan</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Proyeksi Kenaikan</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPN Dinas</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPH Dinas</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPN</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPH</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">HPS</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Harga/PCS</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Pagu Dinas/PCS</th>
@@ -483,10 +483,10 @@ function createKalkulasiTableRow(item, index) {
                 <input type="number" value="${item.harga_vendor || 0}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.total_diskon || 0}" onchange="updateValue(${index}, 'total_diskon', this.value)" class="no-spin text-right w-20" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.nilai_diskon || 0}" onchange="updateValue(${index}, 'nilai_diskon', this.value)" class="no-spin text-right w-20" placeholder="Per item" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-yellow-50 text-xs">
-                <span>${formatRupiah(item.nilai_diskon || 0)}</span>
+                <span>${formatRupiah(item.total_diskon || 0)}</span>
             </td>
             <td class="px-2 py-3 bg-yellow-50 text-xs">
                 <span>${formatRupiah(item.harga_diskon || 0)}</span>
@@ -498,7 +498,7 @@ function createKalkulasiTableRow(item, index) {
                 <span>${formatRupiah(item.jumlah_volume || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.persen_kenaikan || 0}" onchange="updateValue(${index}, 'persen_kenaikan', this.value)" class="no-spin text-right w-16" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.persen_kenaikan || 0}" onchange="updateValue(${index}, 'persen_kenaikan', this.value)" class="no-spin text-right w-16" step="0.1" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-blue-50 text-xs">
                 <span>${formatRupiah(item.proyeksi_kenaikan || 0)}</span>
@@ -537,25 +537,25 @@ function createKalkulasiTableRow(item, index) {
                 <input type="number" value="${item.ongkir || 0}" onchange="updateValue(${index}, 'ongkir', this.value)" class="no-spin text-right w-16" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.omzet_dinas_percent || 0}" onchange="updateValue(${index}, 'omzet_dinas_percent', this.value)" class="no-spin text-right w-12" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.omzet_dinas_percent || 0}" onchange="updateValue(${index}, 'omzet_dinas_percent', this.value)" class="no-spin text-right w-12" step="0.1" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
                 <span>${formatRupiah(item.omzet_nilai_dinas || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.bendera_percent || 0}" onchange="updateValue(${index}, 'bendera_percent', this.value)" class="no-spin text-right w-12" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.bendera_percent || 0}" onchange="updateValue(${index}, 'bendera_percent', this.value)" class="no-spin text-right w-12" step="0.1" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
                 <span>${formatRupiah(item.gross_nilai_bendera || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.bank_cost_percent || 0}" onchange="updateValue(${index}, 'bank_cost_percent', this.value)" class="no-spin text-right w-12" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.bank_cost_percent || 0}" onchange="updateValue(${index}, 'bank_cost_percent', this.value)" class="no-spin text-right w-12" step="0.1" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
                 <span>${formatRupiah(item.gross_nilai_bank_cost || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.biaya_ops_percent || 0}" onchange="updateValue(${index}, 'biaya_ops_percent', this.value)" class="no-spin text-right w-12" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.biaya_ops_percent || 0}" onchange="updateValue(${index}, 'biaya_ops_percent', this.value)" class="no-spin text-right w-12" step="0.1" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
                 <span>${formatRupiah(item.gross_nilai_biaya_ops || 0)}</span>
@@ -586,7 +586,6 @@ function createKalkulasiTableRow(item, index) {
         </tr>
     `;
 }
-
 
 // Helper functions for creating options
 function createBarangOptions(selectedId) {

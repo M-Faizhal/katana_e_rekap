@@ -1,6 +1,7 @@
 /**
- * HPS Calculator - Advanced Calculation System
- * Handles all calculations for purchasing HPS (Harga Perkiraan Sendiri)
+ * HPS Calculator - Fixed Discount Logic
+ * Input: nilai_diskon (per item)
+ * Output: total_diskon (calculated)
  */
 
 class HPSCalculator {
@@ -90,7 +91,7 @@ class HPSCalculator {
         // Get basic values
         const qty = parseFloat(calculated.qty) || 1;
         const hargaVendor = parseFloat(calculated.harga_vendor) || 0;
-        const totalDiskon = parseFloat(calculated.total_diskon) || 0;
+        const nilaiDiskon = parseFloat(calculated.nilai_diskon) || 0; // ← INPUT: Diskon per item
         const persenKenaikan = parseFloat(calculated.persen_kenaikan) || 0;
         const hargaPaguDinasPerPcs = parseFloat(calculated.harga_pagu_dinas_per_pcs) || 0;
         const nilaiSp = parseFloat(calculated.nilai_sp) || 0;
@@ -100,21 +101,13 @@ class HPSCalculator {
         const bankCostPercent = parseFloat(calculated.bank_cost_percent) || 0;
         const biayaOpsPercent = parseFloat(calculated.biaya_ops_percent) || 0;
 
-        // === Identitas Barang & Vendor ===
-        // 1. NO (auto-increment)
-        // 2. NAMA BARANG → Diambil dari sistem (already set)
-        // 3. NAMA VENDOR → Diambil dari data vendor (already set)
-        // 4. JENIS VENDOR → Dari data vendor (already set)
-        // 5. SATUAN → Dari data barang (already set)
-        // 6. QTY (Kuantitas) (already set)
-        // 7. HARGA VENDOR (Harga Awal) (already set)
-        
-        // 8. TOTAL DISKON (admin input)
-        calculated.total_diskon = totalDiskon;
-        
-        // 9. NILAI DISKON = TOTAL DISKON / QTY
-        const nilaiDiskon = qty > 0 ? totalDiskon / qty : 0;
+        // === FIXED DISCOUNT CALCULATION ===
+        // 8. NILAI DISKON (per item) → INPUT dari admin
         calculated.nilai_diskon = nilaiDiskon;
+        
+        // 9. TOTAL DISKON = NILAI DISKON × QTY → CALCULATED
+        const totalDiskon = nilaiDiskon * qty;
+        calculated.total_diskon = totalDiskon;
         
         // 10. HARGA DISKON (Harga Akhir) = Harga Vendor - Nilai Diskon
         const hargaDiskon = hargaVendor - nilaiDiskon;
@@ -207,7 +200,7 @@ class HPSCalculator {
 
         // === Gross & Nett Income ===
         // 31. GROSS INCOME = (DPP - PPH) + SUB TOTAL VOLUME
-        const grossIncome = asumsiNilaiCair + jumlahVolume;
+        const grossIncome = asumsiNilaiCair - jumlahVolume;
         calculated.gross_income = grossIncome;
         
         // 32. GROSS INCOME PERSENTASE = GROSS INCOME / ASUMSI NILAI CAIR
@@ -264,7 +257,8 @@ class HPSCalculator {
             
             // Detail totals
             totalItems: this.kalkulasiData.length,
-            totalDiskon: 0,
+            totalNilaiDiskon: 0,      // ← Changed: Total nilai diskon (per item)
+            totalDiskon: 0,           // ← Changed: Total diskon keseluruhan
             totalVolume: 0,
             totalProyeksiKenaikan: 0,
             totalPpnDinas: 0,
@@ -294,7 +288,8 @@ class HPSCalculator {
             summary.totalHpp += parseFloat(item.jumlah_volume) || 0;
             summary.totalHps += parseFloat(item.hps) || 0;
             summary.totalNett += parseFloat(item.nilai_nett_income) || 0;
-            summary.totalDiskon += parseFloat(item.total_diskon) || 0;
+            summary.totalNilaiDiskon += parseFloat(item.nilai_diskon) || 0;  // ← Fixed: per item
+            summary.totalDiskon += parseFloat(item.total_diskon) || 0;       // ← Fixed: total calculated
             summary.totalVolume += parseFloat(item.jumlah_volume) || 0;
             summary.totalProyeksiKenaikan += parseFloat(item.proyeksi_kenaikan) || 0;
             summary.totalPpnDinas += parseFloat(item.ppn_dinas) || 0;
@@ -334,7 +329,7 @@ class HPSCalculator {
         return summary;
     }
 
-    // Add new vendor item
+    // Add new vendor item with corrected structure
     addVendorItem() {
         const newItem = {
             id: Date.now(),
@@ -346,8 +341,8 @@ class HPSCalculator {
             satuan: 'Unit',
             qty: 1,
             harga_vendor: 0,
-            total_diskon: 0,
-            nilai_diskon: 0,
+            nilai_diskon: 0,          // ← INPUT: Diskon per item
+            total_diskon: 0,          // ← CALCULATED: Total diskon
             harga_diskon: 0,
             harga_akhir: 0,
             total_harga: 0,
@@ -513,6 +508,9 @@ class HPSCalculator {
             if (parseFloat(item.harga_vendor) <= 0) {
                 errors.push(`Row ${index + 1}: Harga vendor harus lebih dari 0`);
             }
+            if (parseFloat(item.nilai_diskon) > parseFloat(item.harga_vendor)) {
+                errors.push(`Row ${index + 1}: Nilai diskon tidak boleh lebih besar dari harga vendor`);
+            }
         });
 
         return {
@@ -520,7 +518,39 @@ class HPSCalculator {
             errors: errors
         };
     }
+
+    // Helper method: Calculate discount example
+    calculateDiscountExample(hargaVendor, qty, nilaiDiskon) {
+        const totalDiskon = nilaiDiskon * qty;
+        const hargaAkhir = hargaVendor - nilaiDiskon;
+        const totalHarga = hargaAkhir * qty;
+        
+        return {
+            harga_vendor: hargaVendor,
+            qty: qty,
+            nilai_diskon: nilaiDiskon,        // INPUT
+            total_diskon: totalDiskon,        // CALCULATED
+            harga_akhir: hargaAkhir,
+            total_harga: totalHarga
+        };
+    }
 }
+
+// Example usage with corrected logic
+const exampleCalculation = {
+    harga_vendor: 100000,  // Rp 100.000 per item
+    qty: 5,                // 5 items
+    nilai_diskon: 10000    // INPUT: Rp 10.000 diskon per item
+};
+
+// Results:
+// total_diskon = 10.000 × 5 = Rp 50.000 (CALCULATED)
+// harga_akhir = 100.000 - 10.000 = Rp 90.000 per item
+// total_harga = 90.000 × 5 = Rp 450.000
 
 // Create global instance
 window.hpsCalculator = new HPSCalculator();
+
+console.log('Example calculation:', 
+    window.hpsCalculator.calculateDiscountExample(100000, 5, 10000)
+);
