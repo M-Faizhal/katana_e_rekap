@@ -232,7 +232,7 @@
 </div>
 
 <!-- Mobile Overlay -->
-<div id="mobileOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden hidden"></div>
+<div id="mobileOverlay" class="fixed inset-0 bg-black/20 backdrop-blur-xs bg-opacity-50 z-50 lg:hidden hidden"></div>
 
 <!-- Mobile Sidebar -->
 <div id="mobileSidebar" class="fixed left-0 top-0 w-80 h-full bg-white shadow-2xl z-50 lg:hidden transform -translate-x-full transition-transform duration-300 ease-in-out">

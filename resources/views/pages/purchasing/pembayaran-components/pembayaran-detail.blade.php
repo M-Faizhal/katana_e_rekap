@@ -333,7 +333,7 @@
                 <div class="text-lg font-bold text-green-600">
                     Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
                 </div>
-                <div class="text-sm text-gray-500">Total Modal Vendor</div>
+                <div class="text-sm text-gray-500">Total Modal Vendor (Harga Akhir Kalkulasi HPS)</div>
             </div>
             <div class="text-center">
                 <div class="text-lg font-bold text-blue-600">
@@ -356,7 +356,7 @@
         <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <div class="text-xs text-blue-700 mb-1">
                 <i class="fas fa-info-circle mr-1"></i>
-                Referensi: Total penawaran ke klien Rp {{ number_format($totalPenawaran, 0, ',', '.') }}
+                Referensi: Total penawaran ke klien Rp {{ number_format($totalPenawaran, 0, ',', '.') }}. Modal vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>.
             </div>
         </div>
         

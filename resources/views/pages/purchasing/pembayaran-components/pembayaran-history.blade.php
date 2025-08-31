@@ -77,10 +77,8 @@
                 @endphp
                 <div class="space-y-2">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Total Modal Vendor:</span>
-                        <span class="font-bold text-green-600">
-                            Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
-                        </span>
+                        <span class="text-gray-600">Total Modal Vendor (Harga Akhir Kalkulasi HPS):</span>
+                        <span class="font-medium">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600 text-sm">Total Penawaran Klien:</span>
@@ -107,8 +105,8 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Progress</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <span>Progress Pembayaran</span>
-                        <span class="font-medium">{{ number_format($persenBayar, 1) }}%</span>
+                        <span class="text-gray-600">Progress pembayaran vendor (berdasarkan harga akhir Kalkulasi HPS):</span>
+                        <span class="font-bold text-gray-900">{{ number_format($persenBayar, 1) }}%</span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-3">
                         <div class="bg-green-600 h-3 rounded-full transition-all duration-300" style="width: {{ $persenBayar }}%"></div>

@@ -315,16 +315,16 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                        <span class="text-green-700 font-medium">Total Modal:</span>
-                        <span class="font-semibold text-green-900">Rp {{ number_format($selectedVendor->total_vendor ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-gray-600">Total Modal (Harga Akhir Kalkulasi HPS):</span>
+                        <span class="font-medium">Rp {{ number_format($selectedVendor->total_vendor ?? $totalModalVendor, 0, ',', '.') }}</span>
                     </div>
                     <div>
-                        <span class="text-green-700 font-medium">Sudah Dibayar:</span>
-                        <span class="font-semibold text-blue-600">Rp {{ number_format($selectedVendor->total_dibayar ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-gray-600">Dibayar:</span>
+                        <span class="font-medium text-green-600">Rp {{ number_format($selectedVendor->total_dibayar ?? $totalDibayar, 0, ',', '.') }}</span>
                     </div>
                     <div>
-                        <span class="text-green-700 font-medium">Sisa Tagihan:</span>
-                        <span class="font-semibold text-red-600">Rp {{ number_format($selectedVendor->sisa_bayar ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-gray-600">Sisa:</span>
+                        <span class="font-medium text-red-600">Rp {{ number_format($selectedVendor->sisa_bayar ?? $sisaBayar, 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -490,6 +490,10 @@
                                     Admin keuangan akan memverifikasi dalam 1-2 hari kerja
                                 </li>
                             </ul>
+                            <p class="text-xs text-yellow-800 flex items-center mt-2">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <strong>Catatan:</strong> Pembayaran ke vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>, bukan harga vendor barang.
+                            </p>
                         </div>
                     </div>
                 </div>

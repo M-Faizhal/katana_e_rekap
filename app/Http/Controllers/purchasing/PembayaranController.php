@@ -8,6 +8,7 @@ use App\Models\Proyek;
 use App\Models\Penawaran;
 use App\Models\Pembayaran;
 use App\Models\Vendor;
+use App\Models\KalkulasiHps;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -36,12 +37,10 @@ class PembayaranController extends Controller
                     ->filter(); // Remove null values
 
                 $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
-                    // Hitung total untuk vendor ini (menggunakan harga modal)
-                    $totalVendor = $proyek->penawaranAktif->penawaranDetail
-                        ->where('barang.id_vendor', $vendor->id_vendor)
-                        ->sum(function($detail) {
-                            return $detail->qty * $detail->barang->harga_vendor; // harga modal
-                        });
+                    // Hitung total untuk vendor ini (menggunakan harga_akhir dari kalkulasi_hps)
+                    $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->sum('harga_akhir');
 
                     // Hitung yang sudah dibayar untuk vendor ini
                     $totalDibayarApproved = $proyek->pembayaran
@@ -133,12 +132,10 @@ class PembayaranController extends Controller
                 ->filter(); // Remove null values
 
             $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
-                // Hitung total untuk vendor ini (menggunakan harga modal)
-                $totalVendor = $proyek->penawaranAktif->penawaranDetail
-                    ->where('barang.id_vendor', $vendor->id_vendor)
-                    ->sum(function($detail) {
-                        return $detail->qty * $detail->barang->harga_vendor; // harga modal
-                    });
+                // Hitung total untuk vendor ini (menggunakan harga_akhir dari kalkulasi_hps)
+                $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                    ->where('id_vendor', $vendor->id_vendor)
+                    ->sum('harga_akhir');
 
                 // Hitung yang sudah dibayar untuk vendor ini
                 $totalDibayarApproved = $proyek->pembayaran
@@ -272,12 +269,10 @@ class PembayaranController extends Controller
             ->unique('id_vendor')
             ->filter()
             ->map(function ($vendor) use ($proyek) {
-                // Hitung total untuk vendor ini (menggunakan harga modal)
-                $totalVendor = $proyek->penawaranAktif->penawaranDetail
-                    ->where('barang.id_vendor', $vendor->id_vendor)
-                    ->sum(function($detail) {
-                        return $detail->qty * $detail->barang->harga_vendor; // harga modal
-                    });
+                // Hitung total untuk vendor ini (menggunakan harga_akhir dari kalkulasi_hps)
+                $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                    ->where('id_vendor', $vendor->id_vendor)
+                    ->sum('harga_akhir');
 
                 // Hitung yang sudah dibayar untuk vendor ini (approved saja)
                 $totalDibayar = $proyek->pembayaran
@@ -330,11 +325,9 @@ class PembayaranController extends Controller
                 ->where('status_verifikasi', 'Approved')
                 ->sum('nominal_bayar');
                 
-            // Calculate total vendor modal (harga modal, bukan harga penawaran)
-            $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
-                ->sum(function($detail) {
-                    return $detail->qty * $detail->barang->harga_vendor; // harga modal
-                });
+            // Calculate total vendor modal (harga_akhir dari kalkulasi_hps)
+            $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                ->sum('harga_akhir');
                 
             // Calculate sisa bayar berdasarkan total modal vendor
             $sisaBayar = $totalModalVendor - $totalDibayar;
@@ -373,12 +366,10 @@ class PembayaranController extends Controller
 
         $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor'])->findOrFail($request->id_proyek);
 
-        // Hitung total untuk vendor yang dipilih (menggunakan harga modal)
-        $totalVendor = $proyek->penawaranAktif->penawaranDetail
-            ->where('barang.id_vendor', $request->id_vendor)
-            ->sum(function($detail) {
-                return $detail->qty * $detail->barang->harga_vendor; // harga modal
-            });
+        // Hitung total untuk vendor yang dipilih (menggunakan harga_akhir dari kalkulasi_hps)
+        $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+            ->where('id_vendor', $request->id_vendor)
+            ->sum('harga_akhir');
 
         // Validasi nominal pembayaran untuk vendor ini (hanya yang sudah approved)
         $totalDibayar = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
@@ -465,12 +456,10 @@ class PembayaranController extends Controller
     {
         $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor'])->findOrFail($id_pembayaran);
         
-        // Hitung total modal untuk vendor ini saja (menggunakan harga modal)
-        $totalModalVendor = $pembayaran->penawaran->proyek->penawaranAktif->penawaranDetail
-            ->where('barang.id_vendor', $pembayaran->id_vendor)
-            ->sum(function($detail) {
-                return $detail->qty * $detail->barang->harga_vendor; // harga modal
-            });
+        // Hitung total modal untuk vendor ini saja (menggunakan harga_akhir dari kalkulasi_hps)
+        $totalModalVendor = KalkulasiHps::where('id_proyek', $pembayaran->penawaran->proyek->id_proyek)
+            ->where('id_vendor', $pembayaran->id_vendor)
+            ->sum('harga_akhir');
 
         // Hitung total yang sudah dibayar untuk vendor ini saja (hanya approved)
         $totalDibayarVendor = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
@@ -494,10 +483,8 @@ class PembayaranController extends Controller
             ->get();
 
         // Hitung total modal vendor untuk proyek ini
-        $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
-            ->sum(function($detail) {
-                return $detail->qty * $detail->barang->harga_vendor; // harga modal
-            });
+        $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+            ->sum('harga_akhir');
 
         return view('pages.purchasing.pembayaran-components.pembayaran-history', compact('proyek', 'riwayatPembayaran', 'totalModalVendor'));
     }
@@ -527,17 +514,13 @@ class PembayaranController extends Controller
         
         if ($id_vendor) {
             // Hitung total modal untuk vendor yang dipilih
-            $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
-                ->where('barang.id_vendor', $id_vendor)
-                ->sum(function($detail) {
-                    return $detail->qty * $detail->barang->harga_vendor; // harga modal
-                });
+            $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                ->where('id_vendor', $id_vendor)
+                ->sum('harga_akhir');
         } else {
             // Jika tidak ada vendor dipilih, gunakan total semua vendor
-            $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
-                ->sum(function($detail) {
-                    return $detail->qty * $detail->barang->harga_vendor; // harga modal
-                });
+            $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                ->sum('harga_akhir');
         }
 
         $suggestions = [
@@ -578,7 +561,7 @@ class PembayaranController extends Controller
 
         $proyek = $pembayaran->penawaran->proyek;
         
-        // Hitung total modal untuk vendor ini (menggunakan harga modal)
+        // Hitung total modal untuk vendor ini (menggunakan harga_akhir dari kalkulasi_hps)
         $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
             ->where('barang.id_vendor', $pembayaran->id_vendor)
             ->sum(function($detail) {
@@ -633,7 +616,7 @@ class PembayaranController extends Controller
 
         $proyek = $pembayaran->penawaran->proyek;
         
-        // Hitung total modal untuk vendor ini (menggunakan harga modal)
+        // Hitung total modal untuk vendor ini (menggunakan harga_akhir dari kalkulasi_hps)
         $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
             ->where('barang.id_vendor', $pembayaran->id_vendor)
             ->sum(function($detail) {

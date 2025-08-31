@@ -100,10 +100,8 @@
                         <span class="font-semibold text-blue-900">{{ $pembayaran->vendor->nama_vendor }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-sm text-blue-700 font-medium">Total Modal Vendor:</span>
-                        <span class="font-bold text-green-700">
-                            Rp {{ number_format($totalModalVendor ?? 0, 0, ',', '.') }}
-                        </span>
+                        <span class="text-sm text-blue-700 font-medium">Total Modal Vendor (Harga Akhir Kalkulasi HPS):</span>
+                        <span class="font-medium">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-sm text-blue-700 font-medium">Total Penawaran Klien:</span>
@@ -323,6 +321,16 @@
                 </form>
             </div>
         </form>
+
+        <!-- Notes Section -->
+        <div class="mt-6">
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg p-4">
+                <p class="text-xs text-yellow-800 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <strong>Catatan:</strong> Pembayaran ke vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>, bukan harga vendor barang.
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
