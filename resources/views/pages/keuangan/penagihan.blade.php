@@ -32,32 +32,32 @@
 <!-- Tabs Navigation -->
 <div class="bg-white rounded-lg shadow-lg mb-6">
     <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <nav class="-mb-px flex space-x-2 sm:space-x-8" aria-label="Tabs">
             <button type="button" 
-                class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
+                class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
                 data-tab="belum-bayar">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-clock text-yellow-500"></i>
+                <div class="flex items-center space-x-1 sm:space-x-2">
+                    <i class="fas fa-clock text-yellow-500 text-xs sm:text-sm md:text-base"></i>
                     <span>Belum Bayar</span>
-                    <span class="bg-yellow-100 text-yellow-800 py-1 px-2 rounded-full text-xs">{{ $proyekBelumBayar->count() }}</span>
+                    <span class="bg-yellow-100 text-yellow-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekBelumBayar->count() }}</span>
                 </div>
             </button>
             <button type="button" 
-                class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
+                class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
                 data-tab="dp">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-hand-holding-usd text-blue-500"></i>
+                <div class="flex items-center space-x-1 sm:space-x-2">
+                    <i class="fas fa-hand-holding-usd text-blue-500 text-xs sm:text-sm md:text-base"></i>
                     <span>DP</span>
-                    <span class="bg-blue-100 text-blue-800 py-1 px-2 rounded-full text-xs">{{ $proyekDp->count() }}</span>
+                    <span class="bg-blue-100 text-blue-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekDp->count() }}</span>
                 </div>
             </button>
             <button type="button" 
-                class="tab-button py-4 px-6 text-center border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200"
+                class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
                 data-tab="lunas">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-check-circle text-green-500"></i>
+                <div class="flex items-center space-x-1 sm:space-x-2">
+                    <i class="fas fa-check-circle text-green-500 text-xs sm:text-sm md:text-base"></i>
                     <span>Lunas</span>
-                    <span class="bg-green-100 text-green-800 py-1 px-2 rounded-full text-xs">{{ $proyekLunas->count() }}</span>
+                    <span class="bg-green-100 text-green-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekLunas->count() }}</span>
                 </div>
             </button>
         </nav>
@@ -69,19 +69,19 @@
     <!-- Belum Bayar Tab -->
     <div id="belum-bayar" class="tab-pane">
         <div class="bg-white rounded-lg shadow-lg">
-            <div class="p-6 border-b border-gray-200">
+            <div class="p-4 sm:p-6 border-b border-gray-200">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-                            <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                        <h2 class="text-base sm:text-xl font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-clock text-yellow-500 mr-1 sm:mr-2"></i>
                             Proyek Belum Bayar
                         </h2>
-                        <p class="text-gray-600 mt-1">Daftar proyek yang sudah di ACC klien namun belum dibuat penagihan</p>
+                        <p class="text-xs sm:text-sm text-gray-600 mt-1">Daftar proyek yang sudah di ACC klien namun belum dibuat penagihan</p>
                     </div>
                     @if(!$isAdminKeuangan)
-                    <div class="flex items-center px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                        <i class="fas fa-eye text-blue-600 mr-2"></i>
-                        <span class="text-sm font-medium text-blue-700">Mode Lihat Saja</span>
+                    <div class="flex items-center px-2 sm:px-3 py-1 sm:py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <i class="fas fa-eye text-blue-600 mr-1 sm:mr-2"></i>
+                        <span class="text-xs sm:text-sm font-medium text-blue-700">Mode Lihat Saja</span>
                     </div>
                     @endif
                 </div>
