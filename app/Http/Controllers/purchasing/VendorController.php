@@ -55,7 +55,7 @@ class VendorController extends Controller
             Log::info('Files: ', $request->allFiles());
             
             // Check if user has permission
-            if (Auth::user()->role !== 'admin_purchasing') {
+            if (Auth::user()->role !== 'admin_purchasing' && Auth::user()->role !== 'superadmin') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki izin untuk menambah vendor'
@@ -204,7 +204,7 @@ class VendorController extends Controller
     public function update(Request $request, $id)
     {
         // Check if user has permission
-        if (Auth::user()->role !== 'admin_purchasing') {
+        if (Auth::user()->role !== 'admin_purchasing' && Auth::user()->role !== 'superadmin') {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki izin untuk mengedit vendor'
@@ -340,7 +340,7 @@ class VendorController extends Controller
     public function destroy($id)
     {
         // Check if user has permission
-        if (Auth::user()->role !== 'admin_purchasing') {
+        if (Auth::user()->role !== 'admin_purchasing' && Auth::user()->role !== 'superadmin') {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki izin untuk menghapus vendor'

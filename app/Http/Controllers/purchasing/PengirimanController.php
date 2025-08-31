@@ -128,10 +128,11 @@ class PengirimanController extends Controller
      */
     public function store(Request $request)
     {
-        // Role-based access control: Only allow admin_purchasing
-        if (Auth::user()->role !== 'admin_purchasing') {
+        // Role-based access control: Allow admin_purchasing and superadmin
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_purchasing', 'superadmin'])) {
             return redirect()->route('purchasing.pengiriman')
-                ->with('error', 'Tidak memiliki akses untuk membuat pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+                ->with('error', 'Tidak memiliki akses untuk membuat pengiriman. Hanya admin purchasing/superadmin yang dapat melakukan aksi ini.');
         }
 
         $request->validate([
@@ -143,13 +144,11 @@ class PengirimanController extends Controller
             'file_surat_jalan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
         ]);
 
-        // Pastikan vendor sudah ada pembayaran yang approved (tidak harus lunas)
         $penawaran = Penawaran::with(['proyek.pembayaran'])->findOrFail($request->id_penawaran);
-        
-        // Check if current user is assigned to this project
-        if ($penawaran->proyek->id_admin_purchasing != Auth::user()->id_user) {
+        // Check if current user is assigned to this project, unless superadmin
+        if ($user->role === 'admin_purchasing' && $penawaran->proyek->id_admin_purchasing != $user->id_user) {
             return redirect()->route('purchasing.pengiriman')
-                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat membuat pengiriman untuk proyek ini.');
+                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan/superadmin yang dapat membuat pengiriman untuk proyek ini.');
         }
         
         $totalVendor = $penawaran->penawaranDetail
@@ -219,18 +218,18 @@ class PengirimanController extends Controller
      */
     public function updateDokumentasi(Request $request, $id)
     {
-        // Role-based access control: Only allow admin_purchasing
-        if (Auth::user()->role !== 'admin_purchasing') {
+        // Role-based access control: Allow admin_purchasing and superadmin
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_purchasing', 'superadmin'])) {
             return redirect()->route('purchasing.pengiriman')
-                ->with('error', 'Tidak memiliki akses untuk mengupdate dokumentasi pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+                ->with('error', 'Tidak memiliki akses untuk mengupdate dokumentasi pengiriman. Hanya admin purchasing/superadmin yang dapat melakukan aksi ini.');
         }
 
         $pengiriman = Pengiriman::with(['penawaran.proyek'])->findOrFail($id);
-        
-        // Check if current user is assigned to this project
-        if ($pengiriman->penawaran->proyek->id_admin_purchasing != Auth::user()->id_user) {
+        // Check if current user is assigned to this project, unless superadmin
+        if ($user->role === 'admin_purchasing' && $pengiriman->penawaran->proyek->id_admin_purchasing != $user->id_user) {
             return redirect()->route('purchasing.pengiriman')
-                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat mengupdate dokumentasi pengiriman untuk proyek ini.');
+                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan/superadmin yang dapat mengupdate dokumentasi pengiriman untuk proyek ini.');
         }
 
         $request->validate([
@@ -390,18 +389,18 @@ class PengirimanController extends Controller
      */
     public function destroy($id)
     {
-        // Role-based access control: Only allow admin_purchasing
-        if (Auth::user()->role !== 'admin_purchasing') {
+        // Role-based access control: Allow admin_purchasing and superadmin
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_purchasing', 'superadmin'])) {
             return redirect()->route('purchasing.pengiriman')
-                ->with('error', 'Tidak memiliki akses untuk menghapus pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+                ->with('error', 'Tidak memiliki akses untuk menghapus pengiriman. Hanya admin purchasing/superadmin yang dapat melakukan aksi ini.');
         }
 
         $pengiriman = Pengiriman::with(['penawaran.proyek'])->findOrFail($id);
-        
-        // Check if current user is assigned to this project
-        if ($pengiriman->penawaran->proyek->id_admin_purchasing != Auth::user()->id_user) {
+        // Check if current user is assigned to this project, unless superadmin
+        if ($user->role === 'admin_purchasing' && $pengiriman->penawaran->proyek->id_admin_purchasing != $user->id_user) {
             return redirect()->route('purchasing.pengiriman')
-                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat menghapus pengiriman untuk proyek ini.');
+                ->with('error', 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan/superadmin yang dapat menghapus pengiriman untuk proyek ini.');
         }
 
         // Hanya bisa hapus jika status masih Pending

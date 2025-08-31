@@ -66,7 +66,7 @@
 
 <!-- Role Information Alert -->
 @auth
-    @if(auth()->user()->role !== 'admin_purchasing')
+    @if(auth()->user()->role !== 'admin_purchasing' && auth()->user()->role !== 'superadmin')
         <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
@@ -75,7 +75,7 @@
                 <div class="ml-3">
                     <p class="text-sm text-yellow-800">
                         <span class="font-medium">Info:</span> 
-                        Anda hanya memiliki akses untuk melihat detail vendor. Hanya admin purchasing yang dapat menambah, mengedit, atau menghapus data vendor.
+                        Anda hanya memiliki akses untuk melihat detail vendor. Hanya admin purchasing dan superadmin yang dapat menambah, mengedit, atau menghapus data vendor.
                     </p>
                 </div>
             </div>
@@ -153,7 +153,7 @@
                                 <i class="fas fa-eye text-sm lg:text-base"></i>
                             </button>
                             @auth
-                                @if(auth()->user()->role === 'admin_purchasing')
+                                @if(auth()->user()->role === 'admin_purchasing' || auth()->user()->role === 'superadmin')
                                     <button onclick="editVendor({{ $vendor->id_vendor }})" class="text-yellow-600 hover:text-yellow-800 transition-colors p-1.5 lg:p-2" title="Edit Vendor">
                                         <i class="fas fa-edit text-sm lg:text-base"></i>
                                     </button>
@@ -199,7 +199,7 @@
                                     <i class="fas fa-eye text-lg"></i>
                                 </button>
                                 @auth
-                                    @if(auth()->user()->role === 'admin_purchasing')
+                                    @if(auth()->user()->role === 'admin_purchasing' || auth()->user()->role === 'superadmin')
                                         <button onclick="editVendor({{ $vendor->id_vendor }})" class="text-yellow-600 hover:text-yellow-900 transition-colors p-2" title="Edit Vendor">
                                             <i class="fas fa-edit text-lg"></i>
                                         </button>
@@ -254,7 +254,7 @@
 
 <!-- Floating Action Button -->
 @auth
-    @if(auth()->user()->role === 'admin_purchasing')
+    @if(auth()->user()->role === 'admin_purchasing' || auth()->user()->role === 'superadmin')
         <button onclick="tambahVendor()" class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 lg:bottom-16 lg:right-16 bg-red-600 hover:bg-red-700 text-white w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-50" title="Tambah Vendor Baru">
             <i class="fas fa-plus text-lg sm:text-xl"></i>
         </button>
@@ -277,7 +277,7 @@ let userRole = @json(auth()->user()->role ?? 'guest');
 
 // Modal functions
 function tambahVendor() {
-    if (userRole !== 'admin_purchasing') {
+    if (userRole !== 'admin_purchasing' && userRole !== 'superadmin') {
         showToast('Anda tidak memiliki izin untuk menambah vendor', 'error');
         return;
     }
@@ -290,7 +290,7 @@ function tambahVendor() {
 }
 
 function editVendor(id) {
-    if (userRole !== 'admin_purchasing') {
+    if (userRole !== 'admin_purchasing' && userRole !== 'superadmin') {
         showToast('Anda tidak memiliki izin untuk mengedit vendor', 'error');
         return;
     }
@@ -370,7 +370,7 @@ function detailVendor(id) {
 }
 
 function hapusVendor(id) {
-    if (userRole !== 'admin_purchasing') {
+    if (userRole !== 'admin_purchasing' && userRole !== 'superadmin') {
         showToast('Anda tidak memiliki izin untuk menghapus vendor', 'error');
         return;
     }
@@ -416,7 +416,7 @@ function closeHapusVendor() { closeModal('modalHapusVendor'); }
 
 // Form submit functions
 function submitTambahVendor() {
-    if (userRole !== 'admin_purchasing') {
+    if (userRole !== 'admin_purchasing' && userRole !== 'superadmin') {
         showToast('Anda tidak memiliki izin untuk menambah vendor', 'error');
         return;
     }
@@ -506,7 +506,7 @@ function submitTambahVendor() {
 }
 
 function submitEditVendor() {
-    if (userRole !== 'admin_purchasing') {
+    if (userRole !== 'admin_purchasing' && userRole !== 'superadmin') {
         showToast('Anda tidak memiliki izin untuk mengedit vendor', 'error');
         return;
     }
@@ -678,7 +678,7 @@ function submitEditVendor() {
 }
 
 function confirmHapusVendor() {
-    if (userRole !== 'admin_purchasing') {
+    if (userRole !== 'admin_purchasing' && userRole !== 'superadmin') {
         showToast('Anda tidak memiliki izin untuk menghapus vendor', 'error');
         return;
     }

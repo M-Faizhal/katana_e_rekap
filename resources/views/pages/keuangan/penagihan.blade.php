@@ -6,7 +6,7 @@
 <!-- Access Control Info -->
 @php
     $user = auth()->user();
-    $isAdminKeuangan = $user->role === 'admin_keuangan';
+    $isAdminKeuangan = $user->role === 'admin_keuangan' || $user->role === 'superadmin';
 @endphp
 
 
@@ -166,7 +166,7 @@
                                     </a>
                                 @else
                                     <span class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 bg-gray-100 border border-gray-200"
-                                          title="Hanya Admin Keuangan yang dapat membuat penagihan">
+                                          title="Hanya Admin Keuangan/Superadmin yang dapat membuat penagihan">
                                         <i class="fas fa-lock mr-2 text-gray-400"></i>
                                         Akses Terbatas
                                     </span>
@@ -292,7 +292,7 @@
                                         </a>
                                     @else
                                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded text-gray-600 bg-gray-100 border border-gray-200"
-                                              title="Hanya Admin Keuangan yang dapat melakukan pelunasan dan edit">
+                                              title="Hanya Admin Keuangan/Superadmin yang dapat melakukan pelunasan dan edit">
                                             <i class="fas fa-lock mr-1 text-gray-400"></i>
                                             Akses Terbatas
                                         </span>

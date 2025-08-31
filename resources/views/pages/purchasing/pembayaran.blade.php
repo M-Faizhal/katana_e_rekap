@@ -348,7 +348,7 @@
                                             <!-- Action Buttons -->
                                             <div class="flex items-center space-x-2">
                                                 @php
-                                                    $canAccess = $currentUser->role === 'admin_purchasing' && $proyek->id_admin_purchasing == $currentUser->id_user;
+                                                    $canAccess = ($currentUser->role === 'admin_purchasing' || $currentUser->role === 'superadmin') && ($proyek->id_admin_purchasing == $currentUser->id_user || $currentUser->role === 'superadmin');
                                                 @endphp
                                                 
                                                 @if(!$vendorData->status_lunas)
@@ -358,15 +358,6 @@
                                                         <i class="fas fa-plus mr-1"></i>
                                                         Input Pembayaran
                                                     </a>
-                                                    @else
-                                                    <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
-                                                        <i class="fas fa-lock mr-1"></i>
-                                                        @if($currentUser->role !== 'admin_purchasing')
-                                                            Hanya Admin Purchasing
-                                                        @else
-                                                            Tidak Memiliki Akses
-                                                        @endif
-                                                    </span>
                                                     @endif
                                                 @endif
                                                 
@@ -680,15 +671,6 @@
                                                 <i class="fas fa-plus mr-1"></i>
                                                 Input Pembayaran
                                             </a>
-                                            @else
-                                            <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
-                                                <i class="fas fa-lock mr-1"></i>
-                                                @if($currentUser->role !== 'admin_purchasing')
-                                                    Hanya Admin Purchasing
-                                                @else
-                                                    Tidak Memiliki Akses
-                                                @endif
-                                            </span>
                                             @endif
                                         @endif
                                         
@@ -753,15 +735,6 @@
                                 <i class="fas fa-plus mr-1"></i>
                                 Input Pembayaran
                             </a>
-                            @else
-                            <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
-                                <i class="fas fa-lock mr-1"></i>
-                                @if($currentUser->role !== 'admin_purchasing')
-                                    Hanya Admin Purchasing
-                                @else
-                                    Tidak Memiliki Akses
-                                @endif
-                            </span>
                             @endif
                         @endif
                         
@@ -1011,7 +984,7 @@
                                     </button>
                                 </form>
                                 @else
-                                <span class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs leading-4 font-medium rounded text-gray-500 bg-gray-100 cursor-not-allowed">
+                                <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
                                     <i class="fas fa-lock mr-1"></i>
                                     @if($currentUser->role !== 'admin_purchasing')
                                         Hanya Admin Purchasing

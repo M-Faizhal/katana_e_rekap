@@ -6,7 +6,7 @@
 <!-- Access Control Info -->
 @php
     $user = auth()->user();
-    $isAdminKeuangan = $user->role === 'admin_keuangan';
+    $isAdminKeuangan = $user->role === 'admin_keuangan' || $user->role === 'superadmin';
 @endphp
 
 <div class="container mx-auto px-4 py-6">
@@ -215,7 +215,6 @@
                                 <i class="fas fa-eye mr-1"></i>
                                 Detail
                             </a>
-                            
                             @if($isAdminKeuangan)
                                 <!-- Modern Approve Button -->
                                 <button onclick="openApproveModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->nama_barang }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}', '{{ $pembayaran->vendor->nama_vendor }}')" 

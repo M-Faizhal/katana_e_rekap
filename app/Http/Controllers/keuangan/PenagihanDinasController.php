@@ -57,9 +57,10 @@ class PenagihanDinasController extends Controller
     public function create($proyekId)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.penagihan')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat membuat penagihan.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat membuat penagihan.');
         }
 
         $proyek = Proyek::with(['penawaran' => function($query) {
@@ -81,9 +82,10 @@ class PenagihanDinasController extends Controller
     public function store(Request $request)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.penagihan')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat membuat penagihan.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat membuat penagihan.');
         }
 
         $request->validate([
@@ -195,9 +197,10 @@ class PenagihanDinasController extends Controller
     public function edit($id)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.penagihan')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat mengedit penagihan.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat mengedit penagihan.');
         }
 
         $penagihanDinas = PenagihanDinas::with(['proyek', 'penawaran'])->findOrFail($id);
@@ -208,9 +211,10 @@ class PenagihanDinasController extends Controller
     public function update(Request $request, $id)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.penagihan')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat mengedit penagihan.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat mengedit penagihan.');
         }
 
         $penagihanDinas = PenagihanDinas::findOrFail($id);
@@ -271,9 +275,10 @@ class PenagihanDinasController extends Controller
     public function destroy($id)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.penagihan')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat menghapus penagihan.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat menghapus penagihan.');
         }
 
         $penagihanDinas = PenagihanDinas::with('buktiPembayaran')->findOrFail($id);
@@ -347,9 +352,10 @@ class PenagihanDinasController extends Controller
     public function deleteBuktiPembayaran($buktiId)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.penagihan')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat menghapus bukti pembayaran.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat menghapus bukti pembayaran.');
         }
 
         $buktiPembayaran = BuktiPembayaran::with('penagihanDinas')->findOrFail($buktiId);
@@ -421,9 +427,10 @@ class PenagihanDinasController extends Controller
     public function addPelunasan(Request $request, $id)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.penagihan')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat menambahkan pelunasan.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat menambahkan pelunasan.');
         }
 
         $penagihanDinas = PenagihanDinas::findOrFail($id);
@@ -525,9 +532,10 @@ class PenagihanDinasController extends Controller
     public function showPelunasan($id)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.penagihan')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat mengakses halaman pelunasan.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat mengakses halaman pelunasan.');
         }
 
         $penagihanDinas = PenagihanDinas::with(['proyek', 'penawaran.penawaranDetail', 'buktiPembayaran'])

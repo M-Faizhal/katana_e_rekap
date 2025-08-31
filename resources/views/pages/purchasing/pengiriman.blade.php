@@ -172,9 +172,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         @php
-                                            $canAccess = $currentUser->role === 'admin_purchasing' && $proyek->id_admin_purchasing == $currentUser->id_user;
+                                            $canAccess = ($currentUser->role === 'admin_purchasing' && $proyek->id_admin_purchasing == $currentUser->id_user) || $currentUser->role === 'superadmin';
                                         @endphp
-                                        
+
                                         @if($canAccess)
                                             <button onclick="buatPengiriman({{ $proyek->penawaranAktif->id_penawaran }}, {{ $vendorData['vendor']['id_vendor'] }})" 
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
@@ -184,7 +184,7 @@
                                             <button disabled
                                                     class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm cursor-not-allowed">
                                                 <i class="fas fa-lock mr-1"></i> 
-                                                @if($currentUser->role !== 'admin_purchasing')
+                                                @if($currentUser->role !== 'admin_purchasing' && $currentUser->role !== 'superadmin')
                                                     Tidak Ada Akses
                                                 @else
                                                     Bukan Proyek Anda
@@ -288,7 +288,7 @@
                             </div>
                             <div class="mt-2">
                                 @php
-                                    $canAccessUpdate = $currentUser->role === 'admin_purchasing' && $pengiriman->penawaran->proyek->id_admin_purchasing == $currentUser->id_user;
+                                    $canAccessUpdate = ($currentUser->role === 'admin_purchasing' && $pengiriman->penawaran->proyek->id_admin_purchasing == $currentUser->id_user) || $currentUser->role === 'superadmin';
                                 @endphp
                                 
                                 @if($canAccessUpdate)
@@ -300,7 +300,7 @@
                                     <button disabled
                                             class="bg-gray-300 text-gray-500 px-3 py-1 rounded text-sm cursor-not-allowed">
                                         <i class="fas fa-lock mr-1"></i>
-                                        @if($currentUser->role !== 'admin_purchasing')
+                                        @if($currentUser->role !== 'admin_purchasing' && $currentUser->role !== 'superadmin')
                                             Terkunci
                                         @else
                                             Bukan Proyek Anda

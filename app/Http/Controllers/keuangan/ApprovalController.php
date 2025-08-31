@@ -112,9 +112,10 @@ class ApprovalController extends Controller
     public function approve(Request $request, $id_pembayaran)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.approval')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat melakukan approve pembayaran.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat melakukan approve pembayaran.');
         }
 
         $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor'])
@@ -192,9 +193,10 @@ class ApprovalController extends Controller
     public function reject(Request $request, $id_pembayaran)
     {
         // Role-based access control
-        if (Auth::user()->role !== 'admin_keuangan') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
             return redirect()->route('keuangan.approval')
-                ->with('error', 'Akses ditolak. Hanya Admin Keuangan yang dapat melakukan reject pembayaran.');
+                ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat melakukan reject pembayaran.');
         }
 
         $request->validate([
