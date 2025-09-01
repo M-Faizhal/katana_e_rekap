@@ -177,42 +177,6 @@
                                 <span class="filename">No file selected</span>
                             </div>
                         </div>
-
-                        <!-- Surat Kontrak -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Kontrak</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="file" id="editSuratKontrak" name="surat_kontrak"
-                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
-                                       accept=".pdf,.doc,.docx">
-                                <button type="button" onclick="clearFile('editSuratKontrak')"
-                                        class="px-3 py-3 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <div id="editSuratKontrakPreview" class="mt-2 text-sm text-gray-600 hidden">
-                                <i class="fas fa-file-pdf mr-1"></i>
-                                <span class="filename">No file selected</span>
-                            </div>
-                        </div>
-
-                        <!-- Surat Selesai -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Selesai</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="file" id="editSuratSelesai" name="surat_selesai"
-                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
-                                       accept=".pdf,.doc,.docx">
-                                <button type="button" onclick="clearFile('editSuratSelesai')"
-                                        class="px-3 py-3 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <div id="editSuratSelesaiPreview" class="mt-2 text-sm text-gray-600 hidden">
-                                <i class="fas fa-file-pdf mr-1"></i>
-                                <span class="filename">No file selected</span>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Current Files Display -->
@@ -232,20 +196,6 @@
                                     <span>Surat Persetujuan:</span>
                                 </div>
                                 <span id="currentSuratPersetujuan" class="text-gray-600 font-mono text-xs">-</span>
-                            </div>
-                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
-                                <div class="flex items-center">
-                                    <i class="fas fa-file-pdf text-orange-500 mr-2"></i>
-                                    <span>Surat Kontrak:</span>
-                                </div>
-                                <span id="currentSuratKontrak" class="text-gray-600 font-mono text-xs">-</span>
-                            </div>
-                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
-                                <div class="flex items-center">
-                                    <i class="fas fa-file-pdf text-green-500 mr-2"></i>
-                                    <span>Surat Selesai:</span>
-                                </div>
-                                <span id="currentSuratSelesai" class="text-gray-600 font-mono text-xs">-</span>
                             </div>
                         </div>
                     </div>
@@ -533,8 +483,6 @@ function loadCurrentFiles(data) {
 
     setCurrentFile('currentSuratPenawaran', data.surat_penawaran);
     setCurrentFile('currentSuratPersetujuan', data.surat_persetujuan);
-    setCurrentFile('currentSuratKontrak', data.surat_kontrak);
-    setCurrentFile('currentSuratSelesai', data.surat_selesai);
 }
 
 // Function to clear file input
@@ -552,7 +500,7 @@ function clearFile(inputId) {
 
 // File upload preview handlers
 document.addEventListener('DOMContentLoaded', function() {
-    const fileInputs = ['editSuratPenawaran', 'editSuratPersetujuan', 'editSuratKontrak', 'editSuratSelesai'];
+    const fileInputs = ['editSuratPenawaran', 'editSuratPersetujuan'];
 
     fileInputs.forEach(inputId => {
         const input = document.getElementById(inputId);

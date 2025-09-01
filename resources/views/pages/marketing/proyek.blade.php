@@ -180,19 +180,7 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2 mb-2">
-                                <h3 class="text-base sm:text-lg font-bold text-gray-800">{{ $proyek['nama_proyek'] }}</h3>
-
-                                @if(!empty($proyek['surat_penawaran']) && !empty($proyek['surat_kontrak']))
-                                    <!-- Indikator surat lengkap -->
-                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                                        <i class="fas fa-check-circle mr-1"></i>Surat Lengkap
-                                    </span>
-                                @else
-                                    <!-- Indikator surat belum lengkap -->
-                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
-                                        <i class="fas fa-exclamation-triangle mr-1"></i>Surat Belum Lengkap
-                                    </span>
-                                @endif
+                                <h3 class="text-base sm:text-lg font-bold text-gray-800">{{ $proyek['kode'] }}</h3>
                             </div>
 
                             <div class="flex items-center gap-2">
@@ -207,7 +195,7 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                                     {{ ucfirst($proyek['status']) }}
                                 </span>
 
-                                @if(!empty($proyek['surat_penawaran']) && !empty($proyek['surat_kontrak']))
+                                {{-- @if(!empty($proyek['surat_penawaran']) && !empty($proyek['surat_kontrak']))
                                     <!-- Dropdown untuk ubah status jika surat penawaran dan kontrak sudah ada -->
                                     <select onchange="changeStatusQuick({{ $proyek['id'] }}, this.value, this)"
                                             onclick="event.stopPropagation()"
@@ -236,7 +224,7 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                                     <button onclick="event.stopPropagation(); openStatusModal({{ $proyek['id'] }})" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full transition-colors duration-200" title="Ubah Status">
                                         <i class="fas fa-edit mr-1"></i>Ubah
                                     </button>
-                                @endif
+                                @endif --}}
                             </div>
                         </div>
                     </div>

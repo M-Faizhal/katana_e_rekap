@@ -95,22 +95,9 @@
                 <i class="fas fa-file-invoice text-red-600 mr-2"></i>
                 Detail Penawaran
             </h3>
-            {{-- <button onclick="openEditPenawaranModal()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">
-                <i class="fas fa-edit mr-1"></i>
-                Edit Penawaran
-            </button> --}}
             </div>
 
             @if($penawaranDetails && $penawaranDetails->count() > 0)
-            <!-- Info Banner -->
-            {{-- <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <div class="flex items-center">
-                <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-                <span class="text-sm text-blue-700">
-                    Data barang otomatis di-load dari proyek. Anda dapat mengedit harga dan detail penawaran di bawah ini.
-                </span>
-                </div>
-            </div> --}}
 
             <div class="space-y-4">
                 @foreach($penawaranDetails as $detail)

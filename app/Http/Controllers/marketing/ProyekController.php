@@ -68,7 +68,7 @@ class ProyekController extends Controller
             return [
                 'id' => $proyek->id_proyek,
                 'kode' => $proyek->kode_proyek ?: 'PRJ-' . str_pad($proyek->id_proyek, 5, '0', STR_PAD_LEFT),
-                'nama_proyek' => $daftarBarang[0]['nama'] ?? 'Proyek Tanpa Nama', // Ambil nama dari barang pertama
+                'nama_proyek' => $proyek->kode_proyek ?: 'PRJ-' . str_pad($proyek->id_proyek, 5, '0', STR_PAD_LEFT), // Gunakan kode_proyek sebagai nama_proyek
                 'instansi' => $proyek->instansi,
                 'kabupaten' => $proyek->kab_kota,
                 'wilayah' => $proyek->wilayah ? $proyek->wilayah->nama_lengkap : $proyek->kab_kota,
@@ -92,9 +92,7 @@ class ProyekController extends Controller
                     'no_penawaran' => $proyek->penawaranAktif->no_penawaran,
                     'tanggal_penawaran' => $proyek->penawaranAktif->tanggal_penawaran->format('Y-m-d'),
                     'total_penawaran' => $proyek->penawaranAktif->total_penawaran
-                ] : null,
-                'surat_penawaran' => $proyek->penawaranAktif ? $proyek->penawaranAktif->surat_penawaran : null,
-                'surat_kontrak' => $proyek->penawaranAktif ? $proyek->penawaranAktif->surat_pesanan : null
+                ] : null
             ];
         })->toArray();
 
