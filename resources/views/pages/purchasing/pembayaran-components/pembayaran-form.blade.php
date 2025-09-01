@@ -192,10 +192,10 @@
                         </div>
                         
                         <a href="{{ asset('storage/' . $proyek->penawaranAktif->surat_pesanan) }}" 
-                           target="_blank"
+                           download
                            class="inline-flex items-center px-4 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 w-full justify-center transition-colors">
-                            <i class="fas fa-external-link-alt mr-2"></i>
-                            Lihat Surat Pesanan
+                            <i class="fas fa-download mr-2"></i>
+                            Download Surat Pesanan
                         </a>
                     </div>
                 </div>
@@ -222,10 +222,10 @@
                         </div>
                         
                         <a href="{{ asset('storage/' . $proyek->penawaranAktif->surat_penawaran) }}" 
-                           target="_blank"
+                           download
                            class="inline-flex items-center px-4 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 w-full justify-center transition-colors">
-                            <i class="fas fa-external-link-alt mr-2"></i>
-                            Lihat Surat Penawaran
+                            <i class="fas fa-download mr-2"></i>
+                            Download Surat Penawaran
                         </a>
                     </div>
                 </div>

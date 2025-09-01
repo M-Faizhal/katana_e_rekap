@@ -335,10 +335,10 @@
                                                 <div class="text-xs text-green-600">Klik lihat untuk preview</div>
                                             </div>
                                         </div>
-                                        <a href="{{ route('penagihan-dinas.preview-dokumen', [$penagihanDinas->id, $field]) }}" target="_blank"
+                                        <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $penagihanDinas->$field) }}" download
                                            class="inline-flex items-center px-3 py-1 border border-green-300 rounded-md shadow-sm text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors duration-200">
-                                            <i class="fas fa-external-link-alt mr-1"></i>
-                                            Lihat
+                                            <i class="fas fa-download mr-1"></i>
+                                            Download
                                         </a>
                                     </div>
                                 </div>
@@ -434,10 +434,10 @@
                                     Dibuat: {{ $bukti->created_at->format('d M Y H:i') }}
                                 </div>
                                 @if($bukti->bukti_pembayaran)
-                                <a href="{{ route('penagihan-dinas.preview-bukti-pembayaran', $bukti->id) }}" target="_blank"
+                                <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" download
                                    class="inline-flex items-center px-2 py-1 border border-green-300 rounded text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors duration-200">
-                                    <i class="fas fa-external-link-alt mr-1"></i>
-                                    Lihat Bukti
+                                    <i class="fas fa-download mr-1"></i>
+                                    Download Bukti
                                 </a>
                                 @endif
                             </div>

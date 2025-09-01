@@ -1268,9 +1268,10 @@ document.addEventListener('keydown', function(e) {
                             @if($pembayaran->status_verifikasi == 'Pending')
                                 @php
                                     $canAccessPembayaran = $currentUser->role === 'admin_purchasing' && $pembayaran->penawaran->proyek->id_admin_purchasing == $currentUser->id_user;
+                                    $isSuperAdmin = $currentUser->role === 'superadmin';
                                 @endphp
                                 
-                                @if($canAccessPembayaran)
+                                @if($canAccessPembayaran || $isSuperAdmin)
                                 <a href="{{ route('purchasing.pembayaran.edit', $pembayaran->id_pembayaran) }}" 
                                    class="inline-flex items-center px-2 py-1 border border-yellow-300 text-xs leading-4 font-medium rounded text-yellow-700 bg-yellow-50 hover:bg-yellow-100">
                                     <i class="fas fa-edit mr-1"></i>
@@ -1292,13 +1293,14 @@ document.addEventListener('keydown', function(e) {
                                 @else
                                 <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
                                     <i class="fas fa-lock mr-1"></i>
-                                    @if($currentUser->role !== 'admin_purchasing')
+                                    @if($currentUser->role !== 'admin_purchasing' && $currentUser->role !== 'superadmin')
                                         Hanya Admin Purchasing
                                     @else
                                         Tidak Memiliki Akses
                                     @endif
                                 </span>
                                 @endif
+                            
                             @endif
                         </div>
                     </td>

@@ -190,10 +190,10 @@
                                     <h5 class="font-medium text-gray-900 text-sm">Surat Penawaran</h5>
                                     <p class="text-xs text-gray-500">Dokumen penawaran resmi</p>
                                 </div>
-                                <a href="{{ asset('storage/' . $penawaran->surat_penawaran) }}" target="_blank"
+                                <a href="{{ asset('storage/' . $penawaran->surat_penawaran) }}" download
                                    class="text-blue-600 hover:text-blue-800 text-sm transition-colors">
-                                    <i class="fas fa-external-link-alt mr-1"></i>
-                                    <span class="text-sm">Lihat</span>
+                                    <i class="fas fa-download mr-1"></i>
+                                    <span class="text-sm">Download</span>
                                 </a>
                             </div>
                         </div>
@@ -419,10 +419,10 @@
                                         <h5 class="font-medium text-gray-900 text-sm">Surat Lainnya</h5>
                                         <p class="text-xs text-gray-500">Dokumen pendukung lainnya</p>
                                     </div>
-                                    <a href="{{ asset('storage/' . $tagihan->surat_lainnya) }}" target="_blank"
+                                    <a href="{{ asset('storage/' . $tagihan->surat_lainnya) }}" download
                                        class="text-blue-600 hover:text-blue-800 transition-colors">
-                                        <i class="fas fa-external-link-alt mr-1"></i>
-                                        <span class="text-sm">Lihat</span>
+                                        <i class="fas fa-download mr-1"></i>
+                                        <span class="text-sm">Download</span>
                                     </a>
                                 </div>
                             </div>
@@ -574,9 +574,9 @@
                                             <h5 class="font-medium text-gray-900 text-sm">File Surat Jalan</h5>
                                             <p class="text-xs text-gray-500">Dokumen pengiriman resmi</p>
                                         </div>
-                                        <a href="{{ asset('storage/' . $pengiriman->file_surat_jalan) }}" target="_blank"
+                                        <a href="{{ asset('storage/' . $pengiriman->file_surat_jalan) }}" download
                                            class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-external-link-alt"></i>
+                                            <i class="fas fa-download"></i>
                                         </a>
                                     </div>
                                 </div>

@@ -123,98 +123,32 @@ class KalkulasiHps extends Model
     }
 
     /**
-     * Calculate all derived values based on input fields
+     * DEPRECATED: Calculate all derived values based on input fields
+     * 
+     * NOTE: This method is no longer used to avoid duplicate calculations.
+     * All calculations are now done in JavaScript (hps-calculator.js) and 
+     * the results are directly saved to the database.
+     * 
+     * This method is kept for backward compatibility only.
      */
     public function calculateValues()
     {
-        // 3. Nilai Diskon = Total Diskon / QTY
-        if ($this->qty > 0) {
-            $this->diskon_amount = $this->total_diskon / $this->qty;
-        }
-
-        // 4. Harga Akhir = Harga Diskon
-        $this->harga_akhir = $this->harga_vendor - $this->diskon_amount;
-
-        // 7. Jumlah Volume Yang Dikerjakan = Harga Akhir * Kuantitas
-        $this->jumlah_volume = $this->harga_akhir * $this->qty;
-
-        // 10. Nilai Pagu Anggaran = Pagu Total (from project)
-        // This should be set from project data
-
-        // 11. Nilai Penawaran/HPS = Harga Penawaran Sendiri
-        $this->nilai_penawaran_hps = $this->hps;
-
-        // 13. Nilai Selisih = Nilai Pagu Anggaran - Nilai Penawaran/HPS
-        $this->nilai_selisih = $this->nilai_pagu_anggaran - $this->nilai_penawaran_hps;
-
-        // 14. Nilai DPP = Nilai Penawaran/HPS / 1,11
-        $this->nilai_dpp = $this->nilai_penawaran_hps / 1.11;
-
-        // 15. Nilai PPN = Nilai DPP * PPN %
-        $this->nilai_ppn = $this->nilai_dpp * ($this->ppn_percent / 100);
-
-        // 16. Nilai PPH Badan = Nilai DPP * PPH Badan %
-        $this->nilai_pph_badan = $this->nilai_dpp * ($this->pph_badan_percent / 100);
-
-        // 17. Nilai Asumsi Cair = Nilai DPP - Nilai PPH Badan
-        $this->nilai_asumsi_cair = $this->nilai_dpp - $this->nilai_pph_badan;
-
-        // 28. Omzet Nilai Dinas = Asumsi Nilai Cair * Omzet Dinas %
-        $this->omzet_dinas = $this->nilai_asumsi_cair * ($this->omzet_dinas_percent / 100);
-
-        // 29. Gross Nilai Bendera = Asumsi Nilai Cair * Bendera %
-        $this->gross_bendera = $this->nilai_asumsi_cair * ($this->bendera / 100);
-
-        // 30. Gross Nilai Bank Cost = Asumsi Nilai Cair * Bank Cost %
-        $this->gross_bank_cost = $this->nilai_asumsi_cair * ($this->bank_cost / 100);
-
-        // 31. Gross Nilai Biaya Operasional = Asumsi Nilai Cair * Biaya Ops %
-        $this->gross_biaya_ops = $this->nilai_asumsi_cair * ($this->biaya_ops / 100);
-
-        // 32. Sub Total Biaya Tidak Langsung = Sum of all indirect costs
-        $this->sub_total_tidak_langsung = $this->omzet_dinas + $this->gross_bendera + 
-                                         $this->gross_bank_cost + $this->gross_biaya_ops;
-
-        // 20. Nilai Nett Per PCS = Nilai Persentase Nett
-        $this->nilai_nett_pcs = $this->nett_percent;
-
-        // 21. Total Nilai Nett Per PCS = Nilai Nett
-        $this->total_nett_pcs = $this->nett;
+        // This method is intentionally left empty to avoid duplicate calculations.
+        // All calculations are now handled by JavaScript frontend and passed to backend.
+        
+        // If you need to recalculate from stored data, use the static methods below.
     }
 
     /**
-     * Calculate values that depend on project totals
+     * DEPRECATED: Calculate values that depend on project totals
+     * 
+     * NOTE: This method is no longer used to avoid duplicate calculations.
+     * All calculations are now done in JavaScript and passed directly to save methods.
      */
     public static function calculateProjectTotals($proyekId)
     {
-        $kalkulasi = self::where('id_proyek', $proyekId)->get();
-        
-        // 18. Sub Total Langsung = Total of all jumlah_volume
-        $subTotalLangsung = $kalkulasi->sum('jumlah_volume');
-        
-        foreach ($kalkulasi as $item) {
-            $item->sub_total_langsung = $subTotalLangsung;
-            
-            // 22. Gross Income = (Nilai DPP - Nilai PPH Badan) + Sub Total Langsung
-            $item->gross_income = ($item->nilai_dpp - $item->nilai_pph_badan) + $subTotalLangsung;
-            
-            // 23. Gross Income Persentase = Gross Income / Nilai Asumsi Cair
-            if ($item->nilai_asumsi_cair > 0) {
-                $item->gross_income_percent = ($item->gross_income / $item->nilai_asumsi_cair) * 100;
-            }
-            
-            // 33. Nilai Nett Income = Gross Income + Sub Total Biaya Tidak Langsung
-            $item->nett_income = $item->gross_income + $item->sub_total_tidak_langsung;
-            
-            // 34. Nett Income Persentase = Nett Income / Nilai Asumsi Cair
-            if ($item->nilai_asumsi_cair > 0) {
-                $item->nett_income_percent = ($item->nett_income / $item->nilai_asumsi_cair) * 100;
-            }
-            
-            $item->save();
-        }
-        
-        return $kalkulasi;
+        // This method is intentionally simplified to avoid duplicate calculations
+        return self::where('id_proyek', $proyekId)->get();
     }
 
     /**
@@ -241,4 +175,101 @@ class KalkulasiHps extends Model
             'Reguler' => 'Reguler',
         ];
     }
+
+    /**
+     * Helper method to validate and convert calculation data before saving
+     * This ensures data integrity when receiving calculated values from frontend
+     */
+    public static function validateAndConvertData(array $data)
+    {
+        $numericFields = [
+            'qty', 'harga_vendor', 'diskon_amount', 'total_diskon', 'harga_akhir',
+            'total_harga_hpp', 'jumlah_volume', 'kenaikan_percent', 'proyeksi_kenaikan',
+            'pph', 'ppn', 'ongkir', 'hps', 'nilai_tkdn_percent', 'nilai_pagu_anggaran',
+            'nilai_penawaran_hps', 'nilai_pesanan', 'nilai_selisih', 'nilai_dpp',
+            'ppn_percent', 'pph_badan_percent', 'nilai_ppn', 'nilai_pph_badan',
+            'nilai_asumsi_cair', 'sub_total_langsung', 'bank_cost', 'biaya_ops',
+            'bendera', 'omzet_dinas_percent', 'omzet_dinas', 'gross_bendera',
+            'gross_bank_cost', 'gross_biaya_ops', 'sub_total_tidak_langsung',
+            'nett', 'nett_percent', 'nilai_nett_pcs', 'total_nett_pcs',
+            'gross_income', 'gross_income_percent', 'nett_income', 'nett_income_percent'
+        ];
+
+        $validated = [];
+        
+        foreach ($data as $key => $value) {
+            if (in_array($key, $numericFields)) {
+                // Convert to float and handle null/empty values
+                $validated[$key] = $value !== null && $value !== '' ? (float) $value : 0;
+            } else {
+                // Keep non-numeric fields as is
+                $validated[$key] = $value;
+            }
+        }
+
+        return $validated;
+    }
+
+    /**
+     * Create or update kalkulasi record with validated data
+     */
+    public static function createOrUpdateWithValidation(array $data)
+    {
+        $validatedData = self::validateAndConvertData($data);
+        
+        if (isset($validatedData['id_kalkulasi']) && $validatedData['id_kalkulasi']) {
+            $kalkulasi = self::findOrFail($validatedData['id_kalkulasi']);
+            $kalkulasi->update($validatedData);
+        } else {
+            $kalkulasi = self::create($validatedData);
+        }
+
+        return $kalkulasi;
+    }
+
+    /**
+     * Batch save multiple kalkulasi records with validation
+     */
+    public static function batchSaveWithValidation(array $items, $proyekId)
+    {
+        $results = [];
+        
+        foreach ($items as $itemData) {
+            $itemData['id_proyek'] = $proyekId;
+            $results[] = self::createOrUpdateWithValidation($itemData);
+        }
+
+        return $results;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CALCULATION FLOW - IMPORTANT NOTES
+    |--------------------------------------------------------------------------
+    |
+    | SINGLE SOURCE OF TRUTH: JavaScript Frontend (hps-calculator.js)
+    | 
+    | OLD FLOW (INEFFICIENT - DEPRECATED):
+    | 1. User input → JavaScript calculation (for display)
+    | 2. Send data to backend
+    | 3. Backend recalculates everything again (DUPLICATE!)
+    | 4. Save to database
+    |
+    | NEW FLOW (EFFICIENT - CURRENT):
+    | 1. User input → JavaScript calculation (hps-calculator.js)
+    | 2. Send calculated results to backend
+    | 3. Backend validates and saves directly (NO RECALCULATION!)
+    | 4. Database contains final calculated values
+    |
+    | BENEFITS:
+    | - No duplicate calculations
+    | - Consistent results between frontend and database
+    | - Better performance
+    | - Single source of calculation logic
+    |
+    | CALCULATION RESPONSIBILITY:
+    | - Frontend (JS): All HPS calculations, real-time updates
+    | - Backend (PHP): Data validation, persistence, business logic
+    |
+    */
 }

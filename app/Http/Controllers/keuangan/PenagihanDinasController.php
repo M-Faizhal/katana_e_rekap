@@ -19,25 +19,33 @@ class PenagihanDinasController extends Controller
     public function index()
     {
         // Ambil proyek yang sudah di ACC oleh klien
-        $proyekAcc = Proyek::with(['penawaran' => function($query) {
+        $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
             $query->where('status', 'ACC');
         }])
-        ->whereHas('penawaran', function($query) {
+        ->whereHas('semuaPenawaran', function($query) {
             $query->where('status', 'ACC');
         })
         ->get();
 
         // Group berdasarkan status pembayaran
-        $proyekBelumBayar = $proyekAcc->filter(function($proyek) {
-            $penawaran = $proyek->penawaran->first();
-            if (!$penawaran) {
-                return false;
+        $proyekBelumBayar = collect();
+        
+        foreach ($proyekAcc as $proyek) {
+            $penawaranAcc = $proyek->semuaPenawaran;
+            $hasUnpaidPenawaran = false;
+            
+            foreach ($penawaranAcc as $penawaran) {
+                $existingPenagihan = PenagihanDinas::where('penawaran_id', $penawaran->id_penawaran)->first();
+                if (!$existingPenagihan) {
+                    $hasUnpaidPenawaran = true;
+                    break; // Jika ada satu penawaran yang belum ditagih, proyek masuk kategori belum bayar
+                }
             }
             
-            // Cek apakah sudah ada penagihan dinas untuk penawaran ini
-            $existingPenagihan = PenagihanDinas::where('penawaran_id', $penawaran->id_penawaran)->first();
-            return !$existingPenagihan;
-        });
+            if ($hasUnpaidPenawaran) {
+                $proyekBelumBayar->push($proyek);
+            }
+        }
 
         $proyekDp = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
             ->where('status_pembayaran', 'dp')
@@ -63,20 +71,23 @@ class PenagihanDinasController extends Controller
                 ->with('error', 'Akses ditolak. Hanya Admin Keuangan/Superadmin yang dapat membuat penagihan.');
         }
 
-        $proyek = Proyek::with(['penawaran' => function($query) {
+        $proyek = Proyek::with(['semuaPenawaran' => function($query) {
             $query->where('status', 'ACC');
-        }, 'penawaran.penawaranDetail'])->where('id_proyek', $proyekId)->firstOrFail();
+        }, 'semuaPenawaran.penawaranDetail'])->where('id_proyek', $proyekId)->firstOrFail();
         
-        $penawaran = $proyek->penawaran->first();
+        $penawaranAcc = $proyek->semuaPenawaran;
         
-        if (!$penawaran) {
+        if ($penawaranAcc->isEmpty()) {
             return redirect()->back()->with('error', 'Proyek belum memiliki penawaran yang di ACC.');
         }
+
+        // Ambil penawaran pertama untuk ditampilkan (atau bisa dibuat pilihan)
+        $penawaran = $penawaranAcc->first();
 
         // Hitung total dari detail penawaran
         $totalHarga = $penawaran->penawaranDetail->sum('subtotal');
 
-        return view('pages.keuangan.penagihan-create', compact('proyek', 'penawaran', 'totalHarga'));
+        return view('pages.keuangan.penagihan-create', compact('proyek', 'penawaran', 'penawaranAcc', 'totalHarga'));
     }
 
     public function store(Request $request)

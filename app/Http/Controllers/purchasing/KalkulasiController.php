@@ -244,13 +244,13 @@ class KalkulasiController extends Controller
                     'keterangan_2' => $item['keterangan_2'] ?? null,
                 ]);
 
-                // Calculate derived values
-                $kalkulasi->calculateValues();
+                // Values are already calculated by JavaScript frontend
+                // No need to recalculate here to avoid duplication
                 $kalkulasi->save();
             }
 
-            // Calculate project-level totals
-            KalkulasiHps::calculateProjectTotals($proyekId);
+            // Project totals are already calculated by JavaScript frontend
+            // No need to recalculate here to avoid duplication
 
             DB::commit();
 
@@ -557,15 +557,13 @@ class KalkulasiController extends Controller
     public function calculateHps(Request $request)
     {
         try {
-            $data = $request->all();
-            
-            // Create temporary kalkulasi object for calculation
-            $kalkulasi = new KalkulasiHps($data);
-            $kalkulasi->calculateValues();
+            // NOTE: This endpoint is deprecated as calculations are now done in JavaScript
+            // Kept for backward compatibility only
             
             return response()->json([
                 'success' => true,
-                'calculated' => $kalkulasi->toArray()
+                'message' => 'Calculation is now handled by JavaScript frontend',
+                'calculated' => $request->all() // Return input as-is
             ]);
             
         } catch (\Exception $e) {

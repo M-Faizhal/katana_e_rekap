@@ -170,10 +170,10 @@
                         </div>
                         
                         <a href="{{ asset('storage/' . $pembayaran->penawaran->surat_pesanan) }}" 
-                           target="_blank"
+                           download
                            class="inline-flex items-center px-2 py-1 border border-blue-300 shadow-sm text-xs leading-4 font-medium rounded text-blue-700 bg-blue-50 hover:bg-blue-100 w-full justify-center">
                             <i class="fas fa-download mr-1"></i>
-                            Lihat
+                            Download
                         </a>
                     </div>
                 </div>
@@ -200,10 +200,10 @@
                         </div>
                         
                         <a href="{{ asset('storage/' . $pembayaran->penawaran->surat_penawaran) }}" 
-                           target="_blank"
+                           download
                            class="inline-flex items-center px-2 py-1 border border-green-300 shadow-sm text-xs leading-4 font-medium rounded text-green-700 bg-green-50 hover:bg-green-100 w-full justify-center">
                             <i class="fas fa-download mr-1"></i>
-                            Lihat
+                            Download
                         </a>
                     </div>
                 </div>

@@ -102,15 +102,33 @@
                 <label class="text-sm font-medium text-gray-500 block mb-2">Dokumen</label>
                 <div class="flex flex-wrap gap-2">
                     @if($penawaran->surat_penawaran)
-                    <a href="#" class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200">
-                        <i class="fas fa-file-pdf mr-2"></i>
+                    <a href="{{ route('penawaran.download', ['type' => 'penawaran', 'filename' => $penawaran->surat_penawaran]) }}" 
+                       target="_blank"
+                       class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors">
+                        @php
+                            $extension = strtolower(pathinfo($penawaran->surat_penawaran, PATHINFO_EXTENSION));
+                            $icon = in_array($extension, ['pdf']) ? 'fas fa-file-pdf' : 
+                                   (in_array($extension, ['doc', 'docx']) ? 'fas fa-file-word' : 
+                                   (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) ? 'fas fa-file-image' : 'fas fa-file'));
+                        @endphp
+                        <i class="{{ $icon }} mr-2"></i>
                         Surat Penawaran
+                        <i class="fas fa-download ml-2 text-xs"></i>
                     </a>
                     @endif
                     @if($penawaran->surat_pesanan)
-                    <a href="#" class="inline-flex items-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200">
-                        <i class="fas fa-file-contract mr-2"></i>
+                    <a href="{{ route('penawaran.download', ['type' => 'pesanan', 'filename' => $penawaran->surat_pesanan]) }}" 
+                       target="_blank"
+                       class="inline-flex items-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
+                        @php
+                            $extension = strtolower(pathinfo($penawaran->surat_pesanan, PATHINFO_EXTENSION));
+                            $icon = in_array($extension, ['pdf']) ? 'fas fa-file-pdf' : 
+                                   (in_array($extension, ['doc', 'docx']) ? 'fas fa-file-word' : 
+                                   (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) ? 'fas fa-file-image' : 'fas fa-file'));
+                        @endphp
+                        <i class="{{ $icon }} mr-2"></i>
                         Surat Pesanan
+                        <i class="fas fa-download ml-2 text-xs"></i>
                     </a>
                     @endif
                 </div>
@@ -330,54 +348,71 @@
                             {{ number_format($kalkulasiData->sum('harga_akhir'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('total_harga'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('jumlah_volume'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">-</td>
                         <td class="px-2 py-3 text-right border-r">
                             {{ number_format($kalkulasiData->sum('proyeksi_kenaikan'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('ppn_dinas'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nilai_ppn'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('pph_dinas'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nilai_pph_badan'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right text-orange-700 bg-yellow-100 border-r">
                             {{ number_format($kalkulasiData->sum('hps'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('dpp'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nilai_dpp'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('asumsi_nilai_cair'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nilai_asumsi_cair'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
                             {{ number_format($kalkulasiData->sum('ongkir'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('omzet_nilai_dinas'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('omzet_dinas'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('gross_nilai_bendera'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('bendera'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('gross_nilai_bank_cost'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('bank_cost'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('gross_nilai_biaya_ops'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('biaya_ops'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right text-green-700 bg-green-100 border-r">
-                            {{ number_format($kalkulasiData->sum('nilai_nett_income'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nett_income'), 0, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right text-green-700 bg-green-100">
                             @php
-                                $avgNett = $kalkulasiData->count() > 0 ? $kalkulasiData->avg('nett_income_persentase') : 0;
+                                $avgNett = $kalkulasiData->count() > 0 ? $kalkulasiData->avg('nett_income_percent') : 0;
                             @endphp
                             {{ number_format($avgNett, 2) }}%
                         </td>
                     </tr>
                 </tfoot>
             </table>
+        </div>
+    </div>
+    @else
+    <!-- Tidak ada data kalkulasi HPS -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">
+                <i class="fas fa-calculator text-orange-600 mr-2"></i>
+                Data Kalkulasi HPS Lengkap
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Semua perhitungan dan analisis yang digunakan dalam penawaran</p>
+        </div>
+        <div class="p-8 text-center text-gray-500">
+            <i class="fas fa-calculator text-4xl mb-3 opacity-50"></i>
+            <p class="text-lg font-medium mb-2">Belum Ada Data Kalkulasi HPS</p>
+            <p class="text-sm">Data kalkulasi HPS belum dibuat untuk penawaran ini.</p>
+            <p class="text-sm">Silakan buat kalkulasi HPS terlebih dahulu di menu Purchasing → Kalkulasi HPS.</p>
         </div>
     </div>
     @endif
@@ -425,7 +460,7 @@ function closeSpecModal() {
 // Close modal when clicking outside
 document.getElementById('spec-modal').addEventListener('click', function(e) {
     if (e.target === this) {
-        closeSpecModal();
+        closeSpecModal();   
     }
 });
 </script>

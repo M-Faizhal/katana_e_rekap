@@ -247,10 +247,10 @@
                                         <span class="font-medium">Bukti Pembayaran</span>
                                     </div>
                                     @if($bukti->bukti_pembayaran)
-                                    <a href="{{ route('penagihan-dinas.preview-bukti-pembayaran', $bukti->id) }}" target="_blank"
+                                    <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" download
                                        class="inline-flex items-center px-4 py-2 border border-green-300 rounded-lg shadow-sm text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100 hover:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200">
-                                        <i class="fas fa-external-link-alt mr-2"></i>
-                                        Lihat Bukti
+                                        <i class="fas fa-download mr-2"></i>
+                                        Download Bukti
                                     </a>
                                     @else
                                     <span class="text-sm text-gray-400">Tidak tersedia</span>
