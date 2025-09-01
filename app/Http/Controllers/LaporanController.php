@@ -17,6 +17,30 @@ use Carbon\Carbon;
 class LaporanController extends Controller
 {
     /**
+     * Format number to Indonesian format (Rupiah)
+     * Juta = 1,000,000 (6 zeros) -> jt
+     * Miliar = 1,000,000,000 (9 zeros) -> M
+     * Triliun = 1,000,000,000,000 (12 zeros) -> T
+     */
+    private function formatRupiah($amount)
+    {
+        if ($amount >= 1000000000000) {
+            // Triliun
+            return number_format($amount / 1000000000000, 1, ',', '.') . ' T';
+        } elseif ($amount >= 1000000000) {
+            // Miliar
+            return number_format($amount / 1000000000, 1, ',', '.') . ' M';
+        } elseif ($amount >= 1000000) {
+            // Juta
+            return number_format($amount / 1000000, 1, ',', '.') . ' jt';
+        } elseif ($amount >= 1000) {
+            // Ribu
+            return number_format($amount / 1000, 1, ',', '.') . ' rb';
+        } else {
+            return number_format($amount, 0, ',', '.');
+        }
+    }
+    /**
      * Display the main laporan page (Laporan Proyek)
      */
     public function index(Request $request)
@@ -44,11 +68,25 @@ class LaporanController extends Controller
         // Get omset statistics
         $stats = $this->getOmsetStatistics();
 
+        // Add formatted versions for display
+        $stats['omset_bulan_ini_formatted'] = $this->formatRupiah($stats['omset_bulan_ini']);
+        $stats['omset_tahun_ini_formatted'] = $this->formatRupiah($stats['omset_tahun_ini']);
+        $stats['rata_rata_bulanan_formatted'] = $this->formatRupiah($stats['rata_rata_bulanan']);
+
         // Get monthly omset data
         $monthlyOmset = $this->getMonthlyOmset($request);
 
         // Get vendor omset data
         $vendorOmset = $this->getVendorOmset($request);
+
+        // Handle AJAX requests for year filter
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'monthlyOmset' => $monthlyOmset,
+                'stats' => $stats
+            ]);
+        }
 
         return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'vendorOmset'));
     }
@@ -60,6 +98,11 @@ class LaporanController extends Controller
     {
         // Get vendor debt statistics
         $stats = $this->getHutangVendorStatistics();
+
+        // Add formatted versions for display
+        $stats['total_hutang_formatted'] = $this->formatRupiah($stats['total_hutang']);
+        $stats['hutang_jatuh_tempo_formatted'] = $this->formatRupiah($stats['hutang_jatuh_tempo']);
+        $stats['rata_rata_hutang_formatted'] = $this->formatRupiah($stats['rata_rata_hutang']);
 
         // Get vendor debt list
         $hutangVendor = $this->getHutangVendorList($request);
@@ -74,6 +117,11 @@ class LaporanController extends Controller
     {
         // Get piutang dinas statistics
         $stats = $this->getPiutangDinasStatistics();
+
+        // Add formatted versions for display
+        $stats['total_piutang_formatted'] = $this->formatRupiah($stats['total_piutang']);
+        $stats['piutang_jatuh_tempo_formatted'] = $this->formatRupiah($stats['piutang_jatuh_tempo']);
+        $stats['rata_rata_piutang_formatted'] = $this->formatRupiah($stats['rata_rata_piutang']);
 
         // Get piutang dinas list
         $piutangDinas = $this->getPiutangDinasList($request);
@@ -396,27 +444,37 @@ class LaporanController extends Controller
         $currentMonth = Carbon::now();
         $lastMonth = Carbon::now()->subMonth();
         
-        $currentMonthOmset = Proyek::where('status', 'selesai')
-            ->whereMonth('updated_at', $currentMonth->month)
-            ->whereYear('updated_at', $currentMonth->year)
-            ->sum('harga_total');
+        // Calculate omset from ACC proposals only
+        $currentMonthOmset = Penawaran::where('status', 'ACC')
+            ->whereHas('proyek', function($query) use ($currentMonth) {
+                $query->where('status', 'selesai')
+                      ->whereMonth('updated_at', $currentMonth->month)
+                      ->whereYear('updated_at', $currentMonth->year);
+            })
+            ->sum('total_penawaran');
 
-        $lastMonthOmset = Proyek::where('status', 'selesai')
-            ->whereMonth('updated_at', $lastMonth->month)
-            ->whereYear('updated_at', $lastMonth->year)
-            ->sum('harga_total');
+        $lastMonthOmset = Penawaran::where('status', 'ACC')
+            ->whereHas('proyek', function($query) use ($lastMonth) {
+                $query->where('status', 'selesai')
+                      ->whereMonth('updated_at', $lastMonth->month)
+                      ->whereYear('updated_at', $lastMonth->year);
+            })
+            ->sum('total_penawaran');
 
-        $yearlyOmset = Proyek::where('status', 'selesai')
-            ->whereYear('updated_at', $currentMonth->year)
-            ->sum('harga_total');
+        $yearlyOmset = Penawaran::where('status', 'ACC')
+            ->whereHas('proyek', function($query) use ($currentMonth) {
+                $query->where('status', 'selesai')
+                      ->whereYear('updated_at', $currentMonth->year);
+            })
+            ->sum('total_penawaran');
 
         $avgMonthlyOmset = $yearlyOmset / 12;
 
         return [
-            'omset_bulan_ini' => $currentMonthOmset,
-            'omset_bulan_lalu' => $lastMonthOmset,
-            'omset_tahun_ini' => $yearlyOmset,
-            'rata_rata_bulanan' => $avgMonthlyOmset,
+            'omset_bulan_ini' => $currentMonthOmset ?? 0,
+            'omset_bulan_lalu' => $lastMonthOmset ?? 0,
+            'omset_tahun_ini' => $yearlyOmset ?? 0,
+            'rata_rata_bulanan' => $avgMonthlyOmset ?? 0,
             'pertumbuhan' => $lastMonthOmset > 0 ? (($currentMonthOmset - $lastMonthOmset) / $lastMonthOmset) * 100 : 0
         ];
     }
@@ -428,13 +486,16 @@ class LaporanController extends Controller
     {
         $year = $request->get('year', Carbon::now()->year);
         
-        return Proyek::select(
-                DB::raw('MONTH(updated_at) as month'),
-                DB::raw('SUM(harga_total) as total_omset'),
-                DB::raw('COUNT(*) as jumlah_proyek')
+        return DB::table('penawaran')
+            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+            ->where('penawaran.status', 'ACC')
+            ->where('proyek.status', 'selesai')
+            ->whereYear('proyek.updated_at', $year)
+            ->select(
+                DB::raw('MONTH(proyek.updated_at) as month'),
+                DB::raw('SUM(penawaran.total_penawaran) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
             )
-            ->where('status', 'selesai')
-            ->whereYear('updated_at', $year)
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -445,18 +506,19 @@ class LaporanController extends Controller
      */
     private function getVendorOmset(Request $request)
     {
-        return Vendor::select('vendors.*')
-            ->join('barangs', 'vendors.id_vendor', '=', 'barangs.id_vendor')
-            ->join('penawaran_details', 'barangs.id_barang', '=', 'penawaran_details.id_barang')
-            ->join('penawarans', 'penawaran_details.id_penawaran', '=', 'penawarans.id_penawaran')
-            ->join('proyeks', 'penawarans.id_proyek', '=', 'proyeks.id_proyek')
-            ->where('proyeks.status', 'selesai')
+        return DB::table('vendor')
+            ->join('barang', 'vendor.id_vendor', '=', 'barang.id_vendor')
+            ->join('penawaran_detail', 'barang.id_barang', '=', 'penawaran_detail.id_barang')
+            ->join('penawaran', 'penawaran_detail.id_penawaran', '=', 'penawaran.id_penawaran')
+            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+            ->where('proyek.status', 'Selesai')
+            ->where('penawaran.status', 'ACC') // Only count ACC proposals
             ->select(
-                'vendors.nama_vendor',
-                DB::raw('SUM(penawaran_details.subtotal) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyeks.id_proyek) as jumlah_proyek')
+                'vendor.nama_vendor',
+                DB::raw('SUM(penawaran_detail.subtotal) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
             )
-            ->groupBy('vendors.id_vendor', 'vendors.nama_vendor')
+            ->groupBy('vendor.id_vendor', 'vendor.nama_vendor')
             ->orderBy('total_omset', 'desc')
             ->limit(10)
             ->get();
@@ -467,32 +529,28 @@ class LaporanController extends Controller
      */
     private function getHutangVendorStatistics()
     {
-        // Implementasi logika hutang vendor berdasarkan pembayaran yang belum lunas
-        $totalHutang = DB::table('pembayarans')
-            ->join('proyeks', 'pembayarans.id_proyek', '=', 'proyeks.id_proyek')
-            ->where('pembayarans.status_pembayaran', '!=', 'lunas')
-            ->sum('pembayarans.nominal_pembayaran');
+        // Note: Current pembayaran table structure doesn't have status_pembayaran and jatuh_tempo fields
+        // This is placeholder implementation. These features need proper migration to add required fields.
+        
+        $totalHutang = 0; // Placeholder - need to implement proper hutang tracking
+        $hutangJatuhTempo = 0; // Placeholder - need jatuh_tempo field in pembayaran table
+        $jumlahVendorBerhutang = 0; // Placeholder - need status_pembayaran field
 
-        $hutangJatuhTempo = DB::table('pembayarans')
-            ->join('proyeks', 'pembayarans.id_proyek', '=', 'proyeks.id_proyek')
-            ->where('pembayarans.status_pembayaran', '!=', 'lunas')
-            ->where('pembayarans.jatuh_tempo', '<', Carbon::now())
-            ->sum('pembayarans.nominal_pembayaran');
+        // For now, let's count pending payments as temporary solution
+        $pendingPayments = DB::table('pembayaran')
+            ->where('status_verifikasi', 'Pending')
+            ->sum('nominal_bayar');
 
-        $jumlahVendorBerhutang = DB::table('pembayarans')
-            ->join('proyeks', 'pembayarans.id_proyek', '=', 'proyeks.id_proyek')
-            ->join('penawarans', 'proyeks.id_proyek', '=', 'penawarans.id_proyek')
-            ->join('penawaran_details', 'penawarans.id_penawaran', '=', 'penawaran_details.id_penawaran')
-            ->join('barangs', 'penawaran_details.id_barang', '=', 'barangs.id_barang')
-            ->where('pembayarans.status_pembayaran', '!=', 'lunas')
-            ->distinct('barangs.id_vendor')
+        $jumlahVendorPending = DB::table('pembayaran')
+            ->where('status_verifikasi', 'Pending')
+            ->distinct('id_vendor')
             ->count();
 
         return [
-            'total_hutang' => $totalHutang,
-            'hutang_jatuh_tempo' => $hutangJatuhTempo,
-            'jumlah_vendor' => $jumlahVendorBerhutang,
-            'rata_rata_hutang' => $jumlahVendorBerhutang > 0 ? $totalHutang / $jumlahVendorBerhutang : 0
+            'total_hutang' => $pendingPayments ?? 0,
+            'hutang_jatuh_tempo' => 0, // Need jatuh_tempo field
+            'jumlah_vendor' => $jumlahVendorPending ?? 0,
+            'rata_rata_hutang' => $jumlahVendorPending > 0 ? $pendingPayments / $jumlahVendorPending : 0
         ];
     }
 
@@ -501,24 +559,25 @@ class LaporanController extends Controller
      */
     private function getHutangVendorList(Request $request)
     {
-        return DB::table('vendors')
-            ->join('barangs', 'vendors.id_vendor', '=', 'barangs.id_vendor')
-            ->join('penawaran_details', 'barangs.id_barang', '=', 'penawaran_details.id_barang')
-            ->join('penawarans', 'penawaran_details.id_penawaran', '=', 'penawarans.id_penawaran')
-            ->join('proyeks', 'penawarans.id_proyek', '=', 'proyeks.id_proyek')
-            ->join('pembayarans', 'proyeks.id_proyek', '=', 'pembayarans.id_proyek')
-            ->where('pembayarans.status_pembayaran', '!=', 'lunas')
+        // Note: Current structure doesn't have proper hutang tracking fields
+        // This returns pending payments as temporary solution
+        
+        return DB::table('vendor')
+            ->join('pembayaran', 'vendor.id_vendor', '=', 'pembayaran.id_vendor')
+            ->join('penawaran', 'pembayaran.id_penawaran', '=', 'penawaran.id_penawaran')
+            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+            ->where('pembayaran.status_verifikasi', 'Pending')
             ->select(
-                'vendors.nama_vendor',
-                'vendors.kontak_vendor',
-                'proyeks.kode_proyek',
-                'proyeks.nama_klien',
-                'pembayarans.nominal_pembayaran',
-                'pembayarans.jatuh_tempo',
-                'pembayarans.status_pembayaran',
-                DB::raw('DATEDIFF(NOW(), pembayarans.jatuh_tempo) as hari_telat')
+                'vendor.nama_vendor',
+                'vendor.kontak as kontak_vendor',
+                'proyek.kode_proyek',
+                'proyek.nama_klien',
+                'pembayaran.nominal_bayar as nominal_pembayaran',
+                'pembayaran.tanggal_bayar as jatuh_tempo',
+                'pembayaran.status_verifikasi as status_pembayaran',
+                DB::raw('DATEDIFF(NOW(), pembayaran.tanggal_bayar) as hari_telat')
             )
-            ->orderBy('pembayarans.jatuh_tempo', 'asc')
+            ->orderBy('pembayaran.tanggal_bayar', 'asc')
             ->paginate(15);
     }
 

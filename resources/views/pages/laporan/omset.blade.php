@@ -49,7 +49,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Omset Bulan Ini</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">Rp {{ number_format(($stats['omset_bulan_ini'] ?? 0) / 1000000, 1) }}M</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">Rp {{ $stats['omset_bulan_ini_formatted'] ?? '0' }}</p>
             </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Omset Tahun Ini</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ number_format(($stats['omset_tahun_ini'] ?? 0) / 1000000, 1) }}M</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ $stats['omset_tahun_ini_formatted'] ?? '0' }}</p>
             </div>
         </div>
     </div>
@@ -73,7 +73,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Rata-rata Bulanan</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">Rp {{ number_format(($stats['rata_rata_bulanan'] ?? 0) / 1000000, 1) }}M</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">Rp {{ $stats['rata_rata_bulanan_formatted'] ?? '0' }}</p>
             </div>
         </div>
     </div>
@@ -173,7 +173,18 @@
                         {{ $vendor->jumlah_proyek }} proyek
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        Rp {{ number_format($vendor->total_omset, 0, ',', '.') }}
+                        @php
+                            $totalOmset = $vendor->total_omset;
+                            if ($totalOmset >= 1000000000) {
+                                echo 'Rp ' . number_format($totalOmset / 1000000000, 1, ',', '.') . ' M';
+                            } elseif ($totalOmset >= 1000000) {
+                                echo 'Rp ' . number_format($totalOmset / 1000000, 1, ',', '.') . ' jt';
+                            } elseif ($totalOmset >= 1000) {
+                                echo 'Rp ' . number_format($totalOmset / 1000, 1, ',', '.') . ' rb';
+                            } else {
+                                echo 'Rp ' . number_format($totalOmset, 0, ',', '.');
+                            }
+                        @endphp
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         @php
@@ -201,13 +212,39 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Prevent MetaMask conflicts
+try {
+    // Disable MetaMask auto-injection if it exists
+    if (typeof window.ethereum !== 'undefined') {
+        window.ethereum.autoRefreshOnNetworkChange = false;
+    }
+} catch (e) {
+    // Ignore MetaMask errors
+    console.log('MetaMask disabled for this page');
+}
+
+// Function to format Rupiah in Indonesian format
+function formatRupiahShort(amount) {
+    if (amount >= 1000000000000) {
+        return (amount / 1000000000000).toFixed(1) + ' T';
+    } else if (amount >= 1000000000) {
+        return (amount / 1000000000).toFixed(1) + ' M';
+    } else if (amount >= 1000000) {
+        return (amount / 1000000).toFixed(1) + ' jt';
+    } else if (amount >= 1000) {
+        return (amount / 1000).toFixed(1) + ' rb';
+    } else {
+        return amount.toLocaleString('id-ID');
+    }
+}
+
 // Prepare data for chart
 const monthlyData = @json($monthlyOmset);
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Des'];
 
 // Create array for 12 months with 0 as default
-const omsetData = new Array(12).fill(0);
-const proyekData = new Array(12).fill(0);
+let omsetData = new Array(12).fill(0);
+let proyekData = new Array(12).fill(0);
 
 // Fill data from backend
 monthlyData.forEach(data => {
@@ -217,7 +254,7 @@ monthlyData.forEach(data => {
 
 // Chart configuration
 const ctx = document.getElementById('omsetChart').getContext('2d');
-const omsetChart = new Chart(ctx, {
+let omsetChart = new Chart(ctx, {
     type: 'line',
     data: {
         labels: months,
@@ -238,7 +275,7 @@ const omsetChart = new Chart(ctx, {
                 beginAtZero: true,
                 ticks: {
                     callback: function(value, index, values) {
-                        return 'Rp ' + (value / 1000000).toFixed(1) + 'M';
+                        return 'Rp ' + formatRupiahShort(value);
                     }
                 }
             }
@@ -248,11 +285,55 @@ const omsetChart = new Chart(ctx, {
                 callbacks: {
                     label: function(context) {
                         const value = context.parsed.y;
-                        return 'Omset: Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                        return 'Omset: Rp ' + value.toLocaleString('id-ID');
                     }
                 }
             }
         }
+    }
+});
+
+// Year filter event handler
+document.addEventListener('DOMContentLoaded', function() {
+    const yearFilter = document.getElementById('year-filter');
+    if (yearFilter) {
+        yearFilter.addEventListener('change', function(e) {
+            try {
+                const selectedYear = e.target.value;
+                
+                // Send AJAX request to get new data
+                fetch('{{ route("laporan.omset") }}?year=' + selectedYear, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.monthlyOmset) {
+                        // Update chart data
+                        let newOmsetData = new Array(12).fill(0);
+                        data.monthlyOmset.forEach(item => {
+                            newOmsetData[item.month - 1] = item.total_omset;
+                        });
+                        
+                        omsetChart.data.datasets[0].data = newOmsetData;
+                        omsetChart.update();
+                    }
+                })
+                .catch(error => {
+                    console.log('Error updating chart:', error);
+                    // Fallback: reload page if AJAX fails
+                    window.location.href = '{{ route("laporan.omset") }}?year=' + selectedYear;
+                });
+            } catch (error) {
+                console.log('Year filter error:', error);
+                // Fallback: reload page
+                const selectedYear = e.target.value;
+                window.location.href = '{{ route("laporan.omset") }}?year=' + selectedYear;
+            }
+        });
     }
 });
 </script>

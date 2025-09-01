@@ -17,6 +17,30 @@ use Carbon\Carbon;
 class DashboardController extends Controller
 {
     /**
+     * Format number to Indonesian format (Rupiah)
+     * Juta = 1,000,000 (6 zeros) -> jt
+     * Miliar = 1,000,000,000 (9 zeros) -> M
+     * Triliun = 1,000,000,000,000 (12 zeros) -> T
+     */
+    private function formatRupiah($amount)
+    {
+        if ($amount >= 1000000000000) {
+            // Triliun
+            return number_format($amount / 1000000000000, 1, ',', '.') . ' T';
+        } elseif ($amount >= 1000000000) {
+            // Miliar
+            return number_format($amount / 1000000000, 1, ',', '.') . ' M';
+        } elseif ($amount >= 1000000) {
+            // Juta
+            return number_format($amount / 1000000, 1, ',', '.') . ' jt';
+        } elseif ($amount >= 1000) {
+            // Ribu
+            return number_format($amount / 1000, 1, ',', '.') . ' rb';
+        } else {
+            return number_format($amount, 0, ',', '.');
+        }
+    }
+    /**
      * Display the dashboard
      */
     public function index()
