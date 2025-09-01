@@ -74,20 +74,11 @@ class LaporanController extends Controller
         $stats['omset_tahun_ini_formatted'] = $this->formatRupiah($stats['omset_tahun_ini']);
         $stats['rata_rata_bulanan_formatted'] = $this->formatRupiah($stats['rata_rata_bulanan']);
 
-        // Get monthly omset data
+        // Get monthly omset data (tahun berjalan)
         $monthlyOmset = $this->getMonthlyOmset($request);
 
-        // Get vendor omset data
+        // Get vendor omset data (top 10 vendor)
         $vendorOmset = $this->getVendorOmset($request);
-
-        // Handle AJAX requests for year filter
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'monthlyOmset' => $monthlyOmset,
-                'stats' => $stats
-            ]);
-        }
 
         return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'vendorOmset'));
     }
@@ -445,29 +436,26 @@ class LaporanController extends Controller
         $currentMonth = Carbon::now();
         $lastMonth = Carbon::now()->subMonth();
         
-        // Calculate omset from ACC proposals only
-        $currentMonthOmset = Penawaran::where('status', 'ACC')
-            ->whereHas('proyek', function($query) use ($currentMonth) {
+        // Calculate omset from nett_income pada kalkulasi HPS untuk proyek selesai
+        $currentMonthOmset = KalkulasiHps::whereHas('proyek', function($query) use ($currentMonth) {
                 $query->where('status', 'selesai')
                       ->whereMonth('updated_at', $currentMonth->month)
                       ->whereYear('updated_at', $currentMonth->year);
             })
-            ->sum('total_penawaran');
+            ->sum('nett_income');
 
-        $lastMonthOmset = Penawaran::where('status', 'ACC')
-            ->whereHas('proyek', function($query) use ($lastMonth) {
+        $lastMonthOmset = KalkulasiHps::whereHas('proyek', function($query) use ($lastMonth) {
                 $query->where('status', 'selesai')
                       ->whereMonth('updated_at', $lastMonth->month)
                       ->whereYear('updated_at', $lastMonth->year);
             })
-            ->sum('total_penawaran');
+            ->sum('nett_income');
 
-        $yearlyOmset = Penawaran::where('status', 'ACC')
-            ->whereHas('proyek', function($query) use ($currentMonth) {
+        $yearlyOmset = KalkulasiHps::whereHas('proyek', function($query) use ($currentMonth) {
                 $query->where('status', 'selesai')
                       ->whereYear('updated_at', $currentMonth->year);
             })
-            ->sum('total_penawaran');
+            ->sum('nett_income');
 
         $avgMonthlyOmset = $yearlyOmset / 12;
 
@@ -481,20 +469,19 @@ class LaporanController extends Controller
     }
 
     /**
-     * Get monthly omset data
+     * Get monthly omset data (tahun berjalan saja)
      */
     private function getMonthlyOmset(Request $request)
     {
-        $year = $request->get('year', Carbon::now()->year);
+        $currentYear = Carbon::now()->year;
         
-        return DB::table('penawaran')
-            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
-            ->where('penawaran.status', 'ACC')
+        return DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
             ->where('proyek.status', 'selesai')
-            ->whereYear('proyek.updated_at', $year)
+            ->whereYear('proyek.updated_at', $currentYear)
             ->select(
                 DB::raw('MONTH(proyek.updated_at) as month'),
-                DB::raw('SUM(penawaran.total_penawaran) as total_omset'),
+                DB::raw('SUM(kalkulasi_hps.nett_income) as total_omset'),
                 DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
             )
             ->groupBy('month')
@@ -503,23 +490,25 @@ class LaporanController extends Controller
     }
 
     /**
-     * Get vendor omset data
+     * Get vendor omset data (Top 10 Vendor berdasarkan keuntungan)
      */
     private function getVendorOmset(Request $request)
     {
+        // Hitung omset vendor berdasarkan nett_income dari kalkulasi HPS untuk proyek selesai
+        // Vendor omset = kontribusi keuntungan vendor dari semua proyek yang selesai
         return DB::table('vendor')
-            ->join('barang', 'vendor.id_vendor', '=', 'barang.id_vendor')
-            ->join('penawaran_detail', 'barang.id_barang', '=', 'penawaran_detail.id_barang')
-            ->join('penawaran', 'penawaran_detail.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
-            ->where('proyek.status', 'Selesai')
-            ->where('penawaran.status', 'ACC') // Only count ACC proposals
+            ->join('kalkulasi_hps', 'vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->where('proyek.status', 'selesai')
+            ->whereYear('proyek.updated_at', Carbon::now()->year) // Hanya tahun ini
             ->select(
                 'vendor.nama_vendor',
-                DB::raw('SUM(penawaran_detail.subtotal) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
+                DB::raw('SUM(kalkulasi_hps.nett_income) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
+                DB::raw('AVG(kalkulasi_hps.nett_income) as rata_rata_omset_per_proyek')
             )
             ->groupBy('vendor.id_vendor', 'vendor.nama_vendor')
+            ->having('total_omset', '>', 0) // Hanya vendor dengan omset positif
             ->orderBy('total_omset', 'desc')
             ->limit(10)
             ->get();

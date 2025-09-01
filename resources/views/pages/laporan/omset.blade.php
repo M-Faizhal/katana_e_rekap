@@ -96,22 +96,13 @@
 <!-- Monthly Omset Chart -->
 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
     <div class="p-4 sm:p-6 border-b border-gray-200">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-chart-line text-green-600 text-lg"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg sm:text-xl font-bold text-gray-800">Grafik Omset Bulanan</h2>
-                    <p class="text-sm sm:text-base text-gray-600 mt-1">Tren omset per bulan tahun ini</p>
-                </div>
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-chart-line text-green-600 text-lg"></i>
             </div>
             <div>
-                <select id="year-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                    <option value="{{ date('Y') }}">{{ date('Y') }}</option>
-                    <option value="{{ date('Y') - 1 }}">{{ date('Y') - 1 }}</option>
-                    <option value="{{ date('Y') - 2 }}">{{ date('Y') - 2 }}</option>
-                </select>
+                <h2 class="text-lg sm:text-xl font-bold text-gray-800">Grafik Omset Bulanan</h2>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Tren omset per bulan tahun {{ date('Y') }}</p>
             </div>
         </div>
     </div>
@@ -293,48 +284,11 @@ let omsetChart = new Chart(ctx, {
     }
 });
 
-// Year filter event handler
+// Year filter event handler - REMOVED
+// No longer needed since we only show current year data
 document.addEventListener('DOMContentLoaded', function() {
-    const yearFilter = document.getElementById('year-filter');
-    if (yearFilter) {
-        yearFilter.addEventListener('change', function(e) {
-            try {
-                const selectedYear = e.target.value;
-                
-                // Send AJAX request to get new data
-                fetch('{{ route("laporan.omset") }}?year=' + selectedYear, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.monthlyOmset) {
-                        // Update chart data
-                        let newOmsetData = new Array(12).fill(0);
-                        data.monthlyOmset.forEach(item => {
-                            newOmsetData[item.month - 1] = item.total_omset;
-                        });
-                        
-                        omsetChart.data.datasets[0].data = newOmsetData;
-                        omsetChart.update();
-                    }
-                })
-                .catch(error => {
-                    console.log('Error updating chart:', error);
-                    // Fallback: reload page if AJAX fails
-                    window.location.href = '{{ route("laporan.omset") }}?year=' + selectedYear;
-                });
-            } catch (error) {
-                console.log('Year filter error:', error);
-                // Fallback: reload page
-                const selectedYear = e.target.value;
-                window.location.href = '{{ route("laporan.omset") }}?year=' + selectedYear;
-            }
-        });
-    }
+    // Chart is automatically loaded with current year data
+    console.log('Omset chart loaded for year {{ date("Y") }}');
 });
 </script>
 @endsection
