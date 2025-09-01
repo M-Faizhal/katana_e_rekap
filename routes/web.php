@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/penawaran/{proyekId}', [PenawaranController::class, 'show'])->name('marketing.penawaran.detail');
         Route::post('/penawaran', [PenawaranController::class, 'store'])->name('marketing.penawaran.store');
         Route::put('/penawaran/{id}', [PenawaranController::class, 'update'])->name('marketing.penawaran.update');
+        Route::get('/penawaran/project/{proyekId}/data', [PenawaranController::class, 'getPenawaranByProject'])->name('marketing.penawaran.project.data');
         Route::get('/penawaran/download/{type}/{filename}', [PenawaranController::class, 'downloadFile'])->name('penawaran.download');
     });
 

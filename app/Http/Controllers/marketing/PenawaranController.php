@@ -273,4 +273,44 @@ class PenawaranController extends Controller
 
         return Storage::download($path);
     }
+
+    public function getPenawaranByProject($proyekId)
+    {
+        try {
+            // Get penawaran data for the project
+            $penawaran = Penawaran::where('id_proyek', $proyekId)
+                                 ->orderBy('id_penawaran', 'desc')
+                                 ->first();
+
+            if (!$penawaran) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Penawaran tidak ditemukan untuk proyek ini'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id_penawaran' => $penawaran->id_penawaran,
+                    'id_proyek' => $penawaran->id_proyek,
+                    'no_penawaran' => $penawaran->no_penawaran,
+                    'tanggal_penawaran' => $penawaran->tanggal_penawaran,
+                    'surat_penawaran' => $penawaran->surat_penawaran,
+                    'surat_pesanan' => $penawaran->surat_pesanan,
+                    'total_nilai' => $penawaran->total_nilai,
+                    'catatan' => $penawaran->catatan,
+                    'status' => $penawaran->status
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching penawaran by project: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data penawaran'
+            ], 500);
+        }
+    }
 }

@@ -100,7 +100,7 @@
 </div>
 
 <!-- Modal Konfirmasi Terakhir -->
-<div id="modalKonfirmasiAkhir" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-60 p-4">
+<div id="modalKonfirmasiAkhir" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden items-center justify-center z-60 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden my-4 mx-auto">
         <div class="p-6 text-center">
             <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -229,47 +229,101 @@ function executeHapus() {
     const catatan = document.getElementById('catatanHapus').value;
 
     // Ambil ID proyek yang akan dihapus
-    const hapusData = window.hapusData || {};
-    const proyekId = hapusData.id;
+    const currentHapusData = window.hapusData || hapusData;
+    const proyekId = currentHapusData ? currentHapusData.id : null;
+
+    console.log('ExecuteHapus called with:', {
+        proyekId: proyekId,
+        alasan: alasan,
+        catatan: catatan,
+        hapusData: currentHapusData
+    });
 
     if (!proyekId) {
+        console.error('No project ID found for deletion');
         alert('ID Proyek tidak ditemukan!');
         return;
     }
 
     const btn = document.getElementById('btnKonfirmasiAkhir');
+    if (!btn) {
+        console.error('Confirmation button not found');
+        alert('Tombol konfirmasi tidak ditemukan!');
+        return;
+    }
+
     const originalText = btn.innerHTML;
 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
     btn.disabled = true;
 
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        alert('CSRF token tidak ditemukan! Silakan refresh halaman.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+
+    const deleteUrl = `/marketing/proyek/${proyekId}`;
+    console.log('Sending DELETE request to:', deleteUrl);
+
     // Kirim request ke server
-    fetch(`/marketing/proyek/${proyekId}`, {
+    fetch(deleteUrl, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             alasan: alasan,
             catatan: catatan
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
             // Close all modals
-            closeModal('modalKonfirmasiAkhir');
+            console.log('Closing modals...');
+            if (typeof closeModal === 'function') {
+                closeModal('modalKonfirmasiAkhir');
+                closeModal('modalHapusProyek');
+            } else {
+                // Fallback manual close
+                const modal1 = document.getElementById('modalKonfirmasiAkhir');
+                const modal2 = document.getElementById('modalHapusProyek');
+                if (modal1) {
+                    modal1.classList.add('hidden');
+                    modal1.classList.remove('flex');
+                }
+                if (modal2) {
+                    modal2.classList.add('hidden');
+                    modal2.classList.remove('flex');
+                }
+            }
 
             // Show success message
             if (typeof showSuccessModal === 'function') {
-                const kode = hapusData.kode || 'Proyek';
+                const kode = currentHapusData.kode || 'Proyek';
                 showSuccessModal(`Proyek ${kode} berhasil dihapus dari sistem!`);
             } else {
                 alert('Proyek berhasil dihapus!');
             }
 
             // Reload page untuk update data
+            console.log('Reloading page in 1.5 seconds...');
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
@@ -278,21 +332,14 @@ function executeHapus() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Delete error:', error);
         alert('Terjadi kesalahan: ' + error.message);
     })
     .finally(() => {
+        console.log('Restoring button state...');
         btn.innerHTML = originalText;
         btn.disabled = false;
     });
-}
-        console.log('Deleting item:', {
-            id: hapusData.id || null,
-            alasan: alasan,
-            catatan: catatan
-        });
-
-    }, 2000);
 }
 
 function showSuccessMessage() {

@@ -854,8 +854,37 @@ function viewDetail(id) {
         if (catatanSection) catatanSection.style.display = 'none';
     }
 
+    // Load documents for this project
+    loadDetailDocuments(id);
+
     // Show modal
     openModal('modalDetailProyek');
+}
+
+// Helper function untuk capitalize first letter
+function ucfirst(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+// Helper function untuk class styling status
+function getStatusClass(status) {
+    switch (status.toLowerCase()) {
+        case 'menunggu':
+            return 'text-yellow-600';
+        case 'penawaran':
+            return 'text-blue-600';
+        case 'pembayaran':
+            return 'text-purple-600';
+        case 'pengiriman':
+            return 'text-indigo-600';
+        case 'selesai':
+            return 'text-green-600';
+        case 'gagal':
+            return 'text-red-600';
+        default:
+            return 'text-gray-600';
+    }
 }
 
 // Function to create penawaran (redirect to penawaran page)
@@ -908,8 +937,6 @@ function editProyek(id) {
         tahun_potensi: data.tahun_potensi,
         status: data.status,
         total_nilai: data.total_nilai,
-        nama_klien: data.nama_klien,
-        kontak_klien: data.kontak_klien,
         spesifikasi: data.spesifikasi,
         jumlah: data.jumlah,
         satuan: data.satuan,
@@ -982,7 +1009,9 @@ function deleteProyek(id) {
         id: data.id,
         kode: data.kode,
         nama_proyek: data.nama_proyek,
+        nama_instansi: data.instansi, // Map untuk compatibility dengan hapus modal
         instansi: data.instansi,
+        kabupaten_kota: data.kabupaten, // Map untuk compatibility dengan hapus modal
         kabupaten: data.kabupaten,
         status: data.status
     };
@@ -996,18 +1025,23 @@ function deleteProyek(id) {
     };
 
     setElementText('hapusKode', window.hapusData.kode);
-    setElementText('hapusNamaProyek', window.hapusData.nama_proyek);
     setElementText('hapusInstansi', window.hapusData.instansi);
     setElementText('hapusKabupaten', window.hapusData.kabupaten);
-    setElementText('hapusStatus', ucfirst(window.hapusData.status));
+
+    // Set status dengan styling
+    const statusElement = document.getElementById('hapusStatus');
+    if (statusElement) {
+        statusElement.textContent = ucfirst(window.hapusData.status);
+        statusElement.className = 'text-sm font-medium ' + getStatusClass(window.hapusData.status);
+    }
 
     // Also call loadHapusData if it exists for the hapus modal's internal functions
     if (typeof loadHapusData === 'function') {
         loadHapusData({
             id: data.id,
             kode: data.kode,
-            instansi: data.instansi,
-            kabupaten: data.kabupaten,
+            nama_instansi: data.instansi,
+            kabupaten_kota: data.kabupaten,
             status: data.status
         });
     }

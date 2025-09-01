@@ -10,7 +10,7 @@
             </button>
             <div>
                 <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold">Detail Penawaran</h1>
-                <p class="text-red-100 text-sm sm:text-base mt-1">{{ $proyek->kode_proyek ?? 'PRJ-XXXX' }} - {{ $proyek->nama_barang ?? 'Nama Proyek' }}</p>
+                <p class="text-red-100 text-sm sm:text-base mt-1">{{ $proyek->kode_proyek ?? 'PRJ-XXXX' }}</p>
             </div>
         </div>
         <div class="hidden sm:block">
@@ -183,15 +183,6 @@
                 <span class="ml-2 bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs font-medium">Referensi</span>
             </h3>
 
-            {{-- <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <div class="flex items-center">
-                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-                    <span class="text-sm text-blue-700">
-                        Data barang ini dari proyek. Jika detail penawaran kosong, data ini akan otomatis di-copy ke detail penawaran.
-                    </span>
-                </div>
-            </div> --}}
-
             <div class="space-y-3">
                 @foreach($proyek->proyekBarang as $barang)
                 <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
@@ -267,14 +258,6 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Surat Penawaran <span class="text-red-500">*</span>
                     </label>
-                    <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div class="flex items-center">
-                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-                            <span class="text-sm text-blue-700">
-                                <strong>Penting:</strong> Upload surat penawaran akan otomatis mengubah status proyek menjadi "Pembayaran" dan siap masuk ke tahap purchasing.
-                            </span>
-                        </div>
-                    </div>
                     <input type="file" name="surat_penawaran"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                            accept=".pdf,.doc,.docx">

@@ -32,7 +32,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">ID Proyek</label>
-                            <input type="text" id="editIdProyek" name="id_proyek" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan ID proyek">
+                            <input type="text" id="editIdProyek" name="id_proyek" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600" placeholder="Masukkan ID proyek" readonly>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
@@ -45,22 +45,6 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nama Instansi</label>
                             <input type="text" id="editNamaInstansi" name="nama_instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Proyek</label>
-                            <input type="text" id="editNamaProyek" name="nama_proyek" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama proyek">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                            <select id="editStatus" name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Pilih status</option>
-                                <option value="menunggu">Menunggu</option>
-                                <option value="penawaran">Penawaran</option>
-                                <option value="pembayaran">Pembayaran</option>
-                                <option value="pengiriman">Pengiriman</option>
-                                <option value="selesai">Selesai</option>
-                                <option value="gagal">Gagal</option>
-                            </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Pengadaan</label>
@@ -76,7 +60,6 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
                             <input type="text" id="editAdminMarketing" name="admin_marketing" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600" value="[Nama User Login]" readonly>
-                            <small class="text-gray-500 text-xs mt-1">Otomatis diisi dengan nama user yang login</small>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
@@ -87,10 +70,10 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Potensi</label>
                             <div class="flex gap-2">
-                                <button type="button" id="editPotensiYa" onclick="togglePotensiEdit('ya')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-gray-50 transition-colors duration-200 potensi-btn-edit">
+                                <button type="button" id="editPotensiYa" onclick="togglePotensiEdit('ya')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-white hover:text-green-600 hover:border-green-600 transition-all duration-200 potensi-btn-edit shadow-sm hover:shadow-md">
                                     <i class="fas fa-thumbs-up mr-2"></i>Ya
                                 </button>
-                                <button type="button" id="editPotensiTidak" onclick="togglePotensiEdit('tidak')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-gray-50 transition-colors duration-200 potensi-btn-edit">
+                                <button type="button" id="editPotensiTidak" onclick="togglePotensiEdit('tidak')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center hover:bg-white hover:text-red-600 hover:border-red-600 transition-all duration-200 potensi-btn-edit shadow-sm hover:shadow-md">
                                     <i class="fas fa-thumbs-down mr-2"></i>Tidak
                                 </button>
                             </div>
@@ -141,6 +124,18 @@
                         <i class="fas fa-file-upload text-red-600 mr-2"></i>
                         Dokumen Surat
                     </h4>
+
+                    <!-- Penawaran Status Info -->
+                    <div id="penawaranStatusInfo" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg hidden">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <div>
+                                <span class="text-sm font-medium text-blue-800">Status Penawaran: </span>
+                                <span id="penawaranStatus" class="text-sm text-blue-700 font-semibold">-</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Surat Penawaran -->
                         <div>
@@ -188,14 +183,24 @@
                                     <i class="fas fa-file-pdf text-red-500 mr-2"></i>
                                     <span>Surat Penawaran:</span>
                                 </div>
-                                <span id="currentSuratPenawaran" class="text-gray-600 font-mono text-xs">-</span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="currentSuratPenawaran" class="text-gray-600 font-mono text-xs">Loading...</span>
+                                    <a id="downloadSuratPenawaran" href="#" class="text-red-600 hover:text-red-700 hidden" title="Download">
+                                        <i class="fas fa-download text-sm"></i>
+                                    </a>
+                                </div>
                             </div>
                             <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
                                 <div class="flex items-center">
                                     <i class="fas fa-file-pdf text-purple-500 mr-2"></i>
-                                    <span>Surat Persetujuan:</span>
+                                    <span>Surat Pesanan:</span>
                                 </div>
-                                <span id="currentSuratPersetujuan" class="text-gray-600 font-mono text-xs">-</span>
+                                <div class="flex items-center space-x-2">
+                                    <span id="currentSuratPersetujuan" class="text-gray-600 font-mono text-xs">Loading...</span>
+                                    <a id="downloadSuratPesanan" href="#" class="text-purple-600 hover:text-purple-700 hidden" title="Download">
+                                        <i class="fas fa-download text-sm"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -249,6 +254,7 @@ function togglePotensiEdit(value) {
 
 function loadEditData(data) {
     console.log('Loading edit data:', data);
+    console.log('Penawaran data in loadEditData:', data.penawaran);
 
     // Load basic information with null checks
     const setElementValue = (id, value) => {
@@ -264,7 +270,6 @@ function loadEditData(data) {
     // Set semua data dasar
     setElementValue('editId', data.id);
     setElementValue('editIdProyek', data.kode);
-    setElementValue('editNamaProyek', data.nama_proyek);
     setElementValue('editKabupatenKota', data.kabupaten_kota || data.kabupaten);
     setElementValue('editNamaInstansi', data.nama_instansi || data.instansi);
     setElementValue('editJenisPengadaan', data.jenis_pengadaan);
@@ -328,12 +333,14 @@ function addEditItem(itemData = null) {
     let qty = '';
     let satuan = '';
     let hargaSatuan = '';
+    let spesifikasi = '';
 
     if (itemData) {
         nama = itemData.nama || itemData.nama_barang || '';
         qty = itemData.qty || itemData.jumlah || '';
         satuan = itemData.satuan || '';
         hargaSatuan = itemData.harga_satuan || '';
+        spesifikasi = itemData.spesifikasi || '';
     }
 
     const itemHtml = `
@@ -377,6 +384,10 @@ function addEditItem(itemData = null) {
                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Total</label>
                     <input type="number" name="barang[${editItemCounter}][harga_total]" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm harga-total-input-edit" placeholder="0" readonly>
                 </div>
+            </div>
+            <div class="mt-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi</label>
+                <textarea name="barang[${editItemCounter}][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Masukkan spesifikasi barang...">${spesifikasi}</textarea>
             </div>
         </div>
     `;
@@ -474,15 +485,161 @@ function formatRupiah(angka) {
 
 // Function to load current files information
 function loadCurrentFiles(data) {
-    const setCurrentFile = (elementId, filename) => {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.textContent = filename || 'Tidak ada file';
-        }
-    };
+    console.log('Loading current files for project:', data);
 
-    setCurrentFile('currentSuratPenawaran', data.surat_penawaran);
-    setCurrentFile('currentSuratPersetujuan', data.surat_persetujuan);
+    // Initialize loading state
+    updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
+    updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
+    document.getElementById('currentSuratPenawaran').textContent = 'Loading...';
+    document.getElementById('currentSuratPersetujuan').textContent = 'Loading...';
+
+    // Load documents from penawaran data if available
+    if (data.penawaran && data.penawaran.surat_penawaran) {
+        console.log('Loading from provided penawaran data:', data.penawaran);
+        updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran',
+                        data.penawaran.surat_penawaran, 'penawaran');
+        updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan',
+                        data.penawaran.surat_pesanan, 'pesanan');
+        updatePenawaranStatus(data.penawaran.status);
+    } else {
+        // Fetch penawaran data for this project
+        console.log('No penawaran data provided, fetching from API for project ID:', data.id);
+        fetchPenawaranData(data.id);
+    }
+}
+
+// Function to fetch penawaran data from server
+async function fetchPenawaranData(proyekId) {
+    try {
+        console.log('Fetching penawaran data for project:', proyekId);
+        const url = `/marketing/penawaran/project/${proyekId}/data`;
+        console.log('Fetching from URL:', url);
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        });
+
+        console.log('API Response status:', response.status);
+        console.log('API Response headers:', response.headers);
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('API Response data:', result);
+
+            if (result.success && result.data) {
+                const penawaran = result.data;
+                console.log('Penawaran data loaded successfully:', penawaran);
+
+                // Update current files display with download links
+                updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran',
+                                penawaran.surat_penawaran, 'penawaran');
+                updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan',
+                                penawaran.surat_pesanan, 'pesanan');
+
+                // Show penawaran status
+                updatePenawaranStatus(penawaran.status);
+            } else {
+                console.log('API returned unsuccessful response:', result);
+                // Set default empty values
+                updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
+                updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
+                hidePenawaranStatus();
+            }
+        } else {
+            console.log('API request failed with status:', response.status);
+            const errorText = await response.text();
+            console.log('Error response:', errorText);
+
+            // Set default empty values
+            updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
+            updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
+            hidePenawaranStatus();
+        }
+    } catch (error) {
+        console.error('Error fetching penawaran data:', error);
+        // Set default empty values on error
+        updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
+        updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
+        hidePenawaranStatus();
+    }
+}
+
+// Function to update penawaran status display
+function updatePenawaranStatus(status) {
+    const statusInfoDiv = document.getElementById('penawaranStatusInfo');
+    const statusSpan = document.getElementById('penawaranStatus');
+
+    if (statusInfoDiv && statusSpan && status) {
+        let statusText = status;
+        let statusClass = 'text-blue-700';
+
+        switch(status) {
+            case 'ACC':
+                statusText = 'Disetujui';
+                statusClass = 'text-green-700';
+                break;
+            case 'Menunggu':
+                statusText = 'Menunggu';
+                statusClass = 'text-yellow-700';
+                break;
+            case 'Ditolak':
+                statusText = 'Ditolak';
+                statusClass = 'text-red-700';
+                break;
+        }
+
+        statusSpan.textContent = statusText;
+        statusSpan.className = `text-sm font-semibold ${statusClass}`;
+        statusInfoDiv.classList.remove('hidden');
+    }
+}
+
+// Function to hide penawaran status
+function hidePenawaranStatus() {
+    const statusInfoDiv = document.getElementById('penawaranStatusInfo');
+    if (statusInfoDiv) {
+        statusInfoDiv.classList.add('hidden');
+    }
+}
+
+// Helper function to update file display with download links
+function updateFileDisplay(textElementId, linkElementId, filename, type = null) {
+    const textElement = document.getElementById(textElementId);
+    const linkElement = document.getElementById(linkElementId);
+
+    console.log(`Updating file display: ${textElementId} = ${filename}, type = ${type}`);
+
+    if (textElement) {
+        if (filename && filename !== 'null' && filename !== '' && filename !== null && filename !== undefined) {
+            textElement.textContent = filename;
+            textElement.classList.remove('text-gray-400');
+            textElement.classList.add('text-gray-600');
+
+            // Show download link if file exists and type is provided
+            if (linkElement && type) {
+                const downloadUrl = `/marketing/penawaran/download/${type}/${filename}`;
+                linkElement.href = downloadUrl;
+                linkElement.classList.remove('hidden');
+                console.log(`Download link set: ${downloadUrl}`);
+            }
+        } else {
+            textElement.textContent = 'Tidak ada file';
+            textElement.classList.remove('text-gray-600');
+            textElement.classList.add('text-gray-400');
+
+            // Hide download link
+            if (linkElement) {
+                linkElement.classList.add('hidden');
+                linkElement.href = '#';
+            }
+        }
+    } else {
+        console.warn(`Element ${textElementId} not found`);
+    }
 }
 
 // Function to clear file input
@@ -649,14 +806,8 @@ function collectEditFormData() {
     data.instansi = getElementValue('editNamaInstansi');
     data.jenis_pengadaan = getElementValue('editJenisPengadaan');
     data.catatan = getElementValue('editCatatan');
-    data.status = getElementValue('editStatus', 'menunggu');
     data.potensi = getElementValue('editPotensiValue', 'tidak');
     data.tahun_potensi = parseInt(getElementValue('editTahunPotensi')) || new Date().getFullYear();
-
-    // Data nama proyek dan klien
-    data.nama_barang = getElementValue('editNamaProyek');
-    data.nama_klien = getElementValue('editNamaKlien', 'Klien');
-    data.kontak_klien = getElementValue('editKontakKlien');
 
     // Admin data
     const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
@@ -665,32 +816,51 @@ function collectEditFormData() {
 
     // Ambil data barang dari form
     const barangItems = document.querySelectorAll('.barang-item-edit');
-    if (barangItems.length > 0) {
-        const firstItem = barangItems[0];
-        const namaInput = firstItem.querySelector('input[name*="[nama]"]');
-        const qtyInput = firstItem.querySelector('input[name*="[qty]"]');
-        const satuanSelect = firstItem.querySelector('select[name*="[satuan]"]');
-        const hargaSatuanInput = firstItem.querySelector('input[name*="[harga_satuan]"]');
+    console.log('Found barang items for edit:', barangItems.length);
 
-        if (namaInput) data.nama_barang = namaInput.value || data.nama_barang;
-        if (qtyInput) data.jumlah = parseInt(qtyInput.value) || 1;
-        if (satuanSelect) data.satuan = satuanSelect.value || 'Unit';
-        if (hargaSatuanInput) {
-            data.harga_satuan = parseFloat(hargaSatuanInput.value) || null;
-            if (data.harga_satuan && data.jumlah) {
-                data.harga_total = data.harga_satuan * data.jumlah;
+    if (barangItems.length > 0) {
+        // Multiple barang - gunakan format daftar_barang array
+        data.daftar_barang = [];
+
+        barangItems.forEach((item, index) => {
+            const namaInput = item.querySelector('input[name*="[nama]"]');
+            const qtyInput = item.querySelector('input[name*="[qty]"]');
+            const satuanSelect = item.querySelector('select[name*="[satuan]"]');
+            const hargaSatuanInput = item.querySelector('input[name*="[harga_satuan]"]');
+            const spesifikasiTextarea = item.querySelector('textarea[name*="[spesifikasi]"]');
+
+            const barangData = {
+                nama_barang: namaInput ? namaInput.value : '',
+                jumlah: qtyInput ? parseInt(qtyInput.value) || 1 : 1,
+                satuan: satuanSelect ? satuanSelect.value || 'Unit' : 'Unit',
+                spesifikasi: spesifikasiTextarea ? spesifikasiTextarea.value || 'Spesifikasi standar' : 'Spesifikasi standar',
+                harga_satuan: hargaSatuanInput ? parseFloat(hargaSatuanInput.value) || null : null
+            };
+
+            if (barangData.nama_barang) {
+                data.daftar_barang.push(barangData);
+                console.log(`Barang edit ${index + 1}:`, barangData);
             }
+        });
+
+        // Jika tidak ada barang valid yang ditemukan, fallback ke single barang
+        if (data.daftar_barang.length === 0) {
+            console.log('No valid barang found in items, using fallback data');
+            data.nama_barang = getElementValue('editNamaProyek') || 'Barang Default';
+            data.jumlah = 1;
+            data.satuan = 'Unit';
+            data.spesifikasi = 'Spesifikasi standar';
+            data.harga_satuan = null;
         }
     } else {
-        // Default values jika tidak ada barang
+        // Single barang - gunakan format lama untuk backward compatibility
+        console.log('No barang items found, using single barang format');
+        data.nama_barang = getElementValue('editNamaProyek') || 'Barang Default';
         data.jumlah = 1;
         data.satuan = 'Unit';
-        data.spesifikasi = 'Spesifikasi standar';
+        data.spesifikasi = getElementValue('editSpesifikasi', 'Spesifikasi standar');
         data.harga_satuan = null;
     }
-
-    // Spesifikasi default
-    data.spesifikasi = getElementValue('editSpesifikasi', 'Spesifikasi standar');
 
     console.log('Collected edit form data:', data);
     return data;
@@ -750,4 +920,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('Edit modal initialized');
 });
+
+// Debug function to test API
+window.testPenawaranAPI = function(proyekId) {
+    console.log('Testing penawaran API for project:', proyekId);
+    fetchPenawaranData(proyekId);
+};
 </script>
