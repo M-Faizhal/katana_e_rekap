@@ -60,7 +60,7 @@
                 <i class="fas fa-clock text-yellow-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
             <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Jatuh Tempo</h3>
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Pembayaran Tertunda</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">Rp {{ $stats['hutang_jatuh_tempo_formatted'] ?? '0' }}</p>
             </div>
         </div>
@@ -72,7 +72,7 @@
                 <i class="fas fa-building text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
             <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Vendor Berhutang</h3>
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Vendor Belum Bayar</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">{{ $stats['jumlah_vendor'] ?? 0 }}</p>
             </div>
         </div>
@@ -110,9 +110,9 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
                 <select id="status-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                     <option value="">Semua Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="partial">Sebagian</option>
-                    <option value="overdue">Terlambat</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak</option>
+                    <option value="overdue" {{ request('status') == 'overdue' ? 'selected' : '' }}>Terlambat</option>
                 </select>
             </div>
 
@@ -120,7 +120,11 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
                 <select id="vendor-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                     <option value="">Semua Vendor</option>
-                    <!-- Options will be populated dynamically -->
+                    @foreach($hutangVendor->unique('nama_vendor') as $vendor)
+                        <option value="{{ $vendor->nama_vendor }}" {{ request('vendor') == $vendor->nama_vendor ? 'selected' : '' }}>
+                            {{ $vendor->nama_vendor }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
 
@@ -128,10 +132,10 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Range Nominal</label>
                 <select id="nominal-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                     <option value="">Semua Nominal</option>
-                    <option value="0-10jt">< Rp 10 Juta</option>
-                    <option value="10-50jt">Rp 10 - 50 Juta</option>
-                    <option value="50-100jt">Rp 50 - 100 Juta</option>
-                    <option value="100jt+"> > Rp 100 Juta</option>
+                    <option value="0-10jt" {{ request('nominal') == '0-10jt' ? 'selected' : '' }}>< Rp 10 Juta</option>
+                    <option value="10-50jt" {{ request('nominal') == '10-50jt' ? 'selected' : '' }}>Rp 10 - 50 Juta</option>
+                    <option value="50-100jt" {{ request('nominal') == '50-100jt' ? 'selected' : '' }}>Rp 50 - 100 Juta</option>
+                    <option value="100jt+" {{ request('nominal') == '100jt+' ? 'selected' : '' }}>> Rp 100 Juta</option>
                 </select>
             </div>
         </div>
@@ -156,7 +160,7 @@
             </div>
             <div>
                 <h2 class="text-lg sm:text-xl font-bold text-gray-800">Daftar Hutang Vendor</h2>
-                <p class="text-sm sm:text-base text-gray-600 mt-1">Hutang yang belum lunas ke vendor</p>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Pembayaran ke vendor yang masih pending atau ditolak</p>
             </div>
         </div>
     </div>
@@ -168,10 +172,10 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nominal</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jatuh Tempo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Bayar</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterlambatan</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -185,17 +189,41 @@
                         <div class="text-sm text-gray-500">{{ $hutang->nama_klien }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        Rp {{ number_format($hutang->nominal_pembayaran, 0, ',', '.') }}
+                        @php
+                            $nominal = $hutang->nominal_pembayaran;
+                            if ($nominal >= 1000000000) {
+                                echo 'Rp ' . number_format($nominal / 1000000000, 1, ',', '.') . ' M';
+                            } elseif ($nominal >= 1000000) {
+                                echo 'Rp ' . number_format($nominal / 1000000, 1, ',', '.') . ' jt';
+                            } elseif ($nominal >= 1000) {
+                                echo 'Rp ' . number_format($nominal / 1000, 1, ',', '.') . ' rb';
+                            } else {
+                                echo 'Rp ' . number_format($nominal, 0, ',', '.');
+                            }
+                        @endphp
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ \Carbon\Carbon::parse($hutang->jatuh_tempo)->format('d/m/Y') }}
+                        @if($hutang->jatuh_tempo)
+                            {{ \Carbon\Carbon::parse($hutang->jatuh_tempo)->format('d/m/Y') }}
+                        @else
+                            Belum ada
+                        @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            @if($hutang->status_pembayaran == 'pending') bg-yellow-100 text-yellow-800
-                            @elseif($hutang->status_pembayaran == 'partial') bg-blue-100 text-blue-800
+                            @if($hutang->status_pembayaran == 'Pending') bg-yellow-100 text-yellow-800
+                            @elseif($hutang->status_pembayaran == 'Ditolak') bg-red-100 text-red-800
+                            @elseif($hutang->status_pembayaran == 'Approved') bg-green-100 text-green-800
                             @else bg-gray-100 text-gray-800 @endif">
-                            {{ ucfirst($hutang->status_pembayaran) }}
+                            @if($hutang->status_pembayaran == 'Pending')
+                                Pending
+                            @elseif($hutang->status_pembayaran == 'Ditolak')
+                                Ditolak
+                            @elseif($hutang->status_pembayaran == 'Approved')
+                                Disetujui
+                            @else
+                                {{ $hutang->status_pembayaran }}
+                            @endif
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -210,13 +238,17 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ $hutang->kontak_vendor }}
+                        {{ $hutang->catatan ?? 'Pembayaran ke vendor' }}
                     </td>
                 </tr>
                 @empty
                 <tr>
                     <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                        Tidak ada hutang vendor yang ditemukan
+                        <div class="flex flex-col items-center justify-center py-8">
+                            <i class="fas fa-credit-card text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium mb-2">Tidak ada hutang vendor</p>
+                            <p class="text-sm">Semua pembayaran ke vendor sudah disetujui atau tidak ada pembayaran pending</p>
+                        </div>
                     </td>
                 </tr>
                 @endforelse

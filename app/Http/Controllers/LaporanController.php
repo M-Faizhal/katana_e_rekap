@@ -11,6 +11,7 @@ use App\Models\Penawaran;
 use App\Models\PenawaranDetail;
 use App\Models\Pembayaran;
 use App\Models\PenagihanDinas;
+use App\Models\KalkulasiHps;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -529,28 +530,59 @@ class LaporanController extends Controller
      */
     private function getHutangVendorStatistics()
     {
-        // Note: Current pembayaran table structure doesn't have status_pembayaran and jatuh_tempo fields
-        // This is placeholder implementation. These features need proper migration to add required fields.
-        
-        $totalHutang = 0; // Placeholder - need to implement proper hutang tracking
-        $hutangJatuhTempo = 0; // Placeholder - need jatuh_tempo field in pembayaran table
-        $jumlahVendorBerhutang = 0; // Placeholder - need status_pembayaran field
+        // Hitung total modal vendor dari kalkulasi HPS (total_harga_hpp)
+        $totalModalVendor = KalkulasiHps::whereHas('proyek', function($query) {
+                $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']);
+            })
+            ->sum('total_harga_hpp');
 
-        // For now, let's count pending payments as temporary solution
-        $pendingPayments = DB::table('pembayaran')
-            ->where('status_verifikasi', 'Pending')
+        // Hitung total yang sudah dibayar (Approved)
+        $totalSudahDibayar = Pembayaran::where('status_verifikasi', 'Approved')
             ->sum('nominal_bayar');
 
-        $jumlahVendorPending = DB::table('pembayaran')
-            ->where('status_verifikasi', 'Pending')
-            ->distinct('id_vendor')
-            ->count();
+        // Total hutang = Modal vendor - yang sudah dibayar
+        $totalHutang = $totalModalVendor - $totalSudahDibayar;
+
+        // Hitung hutang yang sudah jatuh tempo
+        // Ini berdasarkan pembayaran yang belum approved dan tanggalnya sudah lewat
+        $hutangJatuhTempo = Pembayaran::whereIn('status_verifikasi', ['Pending', 'Ditolak'])
+            ->where('tanggal_bayar', '<', Carbon::now())
+            ->sum('nominal_bayar');
+
+        // Jumlah vendor yang masih ada hutang (vendor yang ada di kalkulasi HPS tapi belum lunas)
+        $vendorDenganModal = KalkulasiHps::whereHas('proyek', function($query) {
+                $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']);
+            })
+            ->select('id_vendor')
+            ->groupBy('id_vendor')
+            ->havingRaw('SUM(total_harga_hpp) > 0')
+            ->get();
+
+        $jumlahVendorBelumLunas = 0;
+        foreach ($vendorDenganModal as $vendor) {
+            $totalModal = KalkulasiHps::whereHas('proyek', function($query) {
+                    $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']);
+                })
+                ->where('id_vendor', $vendor->id_vendor)
+                ->sum('total_harga_hpp');
+
+            $totalDibayar = Pembayaran::where('id_vendor', $vendor->id_vendor)
+                ->where('status_verifikasi', 'Approved')
+                ->sum('nominal_bayar');
+
+            if ($totalModal > $totalDibayar) {
+                $jumlahVendorBelumLunas++;
+            }
+        }
+
+        // Rata-rata hutang per vendor
+        $rataRataHutang = $jumlahVendorBelumLunas > 0 ? $totalHutang / $jumlahVendorBelumLunas : 0;
 
         return [
-            'total_hutang' => $pendingPayments ?? 0,
-            'hutang_jatuh_tempo' => 0, // Need jatuh_tempo field
-            'jumlah_vendor' => $jumlahVendorPending ?? 0,
-            'rata_rata_hutang' => $jumlahVendorPending > 0 ? $pendingPayments / $jumlahVendorPending : 0
+            'total_hutang' => max(0, $totalHutang),
+            'hutang_jatuh_tempo' => $hutangJatuhTempo ?? 0,
+            'jumlah_vendor' => $jumlahVendorBelumLunas,
+            'rata_rata_hutang' => $rataRataHutang
         ];
     }
 
@@ -559,26 +591,112 @@ class LaporanController extends Controller
      */
     private function getHutangVendorList(Request $request)
     {
-        // Note: Current structure doesn't have proper hutang tracking fields
-        // This returns pending payments as temporary solution
+        // Ambil semua vendor yang ada di kalkulasi HPS untuk proyek aktif
+        $vendorData = collect();
         
-        return DB::table('vendor')
-            ->join('pembayaran', 'vendor.id_vendor', '=', 'pembayaran.id_vendor')
-            ->join('penawaran', 'pembayaran.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
-            ->where('pembayaran.status_verifikasi', 'Pending')
-            ->select(
-                'vendor.nama_vendor',
-                'vendor.kontak as kontak_vendor',
-                'proyek.kode_proyek',
-                'proyek.nama_klien',
-                'pembayaran.nominal_bayar as nominal_pembayaran',
-                'pembayaran.tanggal_bayar as jatuh_tempo',
-                'pembayaran.status_verifikasi as status_pembayaran',
-                DB::raw('DATEDIFF(NOW(), pembayaran.tanggal_bayar) as hari_telat')
-            )
-            ->orderBy('pembayaran.tanggal_bayar', 'asc')
-            ->paginate(15);
+        $vendors = KalkulasiHps::with(['vendor', 'proyek'])
+            ->whereHas('proyek', function($query) {
+                $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']);
+            })
+            ->select('id_vendor', 'id_proyek', DB::raw('SUM(total_harga_hpp) as total_modal'))
+            ->groupBy('id_vendor', 'id_proyek')
+            ->havingRaw('SUM(total_harga_hpp) > 0')
+            ->get();
+
+        foreach ($vendors as $vendorProyek) {
+            // Hitung total yang sudah dibayar untuk vendor ini di proyek ini
+            $totalDibayar = Pembayaran::whereHas('penawaran', function($query) use ($vendorProyek) {
+                    $query->where('id_proyek', $vendorProyek->id_proyek);
+                })
+                ->where('id_vendor', $vendorProyek->id_vendor)
+                ->where('status_verifikasi', 'Approved')
+                ->sum('nominal_bayar');
+
+            $sisaHutang = $vendorProyek->total_modal - $totalDibayar;
+
+            // Hanya tambahkan jika masih ada hutang
+            if ($sisaHutang > 0) {
+                // Ambil pembayaran pending/ditolak terbaru untuk informasi jatuh tempo
+                $pembayaranTerbaru = Pembayaran::whereHas('penawaran', function($query) use ($vendorProyek) {
+                        $query->where('id_proyek', $vendorProyek->id_proyek);
+                    })
+                    ->where('id_vendor', $vendorProyek->id_vendor)
+                    ->whereIn('status_verifikasi', ['Pending', 'Ditolak'])
+                    ->orderBy('tanggal_bayar', 'desc')
+                    ->first();
+
+                $data = (object) [
+                    'nama_vendor' => $vendorProyek->vendor->nama_vendor,
+                    'kontak_vendor' => $vendorProyek->vendor->kontak,
+                    'kode_proyek' => $vendorProyek->proyek->kode_proyek,
+                    'nama_klien' => $vendorProyek->proyek->nama_klien,
+                    'nominal_pembayaran' => $sisaHutang,
+                    'jatuh_tempo' => $pembayaranTerbaru ? $pembayaranTerbaru->tanggal_bayar : null,
+                    'status_pembayaran' => $pembayaranTerbaru ? $pembayaranTerbaru->status_verifikasi : 'Belum Bayar',
+                    'catatan' => $pembayaranTerbaru ? $pembayaranTerbaru->catatan : 'Belum ada pembayaran diajukan',
+                    'hari_telat' => $pembayaranTerbaru && $pembayaranTerbaru->tanggal_bayar < Carbon::now() 
+                        ? Carbon::now()->diffInDays(Carbon::parse($pembayaranTerbaru->tanggal_bayar)) 
+                        : 0
+                ];
+
+                $vendorData->push($data);
+            }
+        }
+
+        // Apply filters
+        if ($request->filled('status')) {
+            $vendorData = $vendorData->filter(function($vendor) use ($request) {
+                if ($request->status == 'pending') {
+                    return $vendor->status_pembayaran == 'Pending';
+                } elseif ($request->status == 'overdue') {
+                    return $vendor->hari_telat > 0;
+                } elseif ($request->status == 'rejected') {
+                    return $vendor->status_pembayaran == 'Ditolak';
+                }
+                return true;
+            });
+        }
+
+        if ($request->filled('vendor')) {
+            $vendorData = $vendorData->filter(function($vendor) use ($request) {
+                return stripos($vendor->nama_vendor, $request->vendor) !== false;
+            });
+        }
+
+        if ($request->filled('nominal')) {
+            $vendorData = $vendorData->filter(function($vendor) use ($request) {
+                $nominal = $vendor->nominal_pembayaran;
+                switch ($request->nominal) {
+                    case '0-10jt':
+                        return $nominal <= 10000000;
+                    case '10-50jt':
+                        return $nominal > 10000000 && $nominal <= 50000000;
+                    case '50-100jt':
+                        return $nominal > 50000000 && $nominal <= 100000000;
+                    case '100jt+':
+                        return $nominal > 100000000;
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Convert to paginated result manually
+        $page = $request->get('page', 1);
+        $perPage = 15;
+        $total = $vendorData->count();
+        $items = $vendorData->slice(($page - 1) * $perPage, $perPage)->values();
+
+        // Create a paginator-like object
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return $paginator;
     }
 
     /**
