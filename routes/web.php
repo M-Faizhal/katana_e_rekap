@@ -11,10 +11,10 @@ use App\Http\Controllers\purchasing\PembayaranController;
 use App\Http\Controllers\purchasing\PengirimanController;
 use App\Http\Controllers\keuangan\ApprovalController;
 use App\Http\Controllers\keuangan\PenagihanDinasController;
-use App\Http\Controllers\Marketing\ProyekController;
-use App\Http\Controllers\Marketing\WilayahController;
-use App\Http\Controllers\Marketing\PotensiController;
-use App\Http\Controllers\Marketing\PenawaranController;
+use App\Http\Controllers\marketing\ProyekController;
+use App\Http\Controllers\marketing\WilayahController;
+use App\Http\Controllers\marketing\PotensiController;
+use App\Http\Controllers\marketing\PenawaranController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 

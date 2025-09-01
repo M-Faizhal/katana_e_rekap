@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Marketing;
+namespace App\Http\Controllers\marketing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Proyek;
@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Exception;
 
 class ProyekController extends Controller
 {
@@ -117,6 +118,23 @@ class ProyekController extends Controller
         // Debug: Log data yang diterima
         Log::info('Data proyek yang diterima:', $request->all());
 
+        // Parse daftar_barang jika berupa JSON string
+        $daftarBarang = null;
+        if ($request->has('daftar_barang') && is_string($request->daftar_barang)) {
+            try {
+                $daftarBarang = json_decode($request->daftar_barang, true);
+                Log::info('Parsed daftar_barang:', $daftarBarang);
+            } catch (Exception $e) {
+                Log::error('Error parsing daftar_barang JSON:', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format data barang tidak valid'
+                ], 400);
+            }
+        } else {
+            $daftarBarang = $request->daftar_barang;
+        }
+
         $request->validate([
             'tanggal' => 'required|date',
             'kab_kota' => 'required|string|max:255',
@@ -133,18 +151,23 @@ class ProyekController extends Controller
             'jumlah' => 'required_without:daftar_barang|integer|min:1',
             'satuan' => 'required_without:daftar_barang|string|max:50',
             'spesifikasi' => 'required_without:daftar_barang|string',
-            'harga_satuan' => 'nullable|numeric|min:0',
-            // Array barang untuk multiple items
-            'daftar_barang' => 'nullable|array',
-            'daftar_barang.*.nama_barang' => 'required|string|max:255',
-            'daftar_barang.*.jumlah' => 'required|integer|min:1',
-            'daftar_barang.*.satuan' => 'required|string|max:50',
-            'daftar_barang.*.spesifikasi' => 'required|string',
-            'daftar_barang.*.harga_satuan' => 'nullable|numeric|min:0'
+            'harga_satuan' => 'nullable|numeric|min:0'
         ]);
 
+        // Validasi daftar_barang secara manual karena sudah di-parse
+        if ($daftarBarang && is_array($daftarBarang)) {
+            foreach ($daftarBarang as $index => $barang) {
+                if (empty($barang['nama_barang']) || empty($barang['jumlah']) || empty($barang['satuan'])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Data barang ke-" . ($index + 1) . " tidak lengkap"
+                    ], 400);
+                }
+            }
+        }
+
         // Ambil nama proyek dari barang pertama
-        $namaProyek = $request->daftar_barang ? $request->daftar_barang[0]['nama_barang'] : $request->nama_barang;
+        $namaProyek = $daftarBarang ? $daftarBarang[0]['nama_barang'] : $request->nama_barang;
 
         $proyek = Proyek::create([
             'tanggal' => $request->tanggal,
@@ -161,10 +184,10 @@ class ProyekController extends Controller
         ]);
 
         // Jika ada daftar barang multiple, simpan ke tabel proyek_barang
-        if ($request->daftar_barang && is_array($request->daftar_barang)) {
-            Log::info('Menyimpan multiple barang:', ['jumlah' => count($request->daftar_barang), 'data' => $request->daftar_barang]);
+        if ($daftarBarang && is_array($daftarBarang)) {
+            Log::info('Menyimpan multiple barang:', ['jumlah' => count($daftarBarang), 'data' => $daftarBarang]);
 
-            foreach ($request->daftar_barang as $index => $barang) {
+            foreach ($daftarBarang as $index => $barang) {
                 $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
 
                 $proyekBarang = $proyek->proyekBarang()->create([

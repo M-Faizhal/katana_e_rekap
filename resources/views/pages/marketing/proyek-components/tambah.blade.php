@@ -630,7 +630,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     }
 
     // Kumpulkan data form
-    const formData = collectTambahFormData();
+    const formDataObject = collectTambahFormData();
 
     // Submit data
     const submitButton = e.target.querySelector('button[type="submit"]') || document.querySelector('button[form="formTambahProyek"]');
@@ -646,17 +646,57 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
     submitButton.disabled = true;
 
+    // Create FormData untuk traditional form submission
+    const formData = new FormData();
+    
+    // Add basic data
+    Object.keys(formDataObject).forEach(key => {
+        if (key !== 'daftar_barang') {
+            formData.append(key, formDataObject[key]);
+        }
+    });
+
+    // Add daftar_barang sebagai JSON string
+    if (formDataObject.daftar_barang) {
+        formData.append('daftar_barang', JSON.stringify(formDataObject.daftar_barang));
+    }
+
+    console.log('Sending FormData with:');
+    for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+    }
+
     // Kirim data ke server
     fetch('/marketing/proyek', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            // If not JSON, get text to see what we received
+            return response.text().then(text => {
+                console.error('Non-JSON response:', text);
+                throw new Error('Server returned non-JSON response');
+            });
+        }
+    })
     .then(data => {
+        console.log('Response data:', data);
+        
         if (data.success) {
             // Reset form
             this.reset();
@@ -680,7 +720,20 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     })
     .catch(error => {
         console.error('Error:', error);
-        showErrorAlert('Terjadi kesalahan: ' + error.message, 'Error');
+        console.error('Error stack:', error.stack);
+        
+        let errorMessage = 'Terjadi kesalahan: ' + error.message;
+        
+        // Handle different types of errors
+        if (error.message.includes('500')) {
+            errorMessage = 'Terjadi kesalahan server (500). Periksa log aplikasi untuk detail.';
+        } else if (error.message.includes('404')) {
+            errorMessage = 'Endpoint tidak ditemukan (404). Periksa routing aplikasi.';
+        } else if (error.message.includes('422')) {
+            errorMessage = 'Data yang dikirim tidak valid (422). Periksa validasi form.';
+        }
+        
+        showErrorAlert(errorMessage, 'Error');
     })
     .finally(() => {
         if (submitButton) {
