@@ -112,64 +112,98 @@
 
         <!-- List Layout -->
         <div class="p-6">
-            <div class="space-y-4">
+            <div class="space-y-6">
                 @forelse($wilayahData as $wilayah)
-                <!-- Item {{ $wilayah['id'] }} -->
+                <!-- Wilayah Card: {{ $wilayah['wilayah'] }} -->
                 <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
+                    <!-- Wilayah Header -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-4">
                             <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                                @if(strpos(strtolower($wilayah['instansi']), 'dinas') !== false)
-                                    <i class="fas fa-building text-red-600 text-lg"></i>
-                                @elseif(strpos(strtolower($wilayah['instansi']), 'rsud') !== false || strpos(strtolower($wilayah['instansi']), 'rumah sakit') !== false)
-                                    <i class="fas fa-hospital text-blue-600 text-lg"></i>
-                                @elseif(strpos(strtolower($wilayah['instansi']), 'universitas') !== false)
-                                    <i class="fas fa-university text-green-600 text-lg"></i>
-                                @elseif(strpos(strtolower($wilayah['instansi']), 'badan') !== false)
-                                    <i class="fas fa-city text-purple-600 text-lg"></i>
-                                @else
-                                    <i class="fas fa-building text-red-600 text-lg"></i>
-                                @endif
+                                <i class="fas fa-map-marked-alt text-red-600 text-xl"></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-gray-800">{{ $wilayah['wilayah'] }}</h3>
-                                <p class="text-sm text-gray-600">{{ $wilayah['instansi'] }}</p>
+                                <h3 class="text-xl font-bold text-gray-800">{{ $wilayah['wilayah'] }}</h3>
+                                <p class="text-gray-600">{{ $wilayah['provinsi'] }}</p>
+                                <p class="text-sm text-gray-500">Kode: {{ $wilayah['kode_wilayah'] }}</p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button onclick="detailWilayah({{ $wilayah['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="editWilayah({{ $wilayah['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit Kontak">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="hapusWilayah({{ $wilayah['id'] }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                {{ $wilayah['jumlah_instansi'] }} Instansi
+                            </span>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                {{ $wilayah['total_proyek'] }} Proyek
+                            </span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
-                            <p class="font-medium text-gray-800">{{ $wilayah['admin_marketing'] }}</p>
+                    <!-- Instansi Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        @foreach($wilayah['instansi_list'] as $instansi)
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-800 text-sm mb-1">{{ $instansi['instansi'] }}</h4>
+                                    <p class="text-xs text-gray-600 mb-2">{{ $instansi['jumlah_proyek'] }} proyek aktif</p>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button onclick="detailInstansi({{ $instansi['id'] }})" class="text-blue-600 hover:bg-blue-100 p-1 rounded transition-colors" title="Detail">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </button>
+                                    <button onclick="editWilayah({{ $instansi['id'] }})" class="text-green-600 hover:bg-green-100 p-1 rounded transition-colors" title="Edit">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </button>
+                                    <button onclick="hapusWilayah({{ $instansi['id'] }})" class="text-red-600 hover:bg-red-100 p-1 rounded transition-colors" title="Hapus">
+                                        <i class="fas fa-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <div class="flex items-center text-xs text-gray-600">
+                                    <i class="fas fa-user-tie w-3 mr-2"></i>
+                                    <span class="font-medium">{{ $instansi['nama_pejabat'] }}</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-600">
+                                    <i class="fas fa-briefcase w-3 mr-2"></i>
+                                    <span>{{ $instansi['jabatan'] }}</span>
+                                </div>
+                                @if($instansi['no_telp'] && $instansi['no_telp'] != '-')
+                                <div class="flex items-center text-xs text-gray-600">
+                                    <i class="fas fa-phone w-3 mr-2"></i>
+                                    <span>{{ $instansi['no_telp'] }}</span>
+                                </div>
+                                @endif
+                                @if($instansi['email'] && $instansi['email'] != '-')
+                                <div class="flex items-center text-xs text-gray-600">
+                                    <i class="fas fa-envelope w-3 mr-2"></i>
+                                    <span class="truncate">{{ $instansi['email'] }}</span>
+                                </div>
+                                @endif
+                            </div>
+
+                            @if($instansi['admin_marketing'] && $instansi['admin_marketing'] != '-')
+                            <div class="mt-3 pt-2 border-t border-gray-200">
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-user-cog w-3 mr-2"></i>
+                                    <span>Admin: {{ $instansi['admin_marketing'] }}</span>
+                                </div>
+                            </div>
+                            @endif
                         </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Nama Pejabat</p>
-                            <p class="font-medium text-gray-800">{{ $wilayah['nama_pejabat'] }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">Jabatan</p>
-                            <p class="font-medium text-gray-800">{{ $wilayah['jabatan'] }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500 mb-1">No. Telepon</p>
-                            <p class="font-medium text-gray-800">{{ $wilayah['no_telp'] }}</p>
-                        </div>
+                        @endforeach
                     </div>
 
-                    <div class="border-t border-gray-200 pt-3">
-                        <p class="text-xs text-gray-500">Terakhir diupdate: {{ $wilayah['updated_at'] }}</p>
+                    <!-- Wilayah Footer -->
+                    <div class="border-t border-gray-200 pt-3 flex items-center justify-between">
+                        <div class="text-sm text-gray-600">
+                            <span>Terakhir diperbarui: {{ $wilayah['updated_at'] }}</span>
+                        </div>
+                        <button onclick="tambahInstansiKeWilayah('{{ $wilayah['wilayah'] }}', '{{ $wilayah['provinsi'] }}')"
+                                class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fas fa-plus mr-1"></i>Tambah Instansi
+                        </button>
                     </div>
                 </div>
                 @empty
@@ -177,7 +211,7 @@
                 <div class="text-center py-12">
                     <i class="fas fa-map text-gray-400 text-4xl mb-4"></i>
                     <h3 class="text-lg font-medium text-gray-600 mb-2">Belum ada data wilayah</h3>
-                    <p class="text-gray-500">Tambahkan proyek untuk melihat data wilayah dan instansi</p>
+                    <p class="text-gray-500">Tambahkan wilayah untuk melihat data instansi dan pejabat</p>
                 </div>
                 @endforelse
             </div>
@@ -223,13 +257,23 @@
     @include('components.success-modal')
 
     <script>
-        // Data from controller
+        // Data from controller - flatten instansi data for easier access
         const wilayahData = @json($wilayahData);
+        const instansiData = {};
 
-        // Convert to object for easy access by ID
-        const sampleData = {};
-        wilayahData.forEach(item => {
-            sampleData[item.id] = item;
+        // Flatten instansi data for direct access by ID
+        wilayahData.forEach(wilayah => {
+            if (wilayah.instansi_list) {
+                wilayah.instansi_list.forEach(instansi => {
+                    instansiData[instansi.id] = {
+                        ...instansi,
+                        wilayah: wilayah.wilayah,
+                        provinsi: wilayah.provinsi,
+                        // kode_wilayah sudah ada di level instansi
+                        deskripsi: wilayah.deskripsi
+                    };
+                });
+            }
         });
 
         // Function to add new wilayah
@@ -242,17 +286,41 @@
             document.getElementById('modalTambahWilayah').classList.add('flex');
         }
 
-        // Function to view wilayah detail
-        function detailWilayah(id) {
-            const data = sampleData[id];
+        // Function to add instansi to existing wilayah
+        function tambahInstansiKeWilayah(namaWilayah, provinsi) {
+            // Clear form
+            document.getElementById('formTambahWilayah').reset();
+
+            // Pre-fill wilayah and provinsi
+            document.getElementById('tambahWilayah').value = namaWilayah;
+            document.getElementById('tambahProvinsi').value = provinsi;
+
+            // Generate unique kode_wilayah suggestion
+            const existingCodes = Object.values(instansiData).map(item => item.kode_wilayah);
+            let counter = 1;
+            let suggestedCode = namaWilayah.substring(0, 3).toUpperCase() + '-' + counter.toString().padStart(2, '0');
+            while (existingCodes.includes(suggestedCode)) {
+                counter++;
+                suggestedCode = namaWilayah.substring(0, 3).toUpperCase() + '-' + counter.toString().padStart(2, '0');
+            }
+            document.getElementById('tambahKodeWilayah').value = suggestedCode;
+
+            // Show modal
+            document.getElementById('modalTambahWilayah').classList.remove('hidden');
+            document.getElementById('modalTambahWilayah').classList.add('flex');
+        }
+
+        // Function to view instansi detail (renamed from detailWilayah)
+        function detailInstansi(id) {
+            const data = instansiData[id];
             if (data) {
                 // Populate detail modal
                 document.getElementById('detailWilayah').textContent = data.wilayah;
                 document.getElementById('detailInstansi').textContent = data.instansi;
-                document.getElementById('detailAdminMarketing').textContent = data.admin_marketing;
+                document.getElementById('detailAdminMarketing').textContent = data.admin_marketing || '-';
                 document.getElementById('detailNamaPejabat').textContent = data.nama_pejabat;
                 document.getElementById('detailJabatan').textContent = data.jabatan;
-                document.getElementById('detailNoTelp').textContent = data.no_telp;
+                document.getElementById('detailNoTelp').textContent = data.no_telp || '-';
                 document.getElementById('detailAlamat').textContent = data.alamat || '-';
                 document.getElementById('detailEmail').textContent = data.email || '-';
                 document.getElementById('detailUpdatedAt').textContent = data.updated_at;
@@ -263,9 +331,18 @@
             }
         }
 
-        // Function to edit wilayah
+        // Keep original function for backward compatibility
+        function detailWilayah(id) {
+            detailInstansi(id);
+        }
+
+        // Function to edit wilayah/instansi
         function editWilayah(id) {
-            const data = sampleData[id];
+            const data = instansiData[id];
+            console.log('Edit function called with ID:', id);
+            console.log('Data found:', data);
+            console.log('All instansiData:', instansiData);
+
             if (data) {
                 // Populate form
                 document.getElementById('editId').value = data.id;
@@ -273,6 +350,11 @@
                 document.getElementById('editProvinsi').value = data.provinsi || '';
                 document.getElementById('editInstansi').value = data.instansi;
                 document.getElementById('editKodeWilayah').value = data.kode_wilayah || '';
+                document.getElementById('editNamaPejabat').value = data.nama_pejabat || '';
+                document.getElementById('editJabatan').value = data.jabatan || '';
+                document.getElementById('editNoTelp').value = data.no_telp || '';
+                document.getElementById('editEmail').value = data.email || '';
+                document.getElementById('editAlamat').value = data.alamat || '';
                 document.getElementById('editDeskripsi').value = data.deskripsi || '';
 
                 // Show modal
@@ -283,7 +365,7 @@
 
         // Function to delete wilayah
         function hapusWilayah(id) {
-            const data = sampleData[id];
+            const data = instansiData[id];
             if (data) {
                 // Populate delete confirmation
                 document.getElementById('hapusId').value = data.id;
@@ -311,21 +393,48 @@
             const data = Object.fromEntries(formData);
 
             // Disable submit button to prevent double submission
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+            const submitBtn = this.querySelector('button[type="submit"]') || document.querySelector('button[form="formTambahWilayah"]');
+            let originalText = '';
+            if (submitBtn) {
+                originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+            }
 
             // Send data to backend
-            fetch('{{ route("marketing.wilayah.store") }}', {
+            const formDataToSend = new FormData();
+            Object.keys(data).forEach(key => {
+                formDataToSend.append(key, data[key]);
+            });
+
+            fetch('{{ url("marketing/wilayah") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify(data)
+                body: formDataToSend
             })
             .then(response => {
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        console.error('Response not OK:', response.status, text);
+                        alert(`Error ${response.status}: ${text.substring(0, 500)}`);
+                        throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`);
+                    });
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    return response.text().then(text => {
+                        console.error('Response is not JSON:', text);
+                        alert('Server returned non-JSON response: ' + text.substring(0, 500));
+                        throw new Error('Response is not JSON: ' + text.substring(0, 200));
+                    });
+                }
+
                 return response.json().then(data => ({ status: response.status, body: data }));
             })
             .then(result => {
@@ -350,8 +459,10 @@
             })
             .finally(() => {
                 // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
             });
         });
 
@@ -364,22 +475,59 @@
             const data = Object.fromEntries(formData);
             const id = data.id;
 
+            console.log('Edit form data:', data);
+            console.log('Update URL will be:', '{{ url("marketing/wilayah") }}' + '/' + id);
+
             // Disable submit button to prevent double submission
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+            const submitBtn = this.querySelector('button[type="submit"]') || document.querySelector('button[form="formEditWilayah"]');
+            let originalText = '';
+            if (submitBtn) {
+                originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+            }
 
             // Send data to backend
-            fetch(`{{ route("marketing.wilayah.update", ":id") }}`.replace(':id', id), {
-                method: 'PUT',
+            const updateUrl = '{{ url("marketing/wilayah") }}' + '/' + id;
+
+            // Create FormData for proper form submission
+            const formDataToSend = new FormData();
+            Object.keys(data).forEach(key => {
+                formDataToSend.append(key, data[key]);
+            });
+            formDataToSend.append('_method', 'PUT');
+
+            fetch(updateUrl, {
+                method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify(data)
+                body: formDataToSend
             })
             .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                if (!response.ok) {
+                    // If response is not ok, try to get text first (might be HTML error)
+                    return response.text().then(text => {
+                        console.error('Response not OK:', response.status, text);
+                        alert(`Error ${response.status}: ${text.substring(0, 500)}`);
+                        throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`);
+                    });
+                }
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    return response.text().then(text => {
+                        console.error('Response is not JSON:', text);
+                        alert('Server returned non-JSON response: ' + text.substring(0, 500));
+                        throw new Error('Response is not JSON: ' + text.substring(0, 200));
+                    });
+                }
+
                 return response.json().then(data => ({ status: response.status, body: data }));
             })
             .then(result => {
@@ -394,6 +542,10 @@
                     setTimeout(() => {
                         location.reload();
                     }, 1000);
+                } else if (result.status === 422 && result.body.errors) {
+                    // Validation errors
+                    const errorMessages = Object.values(result.body.errors).flat();
+                    alert('Validation Error:\n' + errorMessages.join('\n'));
                 } else {
                     alert(result.body.message || 'Gagal memperbarui data wilayah');
                 }
@@ -404,8 +556,10 @@
             })
             .finally(() => {
                 // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
             });
         });
 
@@ -419,18 +573,27 @@
             const id = data.id;
 
             // Disable submit button to prevent double submission
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
+            const submitBtn = this.querySelector('button[type="submit"]') || document.querySelector('button[form="formHapusWilayah"]');
+            let originalText = '';
+            if (submitBtn) {
+                originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
+            }
 
             // Send delete request to backend
-            fetch(`{{ route("marketing.wilayah.destroy", ":id") }}`.replace(':id', id), {
-                method: 'DELETE',
+            const deleteUrl = '{{ url("marketing/wilayah") }}' + '/' + id;
+
+            const formDataToSend = new FormData();
+            formDataToSend.append('_method', 'DELETE');
+
+            fetch(deleteUrl, {
+                method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
-                }
+                    'Accept': 'application/json',
+                },
+                body: formDataToSend
             })
             .then(response => {
                 // Parse JSON response regardless of status
@@ -459,8 +622,10 @@
             })
             .finally(() => {
                 // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
             });
         });
     </script>

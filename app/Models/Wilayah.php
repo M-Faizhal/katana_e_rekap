@@ -18,6 +18,11 @@ class Wilayah extends Model
         'kode_wilayah',
         'deskripsi',
         'instansi',
+        'nama_pejabat',
+        'jabatan',
+        'no_telp',
+        'email',
+        'alamat',
         'is_active'
     ];
 

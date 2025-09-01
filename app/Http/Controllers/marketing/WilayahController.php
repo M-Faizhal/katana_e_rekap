@@ -8,60 +8,67 @@ use App\Models\Wilayah;
 use App\Models\Proyek;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class WilayahController extends Controller
 {
     public function index()
     {
-        // Ambil semua data wilayah dengan hitungan proyek
+        // Ambil semua data wilayah dan grup berdasarkan nama_wilayah
         $wilayahData = Wilayah::with(['proyeks.adminMarketing'])
             ->active()
             ->get()
-            ->map(function ($wilayah) {
-                // Hitung statistik proyek per wilayah
-                $proyekCount = $wilayah->proyeks->count();
-                $adminMarketingList = $wilayah->proyeks->pluck('adminMarketing.nama')->filter()->unique();
-                $instansiList = $wilayah->proyeks->pluck('instansi')->unique();
+            ->groupBy('nama_wilayah')
+            ->map(function ($wilayahGroup, $namaWilayah) {
+                // Ambil data wilayah pertama untuk info umum
+                $firstWilayah = $wilayahGroup->first();
 
-                // Ambil instansi dengan proyek terbanyak
-                $instansiTerbanyak = $wilayah->proyeks
-                    ->groupBy('instansi')
-                    ->map(function ($proyeks) {
-                        return $proyeks->count();
-                    })
-                    ->sortDesc()
-                    ->keys()
-                    ->first();
+                // Kumpulkan semua instansi dalam wilayah ini
+                $instansiList = $wilayahGroup->map(function ($wilayah) {
+                    $proyekCount = $wilayah->proyeks->count();
+                    $adminMarketingList = $wilayah->proyeks->pluck('adminMarketing.nama')->filter()->unique();
+
+                    return [
+                        'id' => $wilayah->id_wilayah,
+                        'instansi' => $wilayah->instansi ?: '-',
+                        'kode_wilayah' => $wilayah->kode_wilayah, // Tambahkan kode_wilayah per instansi
+                        'nama_pejabat' => $wilayah->nama_pejabat ?: $this->generateNamaPejabat($wilayah->instansi),
+                        'jabatan' => $wilayah->jabatan ?: $this->generateJabatan($wilayah->instansi ?: ''),
+                        'no_telp' => $wilayah->no_telp ?: $this->generateNoTelp($wilayah->nama_wilayah),
+                        'email' => $wilayah->email ?: $this->generateEmail($wilayah->nama_pejabat ?: $this->generateNamaPejabat($wilayah->instansi), $wilayah->instansi ?: ''),
+                        'alamat' => $wilayah->alamat ?: $this->generateAlamat($wilayah->nama_wilayah),
+                        'jumlah_proyek' => $proyekCount,
+                        'admin_marketing' => $adminMarketingList->implode(', ') ?: '-',
+                        'updated_at' => $wilayah->updated_at->format('d M Y'),
+                    ];
+                })->toArray();
 
                 return [
-                    'id' => $wilayah->id_wilayah,
-                    'wilayah' => $wilayah->nama_wilayah,
-                    'provinsi' => $wilayah->provinsi,
-                    'kode_wilayah' => $wilayah->kode_wilayah,
-                    'deskripsi' => $wilayah->deskripsi,
-                    'jumlah_proyek' => $proyekCount,
-                    'admin_marketing' => $adminMarketingList->implode(', ') ?: '-',
-                    'id_admin_marketing' => $adminMarketingList->count() > 0 ? $wilayah->proyeks->first()->id_admin_marketing ?? null : null,
-                    'instansi' => $wilayah->instansi ?: '-', // Ambil langsung dari kolom instansi
-                    'instansi_utama' => $wilayah->instansi ?: '-',
-                    'instansi_count' => $instansiList->count(),
-                    'nama_pejabat' => $this->generateNamaPejabat($wilayah->instansi),
-                    'jabatan' => $this->generateJabatan($wilayah->instansi ?: ''),
-                    'no_telp' => $this->generateNoTelp($wilayah->nama_wilayah),
-                    'alamat' => $this->generateAlamat($wilayah->nama_wilayah),
-                    'email' => $this->generateEmail($this->generateNamaPejabat($instansiTerbanyak), $instansiTerbanyak ?: ''),
-                    'is_active' => $wilayah->is_active,
-                    'updated_at' => $wilayah->updated_at->format('d M Y'),
-                    'created_at' => $wilayah->created_at->format('d M Y')
+                    'id' => $firstWilayah->id_wilayah,
+                    'wilayah' => $namaWilayah,
+                    'provinsi' => $firstWilayah->provinsi,
+                    'kode_wilayah' => $firstWilayah->kode_wilayah,
+                    'deskripsi' => $firstWilayah->deskripsi,
+                    'instansi_list' => $instansiList,
+                    'jumlah_instansi' => count($instansiList),
+                    'total_proyek' => array_sum(array_column($instansiList, 'jumlah_proyek')),
+                    'updated_at' => $firstWilayah->updated_at->format('d M Y'),
+                    'created_at' => $firstWilayah->created_at->format('d M Y')
                 ];
-            })->toArray();
+            })->values()->toArray();
 
         // Hitung statistik
-        $totalWilayah = collect($wilayahData)->groupBy('wilayah')->count();
-        $totalInstansi = count($wilayahData);
-        $totalKontak = collect($wilayahData)->where('no_telp', '!=', '-')->count();
-        $totalAdminMarketing = collect($wilayahData)->groupBy('id_admin_marketing')->count();
+        $totalWilayah = count($wilayahData);
+        $totalInstansi = Wilayah::active()->count();
+        $totalKontak = Wilayah::active()->whereNotNull('no_telp')->count();
+        $totalAdminMarketing = Wilayah::with('proyeks')->active()->get()
+            ->pluck('proyeks')
+            ->flatten()
+            ->pluck('id_admin_marketing')
+            ->filter()
+            ->unique()
+            ->count();
 
         return view('pages.marketing.wilayah', compact(
             'wilayahData',
@@ -79,6 +86,11 @@ class WilayahController extends Controller
             'provinsi' => 'required|string|max:255',
             'instansi' => 'required|string|max:255',
             'kode_wilayah' => 'required|string|max:10|unique:wilayah,kode_wilayah',
+            'nama_pejabat' => 'required|string|max:255',
+            'jabatan' => 'required|string|max:255',
+            'no_telp' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'alamat' => 'nullable|string',
             'deskripsi' => 'nullable|string'
         ]);
 
@@ -89,6 +101,11 @@ class WilayahController extends Controller
                 'provinsi' => $request->provinsi,
                 'instansi' => $request->instansi,
                 'kode_wilayah' => $request->kode_wilayah,
+                'nama_pejabat' => $request->nama_pejabat,
+                'jabatan' => $request->jabatan,
+                'no_telp' => $request->no_telp,
+                'email' => $request->email,
+                'alamat' => $request->alamat,
                 'deskripsi' => $request->deskripsi,
                 'is_active' => true
             ]);
@@ -109,13 +126,49 @@ class WilayahController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'wilayah' => 'required|string|max:255',
-            'provinsi' => 'required|string|max:255',
-            'instansi' => 'required|string|max:255',
-            'kode_wilayah' => 'required|string|max:10|unique:wilayah,kode_wilayah,' . $id . ',id_wilayah',
-            'deskripsi' => 'nullable|string'
+        // Debug logging
+        Log::info('Update request received', [
+            'id' => $id,
+            'data' => $request->all(),
+            'method' => $request->method(),
+            'route_param' => $id
         ]);
+
+        // Check existing record first
+        $existing = Wilayah::find($id);
+        Log::info('Existing record', [
+            'found' => $existing ? true : false,
+            'record' => $existing ? $existing->toArray() : null
+        ]);
+
+        try {
+            $request->validate([
+                'wilayah' => 'required|string|max:255',
+                'provinsi' => 'required|string|max:255',
+                'instansi' => 'required|string|max:255',
+                'kode_wilayah' => 'required|string|max:10|unique:wilayah,kode_wilayah,' . $id . ',id_wilayah',
+                'nama_pejabat' => 'required|string|max:255',
+                'jabatan' => 'required|string|max:255',
+                'no_telp' => 'nullable|string|max:20',
+                'email' => 'nullable|email|max:255',
+                'alamat' => 'nullable|string',
+                'deskripsi' => 'nullable|string'
+            ]);
+
+            Log::info('Validation passed for ID: ' . $id);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed', [
+                'id' => $id,
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid',
+                'errors' => $e->errors()
+            ], 422);
+        }
 
         try {
             $wilayah = Wilayah::find($id);
@@ -133,6 +186,11 @@ class WilayahController extends Controller
                 'provinsi' => $request->provinsi,
                 'instansi' => $request->instansi,
                 'kode_wilayah' => $request->kode_wilayah,
+                'nama_pejabat' => $request->nama_pejabat,
+                'jabatan' => $request->jabatan,
+                'no_telp' => $request->no_telp,
+                'email' => $request->email,
+                'alamat' => $request->alamat,
                 'deskripsi' => $request->deskripsi
             ]);
 
@@ -143,6 +201,7 @@ class WilayahController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Update error', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat memperbarui data wilayah: ' . $e->getMessage()

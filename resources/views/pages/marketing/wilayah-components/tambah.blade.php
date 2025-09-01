@@ -55,6 +55,55 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Informasi Pejabat -->
+                <div class="bg-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                    <h4 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                        <i class="fas fa-user-tie text-blue-600 mr-2 text-sm sm:text-base"></i>
+                        Informasi Pejabat
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nama Pejabat <span class="text-red-500">*</span></label>
+                            <input type="text" id="tambahNamaPejabat" name="nama_pejabat" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nama pejabat" required>
+                            <small class="text-gray-500 text-xs mt-1">Contoh: Dr. Budi Santoso, M.Pd</small>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Jabatan <span class="text-red-500">*</span></label>
+                            <input type="text" id="tambahJabatan" name="jabatan" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan jabatan" required>
+                            <small class="text-gray-500 text-xs mt-1">Contoh: Kepala Dinas, Direktur, Kepala Badan</small>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">No. Telepon</label>
+                            <input type="text" id="tambahNoTelp" name="no_telp" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nomor telepon">
+                            <small class="text-gray-500 text-xs mt-1">Contoh: 021-123-4567 atau 0812-3456-7890</small>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Email</label>
+                            <input type="email" id="tambahEmail" name="email" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan email">
+                            <small class="text-gray-500 text-xs mt-1">Contoh: pejabat@instansi.go.id</small>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Alamat</label>
+                            <textarea id="tambahAlamat" name="alamat" rows="2" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan alamat lengkap instansi"></textarea>
+                            <small class="text-gray-500 text-xs mt-1">Alamat lengkap kantor instansi</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Marketing Assignment -->
+                <div class="bg-green-50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                    <h4 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                        <i class="fas fa-user-cog text-green-600 mr-2 text-sm sm:text-base"></i>
+                        Penugasan Admin Marketing
+                    </h4>
+                    <div class="grid grid-cols-1 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Admin Marketing</label>
+                            <select id="tambahAdminMarketing" name="admin_marketing" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
+                                <option value="">Pilih Admin Marketing (Opsional)</option>
+                                <option value="Sari Dewi">Sari Dewi</option>
+                                <option value="Ahmad Fauzi">Ahmad Fauzi</option>
                                 <option value="Lisa Permata">Lisa Permata</option>
                                 <option value="Agus Setiawan">Agus Setiawan</option>
                             </select>
@@ -70,9 +119,10 @@
                         <div>
                             <h4 class="text-sm font-semibold text-yellow-800 mb-1">Tips Pengisian:</h4>
                             <ul class="text-sm text-yellow-700 space-y-1">
-                                <li>• Pastikan nama wilayah dan instansi sesuai dengan data resmi</li>
+                                <li>• Pastikan nama wilayah, instansi, dan data pejabat sesuai dengan data resmi</li>
                                 <li>• Kode wilayah harus unik dan mudah diingat</li>
-                                <li>• Deskripsi dapat berisi informasi karakteristik wilayah</li>
+                                <li>• Nama pejabat dan jabatan wajib diisi untuk kemudahan komunikasi</li>
+                                <li>• Anda dapat menambah instansi lain di wilayah yang sama setelah ini</li>
                                 <li>• Semua field dengan tanda (*) wajib diisi</li>
                             </ul>
                         </div>

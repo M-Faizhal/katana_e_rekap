@@ -58,6 +58,41 @@
                     </div>
                 </div>
 
+                <!-- Informasi Pejabat -->
+                <div class="bg-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                    <h4 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                        <i class="fas fa-user-tie text-blue-600 mr-2 text-sm sm:text-base"></i>
+                        Informasi Pejabat
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nama Pejabat <span class="text-red-500">*</span></label>
+                            <input type="text" id="editNamaPejabat" name="nama_pejabat" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nama pejabat" required>
+                            <small class="text-gray-500 text-xs mt-1">Contoh: Dr. Budi Santoso, M.Pd</small>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Jabatan <span class="text-red-500">*</span></label>
+                            <input type="text" id="editJabatan" name="jabatan" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan jabatan" required>
+                            <small class="text-gray-500 text-xs mt-1">Contoh: Kepala Dinas, Direktur, Kepala Badan</small>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">No. Telepon</label>
+                            <input type="text" id="editNoTelp" name="no_telp" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nomor telepon">
+                            <small class="text-gray-500 text-xs mt-1">Contoh: 021-123-4567 atau 0812-3456-7890</small>
+                        </div>
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Email</label>
+                            <input type="email" id="editEmail" name="email" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan email">
+                            <small class="text-gray-500 text-xs mt-1">Contoh: pejabat@instansi.go.id</small>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Alamat</label>
+                            <textarea id="editAlamat" name="alamat" rows="2" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan alamat lengkap instansi"></textarea>
+                            <small class="text-gray-500 text-xs mt-1">Alamat lengkap kantor instansi</small>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Catatan -->
                 <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                     <div class="flex items-start">
@@ -67,6 +102,7 @@
                             <ul class="text-sm text-yellow-700 space-y-1">
                                 <li>• Pastikan kode wilayah unik dan tidak duplikat</li>
                                 <li>• Perubahan data wilayah akan mempengaruhi data proyek terkait</li>
+                                <li>• Nama pejabat dan jabatan wajib diisi untuk kemudahan komunikasi</li>
                                 <li>• Semua field dengan tanda (*) wajib diisi</li>
                             </ul>
                         </div>
