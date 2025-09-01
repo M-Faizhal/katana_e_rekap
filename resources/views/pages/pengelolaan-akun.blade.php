@@ -2,6 +2,10 @@
 
 @section('title', 'Pengelolaan Akun - Cyber KATANA')
 
+@push('head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endpush
+
 @section('content')
 <div class="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
     <!-- Header -->
@@ -133,6 +137,9 @@
                                 </div>
                             </div>
                             <div class="flex space-x-2">
+                                <button onclick="openEditUserModal({{ $user->id_user }})" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200" title="Edit Pengguna">
+                                    <i class="fas fa-edit text-lg"></i>
+                                </button>
                                 @if($user->id_user !== auth()->user()->id_user)
                                 <button onclick="confirmDeleteUser({{ $user->id_user }}, '{{ $user->nama }}')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200" title="Hapus Pengguna">
                                     <i class="fas fa-trash text-lg"></i>
@@ -210,6 +217,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-2">
+                                    <button onclick="openEditUserModal({{ $user->id_user }})" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200" title="Edit Pengguna">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
                                     @if($user->id_user !== auth()->user()->id_user)
                                     <button onclick="confirmDeleteUser({{ $user->id_user }}, '{{ $user->nama }}')" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-200" title="Hapus Pengguna">
                                         <i class="fas fa-trash"></i>
@@ -258,6 +268,7 @@
             </div>
         </div>
         <form id="addUserForm" class="p-4 sm:p-6">
+            @csrf
             <div class="space-y-4 sm:space-y-5">
                 <!-- Nama Lengkap -->
                 <div>
@@ -356,6 +367,102 @@
     </div>
 </div>
 
+<!-- Edit User Modal -->
+<div id="editUserModal" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-50 items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 shadow-2xl" id="editUserModalContent">
+        <div class="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-2xl sm:rounded-t-3xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white">Edit Pengguna</h2>
+                    <p class="text-blue-100 text-sm mt-1">Ubah informasi pengguna</p>
+                </div>
+                <button onclick="closeEditUserModal()" class="text-white hover:text-blue-200 transition-colors duration-200 p-2 hover:bg-white/20 rounded-lg">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <form id="editUserForm" class="p-4 sm:p-6">
+            @csrf
+            @method('PUT')
+            <input type="hidden" id="edit_user_id" name="user_id">
+            <div class="space-y-4 sm:space-y-5">
+                <!-- Nama Lengkap -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
+                    <input type="text" id="edit_nama" name="nama" required
+                           class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                           placeholder="Masukkan nama lengkap">
+                </div>
+
+                <!-- Username -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+                    <input type="text" id="edit_username" name="username" required
+                           class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                           placeholder="Masukkan username">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                    <input type="email" id="edit_email" name="email" required
+                           class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                           placeholder="nama@katana.com">
+                </div>
+
+                <!-- Role -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Role</label>
+                    <select id="edit_role" name="role" required
+                            class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base">
+                        <option value="">Pilih Role</option>
+                        <option value="superadmin">Super Admin</option>
+                        <option value="admin_marketing">Admin Marketing</option>
+                        <option value="admin_purchasing">Admin Purchasing</option>
+                        <option value="admin_keuangan">Admin Keuangan</option>
+                    </select>
+                </div>
+
+                <!-- Password Fields (Optional) -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                        <span class="text-sm font-medium text-yellow-800">Reset Password (Opsional)</span>
+                    </div>
+                    <p class="text-xs text-yellow-700 mb-3">Kosongkan jika tidak ingin mengubah password</p>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Password Baru</label>
+                            <input type="password" id="edit_password" name="password"
+                                   class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                                   placeholder="Minimal 8 karakter">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Konfirmasi Password</label>
+                            <input type="password" id="edit_password_confirmation" name="password_confirmation"
+                                   class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+                                   placeholder="Ulangi password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8">
+                <button type="button" onclick="closeEditUserModal()"
+                        class="flex-1 px-4 py-3 sm:py-3.5 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200 font-semibold">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-3 sm:py-3.5 text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i>
+                    <span>Simpan Perubahan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 
 <script>
@@ -443,6 +550,54 @@ function deleteUser() {
     });
 }
 
+// Edit User Modal Functions
+function openEditUserModal(userId) {
+    const modal = document.getElementById('editUserModal');
+    const modalContent = document.getElementById('editUserModalContent');
+
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }, 50);
+
+    // Fetch user data and populate the form
+    fetch(`/pengelolaan-akun/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const user = data.user;
+                document.getElementById('edit_user_id').value = user.id_user;
+                document.getElementById('edit_nama').value = user.nama;
+                document.getElementById('edit_username').value = user.username;
+                document.getElementById('edit_email').value = user.email;
+                document.getElementById('edit_role').value = user.role;
+
+                // Reset password fields
+                document.getElementById('edit_password').value = '';
+                document.getElementById('edit_password_confirmation').value = '';
+            } else {
+                showNotification(data.message || 'Terjadi kesalahan saat memuat data pengguna!', 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Terjadi kesalahan saat memuat data pengguna!', 'error');
+            console.error('Error:', error);
+        });
+}
+
+function closeEditUserModal() {
+    const modal = document.getElementById('editUserModal');
+    const modalContent = document.getElementById('editUserModalContent');
+
+    modalContent.classList.remove('scale-100');
+    modalContent.classList.add('scale-95');
+
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+}
+
 // Add User Form Submission
 document.getElementById('addUserForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -485,6 +640,57 @@ document.getElementById('addUserForm').addEventListener('submit', function(e) {
     .catch(error => {
         if (error.message !== 'Validation failed') {
             showNotification('Terjadi kesalahan saat menambah pengguna!', 'error');
+            console.error('Error:', error);
+        }
+    });
+});
+
+// Edit User Form Submission
+document.getElementById('editUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const userId = document.getElementById('edit_user_id').value;
+    
+    // Add method spoofing for PUT
+    formData.append('_method', 'PUT');
+    
+    fetch(`/pengelolaan-akun/${userId}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.status === 422) {
+            return response.json().then(data => {
+                // Handle validation errors
+                let errorMessage = 'Validasi gagal:\n';
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        errorMessage += `• ${data.errors[field][0]}\n`;
+                    });
+                }
+                showNotification(errorMessage, 'error');
+                throw new Error('Validation failed');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeEditUserModal();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message || 'Terjadi kesalahan saat mengedit pengguna!', 'error');
+        }
+    })
+    .catch(error => {
+        if (error.message !== 'Validation failed') {
+            showNotification('Terjadi kesalahan saat mengedit pengguna!', 'error');
             console.error('Error:', error);
         }
     });
@@ -536,11 +742,18 @@ document.getElementById('deleteUserModal').addEventListener('click', function(e)
     }
 });
 
+document.getElementById('editUserModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEditUserModal();
+    }
+});
+
 // Close modals with Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeAddUserModal();
         closeDeleteUserModal();
+        closeEditUserModal();
     }
 });
 </script>

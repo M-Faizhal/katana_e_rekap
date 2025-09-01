@@ -674,7 +674,7 @@ function buatPengiriman(penawaranId, vendorId) {
             <h4 class="font-semibold text-gray-900 mb-2">Informasi Proyek & Vendor</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div><span class="text-gray-500">No. Penawaran:</span> <span class="font-medium">${selectedProyek.penawaranAktif.no_penawaran}</span></div>
-                <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${selectedProyek.nama_barang}</span></div>
+                <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${selectedProyek.kode_proyek}</span></div>
                 <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${selectedProyek.instansi}</span></div>
                 <div><span class="text-gray-500">Vendor:</span> <span class="font-medium">${selectedVendor.vendor.nama_vendor}</span></div>
                 <div><span class="text-gray-500">Modal Vendor:</span> <span class="font-medium">Rp ${new Intl.NumberFormat('id-ID').format(selectedVendor.total_vendor)}</span></div>
@@ -828,7 +828,7 @@ function lihatDetailSelesai(pengirimanId) {
         document.getElementById('headerDetailSelesai').innerHTML = `
             <div class="flex justify-between items-center">
                 <div>
-                    <h4 class="text-xl font-bold">${pengiriman.penawaran.proyek.nama_barang}</h4>
+                    <h4 class="text-xl font-bold">${pengiriman.penawaran.proyek.kode_proyek}</h4>
                     <p class="text-green-100">${pengiriman.penawaran.proyek.instansi}</p>
                     <p class="text-green-100 text-sm"><i class="fas fa-building mr-1"></i>${pengiriman.vendor.nama_vendor}</p>
                 </div>
@@ -849,7 +849,7 @@ function lihatDetailSelesai(pengirimanId) {
         // Fill project info
         document.getElementById('infoProyekDetail').innerHTML = `
             <div><span class="text-gray-500">No. Penawaran:</span> <span class="font-medium">${pengiriman.penawaran.no_penawaran || 'N/A'}</span></div>
-            <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.nama_barang}</span></div>
+            <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.kode_proyek}</span></div>
             <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${pengiriman.penawaran.proyek.instansi}</span></div>
             <div><span class="text-gray-500">Vendor:</span> <span class="font-medium">${pengiriman.vendor.nama_vendor}</span></div>
             <div><span class="text-gray-500">Tanggal Kirim:</span> <span class="font-medium">${new Date(pengiriman.tanggal_kirim).toLocaleDateString('id-ID')}</span></div>
