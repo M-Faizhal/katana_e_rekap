@@ -214,7 +214,7 @@
                                         {{ $proyek->status }}
                                     </span>
                                     <div class="bg-white rounded-lg p-2 sm:p-3 border border-gray-200">
-                                        <p class="text-xs text-gray-500 mb-0.5 sm:mb-1">Total Modal ke Vendor (Harga Akhir Kalkulasi HPS)</p>
+                                        <p class="text-xs text-gray-500 mb-0.5 sm:mb-1">Total Modal ke Vendor (Total Harga HPP Kalkulasi HPS)</p>
                                         <p class="text-sm sm:text-lg font-bold text-gray-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
                                     </div>
                                 </div>
@@ -235,7 +235,7 @@
                                         <p class="text-lg font-bold text-blue-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="text-center p-3 bg-white rounded-lg border border-green-200">
-                                        <p class="text-xs text-green-700 font-medium">Total Modal ke Vendor (Harga Akhir Kalkulasi HPS)</p>
+                                        <p class="text-xs text-green-700 font-medium">Total Modal ke Vendor (Total Harga HPP Kalkulasi HPS)</p>
                                         <p class="text-lg font-bold text-green-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
                                     </div>
                                     <div class="text-center p-3 bg-white rounded-lg border border-purple-200">
@@ -314,7 +314,7 @@
                                                 </div>
                                                 <div class="text-sm">
                                                     <div class="flex justify-between">
-                                                        <span class="text-gray-600">Total Modal (Harga Akhir Kalkulasi HPS):</span>
+                                                        <span class="text-gray-600">Total Modal (Total Harga HPP Kalkulasi HPS):</span>
                                                         <span class="font-medium">Rp {{ number_format($vendorData->total_vendor, 0, ',', '.') }}</span>
                                                     </div>
                                                     <div class="flex justify-between">
@@ -533,7 +533,7 @@
                                 <span class="text-blue-900 font-semibold">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}</span>
                             </div>
                             <div>
-                                <span class="font-medium text-green-800">Total Harga Modal ke Vendor (Harga Akhir Kalkulasi HPS):</span>
+                                <span class="font-medium text-green-800">Total Harga Modal ke Vendor (Total Harga HPP Kalkulasi HPS):</span>
                                 <span class="text-green-900 font-semibold">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</span>
                             </div>
                             <div>
@@ -613,7 +613,7 @@
                                         </div>
                                         <div class="text-sm">
                                             <div class="flex justify-between">
-                                                <span class="text-gray-600">Total Modal (Harga Akhir Kalkulasi HPS):</span>
+                                                <span class="text-gray-600">Total Modal (Total Harga HPP Kalkulasi HPS):</span>
                                                 <span class="font-medium">Rp {{ number_format($vendorData->total_vendor, 0, ',', '.') }}</span>
                                             </div>
                                             <div class="flex justify-between">

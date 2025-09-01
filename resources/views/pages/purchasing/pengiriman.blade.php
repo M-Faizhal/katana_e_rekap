@@ -7,6 +7,7 @@
 @php
     $currentUser = Auth::user();
     $isAdminPurchasing = $currentUser->role === 'admin_purchasing';
+    $isSuperadmin = $currentUser->role === 'superadmin';
 @endphp
 
 
@@ -633,9 +634,9 @@ function switchTab(tabName) {
 
 // Buat pengiriman
 function buatPengiriman(penawaranId, vendorId) {
-    // Check access control
-    if (window.currentUserRole !== 'admin_purchasing') {
-        alert('Tidak memiliki akses untuk membuat pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+    // Check access control - Allow admin_purchasing and superadmin
+    if (!['admin_purchasing', 'superadmin'].includes(window.currentUserRole)) {
+        alert('Tidak memiliki akses untuk membuat pengiriman. Hanya admin purchasing atau superadmin yang dapat melakukan aksi ini.');
         return;
     }
 
@@ -663,9 +664,9 @@ function buatPengiriman(penawaranId, vendorId) {
     }
     
     if (selectedProyek && selectedVendor) {
-        // Check if current user is assigned to this project
-        if (selectedProyek.id_admin_purchasing != window.currentUserId) {
-            alert('Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat membuat pengiriman untuk proyek ini.');
+        // Check if current user is assigned to this project or is superadmin
+        if (window.currentUserRole === 'admin_purchasing' && selectedProyek.id_admin_purchasing != window.currentUserId) {
+            alert('Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan atau superadmin yang dapat membuat pengiriman untuk proyek ini.');
             return;
         }
 
@@ -707,9 +708,9 @@ function buatPengiriman(penawaranId, vendorId) {
 
 // Update dokumentasi
 function updateDokumentasi(pengirimanId) {
-    // Check access control
-    if (window.currentUserRole !== 'admin_purchasing') {
-        alert('Tidak memiliki akses untuk mengupdate dokumentasi pengiriman. Hanya admin purchasing yang dapat melakukan aksi ini.');
+    // Check access control - Allow admin_purchasing and superadmin
+    if (!['admin_purchasing', 'superadmin'].includes(window.currentUserRole)) {
+        alert('Tidak memiliki akses untuk mengupdate dokumentasi pengiriman. Hanya admin purchasing atau superadmin yang dapat melakukan aksi ini.');
         return;
     }
 
@@ -720,9 +721,9 @@ function updateDokumentasi(pengirimanId) {
     const pengirimanData = @json($pengirimanBerjalan);
     const pengiriman = pengirimanData.find(p => p.id_pengiriman == pengirimanId);
     
-    // Check if current user is assigned to this project
-    if (pengiriman && pengiriman.penawaran.proyek.id_admin_purchasing != window.currentUserId) {
-        alert('Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat mengupdate dokumentasi pengiriman untuk proyek ini.');
+    // Check if current user is assigned to this project or is superadmin
+    if (pengiriman && window.currentUserRole === 'admin_purchasing' && pengiriman.penawaran.proyek.id_admin_purchasing != window.currentUserId) {
+        alert('Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan atau superadmin yang dapat mengupdate dokumentasi pengiriman untuk proyek ini.');
         return;
     }
     

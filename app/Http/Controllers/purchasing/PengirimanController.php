@@ -37,12 +37,10 @@ class PengirimanController extends Controller
                     ->filter();
 
                 $proyek->vendors_ready = $vendors->map(function ($vendor) use ($proyek) {
-                    // Hitung total untuk vendor ini (menggunakan harga modal)
+                    // Hitung total untuk vendor ini (menggunakan total_harga_hpp)
                     $totalVendor = $proyek->penawaranAktif->penawaranDetail
                         ->where('barang.id_vendor', $vendor->id_vendor)
-                        ->sum(function($detail) {
-                            return $detail->qty * $detail->barang->harga_vendor;
-                        });
+                        ->sum('total_harga_hpp');
 
                     // Hitung yang sudah dibayar untuk vendor ini (approved saja)
                     $totalDibayarApproved = $proyek->pembayaran
@@ -153,9 +151,7 @@ class PengirimanController extends Controller
         
         $totalVendor = $penawaran->penawaranDetail
             ->where('barang.id_vendor', $request->id_vendor)
-            ->sum(function($detail) {
-                return $detail->qty * $detail->barang->harga_vendor;
-            });
+            ->sum('total_harga_hpp');
 
         $totalDibayar = $penawaran->proyek->pembayaran
             ->where('id_vendor', $request->id_vendor)
@@ -443,6 +439,13 @@ class PengirimanController extends Controller
      */
     public function cleanupOrphanedFiles()
     {
+        // Role-based access control: Only allow superadmin for maintenance
+        if (Auth::user()->role !== 'superadmin') {
+            return response()->json([
+                'error' => 'Tidak memiliki akses untuk maintenance. Hanya superadmin yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
         $folders = ['pengiriman/surat_jalan', 'pengiriman/dokumentasi'];
         $deletedCount = 0;
 

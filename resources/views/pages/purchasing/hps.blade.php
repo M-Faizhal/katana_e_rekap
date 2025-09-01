@@ -857,23 +857,34 @@ async function saveKalkulasi() {
         alert('Anda tidak memiliki akses untuk menyimpan kalkulasi.');
         return;
     }
-    
     if (!currentProyekId) {
         alert('ID Proyek tidak ditemukan');
         return;
     }
-    
     if (kalkulasiData.length === 0) {
         alert('Tidak ada data kalkulasi untuk disimpan');
         return;
     }
-    
     const hasEmptyFields = kalkulasiData.some(item => !item.id_barang || !item.id_vendor);
     if (hasEmptyFields) {
         alert('Mohon lengkapi semua field barang dan vendor');
         return;
     }
-    
+
+    // --- Batasi nilai persentase agar tidak out of range ---
+    const sanitizedKalkulasi = kalkulasiData.map(item => {
+        // Batasi gross_income_percent dan nett_income_percent maksimal 100
+        const grossIncomePercent = Math.min(parseFloat(item.gross_income_persentase || 0), 100);
+        const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
+        return {
+            ...item,
+            gross_income_persentase: grossIncomePercent,
+            gross_income_percent: grossIncomePercent,
+            nett_income_persentase: nettIncomePercent,
+            nett_income_percent: nettIncomePercent
+        };
+    });
+
     try {
         const response = await fetch('/purchasing/kalkulasi/save', {
             method: 'POST',
@@ -883,12 +894,10 @@ async function saveKalkulasi() {
             },
             body: JSON.stringify({
                 id_proyek: currentProyekId,
-                kalkulasi: kalkulasiData
+                kalkulasi: sanitizedKalkulasi
             })
         });
-        
         const data = await response.json();
-        
         if (data.success) {
             showSuccessMessage('Kalkulasi berhasil disimpan');
             const now = new Date().toLocaleString('id-ID');
