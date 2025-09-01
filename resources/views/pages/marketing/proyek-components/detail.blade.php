@@ -133,41 +133,6 @@
                             </button>
                         </div>
                     </div>
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-center space-x-3 mb-2">
-                            <i class="fas fa-file-pdf text-red-600 text-lg"></i>
-                            <h5 class="font-medium text-gray-800">Surat Jalan</h5>
-                        </div>
-                        <div id="detailSuratJalan">
-                            <p class="text-sm text-gray-500 mb-2">Status: <span class="text-green-600 font-medium">Tersedia</span></p>
-                            <button class="text-red-600 hover:text-red-700 text-sm font-medium">
-                                <i class="fas fa-download mr-1"></i>Download
-                            </button>
-                        </div>
-                    </div>
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-center space-x-3 mb-2">
-                            <i class="fas fa-file-pdf text-red-600 text-lg"></i>
-                            <h5 class="font-medium text-gray-800">Tanda Terima</h5>
-                        </div>
-                        <div id="detailTandaTerima">
-                            <p class="text-sm text-gray-500 mb-2">Status: <span class="text-green-600 font-medium">Tersedia</span></p>
-                            <button class="text-red-600 hover:text-red-700 text-sm font-medium">
-                                <i class="fas fa-download mr-1"></i>Download
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Timeline Status -->
-            <div class="bg-gray-50 rounded-xl p-6">
-                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-history text-red-600 mr-2"></i>
-                    Timeline Status
-                </h4>
-                <div id="detailTimeline" class="space-y-4">
-                    <!-- Timeline items will be populated here -->
                 </div>
             </div>
         </div>

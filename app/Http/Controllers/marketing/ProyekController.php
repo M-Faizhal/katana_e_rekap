@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Marketing;
 use App\Http\Controllers\Controller;
 use App\Models\Proyek;
 use App\Models\ProyekBarang;
+use App\Models\Penawaran;
 use App\Models\User;
 use App\Models\Wilayah;
 use Illuminate\Http\Request;
@@ -18,12 +19,16 @@ class ProyekController extends Controller
     public function index()
     {
         // Ambil semua data proyek dengan relasi admin marketing, purchasing, wilayah, dan proyek barang
-        $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'penawaranAktif.details', 'proyekBarang'])
+        $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
             ->orderBy('tanggal', 'desc')
             ->get();
 
         // Transform data untuk view
         $proyekData = $proyekData->map(function ($proyek) {
+            // Get latest penawaran for this project
+            $latestPenawaran = Penawaran::with('details')->where('id_proyek', $proyek->id_proyek)
+                                      ->orderBy('id_penawaran', 'desc')
+                                      ->first();
             // Prioritas daftar barang: proyekBarang -> penawaran detail -> fallback proyek langsung
             $daftarBarang = [];
 
@@ -41,8 +46,8 @@ class ProyekController extends Controller
                 }
             }
             // Prioritas 2: Dari penawaran detail jika ada
-            elseif ($proyek->penawaranAktif && $proyek->penawaranAktif->details) {
-                foreach ($proyek->penawaranAktif->details as $detail) {
+            elseif ($latestPenawaran && $latestPenawaran->details && $latestPenawaran->details->count() > 0) {
+                foreach ($latestPenawaran->details as $detail) {
                     $daftarBarang[] = [
                         'nama' => $detail->nama_barang,
                         'jumlah' => $detail->qty,
@@ -81,17 +86,20 @@ class ProyekController extends Controller
                 'id_admin_marketing' => $proyek->id_admin_marketing,
                 'id_admin_purchasing' => $proyek->id_admin_purchasing,
                 'status' => strtolower($proyek->status),
-                'total_nilai' => $proyek->penawaranAktif ? $proyek->penawaranAktif->total_penawaran : ($proyek->harga_total ?? 0),
+                'total_nilai' => $latestPenawaran ? $latestPenawaran->total_penawaran : ($proyek->harga_total ?? 0),
                 'catatan' => $proyek->catatan,
                 'nama_klien' => $proyek->nama_klien,
                 'kontak_klien' => $proyek->kontak_klien,
                 'potensi' => $proyek->potensi ?? 'tidak',
                 'tahun_potensi' => $proyek->tahun_potensi ?? Carbon::now()->year,
                 'daftar_barang' => $daftarBarang,
-                'penawaran' => $proyek->penawaranAktif ? [
-                    'no_penawaran' => $proyek->penawaranAktif->no_penawaran,
-                    'tanggal_penawaran' => $proyek->penawaranAktif->tanggal_penawaran->format('Y-m-d'),
-                    'total_penawaran' => $proyek->penawaranAktif->total_penawaran
+                'penawaran' => $latestPenawaran ? [
+                    'no_penawaran' => $latestPenawaran->no_penawaran,
+                    'tanggal_penawaran' => $latestPenawaran->tanggal_penawaran ? $latestPenawaran->tanggal_penawaran->format('Y-m-d') : null,
+                    'total_penawaran' => $latestPenawaran->total_penawaran,
+                    'surat_penawaran' => $latestPenawaran->surat_penawaran,
+                    'surat_pesanan' => $latestPenawaran->surat_pesanan,
+                    'status' => $latestPenawaran->status
                 ] : null
             ];
         })->toArray();
