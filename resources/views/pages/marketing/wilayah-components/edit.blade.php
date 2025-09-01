@@ -85,10 +85,20 @@
                             <input type="email" id="editEmail" name="email" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan email">
                             <small class="text-gray-500 text-xs mt-1">Contoh: pejabat@instansi.go.id</small>
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Alamat</label>
-                            <textarea id="editAlamat" name="alamat" rows="2" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan alamat lengkap instansi"></textarea>
-                            <small class="text-gray-500 text-xs mt-1">Alamat lengkap kantor instansi</small>
+                    </div>
+                </div>
+
+                <!-- Admin Marketing Assignment -->
+                <div class="bg-green-50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                    <h4 class="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                        <i class="fas fa-user-cog text-green-600 mr-2 text-sm sm:text-base"></i>
+                        Penugasan Admin Marketing
+                    </h4>
+                    <div class="grid grid-cols-1 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nama Admin Marketing</label>
+                            <input type="text" id="editAdminMarketingText" name="admin_marketing_text" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nama admin marketing">
+                            <small class="text-gray-500 text-xs mt-1">Contoh: Sari Dewi, Ahmad Fauzi, atau Tim Marketing</small>
                         </div>
                     </div>
                 </div>

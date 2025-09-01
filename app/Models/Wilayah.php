@@ -23,6 +23,7 @@ class Wilayah extends Model
         'no_telp',
         'email',
         'alamat',
+        'admin_marketing_text',
         'is_active'
     ];
 

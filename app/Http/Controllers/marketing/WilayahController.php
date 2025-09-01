@@ -27,7 +27,8 @@ class WilayahController extends Controller
                 // Kumpulkan semua instansi dalam wilayah ini
                 $instansiList = $wilayahGroup->map(function ($wilayah) {
                     $proyekCount = $wilayah->proyeks->count();
-                    $adminMarketingList = $wilayah->proyeks->pluck('adminMarketing.nama')->filter()->unique();
+                    // Gunakan admin_marketing_text yang diinput manual atau fallback ke relasi
+                    $adminMarketingFromRelasi = $wilayah->proyeks->pluck('adminMarketing.nama')->filter()->unique();
 
                     return [
                         'id' => $wilayah->id_wilayah,
@@ -37,9 +38,9 @@ class WilayahController extends Controller
                         'jabatan' => $wilayah->jabatan ?: $this->generateJabatan($wilayah->instansi ?: ''),
                         'no_telp' => $wilayah->no_telp ?: $this->generateNoTelp($wilayah->nama_wilayah),
                         'email' => $wilayah->email ?: $this->generateEmail($wilayah->nama_pejabat ?: $this->generateNamaPejabat($wilayah->instansi), $wilayah->instansi ?: ''),
-                        'alamat' => $wilayah->alamat ?: $this->generateAlamat($wilayah->nama_wilayah),
+                        'admin_marketing_text' => $wilayah->admin_marketing_text, // Field untuk edit
                         'jumlah_proyek' => $proyekCount,
-                        'admin_marketing' => $adminMarketingList->implode(', ') ?: '-',
+                        'admin_marketing' => $wilayah->admin_marketing_text ?: ($adminMarketingFromRelasi->implode(', ') ?: '-'),
                         'updated_at' => $wilayah->updated_at->format('d M Y'),
                     ];
                 })->toArray();
@@ -90,7 +91,7 @@ class WilayahController extends Controller
             'jabatan' => 'required|string|max:255',
             'no_telp' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
-            'alamat' => 'nullable|string',
+            'admin_marketing_text' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string'
         ]);
 
@@ -105,7 +106,7 @@ class WilayahController extends Controller
                 'jabatan' => $request->jabatan,
                 'no_telp' => $request->no_telp,
                 'email' => $request->email,
-                'alamat' => $request->alamat,
+                'admin_marketing_text' => $request->admin_marketing_text,
                 'deskripsi' => $request->deskripsi,
                 'is_active' => true
             ]);
@@ -151,7 +152,7 @@ class WilayahController extends Controller
                 'jabatan' => 'required|string|max:255',
                 'no_telp' => 'nullable|string|max:20',
                 'email' => 'nullable|email|max:255',
-                'alamat' => 'nullable|string',
+                'admin_marketing_text' => 'nullable|string|max:255',
                 'deskripsi' => 'nullable|string'
             ]);
 
@@ -190,7 +191,7 @@ class WilayahController extends Controller
                 'jabatan' => $request->jabatan,
                 'no_telp' => $request->no_telp,
                 'email' => $request->email,
-                'alamat' => $request->alamat,
+                'admin_marketing_text' => $request->admin_marketing_text,
                 'deskripsi' => $request->deskripsi
             ]);
 

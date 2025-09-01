@@ -83,11 +83,6 @@
                             <input type="email" id="tambahEmail" name="email" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan email">
                             <small class="text-gray-500 text-xs mt-1">Contoh: pejabat@instansi.go.id</small>
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Alamat</label>
-                            <textarea id="tambahAlamat" name="alamat" rows="2" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan alamat lengkap instansi"></textarea>
-                            <small class="text-gray-500 text-xs mt-1">Alamat lengkap kantor instansi</small>
-                        </div>
                     </div>
                 </div>
 
@@ -99,15 +94,9 @@
                     </h4>
                     <div class="grid grid-cols-1 gap-3 sm:gap-4">
                         <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Admin Marketing</label>
-                            <select id="tambahAdminMarketing" name="admin_marketing" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
-                                <option value="">Pilih Admin Marketing (Opsional)</option>
-                                <option value="Sari Dewi">Sari Dewi</option>
-                                <option value="Ahmad Fauzi">Ahmad Fauzi</option>
-                                <option value="Lisa Permata">Lisa Permata</option>
-                                <option value="Agus Setiawan">Agus Setiawan</option>
-                            </select>
-                            <small class="text-gray-500 text-xs mt-1">Admin yang akan menangani wilayah ini</small>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Nama Admin Marketing</label>
+                            <input type="text" id="tambahAdminMarketingText" name="admin_marketing_text" class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base" placeholder="Masukkan nama admin marketing">
+                            <small class="text-gray-500 text-xs mt-1">Contoh: Sari Dewi, Ahmad Fauzi, atau Tim Marketing</small>
                         </div>
                     </div>
                 </div>

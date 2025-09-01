@@ -60,10 +60,10 @@
                         <p class="text-sm text-gray-500 mb-1">Email</p>
                         <p id="detailEmail" class="font-medium text-gray-800">-</p>
                     </div>
-                </div>
-                <div class="mt-4">
-                    <p class="text-sm text-gray-500 mb-1">Alamat Instansi</p>
-                    <p id="detailAlamat" class="font-medium text-gray-800">-</p>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Admin Marketing</p>
+                        <p id="detailAdminMarketing" class="font-medium text-gray-800">-</p>
+                    </div>
                 </div>
             </div>
 

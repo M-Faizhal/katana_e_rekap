@@ -321,7 +321,6 @@
                 document.getElementById('detailNamaPejabat').textContent = data.nama_pejabat;
                 document.getElementById('detailJabatan').textContent = data.jabatan;
                 document.getElementById('detailNoTelp').textContent = data.no_telp || '-';
-                document.getElementById('detailAlamat').textContent = data.alamat || '-';
                 document.getElementById('detailEmail').textContent = data.email || '-';
                 document.getElementById('detailUpdatedAt').textContent = data.updated_at;
 
@@ -354,7 +353,7 @@
                 document.getElementById('editJabatan').value = data.jabatan || '';
                 document.getElementById('editNoTelp').value = data.no_telp || '';
                 document.getElementById('editEmail').value = data.email || '';
-                document.getElementById('editAlamat').value = data.alamat || '';
+                document.getElementById('editAdminMarketingText').value = data.admin_marketing_text || '';
                 document.getElementById('editDeskripsi').value = data.deskripsi || '';
 
                 // Show modal
