@@ -47,26 +47,6 @@
                             <input type="text" id="editNamaInstansi" name="nama_instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Klien</label>
-                            <input type="text" id="editNamaKlien" name="nama_klien" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama klien">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Kontak Klien</label>
-                            <input type="text" id="editKontakKlien" name="kontak_klien" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kontak klien">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                            <select id="editStatus" name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Pilih status</option>
-                                <option value="menunggu">Menunggu</option>
-                                <option value="penawaran">Penawaran</option>
-                                <option value="pembayaran">Pembayaran</option>
-                                <option value="pengiriman">Pengiriman</option>
-                                <option value="selesai">Selesai</option>
-                                <option value="gagal">Gagal</option>
-                            </select>
-                        </div>
-                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Pengadaan</label>
                             <select id="editJenisPengadaan" name="jenis_pengadaan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih jenis pengadaan</option>
@@ -290,8 +270,6 @@ function loadEditData(data) {
     // Set semua data dasar
     setElementValue('editId', data.id);
     setElementValue('editIdProyek', data.kode);
-    setElementValue('editNamaKlien', data.nama_klien);
-    setElementValue('editKontakKlien', data.kontak_klien);
     setElementValue('editKabupatenKota', data.kabupaten_kota || data.kabupaten);
     setElementValue('editNamaInstansi', data.nama_instansi || data.instansi);
     setElementValue('editJenisPengadaan', data.jenis_pengadaan);
@@ -830,10 +808,6 @@ function collectEditFormData() {
     data.catatan = getElementValue('editCatatan');
     data.potensi = getElementValue('editPotensiValue', 'tidak');
     data.tahun_potensi = parseInt(getElementValue('editTahunPotensi')) || new Date().getFullYear();
-
-    // Data nama klien
-    data.nama_klien = getElementValue('editNamaKlien', 'Klien');
-    data.kontak_klien = getElementValue('editKontakKlien');
 
     // Admin data
     const adminPurchasingSelect = document.getElementById('editAdminPurchasing');

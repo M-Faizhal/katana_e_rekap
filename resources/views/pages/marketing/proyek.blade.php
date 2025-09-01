@@ -854,6 +854,9 @@ function viewDetail(id) {
         if (catatanSection) catatanSection.style.display = 'none';
     }
 
+    // Load documents for this project
+    loadDetailDocuments(id);
+
     // Show modal
     openModal('modalDetailProyek');
 }
@@ -934,8 +937,6 @@ function editProyek(id) {
         tahun_potensi: data.tahun_potensi,
         status: data.status,
         total_nilai: data.total_nilai,
-        nama_klien: data.nama_klien,
-        kontak_klien: data.kontak_klien,
         spesifikasi: data.spesifikasi,
         jumlah: data.jumlah,
         satuan: data.satuan,

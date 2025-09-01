@@ -817,10 +817,6 @@ function collectTambahFormData() {
         data.spesifikasi = 'Spesifikasi standar';
     }
 
-    // Data tambahan yang diperlukan
-    data.nama_klien = 'Klien'; // Default value
-    data.kontak_klien = ''; // Default value
-
     // Ambil ID admin marketing dari user yang login
     const adminMarketingId = document.getElementById('currentUserId')?.value;
     data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : 1;
