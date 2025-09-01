@@ -47,6 +47,14 @@
                             <input type="text" id="editNamaInstansi" name="nama_instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Klien</label>
+                            <input type="text" id="editNamaKlien" name="nama_klien" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama klien">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Kontak Klien</label>
+                            <input type="text" id="editKontakKlien" name="kontak_klien" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kontak klien">
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                             <select id="editStatus" name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih status</option>
@@ -282,7 +290,8 @@ function loadEditData(data) {
     // Set semua data dasar
     setElementValue('editId', data.id);
     setElementValue('editIdProyek', data.kode);
-    setElementValue('editNamaProyek', data.nama_proyek);
+    setElementValue('editNamaKlien', data.nama_klien);
+    setElementValue('editKontakKlien', data.kontak_klien);
     setElementValue('editKabupatenKota', data.kabupaten_kota || data.kabupaten);
     setElementValue('editNamaInstansi', data.nama_instansi || data.instansi);
     setElementValue('editJenisPengadaan', data.jenis_pengadaan);
@@ -346,12 +355,14 @@ function addEditItem(itemData = null) {
     let qty = '';
     let satuan = '';
     let hargaSatuan = '';
+    let spesifikasi = '';
 
     if (itemData) {
         nama = itemData.nama || itemData.nama_barang || '';
         qty = itemData.qty || itemData.jumlah || '';
         satuan = itemData.satuan || '';
         hargaSatuan = itemData.harga_satuan || '';
+        spesifikasi = itemData.spesifikasi || '';
     }
 
     const itemHtml = `
@@ -395,6 +406,10 @@ function addEditItem(itemData = null) {
                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Total</label>
                     <input type="number" name="barang[${editItemCounter}][harga_total]" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm harga-total-input-edit" placeholder="0" readonly>
                 </div>
+            </div>
+            <div class="mt-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi</label>
+                <textarea name="barang[${editItemCounter}][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Masukkan spesifikasi barang...">${spesifikasi}</textarea>
             </div>
         </div>
     `;
@@ -813,12 +828,10 @@ function collectEditFormData() {
     data.instansi = getElementValue('editNamaInstansi');
     data.jenis_pengadaan = getElementValue('editJenisPengadaan');
     data.catatan = getElementValue('editCatatan');
-    data.status = getElementValue('editStatus', 'menunggu');
     data.potensi = getElementValue('editPotensiValue', 'tidak');
     data.tahun_potensi = parseInt(getElementValue('editTahunPotensi')) || new Date().getFullYear();
 
-    // Data nama proyek dan klien
-    data.nama_barang = getElementValue('editNamaProyek');
+    // Data nama klien
     data.nama_klien = getElementValue('editNamaKlien', 'Klien');
     data.kontak_klien = getElementValue('editKontakKlien');
 
@@ -829,32 +842,51 @@ function collectEditFormData() {
 
     // Ambil data barang dari form
     const barangItems = document.querySelectorAll('.barang-item-edit');
-    if (barangItems.length > 0) {
-        const firstItem = barangItems[0];
-        const namaInput = firstItem.querySelector('input[name*="[nama]"]');
-        const qtyInput = firstItem.querySelector('input[name*="[qty]"]');
-        const satuanSelect = firstItem.querySelector('select[name*="[satuan]"]');
-        const hargaSatuanInput = firstItem.querySelector('input[name*="[harga_satuan]"]');
+    console.log('Found barang items for edit:', barangItems.length);
 
-        if (namaInput) data.nama_barang = namaInput.value || data.nama_barang;
-        if (qtyInput) data.jumlah = parseInt(qtyInput.value) || 1;
-        if (satuanSelect) data.satuan = satuanSelect.value || 'Unit';
-        if (hargaSatuanInput) {
-            data.harga_satuan = parseFloat(hargaSatuanInput.value) || null;
-            if (data.harga_satuan && data.jumlah) {
-                data.harga_total = data.harga_satuan * data.jumlah;
+    if (barangItems.length > 0) {
+        // Multiple barang - gunakan format daftar_barang array
+        data.daftar_barang = [];
+
+        barangItems.forEach((item, index) => {
+            const namaInput = item.querySelector('input[name*="[nama]"]');
+            const qtyInput = item.querySelector('input[name*="[qty]"]');
+            const satuanSelect = item.querySelector('select[name*="[satuan]"]');
+            const hargaSatuanInput = item.querySelector('input[name*="[harga_satuan]"]');
+            const spesifikasiTextarea = item.querySelector('textarea[name*="[spesifikasi]"]');
+
+            const barangData = {
+                nama_barang: namaInput ? namaInput.value : '',
+                jumlah: qtyInput ? parseInt(qtyInput.value) || 1 : 1,
+                satuan: satuanSelect ? satuanSelect.value || 'Unit' : 'Unit',
+                spesifikasi: spesifikasiTextarea ? spesifikasiTextarea.value || 'Spesifikasi standar' : 'Spesifikasi standar',
+                harga_satuan: hargaSatuanInput ? parseFloat(hargaSatuanInput.value) || null : null
+            };
+
+            if (barangData.nama_barang) {
+                data.daftar_barang.push(barangData);
+                console.log(`Barang edit ${index + 1}:`, barangData);
             }
+        });
+
+        // Jika tidak ada barang valid yang ditemukan, fallback ke single barang
+        if (data.daftar_barang.length === 0) {
+            console.log('No valid barang found in items, using fallback data');
+            data.nama_barang = getElementValue('editNamaProyek') || 'Barang Default';
+            data.jumlah = 1;
+            data.satuan = 'Unit';
+            data.spesifikasi = 'Spesifikasi standar';
+            data.harga_satuan = null;
         }
     } else {
-        // Default values jika tidak ada barang
+        // Single barang - gunakan format lama untuk backward compatibility
+        console.log('No barang items found, using single barang format');
+        data.nama_barang = getElementValue('editNamaProyek') || 'Barang Default';
         data.jumlah = 1;
         data.satuan = 'Unit';
-        data.spesifikasi = 'Spesifikasi standar';
+        data.spesifikasi = getElementValue('editSpesifikasi', 'Spesifikasi standar');
         data.harga_satuan = null;
     }
-
-    // Spesifikasi default
-    data.spesifikasi = getElementValue('editSpesifikasi', 'Spesifikasi standar');
 
     console.log('Collected edit form data:', data);
     return data;
