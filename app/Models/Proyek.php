@@ -174,4 +174,16 @@ class Proyek extends Model
         }
         return 0;
     }
+
+    // Method untuk mendapatkan total nilai proyek dengan prioritas penawaran
+    public function getTotalNilaiAttribute()
+    {
+        // Jika ada penawaran, gunakan total_nilai dari penawaran
+        if ($this->penawaran && $this->penawaran->total_nilai) {
+            return $this->penawaran->total_nilai;
+        }
+        
+        // Jika tidak ada penawaran, gunakan harga_total dari proyek
+        return $this->harga_total;
+    }
 }

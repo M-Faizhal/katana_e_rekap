@@ -38,6 +38,10 @@ Route::middleware('auth')->group(function () {
 
     // Laporan Routes
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
+    Route::get('/laporan/proyek', [LaporanController::class, 'index'])->name('laporan.proyek');
+    Route::get('/laporan/omset', [LaporanController::class, 'omset'])->name('laporan.omset');
+    Route::get('/laporan/hutang-vendor', [LaporanController::class, 'hutangVendor'])->name('laporan.hutang-vendor');
+    Route::get('/laporan/piutang-dinas', [LaporanController::class, 'piutangDinas'])->name('laporan.piutang-dinas');
     Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
     Route::get('/laporan/project/{id}', [LaporanController::class, 'getProjectDetail'])->name('laporan.project.detail');
     Route::get('/laporan/data', [LaporanController::class, 'getFilteredData'])->name('laporan.data');

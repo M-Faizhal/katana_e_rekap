@@ -3,19 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Barang;
+use App\Models\User;    
 use App\Models\Proyek;
 use App\Models\Vendor;
-use App\Models\Barang;
-use App\Models\User;
 use App\Models\Penawaran;
 use App\Models\PenawaranDetail;
+use App\Models\Pembayaran;
+use App\Models\PenagihanDinas;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
     /**
-     * Display the main laporan page
+     * Display the main laporan page (Laporan Proyek)
      */
     public function index(Request $request)
     {
@@ -28,7 +30,55 @@ class LaporanController extends Controller
         // Get filter options
         $filterOptions = $this->getFilterOptions();
 
-        return view('pages.laporan', compact('stats', 'projects', 'filterOptions'));
+        // Get chart data
+        $chartData = $this->getChartData($request);
+
+        return view('pages.laporan.proyek', compact('stats', 'projects', 'filterOptions', 'chartData'));
+    }
+
+    /**
+     * Display Laporan Omset
+     */
+    public function omset(Request $request)
+    {
+        // Get omset statistics
+        $stats = $this->getOmsetStatistics();
+
+        // Get monthly omset data
+        $monthlyOmset = $this->getMonthlyOmset($request);
+
+        // Get vendor omset data
+        $vendorOmset = $this->getVendorOmset($request);
+
+        return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'vendorOmset'));
+    }
+
+    /**
+     * Display Laporan Hutang Vendor
+     */
+    public function hutangVendor(Request $request)
+    {
+        // Get vendor debt statistics
+        $stats = $this->getHutangVendorStatistics();
+
+        // Get vendor debt list
+        $hutangVendor = $this->getHutangVendorList($request);
+
+        return view('pages.laporan.hutang-vendor', compact('stats', 'hutangVendor'));
+    }
+
+    /**
+     * Display Laporan Piutang Dinas
+     */
+    public function piutangDinas(Request $request)
+    {
+        // Get piutang dinas statistics
+        $stats = $this->getPiutangDinasStatistics();
+
+        // Get piutang dinas list
+        $piutangDinas = $this->getPiutangDinasList($request);
+
+        return view('pages.laporan.piutang-dinas', compact('stats', 'piutangDinas'));
     }
 
     /**
@@ -36,13 +86,18 @@ class LaporanController extends Controller
      */
     private function getStatistics()
     {
+        // Hitung total nilai HANYA dari penawaran yang status ACC dan proyek tidak gagal
+        $totalNilai = Penawaran::where('status', 'ACC')
+            ->whereHas('proyek', function($query) {
+                $query->where('status', '!=', 'Gagal');
+            })
+            ->sum('total_penawaran');
+
         $stats = [
+            'total_proyek' => Proyek::where('status', '!=', 'Gagal')->count(),
             'proyek_selesai' => Proyek::where('status', 'selesai')->count(),
-            'proyek_selesai_bulan_ini' => Proyek::where('status', 'selesai')
-                ->whereMonth('updated_at', Carbon::now()->month)
-                ->whereYear('updated_at', Carbon::now()->year)
-                ->count(),
-            'total_nilai_proyek' => Proyek::where('status', 'selesai')->sum('harga_total'),
+            'proyek_berjalan' => Proyek::whereNotIn('status', ['selesai', 'gagal'])->count(),
+            'total_nilai_proyek' => $totalNilai ?? 0,
             'vendor_aktif' => Vendor::whereHas('barang')->count(),
             'jenis_produk' => Barang::distinct('nama_barang')->count(),
         ];
@@ -58,35 +113,21 @@ class LaporanController extends Controller
         $query = Proyek::with([
             'adminMarketing',
             'adminPurchasing',
-            'penawaran.penawaranDetail.barang.vendor',
+            'penawaran',
             'semuaPenawaran'
-        ])->where('status', '!=', 'menunggu'); // Only show projects that have progressed
+        ]); // Show all projects
 
         // Apply filters
         if ($request->filled('periode')) {
             $this->applyPeriodeFilter($query, $request->periode, $request);
         }
 
-        if ($request->filled('vendor')) {
-            $query->whereHas('penawaran.penawaranDetail.barang.vendor', function($q) use ($request) {
-                $q->where('nama_vendor', 'like', '%' . $request->vendor . '%');
-            });
-        }
-
-        if ($request->filled('kategori')) {
-            $query->whereHas('penawaran.penawaranDetail.barang', function($q) use ($request) {
-                $q->where('kategori', $request->kategori);
-            });
-        }
-
         if ($request->filled('status')) {
-            if ($request->status === 'verified') {
-                $query->whereIn('status', ['selesai', 'pengiriman', 'pembayaran']);
-            } elseif ($request->status === 'completed') {
-                $query->where('status', 'selesai');
-            } elseif ($request->status === 'paid') {
-                $query->whereIn('status', ['selesai', 'pengiriman']);
-            }
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('nilai')) {
+            $this->applyNilaiFilter($query, $request->nilai);
         }
 
         if ($request->filled('produk')) {
@@ -101,11 +142,19 @@ class LaporanController extends Controller
             });
         }
 
-        if ($request->filled('nilai')) {
-            $this->applyNilaiFilter($query, $request->nilai);
+        $projects = $query->orderBy('tanggal', 'desc')->paginate(10);
+
+        // Hitung total_nilai untuk setiap proyek HANYA dari penawaran ACC
+        foreach ($projects as $project) {
+            $penawaranAcc = Penawaran::where('id_proyek', $project->id_proyek)
+                ->where('status', 'ACC')
+                ->first();
+            
+            // Hanya ambil nilai dari penawaran ACC, jika tidak ada maka 0
+            $project->total_nilai = $penawaranAcc ? ($penawaranAcc->total_penawaran ?? 0) : 0;
         }
 
-        return $query->orderBy('tanggal', 'desc')->paginate(10);
+        return $projects;
     }
 
     /**
@@ -121,10 +170,10 @@ class LaporanController extends Controller
                       ->whereYear('tanggal', $now->year);
                 break;
             case '3-bulan':
-                $query->where('tanggal', '>=', $now->subMonths(3));
+                $query->where('tanggal', '>=', $now->copy()->subMonths(3));
                 break;
             case '6-bulan':
-                $query->where('tanggal', '>=', $now->subMonths(6));
+                $query->where('tanggal', '>=', $now->copy()->subMonths(6));
                 break;
             case 'tahun-ini':
                 $query->whereYear('tanggal', $now->year);
@@ -142,21 +191,37 @@ class LaporanController extends Controller
      */
     private function applyNilaiFilter($query, $nilai)
     {
+        // Filter berdasarkan total nilai dari penawaran ACC saja
         switch ($nilai) {
-            case '0-5jt':
-                $query->where('harga_total', '<=', 5000000);
+            case '0-10jt':
+                $query->whereHas('penawaran', function($subQ) {
+                    $subQ->where('status', 'ACC')->where('total_penawaran', '<=', 10000000);
+                });
                 break;
-            case '5-10jt':
-                $query->whereBetween('harga_total', [5000001, 10000000]);
+            case '10-50jt':
+                $query->whereHas('penawaran', function($subQ) {
+                    $subQ->where('status', 'ACC')->whereBetween('total_penawaran', [10000001, 50000000]);
+                });
                 break;
-            case '10-25jt':
-                $query->whereBetween('harga_total', [10000001, 25000000]);
+            case '50-100jt':
+                $query->whereHas('penawaran', function($subQ) {
+                    $subQ->where('status', 'ACC')->whereBetween('total_penawaran', [50000001, 100000000]);
+                });
                 break;
-            case '25-50jt':
-                $query->whereBetween('harga_total', [25000001, 50000000]);
+            case '100-500jt':
+                $query->whereHas('penawaran', function($subQ) {
+                    $subQ->where('status', 'ACC')->whereBetween('total_penawaran', [100000001, 500000000]);
+                });
                 break;
-            case '50jt+':
-                $query->where('harga_total', '>', 50000000);
+            case '500jt-1m':
+                $query->whereHas('penawaran', function($subQ) {
+                    $subQ->where('status', 'ACC')->whereBetween('total_penawaran', [500000001, 1000000000]);
+                });
+                break;
+            case '1m+':
+                $query->whereHas('penawaran', function($subQ) {
+                    $subQ->where('status', 'ACC')->where('total_penawaran', '>', 1000000000);
+                });
                 break;
         }
     }
@@ -167,21 +232,19 @@ class LaporanController extends Controller
     private function getFilterOptions()
     {
         return [
-            'vendors' => Vendor::select('id_vendor', 'nama_vendor')
-                ->whereHas('barang.penawaranDetail')
-                ->distinct()
-                ->orderBy('nama_vendor')
-                ->get(),
+            'statuses' => [
+                ['value' => 'menunggu', 'label' => 'Menunggu'],
+                ['value' => 'verifikasi', 'label' => 'Verifikasi'],
+                ['value' => 'purchasing', 'label' => 'Purchasing'],
+                ['value' => 'penawaran', 'label' => 'Penawaran'],
+                ['value' => 'pembayaran', 'label' => 'Pembayaran'],
+                ['value' => 'pengiriman', 'label' => 'Pengiriman'],
+                ['value' => 'selesai', 'label' => 'Selesai'],
+            ],
             'products' => Barang::select('nama_barang')
                 ->whereHas('penawaranDetail')
                 ->distinct()
                 ->orderBy('nama_barang')
-                ->get(),
-            'categories' => Barang::select('kategori')
-                ->whereNotNull('kategori')
-                ->whereHas('penawaranDetail')
-                ->distinct()
-                ->orderBy('kategori')
                 ->get(),
         ];
     }
@@ -242,7 +305,7 @@ class LaporanController extends Controller
                     ucfirst($project->status),
                     $project->adminMarketing->nama ?? '-',
                     $project->adminPurchasing->nama ?? '-',
-                    number_format($project->harga_total, 0, ',', '.'),
+                    number_format($project->total_nilai ?? 0, 0, ',', '.'),
                     $vendor,
                     $produk,
                     $kategori
@@ -267,6 +330,13 @@ class LaporanController extends Controller
             'semuaPenawaran'
         ])->findOrFail($id);
 
+        // Hitung total nilai HANYA dari penawaran ACC
+        $penawaranAcc = Penawaran::where('id_proyek', $project->id_proyek)
+            ->where('status', 'ACC')
+            ->first();
+        
+        $totalNilai = $penawaranAcc ? ($penawaranAcc->total_penawaran ?? 0) : 0;
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -274,17 +344,17 @@ class LaporanController extends Controller
                 'nama_klien' => $project->nama_klien,
                 'instansi' => $project->instansi,
                 'jenis_pengadaan' => $project->jenis_pengadaan,
-                'tanggal' => $project->tanggal->format('d M Y'),
-                'deadline' => $project->deadline ? $project->deadline->format('d M Y') : '-',
+                'tanggal' => Carbon::parse($project->tanggal)->format('d M Y'),
+                'deadline' => $project->deadline ? Carbon::parse($project->deadline)->format('d M Y') : '-',
                 'status' => ucfirst($project->status),
                 'admin_marketing' => $project->adminMarketing->nama ?? '-',
                 'admin_purchasing' => $project->adminPurchasing->nama ?? '-',
-                'total_nilai' => number_format($project->harga_total, 0, ',', '.'),
+                'total_nilai' => $totalNilai,
                 'catatan' => $project->catatan ?? '-',
                 'penawaran' => $project->penawaran ? [
                     'no_penawaran' => $project->penawaran->no_penawaran,
-                    'tanggal_penawaran' => $project->penawaran->tanggal_penawaran->format('d M Y'),
-                    'total_nilai' => number_format($project->penawaran->total_nilai, 0, ',', '.'),
+                    'tanggal_penawaran' => Carbon::parse($project->penawaran->tanggal_penawaran)->format('d M Y'),
+                    'total_nilai' => number_format(floatval($project->penawaran->total_nilai ?? 0), 0, ',', '.'),
                     'detail_barang' => $project->penawaran->penawaranDetail->map(function($detail) {
                         return [
                             'nama_barang' => $detail->barang->nama_barang,
@@ -292,8 +362,8 @@ class LaporanController extends Controller
                             'kategori' => $detail->barang->kategori,
                             'jumlah' => $detail->jumlah,
                             'satuan' => $detail->barang->satuan,
-                            'harga_satuan' => number_format($detail->harga_satuan, 0, ',', '.'),
-                            'subtotal' => number_format($detail->subtotal, 0, ',', '.')
+                            'harga_satuan' => number_format(floatval($detail->harga_satuan ?? 0), 0, ',', '.'),
+                            'subtotal' => number_format(floatval($detail->subtotal ?? 0), 0, ',', '.')
                         ];
                     })
                 ] : null
@@ -316,5 +386,243 @@ class LaporanController extends Controller
                 'stats' => $stats
             ]
         ]);
+    }
+
+    /**
+     * Get omset statistics
+     */
+    private function getOmsetStatistics()
+    {
+        $currentMonth = Carbon::now();
+        $lastMonth = Carbon::now()->subMonth();
+        
+        $currentMonthOmset = Proyek::where('status', 'selesai')
+            ->whereMonth('updated_at', $currentMonth->month)
+            ->whereYear('updated_at', $currentMonth->year)
+            ->sum('harga_total');
+
+        $lastMonthOmset = Proyek::where('status', 'selesai')
+            ->whereMonth('updated_at', $lastMonth->month)
+            ->whereYear('updated_at', $lastMonth->year)
+            ->sum('harga_total');
+
+        $yearlyOmset = Proyek::where('status', 'selesai')
+            ->whereYear('updated_at', $currentMonth->year)
+            ->sum('harga_total');
+
+        $avgMonthlyOmset = $yearlyOmset / 12;
+
+        return [
+            'omset_bulan_ini' => $currentMonthOmset,
+            'omset_bulan_lalu' => $lastMonthOmset,
+            'omset_tahun_ini' => $yearlyOmset,
+            'rata_rata_bulanan' => $avgMonthlyOmset,
+            'pertumbuhan' => $lastMonthOmset > 0 ? (($currentMonthOmset - $lastMonthOmset) / $lastMonthOmset) * 100 : 0
+        ];
+    }
+
+    /**
+     * Get monthly omset data
+     */
+    private function getMonthlyOmset(Request $request)
+    {
+        $year = $request->get('year', Carbon::now()->year);
+        
+        return Proyek::select(
+                DB::raw('MONTH(updated_at) as month'),
+                DB::raw('SUM(harga_total) as total_omset'),
+                DB::raw('COUNT(*) as jumlah_proyek')
+            )
+            ->where('status', 'selesai')
+            ->whereYear('updated_at', $year)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+    }
+
+    /**
+     * Get vendor omset data
+     */
+    private function getVendorOmset(Request $request)
+    {
+        return Vendor::select('vendors.*')
+            ->join('barangs', 'vendors.id_vendor', '=', 'barangs.id_vendor')
+            ->join('penawaran_details', 'barangs.id_barang', '=', 'penawaran_details.id_barang')
+            ->join('penawarans', 'penawaran_details.id_penawaran', '=', 'penawarans.id_penawaran')
+            ->join('proyeks', 'penawarans.id_proyek', '=', 'proyeks.id_proyek')
+            ->where('proyeks.status', 'selesai')
+            ->select(
+                'vendors.nama_vendor',
+                DB::raw('SUM(penawaran_details.subtotal) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyeks.id_proyek) as jumlah_proyek')
+            )
+            ->groupBy('vendors.id_vendor', 'vendors.nama_vendor')
+            ->orderBy('total_omset', 'desc')
+            ->limit(10)
+            ->get();
+    }
+
+    /**
+     * Get hutang vendor statistics
+     */
+    private function getHutangVendorStatistics()
+    {
+        // Implementasi logika hutang vendor berdasarkan pembayaran yang belum lunas
+        $totalHutang = DB::table('pembayarans')
+            ->join('proyeks', 'pembayarans.id_proyek', '=', 'proyeks.id_proyek')
+            ->where('pembayarans.status_pembayaran', '!=', 'lunas')
+            ->sum('pembayarans.nominal_pembayaran');
+
+        $hutangJatuhTempo = DB::table('pembayarans')
+            ->join('proyeks', 'pembayarans.id_proyek', '=', 'proyeks.id_proyek')
+            ->where('pembayarans.status_pembayaran', '!=', 'lunas')
+            ->where('pembayarans.jatuh_tempo', '<', Carbon::now())
+            ->sum('pembayarans.nominal_pembayaran');
+
+        $jumlahVendorBerhutang = DB::table('pembayarans')
+            ->join('proyeks', 'pembayarans.id_proyek', '=', 'proyeks.id_proyek')
+            ->join('penawarans', 'proyeks.id_proyek', '=', 'penawarans.id_proyek')
+            ->join('penawaran_details', 'penawarans.id_penawaran', '=', 'penawaran_details.id_penawaran')
+            ->join('barangs', 'penawaran_details.id_barang', '=', 'barangs.id_barang')
+            ->where('pembayarans.status_pembayaran', '!=', 'lunas')
+            ->distinct('barangs.id_vendor')
+            ->count();
+
+        return [
+            'total_hutang' => $totalHutang,
+            'hutang_jatuh_tempo' => $hutangJatuhTempo,
+            'jumlah_vendor' => $jumlahVendorBerhutang,
+            'rata_rata_hutang' => $jumlahVendorBerhutang > 0 ? $totalHutang / $jumlahVendorBerhutang : 0
+        ];
+    }
+
+    /**
+     * Get hutang vendor list
+     */
+    private function getHutangVendorList(Request $request)
+    {
+        return DB::table('vendors')
+            ->join('barangs', 'vendors.id_vendor', '=', 'barangs.id_vendor')
+            ->join('penawaran_details', 'barangs.id_barang', '=', 'penawaran_details.id_barang')
+            ->join('penawarans', 'penawaran_details.id_penawaran', '=', 'penawarans.id_penawaran')
+            ->join('proyeks', 'penawarans.id_proyek', '=', 'proyeks.id_proyek')
+            ->join('pembayarans', 'proyeks.id_proyek', '=', 'pembayarans.id_proyek')
+            ->where('pembayarans.status_pembayaran', '!=', 'lunas')
+            ->select(
+                'vendors.nama_vendor',
+                'vendors.kontak_vendor',
+                'proyeks.kode_proyek',
+                'proyeks.nama_klien',
+                'pembayarans.nominal_pembayaran',
+                'pembayarans.jatuh_tempo',
+                'pembayarans.status_pembayaran',
+                DB::raw('DATEDIFF(NOW(), pembayarans.jatuh_tempo) as hari_telat')
+            )
+            ->orderBy('pembayarans.jatuh_tempo', 'asc')
+            ->paginate(15);
+    }
+
+    /**
+     * Get piutang dinas statistics
+     */
+    private function getPiutangDinasStatistics()
+    {
+        $totalPiutang = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
+            ->sum('sisa_pembayaran');
+
+        $piutangJatuhTempo = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
+            ->where('tanggal_jatuh_tempo', '<', Carbon::now())
+            ->sum('sisa_pembayaran');
+
+        $jumlahProyekBelumLunas = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
+            ->distinct('proyek_id')
+            ->count();
+
+        return [
+            'total_piutang' => $totalPiutang ?? 0,
+            'piutang_jatuh_tempo' => $piutangJatuhTempo ?? 0,
+            'jumlah_proyek' => $jumlahProyekBelumLunas ?? 0,
+            'rata_rata_piutang' => $jumlahProyekBelumLunas > 0 ? ($totalPiutang / $jumlahProyekBelumLunas) : 0
+        ];
+    }
+
+    /**
+     * Get piutang dinas list
+     */
+    private function getPiutangDinasList(Request $request)
+    {
+        return PenagihanDinas::with(['proyek'])
+            ->where('status_pembayaran', '!=', 'lunas')
+            ->select(
+                'penagihan_dinas.*',
+                DB::raw('DATEDIFF(NOW(), tanggal_jatuh_tempo) as hari_telat')
+            )
+            ->orderBy('tanggal_jatuh_tempo', 'asc')
+            ->paginate(15);
+    }
+
+    /**
+     * Get chart data for visualization
+     */
+    private function getChartData($request)
+    {
+        // Status distribution chart - hitung berdasarkan proyek yang ada sekarang (tidak termasuk gagal)
+        $statusData = Proyek::select('status', DB::raw('count(*) as total'))
+            ->where('status', '!=', 'gagal')
+            ->groupBy('status')
+            ->orderBy('total', 'desc')
+            ->get();
+
+        // Monthly project count chart (last 6 months) - berdasarkan data yang ada (tidak termasuk gagal)
+        $monthlyData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = Carbon::now()->copy()->subMonths($i);
+            $count = Proyek::whereMonth('tanggal', $month->month)
+                ->whereYear('tanggal', $month->year)
+                ->where('status', '!=', 'gagal')
+                ->count();
+            
+            $monthlyData[] = [
+                'month' => $month->format('M Y'),
+                'count' => $count
+            ];
+        }
+
+        // Monthly value chart (last 6 months) - HANYA dari penawaran ACC
+        $monthlyValueData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = Carbon::now()->copy()->subMonths($i);
+            
+            // Ambil total nilai dari penawaran ACC dalam bulan tersebut
+            $totalValue = Penawaran::where('status', 'ACC')
+                ->whereHas('proyek', function($query) use ($month) {
+                    $query->whereMonth('tanggal', $month->month)
+                          ->whereYear('tanggal', $month->year)
+                          ->where('status', '!=', 'gagal');
+                })
+                ->sum('total_penawaran');
+            
+            $monthlyValueData[] = [
+                'month' => $month->format('M Y'),
+                'value' => $totalValue ?? 0
+            ];
+        }
+
+        // Top 5 instansi by project count (tidak termasuk gagal)
+        $instansiData = Proyek::select('instansi', DB::raw('count(*) as total'))
+            ->whereNotNull('instansi')
+            ->where('instansi', '!=', '')
+            ->where('status', '!=', 'gagal')
+            ->groupBy('instansi')
+            ->orderBy('total', 'desc')
+            ->limit(5)
+            ->get();
+
+        return [
+            'status_distribution' => $statusData,
+            'monthly_projects' => $monthlyData,
+            'monthly_values' => $monthlyValueData,
+            'top_instansi' => $instansiData
+        ];
     }
 }
