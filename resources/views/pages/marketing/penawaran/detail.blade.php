@@ -18,12 +18,12 @@
                 <p class="text-red-100 text-sm">Status Penawaran</p>
                 <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full
                     @if($penawaran->status === 'selesai') bg-green-500 text-white
-                    @elseif($penawaran->status === 'disetujui') bg-blue-500 text-white
+                    @elseif($penawaran->status === 'ACC') bg-blue-500 text-white
                     @elseif($penawaran->status === 'pending') bg-yellow-500 text-gray-900
-                    @elseif($penawaran->status === 'ditolak') bg-red-500 text-white
+                    @elseif($penawaran->status === 'Ditolak') bg-red-500 text-white
                     @else bg-gray-600 text-white
                     @endif">
-                    {{ ucfirst($penawaran->status ?? 'draft') }}
+                    {{ $penawaran->status === 'ACC' ? 'Disetujui' : ucfirst($penawaran->status ?? 'draft') }}
                 </span>
             </div>
         </div>
@@ -262,34 +262,19 @@
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
                 </div>
 
-                <!-- Total Nilai -->
-                {{-- <div> --}}
-                    {{-- <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Total Nilai Penawaran
-                        @if($penawaranDetails && $penawaranDetails->count() > 0)
-                        <button type="button" onclick="calculateTotal()" class="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200">
-                            <i class="fas fa-calculator mr-1"></i>
-                            Hitung Otomatis
-                        </button>
-                        @endif
-                    </label>
-                    <input type="number" name="total_nilai" id="total_nilai"
-                           value="{{ $penawaranDetails && $penawaranDetails->count() > 0 ? $penawaranDetails->sum('subtotal') : ($penawaran->total_nilai ?? '') }}"
-                           placeholder="0" min="0" step="0.01"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required> --}}
-                    {{-- @if($penawaranDetails && $penawaranDetails->count() > 0)
-                    <p class="text-xs text-gray-500 mt-1">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Total dihitung dari {{ $penawaranDetails->count() }} item detail penawaran
-                    </p>
-                    @endif --}}
-                {{-- </div> --}}
-
                 <!-- Surat Penawaran -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Surat Penawaran <span class="text-red-500">*</span>
                     </label>
+                    <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <span class="text-sm text-blue-700">
+                                <strong>Penting:</strong> Upload surat penawaran akan otomatis mengubah status proyek menjadi "Pembayaran" dan siap masuk ke tahap purchasing.
+                            </span>
+                        </div>
+                    </div>
                     <input type="file" name="surat_penawaran"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                            accept=".pdf,.doc,.docx">
@@ -435,8 +420,27 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        // Debug: Log response status and headers
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
+        // Check if response is ok
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Check content type
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Response bukan JSON yang valid. Content-Type: ' + contentType);
+        }
+
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data); // Debug log
+
         if (data.success) {
             // Show success message
             if (typeof showSuccessModal === 'function') {
@@ -445,17 +449,39 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
                 alert(data.message);
             }
 
+            // Show additional info if status changed
+            if (data.status_changed) {
+                setTimeout(() => {
+                    if (typeof showSuccessModal === 'function') {
+                        showSuccessModal('Proyek berhasil dipindahkan ke tahap pembayaran!');
+                    } else {
+                        alert('Proyek berhasil dipindahkan ke tahap pembayaran!');
+                    }
+                }, 2000);
+            }
+
             // Reload page after short delay
             setTimeout(() => {
                 window.location.reload();
-            }, 1500);
+            }, data.status_changed ? 3500 : 1500);
         } else {
             throw new Error(data.message || 'Terjadi kesalahan saat menyimpan data');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan: ' + error.message);
+        console.error('Error detail:', error);
+
+        let errorMessage = 'Terjadi kesalahan saat menyimpan data';
+
+        if (error.message.includes('HTTP error')) {
+            errorMessage = 'Server error: ' + error.message;
+        } else if (error.message.includes('JSON')) {
+            errorMessage = 'Response server tidak valid. Silakan coba lagi atau hubungi administrator.';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        alert(errorMessage);
     })
     .finally(() => {
         // Reset button state

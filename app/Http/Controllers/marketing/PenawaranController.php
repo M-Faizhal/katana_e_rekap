@@ -9,6 +9,7 @@ use App\Models\PenawaranDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PenawaranController extends Controller
 {
@@ -75,7 +76,6 @@ class PenawaranController extends Controller
         $request->validate([
             'id_proyek' => 'required|exists:proyek,id_proyek',
             'tanggal_penawaran' => 'required|date',
-            'total_nilai' => 'required|numeric',
             'catatan' => 'nullable|string',
             'surat_penawaran' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'surat_pesanan' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
@@ -84,16 +84,24 @@ class PenawaranController extends Controller
         try {
             DB::beginTransaction();
 
+            // Flag untuk tracking upload surat penawaran
+            $suratPenawaranUploaded = false;
+
             // Create or update penawaran
             $penawaran = Penawaran::updateOrCreate(
                 ['id_proyek' => $request->id_proyek],
                 [
                     'tanggal_penawaran' => $request->tanggal_penawaran,
-                    'total_nilai' => $request->total_nilai,
                     'catatan' => $request->catatan,
-                    'status' => 'submitted'
+                    'status' => 'Menunggu'
                 ]
             );
+
+            // Auto-calculate total_nilai dari detail penawaran
+            $penawaranDetails = PenawaranDetail::where('id_penawaran', $penawaran->id_penawaran)->get();
+            if ($penawaranDetails->count() > 0) {
+                $penawaran->total_nilai = $penawaranDetails->sum('subtotal');
+            }
 
             // Handle file uploads
             if ($request->hasFile('surat_penawaran')) {
@@ -106,6 +114,7 @@ class PenawaranController extends Controller
                 $filename = time() . '_penawaran_' . $file->getClientOriginalName();
                 $file->storeAs('public/penawaran', $filename);
                 $penawaran->surat_penawaran = $filename;
+                $suratPenawaranUploaded = true;
             }
 
             if ($request->hasFile('surat_pesanan')) {
@@ -122,19 +131,41 @@ class PenawaranController extends Controller
 
             $penawaran->save();
 
+            // Update status proyek menjadi 'pembayaran' jika surat penawaran di-upload
+            if ($suratPenawaranUploaded) {
+                $proyek = Proyek::find($request->id_proyek);
+                if ($proyek) {
+                    $proyek->status = 'pembayaran';
+                    $proyek->save();
+                }
+
+                // Update status penawaran menjadi 'ACC' (approved)
+                $penawaran->status = 'ACC';
+                $penawaran->save();
+            }
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Penawaran berhasil disimpan!',
-                'data' => $penawaran
+                'message' => $suratPenawaranUploaded ?
+                    'Penawaran berhasil disimpan dan status proyek diubah ke pembayaran!' :
+                    'Penawaran berhasil disimpan!',
+                'data' => $penawaran,
+                'status_changed' => $suratPenawaranUploaded
             ]);
 
         } catch (\Exception $e) {
             DB::rollback();
+
+            // Log error untuk debugging
+            Log::error('Penawaran store error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'debug' => config('app.debug') ? $e->getTraceAsString() : null
             ], 500);
         }
     }
@@ -143,18 +174,27 @@ class PenawaranController extends Controller
     {
         $request->validate([
             'tanggal_penawaran' => 'required|date',
-            'total_nilai' => 'required|numeric',
             'catatan' => 'nullable|string',
             'surat_penawaran' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
             'surat_pesanan' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
         try {
+            DB::beginTransaction();
+
             $penawaran = Penawaran::findOrFail($id);
 
             $penawaran->tanggal_penawaran = $request->tanggal_penawaran;
-            $penawaran->total_nilai = $request->total_nilai;
             $penawaran->catatan = $request->catatan;
+
+            // Auto-calculate total_nilai dari detail penawaran
+            $penawaranDetails = PenawaranDetail::where('id_penawaran', $penawaran->id_penawaran)->get();
+            if ($penawaranDetails->count() > 0) {
+                $penawaran->total_nilai = $penawaranDetails->sum('subtotal');
+            }
+
+            // Flag untuk tracking upload surat penawaran
+            $suratPenawaranUploaded = false;
 
             // Handle file uploads
             if ($request->hasFile('surat_penawaran')) {
@@ -167,6 +207,7 @@ class PenawaranController extends Controller
                 $filename = time() . '_penawaran_' . $file->getClientOriginalName();
                 $file->storeAs('public/penawaran', $filename);
                 $penawaran->surat_penawaran = $filename;
+                $suratPenawaranUploaded = true;
             }
 
             if ($request->hasFile('surat_pesanan')) {
@@ -183,16 +224,41 @@ class PenawaranController extends Controller
 
             $penawaran->save();
 
+            // Update status proyek menjadi 'pembayaran' jika surat penawaran di-upload
+            if ($suratPenawaranUploaded) {
+                $proyek = Proyek::find($penawaran->id_proyek);
+                if ($proyek) {
+                    $proyek->status = 'pembayaran';
+                    $proyek->save();
+                }
+
+                // Update status penawaran menjadi 'ACC' (approved)
+                $penawaran->status = 'ACC';
+                $penawaran->save();
+            }
+
+            DB::commit();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Penawaran berhasil diupdate!',
-                'data' => $penawaran
+                'message' => $suratPenawaranUploaded ?
+                    'Penawaran berhasil diupdate dan status proyek diubah ke pembayaran!' :
+                    'Penawaran berhasil diupdate!',
+                'data' => $penawaran,
+                'status_changed' => $suratPenawaranUploaded
             ]);
 
         } catch (\Exception $e) {
+            DB::rollback();
+
+            // Log error untuk debugging
+            Log::error('Penawaran update error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'debug' => config('app.debug') ? $e->getTraceAsString() : null
             ], 500);
         }
     }
