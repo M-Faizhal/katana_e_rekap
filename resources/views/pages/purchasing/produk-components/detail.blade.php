@@ -73,10 +73,36 @@
                         <i class="fas fa-cogs text-red-600 mr-2"></i>
                         Spesifikasi
                     </h4>
-                    <div class="bg-white rounded-lg p-4 border">
+                    
+                    <!-- Text Specification -->
+                    <div id="detailSpesifikasiTextContainer" class="bg-white rounded-lg p-4 border mb-3" style="display: none;">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-file-text text-gray-500 mr-2"></i>
+                            <span class="text-sm font-medium text-gray-600">Spesifikasi Teks:</span>
+                        </div>
                         <p id="detailSpesifikasi" class="text-gray-700 leading-relaxed">
                             -
                         </p>
+                    </div>
+                    
+                    <!-- File Specification -->
+                    <div id="detailSpesifikasiFileContainer" class="bg-white rounded-lg p-4 border" style="display: none;">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-file text-blue-500 mr-2"></i>
+                                <span class="text-sm font-medium text-gray-600">File Spesifikasi:</span>
+                            </div>
+                            <a id="detailSpesifikasiFileLink" href="#" target="_blank" class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200">
+                                <i class="fas fa-download mr-2"></i>
+                                <span id="detailSpesifikasiFileName">Download File</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- No Specification -->
+                    <div id="detailNoSpesifikasiContainer" class="bg-white rounded-lg p-4 border text-center">
+                        <i class="fas fa-info-circle text-gray-400 text-2xl mb-2"></i>
+                        <p class="text-gray-500">Tidak ada spesifikasi tersedia</p>
                     </div>
                 </div>
 

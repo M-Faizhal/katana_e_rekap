@@ -114,7 +114,54 @@
                             </div>
                             <div class="md:col-span-2 lg:col-span-3">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Spesifikasi Detail</label>
-                                <textarea id="newProductSpesifikasi" rows="3" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Deskripsi lengkap produk, spesifikasi teknis, dll..."></textarea>
+                                
+                                <!-- Toggle untuk memilih jenis input -->
+                                <div class="mb-3 flex items-center space-x-4 bg-gray-50 p-3 rounded-lg">
+                                    <span class="text-sm font-medium text-gray-700">Jenis Input:</span>
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" name="spesifikasi_type" value="text" checked 
+                                               onchange="toggleSpesifikasiInput('text')" 
+                                               class="mr-2 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">
+                                            <i class="fas fa-keyboard mr-1"></i>Input Teks
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" name="spesifikasi_type" value="file" 
+                                               onchange="toggleSpesifikasiInput('file')" 
+                                               class="mr-2 text-blue-600 focus:ring-blue-500">
+                                        <span class="text-sm text-gray-700">
+                                            <i class="fas fa-file-upload mr-1"></i>Upload File
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <!-- Input Teks (Default) -->
+                                <div id="spesifikasiTextInput">
+                                    <textarea id="newProductSpesifikasi" rows="3" 
+                                              class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
+                                              placeholder="Deskripsi lengkap produk, spesifikasi teknis, dll..."></textarea>
+                                </div>
+
+                                <!-- Input File (Hidden by default) -->
+                                <div id="spesifikasiFileInput" style="display: none;">
+                                    <input type="file" id="newProductSpesifikasiFile" 
+                                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
+                                           accept=".pdf,.doc,.docx,.txt,.xls,.xlsx">
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Format: PDF, DOC, DOCX, TXT, XLS, XLSX (Max: 5MB)
+                                    </p>
+                                    <div id="spesifikasiFilePreview" class="mt-2 hidden">
+                                        <div class="flex items-center p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <i class="fas fa-file text-blue-600 mr-2"></i>
+                                            <span id="spesifikasiFileName" class="text-sm text-blue-800"></span>
+                                            <button type="button" onclick="removeSpesifikasiFile()" 
+                                                    class="ml-auto text-red-500 hover:text-red-700">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
@@ -160,3 +207,59 @@
         </div>
     </div>
 </div>
+
+<script>
+// Function untuk toggle antara input teks dan file untuk spesifikasi
+function toggleSpesifikasiInput(type) {
+    const textInput = document.getElementById('spesifikasiTextInput');
+    const fileInput = document.getElementById('spesifikasiFileInput');
+    const filePreview = document.getElementById('spesifikasiFilePreview');
+    
+    if (type === 'text') {
+        textInput.style.display = 'block';
+        fileInput.style.display = 'none';
+        filePreview.classList.add('hidden');
+        // Reset file input
+        document.getElementById('newProductSpesifikasiFile').value = '';
+    } else if (type === 'file') {
+        textInput.style.display = 'none';
+        fileInput.style.display = 'block';
+        // Reset text input
+        document.getElementById('newProductSpesifikasi').value = '';
+    }
+}
+
+// Function untuk handle file upload preview
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('newProductSpesifikasiFile');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('spesifikasiFilePreview');
+            const fileName = document.getElementById('spesifikasiFileName');
+            
+            if (file) {
+                // Validate file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ukuran file terlalu besar. Maksimal 5MB.');
+                    e.target.value = '';
+                    preview.classList.add('hidden');
+                    return;
+                }
+                
+                // Show preview
+                fileName.textContent = file.name;
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+        });
+    }
+});
+
+// Function untuk remove file spesifikasi
+function removeSpesifikasiFile() {
+    document.getElementById('newProductSpesifikasiFile').value = '';
+    document.getElementById('spesifikasiFilePreview').classList.add('hidden');
+}
+</script>

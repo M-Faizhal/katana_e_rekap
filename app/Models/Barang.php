@@ -15,6 +15,7 @@ class Barang extends Model
         'nama_barang',
         'foto_barang',
         'spesifikasi',
+        'spesifikasi_file',
         'brand',
         'kategori',
         'satuan',
@@ -90,6 +91,35 @@ class Barang extends Model
             return true;
         }
         return false;
+    }
+
+    /**
+     * Get spesifikasi file URL
+     */
+    public function getSpesifikasiFileUrlAttribute()
+    {
+        if ($this->spesifikasi_file && Storage::disk('public')->exists($this->spesifikasi_file)) {
+            return asset('storage/' . $this->spesifikasi_file);
+        }
+
+        // Return null to indicate no file
+        return null;
+    }
+
+    /**
+     * Get spesifikasi file path for storage
+     */
+    public function getSpesifikasiFilePathAttribute()
+    {
+        return $this->spesifikasi_file;
+    }
+
+    /**
+     * Check if barang has spesifikasi file
+     */
+    public function hasSpesifikasiFile()
+    {
+        return $this->spesifikasi_file && Storage::disk('public')->exists($this->spesifikasi_file);
     }
 
     // Relationships

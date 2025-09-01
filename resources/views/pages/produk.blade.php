@@ -335,7 +335,39 @@
                     // Update modal content
                     document.getElementById('detailNoProduk').textContent = `PRD-${String(produk.id_barang).padStart(3, '0')}`;
                     document.getElementById('detailNamaBarang').textContent = produk.nama_barang;
-                    document.getElementById('detailSpesifikasi').textContent = produk.spesifikasi;
+                    
+                    // Handle specifications (text and file)
+                    const hasTextSpec = produk.spesifikasi && produk.spesifikasi.trim() !== '';
+                    const hasFileSpec = produk.spesifikasi_file && produk.spesifikasi_file.trim() !== '';
+                    
+                    const textContainer = document.getElementById('detailSpesifikasiTextContainer');
+                    const fileContainer = document.getElementById('detailSpesifikasiFileContainer');
+                    const noSpecContainer = document.getElementById('detailNoSpesifikasiContainer');
+                    
+                    if (hasTextSpec) {
+                        document.getElementById('detailSpesifikasi').textContent = produk.spesifikasi;
+                        textContainer.style.display = 'block';
+                    } else {
+                        textContainer.style.display = 'none';
+                    }
+                    
+                    if (hasFileSpec) {
+                        const fileLink = document.getElementById('detailSpesifikasiFileLink');
+                        const fileName = document.getElementById('detailSpesifikasiFileName');
+                        
+                        fileLink.href = `{{ asset('storage/') }}/${produk.spesifikasi_file}`;
+                        fileName.textContent = produk.spesifikasi_file.split('/').pop() || 'Download File';
+                        fileContainer.style.display = 'block';
+                    } else {
+                        fileContainer.style.display = 'none';
+                    }
+                    
+                    if (!hasTextSpec && !hasFileSpec) {
+                        noSpecContainer.style.display = 'block';
+                    } else {
+                        noSpecContainer.style.display = 'none';
+                    }
+                    
                     document.getElementById('detailKategori').textContent = produk.kategori;
                     document.getElementById('detailBrand').textContent = produk.brand;
                     document.getElementById('detailVendor').textContent = produk.vendor.nama_vendor;

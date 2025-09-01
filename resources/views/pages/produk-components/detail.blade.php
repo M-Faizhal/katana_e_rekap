@@ -80,12 +80,36 @@
                         <i class="fas fa-cogs text-red-600 mr-2"></i>
                         Spesifikasi
                     </h4>
-                    <div class="bg-white rounded-lg p-4 border">
+                    
+                    <!-- Text Specification -->
+                    <div id="detailSpesifikasiTextContainer" class="bg-white rounded-lg p-4 border mb-3" style="display: none;">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-file-text text-gray-500 mr-2"></i>
+                            <span class="text-sm font-medium text-gray-600">Spesifikasi Teks:</span>
+                        </div>
                         <p id="detailSpesifikasi" class="text-gray-700 leading-relaxed">
-                            Intel Core i7-1165G7 Processor, 16GB LPDDR4x RAM, 512GB PCIe NVMe SSD, 
-                            14" FHD (1920x1080) Anti-Glare Display, Intel Iris Xe Graphics, 
-                            WiFi 6, Bluetooth 5.1, Windows 11 Pro, 3 Year Warranty
+                            -
                         </p>
+                    </div>
+                    
+                    <!-- File Specification -->
+                    <div id="detailSpesifikasiFileContainer" class="bg-white rounded-lg p-4 border" style="display: none;">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-file text-blue-500 mr-2"></i>
+                                <span class="text-sm font-medium text-gray-600">File Spesifikasi:</span>
+                            </div>
+                            <a id="detailSpesifikasiFileLink" href="#" target="_blank" class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200">
+                                <i class="fas fa-download mr-2"></i>
+                                <span id="detailSpesifikasiFileName">Download File</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- No Specification -->
+                    <div id="detailNoSpesifikasiContainer" class="bg-white rounded-lg p-4 border text-center">
+                        <i class="fas fa-info-circle text-gray-400 text-2xl mb-2"></i>
+                        <p class="text-gray-500">Tidak ada spesifikasi tersedia</p>
                     </div>
                 </div>
 
@@ -135,7 +159,42 @@
         document.getElementById('detailProductImage').src = productData.gambar || 'https://via.placeholder.com/300';
         document.getElementById('detailNoProduk').textContent = productData.no_produk || '';
         document.getElementById('detailNamaBarang').textContent = productData.nama_barang || '';
-        document.getElementById('detailSpesifikasi').textContent = productData.spesifikasi || '';
+        
+        // Handle specifications - check if text or file
+        const textContainer = document.getElementById('detailSpesifikasiTextContainer');
+        const fileContainer = document.getElementById('detailSpesifikasiFileContainer');
+        const noSpecContainer = document.getElementById('detailNoSpesifikasiContainer');
+        
+        // Hide all containers first
+        textContainer.style.display = 'none';
+        fileContainer.style.display = 'none';
+        noSpecContainer.style.display = 'none';
+        
+        if (productData.file_spesifikasi) {
+            // Show file specification container
+            fileContainer.style.display = 'block';
+            
+            // Set download link and filename
+            const fileLink = document.getElementById('detailSpesifikasiFileLink');
+            const fileName = document.getElementById('detailSpesifikasiFileName');
+            
+            fileLink.href = productData.file_spesifikasi;
+            
+            // Extract filename from path or use default
+            const pathParts = productData.file_spesifikasi.split('/');
+            const extractedFileName = pathParts[pathParts.length - 1] || 'Download Spesifikasi';
+            fileName.textContent = extractedFileName;
+            
+        } else if (productData.spesifikasi) {
+            // Show text specification container
+            textContainer.style.display = 'block';
+            document.getElementById('detailSpesifikasi').textContent = productData.spesifikasi;
+            
+        } else {
+            // Show no specification container
+            noSpecContainer.style.display = 'block';
+        }
+        
         document.getElementById('detailNilaiTkdn').textContent = (productData.nilai_tkdn || 0) + '%';
         document.getElementById('detailTkdnBadge').textContent = (productData.nilai_tkdn || 0) + '%';
         

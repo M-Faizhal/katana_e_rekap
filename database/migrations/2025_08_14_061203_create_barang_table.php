@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('nama_barang');
             $table->string('foto_barang')->nullable(); // Assuming foto_barang can be nullable
             $table->string('brand');
-            $table->text('spesifikasi');
+            $table->text('spesifikasi')->nullable();
+            $table->string('spesifikasi_file')->nullable(); // File spesifikasi sebagai alternatif teks
             $table->enum('kategori', ['Elektronik', 'Meubel', 'Mesin', 'Lain-lain'])->nullable(); // Assuming this is the intended enum
             $table->string('satuan');
             $table->decimal('harga_vendor', 15, 2);

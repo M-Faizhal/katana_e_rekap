@@ -83,6 +83,7 @@ class VendorController extends Controller
                     'barang.*.kategori' => 'required|in:Elektronik,Meubel,Mesin,Lain-lain',
                     'barang.*.satuan' => 'required|string|max:255',
                     'barang.*.spesifikasi' => 'nullable|string',
+                    'barang.*.spesifikasi_file' => 'nullable|file|mimes:pdf,doc,docx,txt,xls,xlsx|max:5120',
                     'barang.*.harga_vendor' => 'required|numeric|min:0',
                     'barang.*.foto_barang' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
                 ]);
@@ -131,15 +132,27 @@ class VendorController extends Controller
                     }
 
                     $fotoPath = null;
+                    $spesifikasiFilePath = null;
                     
                     // Handle foto upload
                     if ($request->hasFile("barang.{$index}.foto_barang")) {
                         try {
                             $foto = $request->file("barang.{$index}.foto_barang");
-                            $fotoPath = $foto->store('barang', 'public');
+                            $fotoPath = $foto->store('barang/foto', 'public');
                         } catch (\Exception $e) {
                             // Continue without photo if upload fails
                             Log::error('Failed to upload photo for barang: ' . $e->getMessage());
+                        }
+                    }
+
+                    // Handle spesifikasi file upload
+                    if ($request->hasFile("barang.{$index}.spesifikasi_file")) {
+                        try {
+                            $spesifikasiFile = $request->file("barang.{$index}.spesifikasi_file");
+                            $spesifikasiFilePath = $spesifikasiFile->store('barang/spesifikasi', 'public');
+                        } catch (\Exception $e) {
+                            // Continue without spesifikasi file if upload fails
+                            Log::error('Failed to upload spesifikasi file for barang: ' . $e->getMessage());
                         }
                     }
 
@@ -150,6 +163,7 @@ class VendorController extends Controller
                         'kategori' => $barangData['kategori'],
                         'satuan' => $barangData['satuan'],
                         'spesifikasi' => $barangData['spesifikasi'] ?? '',
+                        'spesifikasi_file' => $spesifikasiFilePath,
                         'harga_vendor' => $barangData['harga_vendor'],
                         'foto_barang' => $fotoPath,
                     ]);
@@ -224,7 +238,8 @@ class VendorController extends Controller
             'barang.*.brand' => 'required_with:barang|string|max:255',
             'barang.*.kategori' => 'required_with:barang|in:Elektronik,Meubel,Mesin,Lain-lain',
             'barang.*.satuan' => 'required_with:barang|string|max:255',
-            'barang.*.spesifikasi' => 'nullable|string', // FIXED: Changed from required_with:barang to nullable
+            'barang.*.spesifikasi' => 'nullable|string',
+            'barang.*.spesifikasi_file' => 'nullable|file|mimes:pdf,doc,docx,txt,xls,xlsx|max:5120',
             'barang.*.harga_vendor' => 'required_with:barang|numeric|min:0',
             'barang.*.foto_barang' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
@@ -249,11 +264,18 @@ class VendorController extends Controller
 
                 foreach ($request->barang as $index => $barangData) {
                     $fotoPath = null;
+                    $spesifikasiFilePath = null;
                     
                     // Handle foto upload
                     if ($request->hasFile("barang.{$index}.foto_barang")) {
                         $foto = $request->file("barang.{$index}.foto_barang");
-                        $fotoPath = $foto->store('barang', 'public');
+                        $fotoPath = $foto->store('barang/foto', 'public');
+                    }
+
+                    // Handle spesifikasi file upload
+                    if ($request->hasFile("barang.{$index}.spesifikasi_file")) {
+                        $spesifikasiFile = $request->file("barang.{$index}.spesifikasi_file");
+                        $spesifikasiFilePath = $spesifikasiFile->store('barang/spesifikasi', 'public');
                     }
 
                     if (isset($barangData['id_barang']) && $barangData['id_barang']) {
@@ -265,7 +287,7 @@ class VendorController extends Controller
                             'brand' => $barangData['brand'],
                             'kategori' => $barangData['kategori'],
                             'satuan' => $barangData['satuan'],
-                            'spesifikasi' => $barangData['spesifikasi'] ?? '', // Handle nullable field properly
+                            'spesifikasi' => $barangData['spesifikasi'] ?? '',
                             'harga_vendor' => $barangData['harga_vendor'],
                         ];
 
@@ -275,6 +297,14 @@ class VendorController extends Controller
                                 Storage::disk('public')->delete($barang->foto_barang);
                             }
                             $updateData['foto_barang'] = $fotoPath;
+                        }
+
+                        if ($spesifikasiFilePath) {
+                            // Delete old spesifikasi file if exists
+                            if ($barang->spesifikasi_file) {
+                                Storage::disk('public')->delete($barang->spesifikasi_file);
+                            }
+                            $updateData['spesifikasi_file'] = $spesifikasiFilePath;
                         }
 
                         $barang->update($updateData);
@@ -287,7 +317,8 @@ class VendorController extends Controller
                             'brand' => $barangData['brand'],
                             'kategori' => $barangData['kategori'],
                             'satuan' => $barangData['satuan'],
-                            'spesifikasi' => $barangData['spesifikasi'] ?? '', // Handle nullable field properly
+                            'spesifikasi' => $barangData['spesifikasi'] ?? '',
+                            'spesifikasi_file' => $spesifikasiFilePath,
                             'harga_vendor' => $barangData['harga_vendor'],
                             'foto_barang' => $fotoPath,
                         ]);
@@ -303,6 +334,9 @@ class VendorController extends Controller
                         if ($barang->foto_barang) {
                             Storage::disk('public')->delete($barang->foto_barang);
                         }
+                        if ($barang->spesifikasi_file) {
+                            Storage::disk('public')->delete($barang->spesifikasi_file);
+                        }
                     }
                     Barang::whereIn('id_barang', $barangToDelete)->delete();
                 }
@@ -312,6 +346,9 @@ class VendorController extends Controller
                 foreach ($barangItems as $barang) {
                     if ($barang->foto_barang) {
                         Storage::disk('public')->delete($barang->foto_barang);
+                    }
+                    if ($barang->spesifikasi_file) {
+                        Storage::disk('public')->delete($barang->spesifikasi_file);
                     }
                 }
                 $vendor->barang()->delete();
@@ -352,10 +389,13 @@ class VendorController extends Controller
         try {
             $vendor = Vendor::with('barang')->findOrFail($id);
 
-            // Delete all barang photos
+            // Delete all barang photos and spesifikasi files
             foreach ($vendor->barang as $barang) {
                 if ($barang->foto_barang) {
                     Storage::disk('public')->delete($barang->foto_barang);
+                }
+                if ($barang->spesifikasi_file) {
+                    Storage::disk('public')->delete($barang->spesifikasi_file);
                 }
             }
 

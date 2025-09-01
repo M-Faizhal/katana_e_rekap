@@ -442,6 +442,11 @@ function submitTambahVendor() {
             console.log(`Adding photo for product ${index}:`, product.foto_barang.name);
             formData.append(`barang[${index}][foto_barang]`, product.foto_barang);
         }
+        
+        if (product.spesifikasi_file && product.spesifikasi_file instanceof File) {
+            console.log(`Adding spesifikasi file for product ${index}:`, product.spesifikasi_file.name);
+            formData.append(`barang[${index}][spesifikasi_file]`, product.spesifikasi_file);
+        }
     });
     
     fetch('/purchasing/vendor', {
@@ -590,6 +595,10 @@ function submitEditVendor() {
             
             if (product.foto_barang && product.foto_barang instanceof File) {
                 formData.append(`barang[${validProductCount}][foto_barang]`, product.foto_barang);
+            }
+            
+            if (product.spesifikasi_file && product.spesifikasi_file instanceof File) {
+                formData.append(`barang[${validProductCount}][spesifikasi_file]`, product.spesifikasi_file);
             }
             
             validProductCount++;
@@ -783,6 +792,7 @@ function addProductToVendor() {
     const spesifikasi = document.getElementById('newProductSpesifikasi')?.value.trim();
     const hargaVendor = document.getElementById('newProductHarga')?.value;
     const fotoInput = document.getElementById('newProductFoto');
+    const spesifikasiFileInput = document.getElementById('newProductSpesifikasiFile');
     
     if (!namaBarang || !brand || !kategori || !satuan || !hargaVendor) {
         showToast('Semua field produk yang wajib harus diisi!', 'error');
@@ -796,7 +806,8 @@ function addProductToVendor() {
         satuan: satuan,
         spesifikasi: spesifikasi || '',
         harga_vendor: parseFloat(hargaVendor),
-        foto_barang: fotoInput.files[0] || null
+        foto_barang: fotoInput.files[0] || null,
+        spesifikasi_file: spesifikasiFileInput.files[0] || null
     };
     
     vendorProducts.push(product);
@@ -815,6 +826,7 @@ function addProductToEditVendor() {
     const spesifikasi = document.getElementById('editNewProductSpesifikasi')?.value.trim();
     const hargaVendor = document.getElementById('editNewProductHarga')?.value;
     const fotoInput = document.getElementById('editNewProductFoto');
+    const spesifikasiFileInput = document.getElementById('editNewProductSpesifikasiFile');
     
     if (!namaBarang || !brand || !kategori || !satuan || !hargaVendor) {
         showToast('Semua field produk harus diisi!', 'error');
@@ -828,7 +840,8 @@ function addProductToEditVendor() {
         satuan: satuan,
         spesifikasi: spesifikasi || '',
         harga_vendor: parseFloat(hargaVendor),
-        foto_barang: fotoInput.files[0] || null
+        foto_barang: fotoInput.files[0] || null,
+        spesifikasi_file: spesifikasiFileInput.files[0] || null
     };
     
     editVendorProducts.push(product);
@@ -887,7 +900,8 @@ function updateVendorProductList() {
                             <i class="fas fa-money-bill-wave mr-1"></i>
                             Rp ${Number(product.harga_vendor).toLocaleString('id-ID')}
                         </p>
-                        ${product.spesifikasi ? `<p class="text-xs text-gray-600 mt-1">${product.spesifikasi}</p>` : ''}
+                        ${product.spesifikasi ? `<p class="text-xs text-gray-600 mt-1"><i class="fas fa-file-text mr-1"></i>${product.spesifikasi}</p>` : ''}
+                        ${product.spesifikasi_file ? `<p class="text-xs text-blue-600 mt-1"><i class="fas fa-file mr-1"></i>File spesifikasi: ${product.spesifikasi_file.name}</p>` : ''}
                     </div>
                 </div>
             </div>
@@ -1263,19 +1277,41 @@ function exportProductList() {
 }
 
 function clearProductForm() {
-    const fields = ['newProductName', 'newProductBrand', 'newProductKategori', 'newProductSatuan', 'newProductSpesifikasi', 'newProductHarga', 'newProductFoto'];
+    const fields = ['newProductName', 'newProductBrand', 'newProductKategori', 'newProductSatuan', 'newProductSpesifikasi', 'newProductHarga', 'newProductFoto', 'newProductSpesifikasiFile'];
     fields.forEach(field => {
         const element = document.getElementById(field);
         if (element) element.value = '';
     });
+    
+    // Reset spesifikasi input to text mode
+    const textRadio = document.querySelector('input[name="spesifikasi_type"][value="text"]');
+    if (textRadio) {
+        textRadio.checked = true;
+        toggleSpesifikasiInput('text');
+    }
+    
+    // Hide file preview
+    const filePreview = document.getElementById('spesifikasiFilePreview');
+    if (filePreview) filePreview.classList.add('hidden');
 }
 
 function clearEditProductForm() {
-    const fields = ['editNewProductName', 'editNewProductBrand', 'editNewProductKategori', 'editNewProductSatuan', 'editNewProductSpesifikasi', 'editNewProductHarga', 'editNewProductFoto'];
+    const fields = ['editNewProductName', 'editNewProductBrand', 'editNewProductKategori', 'editNewProductSatuan', 'editNewProductSpesifikasi', 'editNewProductHarga', 'editNewProductFoto', 'editNewProductSpesifikasiFile'];
     fields.forEach(field => {
         const element = document.getElementById(field);
         if (element) element.value = '';
     });
+    
+    // Reset spesifikasi input to text mode
+    const textRadio = document.querySelector('input[name="edit_spesifikasi_type"][value="text"]');
+    if (textRadio) {
+        textRadio.checked = true;
+        toggleEditSpesifikasiInput('text');
+    }
+    
+    // Hide file preview
+    const filePreview = document.getElementById('editSpesifikasiFilePreview');
+    if (filePreview) filePreview.classList.add('hidden');
     
     // Reset edit mode if active
     if (editProductIndex >= 0) {
