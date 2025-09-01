@@ -120,7 +120,11 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Instansi</label>
                 <select id="instansi-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Semua Instansi</option>
-                    <!-- Options will be populated dynamically -->
+                    @foreach($piutangDinas->unique('proyek.instansi')->filter(function($item) { return $item->proyek && $item->proyek->instansi; }) as $piutang)
+                        <option value="{{ $piutang->proyek->instansi }}" {{ request('instansi') == $piutang->proyek->instansi ? 'selected' : '' }}>
+                            {{ $piutang->proyek->instansi }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
 
@@ -188,7 +192,18 @@
                         {{ $piutang->proyek->instansi ?? '-' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        Rp {{ number_format($piutang->sisa_pembayaran ?? 0, 0, ',', '.') }}
+                        @php
+                            $nominal = $piutang->sisa_pembayaran;
+                            if ($nominal >= 1000000000) {
+                                echo 'Rp ' . number_format($nominal / 1000000000, 1, ',', '.') . ' M';
+                            } elseif ($nominal >= 1000000) {
+                                echo 'Rp ' . number_format($nominal / 1000000, 1, ',', '.') . ' jt';
+                            } elseif ($nominal >= 1000) {
+                                echo 'Rp ' . number_format($nominal / 1000, 1, ',', '.') . ' rb';
+                            } else {
+                                echo 'Rp ' . number_format($nominal, 0, ',', '.');
+                            }
+                        @endphp
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $piutang->tanggal_jatuh_tempo ? \Carbon\Carbon::parse($piutang->tanggal_jatuh_tempo)->format('d/m/Y') : '-' }}

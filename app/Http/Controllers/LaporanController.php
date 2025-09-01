@@ -704,16 +704,54 @@ class LaporanController extends Controller
      */
     private function getPiutangDinasStatistics()
     {
-        $totalPiutang = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
-            ->sum('sisa_pembayaran');
+        // Hitung piutang berdasarkan penawaran ACC yang proyeknya belum selesai pembayaran
+        // Mirip dengan logic di controller penagihan dinas
+        $piutangData = Penawaran::with(['proyek', 'penagihanDinas'])
+            ->where('status', 'ACC')
+            ->whereHas('proyek', function($query) {
+                $query->whereIn('status', ['Pembayaran', 'Pengiriman']); // Proyek yang belum selesai
+            })
+            ->get();
 
-        $piutangJatuhTempo = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
-            ->where('tanggal_jatuh_tempo', '<', Carbon::now())
-            ->sum('sisa_pembayaran');
+        $totalPiutang = 0;
+        $piutangJatuhTempo = 0;
 
-        $jumlahProyekBelumLunas = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
-            ->distinct('proyek_id')
-            ->count();
+        foreach ($piutangData as $penawaran) {
+            $totalPenawaran = $penawaran->total_penawaran;
+            
+            // Hitung yang sudah dibayar dari penagihan dinas
+            $totalDibayar = 0;
+            $hasValidPenagihan = false;
+            
+            if ($penawaran->penagihanDinas && is_object($penawaran->penagihanDinas)) {
+                $penagihan = $penawaran->penagihanDinas;
+                $hasValidPenagihan = true;
+                
+                if ($penagihan->status_pembayaran == 'lunas') {
+                    $totalDibayar = $penagihan->total_harga;
+                } elseif ($penagihan->status_pembayaran == 'dp') {
+                    $totalDibayar = $penagihan->jumlah_dp ?? 0;
+                }
+            }
+
+            $sisaPiutang = $totalPenawaran - $totalDibayar;
+            
+            // Untuk penawaran yang belum memiliki penagihan dinas, tetap dihitung sebagai piutang penuh
+            // Untuk yang sudah ada penagihan dinas, hitung sisanya
+            if ($sisaPiutang > 0) {
+                $totalPiutang += $sisaPiutang;
+
+                // Cek jatuh tempo dari penagihan dinas yang terkait
+                if ($hasValidPenagihan && 
+                    in_array($penawaran->penagihanDinas->status_pembayaran, ['dp', 'belum_bayar']) &&
+                    $penawaran->penagihanDinas->tanggal_jatuh_tempo < Carbon::now()) {
+                    $piutangJatuhTempo += $sisaPiutang;
+                }
+            }
+        }
+
+        // Jumlah proyek yang memiliki piutang
+        $jumlahProyekBelumLunas = $piutangData->where('total_penawaran', '>', 0)->count();
 
         return [
             'total_piutang' => $totalPiutang ?? 0,
@@ -728,14 +766,112 @@ class LaporanController extends Controller
      */
     private function getPiutangDinasList(Request $request)
     {
-        return PenagihanDinas::with(['proyek'])
-            ->where('status_pembayaran', '!=', 'lunas')
-            ->select(
-                'penagihan_dinas.*',
-                DB::raw('DATEDIFF(NOW(), tanggal_jatuh_tempo) as hari_telat')
-            )
-            ->orderBy('tanggal_jatuh_tempo', 'asc')
-            ->paginate(15);
+        // Ambil data piutang berdasarkan penawaran ACC seperti di controller penagihan dinas
+        $query = Penawaran::with(['proyek', 'penagihanDinas'])
+            ->where('status', 'ACC')
+            ->whereHas('proyek', function($q) {
+                $q->whereIn('status', ['Pembayaran', 'Pengiriman']); // Proyek yang belum selesai
+            });
+
+        // Apply filters
+        if ($request->filled('status')) {
+            if ($request->status == 'pending') {
+                $query->whereHas('penagihanDinas', function($q) {
+                    $q->where('status_pembayaran', 'belum_bayar');
+                });
+            } elseif ($request->status == 'partial') {
+                $query->whereHas('penagihanDinas', function($q) {
+                    $q->where('status_pembayaran', 'dp');
+                });
+            } elseif ($request->status == 'overdue') {
+                $query->whereHas('penagihanDinas', function($q) {
+                    $q->where('tanggal_jatuh_tempo', '<', Carbon::now())
+                      ->whereIn('status_pembayaran', ['dp', 'belum_bayar']);
+                });
+            }
+        }
+
+        if ($request->filled('instansi')) {
+            $query->whereHas('proyek', function($q) use ($request) {
+                $q->where('instansi', 'like', '%' . $request->instansi . '%');
+            });
+        }
+
+        if ($request->filled('nominal')) {
+            switch ($request->nominal) {
+                case '0-10jt':
+                    $query->where('total_penawaran', '<=', 10000000);
+                    break;
+                case '10-50jt':
+                    $query->whereBetween('total_penawaran', [10000001, 50000000]);
+                    break;
+                case '50-100jt':
+                    $query->whereBetween('total_penawaran', [50000001, 100000000]);
+                    break;
+                case '100jt+':
+                    $query->where('total_penawaran', '>', 100000000);
+                    break;
+            }
+        }
+
+        $penawaran = $query->get();
+
+        // Transform data untuk tampilan
+        $piutangData = collect();
+        foreach ($penawaran as $item) {
+            $totalPenawaran = $item->total_penawaran;
+            
+            // Hitung yang sudah dibayar
+            $totalDibayar = 0;
+            $statusTerbaru = 'belum_bayar';
+            $jatuhTempo = null;
+            
+            if ($item->penagihanDinas && is_object($item->penagihanDinas)) {
+                $penagihan = $item->penagihanDinas;
+                if ($penagihan->status_pembayaran == 'lunas') {
+                    $totalDibayar = $penagihan->total_harga;
+                } elseif ($penagihan->status_pembayaran == 'dp') {
+                    $totalDibayar = $penagihan->jumlah_dp ?? 0;
+                    $statusTerbaru = 'dp';
+                }
+                
+                $jatuhTempo = $penagihan->tanggal_jatuh_tempo;
+            }
+
+            $sisaPembayaran = $totalPenawaran - $totalDibayar;
+            
+            // Tampilkan semua penawaran yang masih memiliki sisa pembayaran > 0
+            if ($sisaPembayaran > 0) {
+                $piutangData->push((object) [
+                    'id' => $item->id_penawaran,
+                    'nomor_invoice' => $item->no_penawaran,
+                    'proyek' => $item->proyek,
+                    'total_harga' => $totalPenawaran,
+                    'sisa_pembayaran' => $sisaPembayaran,
+                    'status_pembayaran' => $statusTerbaru,
+                    'tanggal_jatuh_tempo' => $jatuhTempo,
+                    'hari_telat' => $jatuhTempo && $jatuhTempo < Carbon::now() 
+                        ? Carbon::now()->diffInDays(Carbon::parse($jatuhTempo)) 
+                        : 0
+                ]);
+            }
+        }
+
+        // Manual pagination
+        $page = $request->get('page', 1);
+        $perPage = 15;
+        $total = $piutangData->count();
+        $items = $piutangData->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return $paginator;
     }
 
     /**
