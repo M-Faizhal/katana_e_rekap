@@ -16,6 +16,11 @@ class VerifikasiProyekController extends Controller
 {
     public function index()
     {
+        // Check authorization
+        $user = Auth::user();
+        if (!($user->role === 'superadmin' || ($user->role === 'admin_marketing' && $user->jabatan === 'manager_marketing'))) {
+            abort(403, 'Access denied. Only Superadmin and Manager Marketing can access this resource.');
+        }
         // Ambil proyek yang memenuhi kriteria:
         // 1. Semua barang vendor sudah sampai (semua pengiriman verified atau sampai tujuan)
         // 2. Pembayaran dinas sudah lunas
@@ -52,6 +57,12 @@ class VerifikasiProyekController extends Controller
 
     public function show($id)
     {
+        // Check authorization
+        $user = Auth::user();
+        if (!($user->role === 'superadmin' || ($user->role === 'admin_marketing' && $user->jabatan === 'manager_marketing'))) {
+            abort(403, 'Access denied. Only Superadmin and Manager Marketing can access this resource.');
+        }
+
         $proyek = Proyek::with([
             'semuaPenawaran' => function($query) {
                 $query->where('status', 'ACC')->with([
@@ -105,6 +116,12 @@ class VerifikasiProyekController extends Controller
 
     public function verify(Request $request, $id)
     {
+        // Check authorization
+        $user = Auth::user();
+        if (!($user->role === 'superadmin' || ($user->role === 'admin_marketing' && $user->jabatan === 'manager_marketing'))) {
+            abort(403, 'Access denied. Only Superadmin and Manager Marketing can access this resource.');
+        }
+
         $request->validate([
             'action' => 'required|in:selesai,gagal',
             'catatan_verifikasi' => 'nullable|string|max:1000'
@@ -164,6 +181,12 @@ class VerifikasiProyekController extends Controller
 
     public function history()
     {
+        // Check authorization
+        $user = Auth::user();
+        if (!($user->role === 'superadmin' || ($user->role === 'admin_marketing' && $user->jabatan === 'manager_marketing'))) {
+            abort(403, 'Access denied. Only Superadmin and Manager Marketing can access this resource.');
+        }
+
         $historyVerifikasi = Proyek::with([
             'semuaPenawaran' => function($query) {
                 $query->where('status', 'ACC')->with(['penawaranDetail']);

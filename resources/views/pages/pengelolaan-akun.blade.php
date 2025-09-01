@@ -129,10 +129,24 @@
                                                 'admin_purchasing' => 'Admin Purchasing',
                                                 'admin_keuangan' => 'Admin Keuangan'
                                             ];
+                                            $jabatanNames = [
+                                                'direktur' => 'Direktur',
+                                                'manager_marketing' => 'Manager Marketing',
+                                                'staf_marketing' => 'Staf Marketing',
+                                                'admin_marketing' => 'Admin Marketing',
+                                                'staf_purchasing' => 'Staf Purchasing',
+                                                'admin_keuangan_hr' => 'Admin Keuangan & HR',
+                                                'staf_keuangan' => 'Staf Keuangan'
+                                            ];
                                         @endphp
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">
                                             {{ $roleNames[$user->role] ?? $user->role }}
                                         </span>
+                                        @if($user->jabatan)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            {{ $jabatanNames[$user->jabatan] ?? $user->jabatan }}
+                                        </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -166,6 +180,7 @@
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jabatan</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
@@ -210,10 +225,28 @@
                                         'admin_purchasing' => 'Admin Purchasing',
                                         'admin_keuangan' => 'Admin Keuangan'
                                     ];
+                                    $jabatanNames = [
+                                        'direktur' => 'Direktur',
+                                        'manager_marketing' => 'Manager Marketing',
+                                        'staf_marketing' => 'Staf Marketing',
+                                        'admin_marketing' => 'Admin Marketing',
+                                        'staf_purchasing' => 'Staf Purchasing',
+                                        'admin_keuangan_hr' => 'Admin Keuangan & HR',
+                                        'staf_keuangan' => 'Staf Keuangan'
+                                    ];
                                 @endphp
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800' }}">
                                     {{ $roleNames[$user->role] ?? $user->role }}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($user->jabatan)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    {{ $jabatanNames[$user->jabatan] ?? $user->jabatan }}
+                                </span>
+                                @else
+                                <span class="text-gray-400 text-sm">-</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-2">
@@ -230,7 +263,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center">
+                            <td colspan="6" class="px-6 py-12 text-center">
                                 <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
                                 <p class="text-gray-500">Belum ada pengguna terdaftar.</p>
                             </td>
@@ -304,6 +337,22 @@
                         <option value="admin_marketing">Admin Marketing</option>
                         <option value="admin_purchasing">Admin Purchasing</option>
                         <option value="admin_keuangan">Admin Keuangan</option>
+                    </select>
+                </div>
+
+                <!-- Jabatan -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Jabatan</label>
+                    <select id="jabatan" name="jabatan"
+                            class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base">
+                        <option value="">Pilih Jabatan</option>
+                        <option value="direktur">Direktur</option>
+                        <option value="manager_marketing">Manager Marketing</option>
+                        <option value="staf_marketing">Staf Marketing</option>
+                        <option value="admin_marketing">Admin Marketing</option>
+                        <option value="staf_purchasing">Staf Purchasing</option>
+                        <option value="admin_keuangan_hr">Admin Keuangan & HR</option>
+                        <option value="staf_keuangan">Staf Keuangan</option>
                     </select>
                 </div>
 
@@ -420,6 +469,22 @@
                         <option value="admin_marketing">Admin Marketing</option>
                         <option value="admin_purchasing">Admin Purchasing</option>
                         <option value="admin_keuangan">Admin Keuangan</option>
+                    </select>
+                </div>
+
+                <!-- Jabatan -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Jabatan</label>
+                    <select id="edit_jabatan" name="jabatan"
+                            class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base">
+                        <option value="">Pilih Jabatan</option>
+                        <option value="direktur">Direktur</option>
+                        <option value="manager_marketing">Manager Marketing</option>
+                        <option value="staf_marketing">Staf Marketing</option>
+                        <option value="admin_marketing">Admin Marketing</option>
+                        <option value="staf_purchasing">Staf Purchasing</option>
+                        <option value="admin_keuangan_hr">Admin Keuangan & HR</option>
+                        <option value="staf_keuangan">Staf Keuangan</option>
                     </select>
                 </div>
 
@@ -572,6 +637,7 @@ function openEditUserModal(userId) {
                 document.getElementById('edit_username').value = user.username;
                 document.getElementById('edit_email').value = user.email;
                 document.getElementById('edit_role').value = user.role;
+                document.getElementById('edit_jabatan').value = user.jabatan || '';
 
                 // Reset password fields
                 document.getElementById('edit_password').value = '';

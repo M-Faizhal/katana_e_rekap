@@ -134,7 +134,7 @@
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                         </svg>
-                                        Email tidak dapat diubah
+                                        Email tidak dapat diubah, Hubungi Direktur untuk Mengubahnya
                                     </p>
                                 </div>
 
@@ -146,7 +146,49 @@
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                         </svg>
-                                        Role tidak dapat diubah
+                                        Role tidak dapat diubah, Hubungi Direktur untuk Mengubahnya
+                                    </p>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-semibold text-gray-700">Jabatan</label>
+                                    <div class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-600 flex items-center">
+                                        @if($user->jabatan)
+                                        @php
+                                        $jabatanLabels = [
+                                            'manager_marketing' => 'Manager Marketing',
+                                            'staf_marketing' => 'Staf Marketing', 
+                                            'manager_purchasing' => 'Manager Purchasing',
+                                            'staf_purchasing' => 'Staf Purchasing',
+                                            'manager_keuangan' => 'Manager Keuangan',
+                                            'staf_keuangan' => 'Staf Keuangan',
+                                            'direktur' => 'Direktur',
+                                            'admin_sistem' => 'Admin Sistem'
+                                        ];
+                                        
+                                        $jabatanColors = [
+                                            'manager_marketing' => 'bg-purple-100 text-purple-800',
+                                            'staf_marketing' => 'bg-purple-50 text-purple-700',
+                                            'manager_purchasing' => 'bg-green-100 text-green-800', 
+                                            'staf_purchasing' => 'bg-green-50 text-green-700',
+                                            'manager_keuangan' => 'bg-blue-100 text-blue-800',
+                                            'staf_keuangan' => 'bg-blue-50 text-blue-700',
+                                            'direktur' => 'bg-red-100 text-red-800',
+                                            'admin_sistem' => 'bg-gray-100 text-gray-800'
+                                        ];
+                                        @endphp
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $jabatanColors[$user->jabatan] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $jabatanLabels[$user->jabatan] ?? ucfirst(str_replace('_', ' ', $user->jabatan)) }}
+                                        </span>
+                                        @else
+                                        <span class="text-gray-500">-</span>
+                                        @endif
+                                    </div>
+                                    <p class="text-xs text-gray-500 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                        Jabatan tidak dapat diubah, Hubungi Direktur untuk Mengubahnya
                                     </p>
                                 </div>
 

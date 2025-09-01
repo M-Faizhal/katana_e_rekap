@@ -9,7 +9,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">History Verifikasi Proyek</h1>
-                <p class="text-gray-600 mt-1">Riwayat semua proyek yang telah diverifikasi oleh superadmin</p>
+                <p class="text-gray-600 mt-1">Riwayat semua proyek yang telah diverifikasi</p>
             </div>
             <div class="flex items-center space-x-3">
                 <a href="{{ route('superadmin.verifikasi-proyek') }}" 
@@ -49,7 +49,7 @@
     <div class="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
         <i class="fas fa-history text-gray-400 text-4xl mb-4"></i>
         <h4 class="text-gray-800 font-medium text-lg">Belum Ada History Verifikasi</h4>
-        <p class="text-gray-600 text-sm mt-1">Belum ada proyek yang diverifikasi oleh superadmin.</p>
+        <p class="text-gray-600 text-sm mt-1">Belum ada proyek yang telah diverifikasi.</p>
     </div>
     @else
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -105,8 +105,16 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm text-gray-900">Super Administrator</div>
-                            <div class="text-xs text-gray-500">System</div>
+                            @php
+                                $verifikator = 'System';
+                                if (auth()->user()->role === 'superadmin') {
+                                    $verifikator = 'Super Administrator';
+                                } elseif (auth()->user()->role === 'admin_marketing' && auth()->user()->jabatan === 'manager_marketing') {
+                                    $verifikator = 'Manager Marketing';
+                                }
+                            @endphp
+                            <div class="text-sm text-gray-900">{{ $verifikator }}</div>
+                            <div class="text-xs text-gray-500">Authorized Verifier</div>
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900">

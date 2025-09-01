@@ -19,7 +19,7 @@
         <div class="hidden lg:flex items-center space-x-4">
             <div class="text-gray-800">
                 <h2 class="text-lg font-semibold">Selamat Datang, {{ auth()->check() ? auth()->user()->nama : 'Guest' }}</h2>
-                <p class="text-sm text-gray-600">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->role)) : 'Pengunjung' }}</p>
+                <p class="text-sm text-gray-600">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->jabatan)) : 'Pengunjung' }}</p>
             </div>
         </div>
 
@@ -49,7 +49,7 @@
                     </div>
                     <div class="hidden md:block text-left">
                         <p class="font-semibold text-sm">{{ auth()->check() ? auth()->user()->nama : 'Guest' }}</p>
-                        <p class="text-xs text-gray-500">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->role)) : 'Pengunjung' }}</p>
+                        <p class="text-xs text-gray-500">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->jabatan)) : 'Pengunjung' }}</p>
                     </div>
                     <i class="fas fa-chevron-down text-xs lg:text-sm"></i>
                 </button>
@@ -59,7 +59,7 @@
                     <div class="px-4 py-3 border-b border-gray-100">
                         <p class="font-semibold text-gray-800">{{ auth()->check() ? auth()->user()->nama : 'Guest' }}</p>
                         <p class="text-sm text-gray-500">{{ auth()->check() ? auth()->user()->email : '' }}</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->role)) : 'Pengunjung' }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ auth()->check() ? ucfirst(str_replace('_', ' ', auth()->user()->jabatan)) : 'Pengunjung' }}</p>
                     </div>
 
                     <a href="{{ route('pengaturan') }}" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">

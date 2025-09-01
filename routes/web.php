@@ -170,8 +170,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'show'])->name('pengelolaan.akun.show');
         Route::put('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'update'])->name('pengelolaan.akun.update');
         Route::delete('/pengelolaan-akun/{user}', [PengelolaanAkun::class, 'destroy'])->name('pengelolaan.akun.destroy');
+    });
 
-        // Verifikasi Proyek Routes
+    // Verifikasi Proyek Routes - Accessible by Superadmin and Manager Marketing
+    Route::middleware('auth')->group(function () {
         Route::get('/verifikasi-proyek', [VerifikasiProyekController::class, 'index'])->name('superadmin.verifikasi-proyek');
         Route::get('/verifikasi-proyek/{id}', [VerifikasiProyekController::class, 'show'])->name('superadmin.verifikasi-proyek.detail');
         Route::put('/verifikasi-proyek/{id}/verify', [VerifikasiProyekController::class, 'verify'])->name('superadmin.verifikasi-proyek.verify');

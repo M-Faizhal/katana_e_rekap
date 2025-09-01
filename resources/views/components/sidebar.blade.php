@@ -170,8 +170,10 @@
                     <span class="font-medium">Pengelolaan Akun</span>
                 </a>
             </li>
+            @endif
 
             <!-- Verifikasi Proyek -->
+            @if(auth()->check() && (auth()->user()->role === 'superadmin' || (auth()->user()->role === 'admin_marketing' && auth()->user()->jabatan === 'manager_marketing')))
             <li>
                 <a href="{{ route('superadmin.verifikasi-proyek') }}"
                    class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('superadmin.verifikasi-proyek*') ? 'bg-red-200 text-red-800' : '' }}">
@@ -201,8 +203,6 @@
                     @endif
                 </a>
             </li>
-
-          
             @endif
         </ul>
     </nav>
@@ -407,6 +407,17 @@
                    class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('pengelolaan.akun') ? 'bg-red-200 text-red-800' : '' }}">
                     <i class="fas fa-users-cog w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
                     <span class="font-medium">Pengelolaan Akun</span>
+                </a>
+            </li>
+            @endif
+
+            <!-- Verifikasi Proyek -->
+            @if(auth()->check() && (auth()->user()->role === 'superadmin' || (auth()->user()->role === 'admin_marketing' && auth()->user()->jabatan === 'manager_marketing')))
+            <li>
+                <a href="{{ route('superadmin.verifikasi-proyek') }}" onclick="closeMobileMenu()"
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('superadmin.verifikasi-proyek*') ? 'bg-red-200 text-red-800' : '' }}">
+                    <i class="fas fa-check-double w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="font-medium">Verifikasi Proyek</span>
                 </a>
             </li>
             @endif

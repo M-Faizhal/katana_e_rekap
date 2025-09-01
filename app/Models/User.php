@@ -28,6 +28,7 @@ class User extends Authenticatable
         'alamat',
         'password',
         'role',
+        'jabatan',
         'foto',
     ];
 
@@ -102,6 +103,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has specific jabatan
+     */
+    public function hasJabatan($jabatan)
+    {
+        return $this->jabatan === $jabatan;
+    }
+
+    /**
+     * Check if user is Manager Marketing
+     */
+    public function isManagerMarketing()
+    {
+        return $this->jabatan === 'manager_marketing';
+    }
+
+    /**
+     * Check if user can verify projects (Manager Marketing only)
+     */
+    public function canVerifyProjects()
+    {
+        return $this->isManagerMarketing();
+    }
+
+    /**
      * Get available roles
      */
     public static function getAvailableRoles()
@@ -111,6 +136,22 @@ class User extends Authenticatable
             'admin_marketing' => 'Admin Marketing',
             'admin_purchasing' => 'Admin Purchasing',
             'admin_keuangan' => 'Admin Keuangan',
+        ];
+    }
+
+    /**
+     * Get available jabatan
+     */
+    public static function getAvailableJabatan()
+    {
+        return [
+            'direktur' => 'Direktur',
+            'manager_marketing' => 'Manager Marketing',
+            'staf_marketing' => 'Staf Marketing',
+            'admin_marketing' => 'Admin Marketing',
+            'staf_purchasing' => 'Staf Purchasing',
+            'admin_keuangan_hr' => 'Admin Keuangan & HR',
+            'staf_keuangan' => 'Staf Keuangan',
         ];
     }
 
