@@ -21,7 +21,7 @@ class ProyekController extends Controller
     {
         // Ambil semua data proyek dengan relasi admin marketing, purchasing, wilayah, dan proyek barang
         $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
-            ->orderBy('tanggal', 'desc')
+            ->orderBy('tanggal', 'asc')
             ->get();
 
         // Transform data untuk view
@@ -403,7 +403,7 @@ class ProyekController extends Controller
     public function getUsersForSelect()
     {
         $currentUserId = Auth::id();
-        
+
         $users = User::select('id_user', 'nama', 'role')
             ->whereIn('role', ['superadmin', 'admin_marketing', 'admin_purchasing', 'admin_keuangan'])
             ->orderBy('nama')
