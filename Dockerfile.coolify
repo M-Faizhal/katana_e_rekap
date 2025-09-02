@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
     netcat-openbsd \
-    rsync \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip
 
@@ -74,9 +73,8 @@ RUN if [ -f "package.json" ] && npm run --silent | grep -q "build"; then \
     fi
 
 # Set proper permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 755 /var/www/html/public
 
 # Create necessary directories
 RUN mkdir -p /var/www/html/storage/logs \
@@ -91,9 +89,7 @@ RUN chmod -R 775 /var/www/html/storage
 
 # Create startup script
 COPY docker/scripts/start.sh /usr/local/bin/start.sh
-COPY docker/scripts/sync-storage.sh /var/www/html/docker/scripts/sync-storage.sh
 RUN chmod +x /usr/local/bin/start.sh
-RUN chmod +x /var/www/html/docker/scripts/sync-storage.sh
 
 # Expose port 80
 EXPOSE 80
