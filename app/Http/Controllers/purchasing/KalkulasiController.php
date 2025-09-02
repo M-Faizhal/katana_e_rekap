@@ -200,6 +200,9 @@ class KalkulasiController extends Controller
                     'ppn' => $item['ppn_dinas'] ?? 0, // Frontend uses ppn_dinas
                     'ongkir' => $item['ongkir'] ?? 0,
                     'hps' => $item['hps'] ?? 0,
+                    'harga_per_pcs' => $item['harga_per_pcs'] ?? 0,
+                    'harga_pagu_dinas_per_pcs' => $item['harga_pagu_dinas_per_pcs'] ?? 0, // Menggunakan nama field yang sama dengan JavaScript
+                    'nilai_sp' => $item['nilai_sp'] ?? 0, // Menambahkan mapping untuk nilai SP
                     'nilai_tkdn_percent' => $item['nilai_tkdn_percent'] ?? 0,
                     'jenis_vendor' => $item['jenis_vendor'] ?? null,
                     'nilai_pagu_anggaran' => $item['pagu_total'] ?? 0, // Frontend uses pagu_total
@@ -218,6 +221,9 @@ class KalkulasiController extends Controller
                     'bendera' => $item['gross_nilai_bendera'] ?? 0, // Frontend uses gross_nilai_bendera
                     'omzet_dinas_percent' => $item['omzet_dinas_percent'] ?? 0,
                     'omzet_dinas' => $item['omzet_nilai_dinas'] ?? 0, // Frontend uses omzet_nilai_dinas
+                    'bendera_percent' => $item['bendera_percent'] ?? 0, // Menambahkan mapping untuk persen bendera
+                    'bank_cost_percent' => $item['bank_cost_percent'] ?? 0, // Menambahkan mapping untuk persen bank cost
+                    'biaya_ops_percent' => $item['biaya_ops_percent'] ?? 0, // Menambahkan mapping untuk persen biaya ops
                     'gross_bendera' => $item['gross_nilai_bendera'] ?? 0,
                     'gross_bank_cost' => $item['gross_nilai_bank_cost'] ?? 0,
                     'gross_biaya_ops' => $item['gross_nilai_biaya_ops'] ?? 0,
@@ -230,6 +236,7 @@ class KalkulasiController extends Controller
                     'gross_income_percent' => $item['gross_income_persentase'] ?? 0, // Frontend uses gross_income_persentase
                     'nett_income' => $item['nilai_nett_income'] ?? 0,
                     'nett_income_percent' => $item['nett_income_persentase'] ?? 0,
+                    'catatan' => $item['catatan'] ?? null,
                     'catatan' => $item['catatan'] ?? null,
                     'keterangan_1' => $item['keterangan_1'] ?? null,
                     'keterangan_2' => $item['keterangan_2'] ?? null,
@@ -608,6 +615,12 @@ class KalkulasiController extends Controller
                 $data['pph_dinas'] = $data['pph'] ?? 0;
                 $data['ppn_dinas'] = $data['ppn'] ?? 0;
                 $data['pagu_total'] = $data['nilai_pagu_anggaran'] ?? 0;
+                // Mapping untuk field baru - gunakan nama yang sama dengan JavaScript
+                $data['harga_pagu_dinas_per_pcs'] = $data['harga_pagu_dinas_per_pcs'] ?? 0;
+                $data['nilai_sp'] = $data['nilai_sp'] ?? 0;
+                $data['bendera_percent'] = $data['bendera_percent'] ?? 0;
+                $data['bank_cost_percent'] = $data['bank_cost_percent'] ?? 0;
+                $data['biaya_ops_percent'] = $data['biaya_ops_percent'] ?? 0;
                 $data['selisih_pagu_hps'] = $data['nilai_selisih'] ?? 0;
                 $data['dpp'] = $data['nilai_dpp'] ?? 0;
                 $data['pph_from_dpp'] = $data['nilai_pph_badan'] ?? 0;

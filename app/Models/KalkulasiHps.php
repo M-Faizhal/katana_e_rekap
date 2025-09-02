@@ -26,6 +26,9 @@ class KalkulasiHps extends Model
         'ppn',
         'ongkir',
         'hps',
+        'harga_per_pcs',
+        'harga_pagu_dinas_per_pcs',
+        'nilai_sp',
         'nilai_tkdn_percent',
         'jenis_vendor',
         'nilai_pagu_anggaran',
@@ -44,6 +47,9 @@ class KalkulasiHps extends Model
         'bendera',
         'omzet_dinas_percent',
         'omzet_dinas',
+        'bendera_percent',
+        'bank_cost_percent',
+        'biaya_ops_percent',
         'gross_bendera',
         'gross_bank_cost',
         'gross_biaya_ops',
@@ -124,24 +130,24 @@ class KalkulasiHps extends Model
 
     /**
      * DEPRECATED: Calculate all derived values based on input fields
-     * 
+     *
      * NOTE: This method is no longer used to avoid duplicate calculations.
-     * All calculations are now done in JavaScript (hps-calculator.js) and 
+     * All calculations are now done in JavaScript (hps-calculator.js) and
      * the results are directly saved to the database.
-     * 
+     *
      * This method is kept for backward compatibility only.
      */
     public function calculateValues()
     {
         // This method is intentionally left empty to avoid duplicate calculations.
         // All calculations are now handled by JavaScript frontend and passed to backend.
-        
+
         // If you need to recalculate from stored data, use the static methods below.
     }
 
     /**
      * DEPRECATED: Calculate values that depend on project totals
-     * 
+     *
      * NOTE: This method is no longer used to avoid duplicate calculations.
      * All calculations are now done in JavaScript and passed directly to save methods.
      */
@@ -158,7 +164,7 @@ class KalkulasiHps extends Model
     {
         return [
             'Kecil' => 'Kecil',
-            'Menengah' => 'Menengah', 
+            'Menengah' => 'Menengah',
             'Besar' => 'Besar',
             'BUMN' => 'BUMN',
             'Asing' => 'Asing',
@@ -196,7 +202,7 @@ class KalkulasiHps extends Model
         ];
 
         $validated = [];
-        
+
         foreach ($data as $key => $value) {
             if (in_array($key, $numericFields)) {
                 // Convert to float and handle null/empty values
@@ -216,7 +222,7 @@ class KalkulasiHps extends Model
     public static function createOrUpdateWithValidation(array $data)
     {
         $validatedData = self::validateAndConvertData($data);
-        
+
         if (isset($validatedData['id_kalkulasi']) && $validatedData['id_kalkulasi']) {
             $kalkulasi = self::findOrFail($validatedData['id_kalkulasi']);
             $kalkulasi->update($validatedData);
@@ -233,7 +239,7 @@ class KalkulasiHps extends Model
     public static function batchSaveWithValidation(array $items, $proyekId)
     {
         $results = [];
-        
+
         foreach ($items as $itemData) {
             $itemData['id_proyek'] = $proyekId;
             $results[] = self::createOrUpdateWithValidation($itemData);
@@ -248,7 +254,7 @@ class KalkulasiHps extends Model
     |--------------------------------------------------------------------------
     |
     | SINGLE SOURCE OF TRUTH: JavaScript Frontend (hps-calculator.js)
-    | 
+    |
     | OLD FLOW (INEFFICIENT - DEPRECATED):
     | 1. User input → JavaScript calculation (for display)
     | 2. Send data to backend
