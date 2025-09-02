@@ -67,7 +67,7 @@ class VendorController extends Controller
                 'nama_vendor' => 'required|string|max:255',
                 'email' => 'nullable|email|unique:vendor,email',
                 'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
-                'kontak' => 'required|string|max:255',
+                'kontak' => 'nullable|string|max:255',
                 'alamat' => 'nullable|string',
             ]);
             
@@ -236,7 +236,7 @@ class VendorController extends Controller
             'nama_vendor' => 'required|string|max:255',
             'email' => 'nullable|email|unique:vendor,email,' . $id . ',id_vendor',
             'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
-            'kontak' => 'required|string|max:255',
+            'kontak' => 'nullable|string|max:255',
             'alamat' => 'nullable|string',
             'barang' => 'nullable|array',
             'barang.*.nama_barang' => 'required_with:barang|string|max:255',

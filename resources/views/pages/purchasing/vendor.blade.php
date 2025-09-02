@@ -532,8 +532,7 @@ function submitEditVendor() {
     // Validate required fields before sending
     const requiredFields = {
         'nama_vendor': document.getElementById('editNamaVendor').value,
-        'jenis_perusahaan': document.getElementById('editJenisPerusahaan').value,
-        'kontak': document.getElementById('editKontakVendor').value
+        'jenis_perusahaan': document.getElementById('editJenisPerusahaan').value
     };
     
     // Check for empty required fields

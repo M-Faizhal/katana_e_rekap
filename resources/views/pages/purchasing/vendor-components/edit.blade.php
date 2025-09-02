@@ -50,8 +50,8 @@
                             <input type="email" name="email" id="editEmailVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="vendor@email.com">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Kontak/No HP <span class="text-red-500">*</span></label>
-                            <input type="tel" name="kontak" id="editKontakVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="0812-3456-7890" required>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Kontak/No HP</label>
+                            <input type="tel" name="kontak" id="editKontakVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="0812-3456-7890">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Alamat</label>
