@@ -66,10 +66,19 @@ Route::middleware('auth')->group(function () {
         Route::delete('/wilayah/{id}', [WilayahController::class, 'destroy'])->name('marketing.wilayah.destroy');
         Route::get('/wilayah/users', [WilayahController::class, 'getUsersForSelect'])->name('marketing.wilayah.users');
 
-        // Potensi Routes (Read-only)
+        // Potensi Routes (CRUD) - Same as Proyek but filtered by potensi='ya'
         Route::get('/potensi', [PotensiController::class, 'index'])->name('marketing.potensi');
+        Route::post('/potensi', [PotensiController::class, 'store'])->name('marketing.potensi.store');
+        Route::get('/potensi/{id}', [PotensiController::class, 'show'])->name('marketing.potensi.show');
+        Route::put('/potensi/{id}', [PotensiController::class, 'update'])->name('marketing.potensi.update');
+        Route::delete('/potensi/{id}', [PotensiController::class, 'destroy'])->name('marketing.potensi.destroy');
         Route::get('/potensi/{id}/detail', [PotensiController::class, 'detail'])->name('marketing.potensi.detail');
-
+        Route::put('/potensi/{id}/status', [PotensiController::class, 'updateStatus'])->name('marketing.potensi.updateStatus');
+        Route::get('/potensi/users/select', [PotensiController::class, 'getUsersForSelect'])->name('marketing.potensi.users');
+        Route::get('/potensi/wilayah/select', [PotensiController::class, 'getWilayahForSelect'])->name('marketing.potensi.wilayah');
+        Route::get('/potensi/kode/next', [PotensiController::class, 'getNextKodeProyek'])->name('marketing.potensi.nextKode');
+        Route::get('/potensi/user/current', [PotensiController::class, 'getCurrentUser'])->name('marketing.potensi.currentUser');
+        
         // Penawaran Routes
         Route::get('/penawaran', [PenawaranController::class, 'index'])->name('marketing.penawaran');
         Route::get('/penawaran/{proyekId}', [PenawaranController::class, 'show'])->name('marketing.penawaran.detail');

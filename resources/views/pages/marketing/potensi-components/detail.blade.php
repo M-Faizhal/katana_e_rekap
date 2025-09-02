@@ -8,11 +8,11 @@
                     <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-10 h-10 object-contain">
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold">Detail Potensi Proyek</h3>
-                    <p class="text-red-100 text-sm">Informasi lengkap assignment proyek ke vendor</p>
+                    <h3 class="text-xl font-bold">Detail Potensi</h3>
+                    <p class="text-red-100 text-sm">Informasi lengkap potensi</p>
                 </div>
             </div>
-            <button onclick="closeModal('modalDetailPotensi')" class="text-white hover:bg-white hover:text-red-800 p-2 rounded-lg transition-colors duration-200">
+            <button onclick="closeModal('modalDetailPotensi')" class="text-white hover:bg-white hover:text-red-800 p-2">
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
@@ -21,158 +21,127 @@
         <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(100vh - 200px);">
             <!-- Status Badge -->
             <div class="mb-6">
-                <span id="detailPotensiStatusBadge" class="inline-flex px-4 py-2 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800">
-                    Pending
+                <span id="detailPotensiStatusBadge" class="inline-flex px-4 py-2 text-sm font-medium rounded-full">
+                    <!-- Status will be set dynamically -->
                 </span>
             </div>
 
-            <!-- Informasi Proyek -->
-            <div class="bg-blue-50 rounded-xl p-6 mb-6">
-                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
-                    Informasi Proyek
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Kode Proyek</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiKodeProyek">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Proyek</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiNamaProyek">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Instansi</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiInstansi">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Kabupaten/Kota</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiKabupatenKota">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Pengadaan</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiJenisPengadaan">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nilai Proyek</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg font-semibold text-green-600">
-                            <span id="detailPotensiNilaiProyek">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Deadline</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiDeadline">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Informasi Vendor -->
-            <div class="bg-green-50 rounded-xl p-6 mb-6">
-                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-building text-green-600 mr-2"></i>
-                    Vendor yang Ditugaskan
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">ID Vendor</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiVendorId">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Vendor</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiVendorNama">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Vendor</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiVendorJenis">-</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Vendor</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiVendorStatus">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Informasi Assignment -->
+            <!-- Informasi Dasar -->
             <div class="bg-gray-50 rounded-xl p-6 mb-6">
                 <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-clipboard-list text-gray-600 mr-2"></i>
-                    Informasi Assignment
+                    <i class="fas fa-info-circle text-red-600 mr-2"></i>
+                    Informasi Dasar
                 </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Status Potensi</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiStatus">-</span>
-                        </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Kode Proyek</label>
+                        <p id="detailPotensiKodeProyek" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Assign</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailPotensiTanggalAssign">-</span>
-                        </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Nama Proyek</label>
+                        <p id="detailPotensiNamaProyek" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800 min-h-[100px]">
-                            <span id="detailPotensiCatatan">-</span>
-                        </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Tanggal</label>
+                        <p id="detailPotensiTanggal" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Kabupaten/Kota</label>
+                        <p id="detailPotensiKabupatenKota" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Nama Instansi</label>
+                        <p id="detailPotensiInstansi" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Jenis Pengadaan</label>
+                        <p id="detailPotensiJenisPengadaan" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Admin Marketing</label>
+                        <p id="detailPotensiAdminMarketing" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Vendor Nama</label>
+                        <p id="detailPotensiVendorNama" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Vendor Jenis</label>
+                        <p id="detailPotensiVendorJenis" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Nilai Proyek</label>
+                        <p id="detailPotensiNilaiProyek" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Timeline/History -->
-            <div class="bg-yellow-50 rounded-xl p-6 mb-6">
+            <!-- Daftar Barang -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
                 <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-history text-yellow-600 mr-2"></i>
-                    Riwayat Perubahan
+                    <i class="fas fa-boxes text-red-600 mr-2"></i>
+                    Daftar Barang
                 </h4>
-                <div id="detailPotensiTimeline" class="space-y-4">
-                    <!-- Timeline items will be loaded here -->
+                <div id="detailDaftarBarang" class="space-y-4">
+                    <!-- Items will be populated here -->
+                </div>
+
+                <!-- Total Keseluruhan -->
+                <div class="mt-6 bg-white border border-gray-200 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <h5 class="text-lg font-semibold text-gray-800">Total Keseluruhan:</h5>
+                        <div class="text-2xl font-bold text-red-600" id="detailTotalKeseluruhan">Rp 0</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Progress Summary -->
-            <div class="bg-purple-50 rounded-xl p-6">
+            <!-- Catatan -->
+            <div id="detailCatatanSection" class="bg-gray-50 rounded-xl p-6 mb-6" style="display: none;">
                 <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-chart-line text-purple-600 mr-2"></i>
-                    Ringkasan Progress
+                    <i class="fas fa-sticky-note text-red-600 mr-2"></i>
+                    Catatan
                 </h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-blue-600">1</div>
-                        <div class="text-sm text-gray-600">Proyek Assigned</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-yellow-600">
-                            <span id="detailPotensiDaysActive">0</span>
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
+                    <p id="detailCatatan" class="text-gray-700 leading-relaxed">-</p>
+                </div>
+            </div>
+
+            <!-- Dokumen -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-file-alt text-red-600 mr-2"></i>
+                    Dokumen Proyek
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <i class="fas fa-file-pdf text-red-600 text-lg"></i>
+                            <h5 class="font-medium text-gray-800">Surat Penawaran</h5>
                         </div>
-                        <div class="text-sm text-gray-600">Hari Aktif</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-green-600">
-                            <span id="detailPotensiProgressPercentage">0</span>%
+                        <div id="detailSuratPenawaran">
+                            <p class="text-sm text-gray-500 mb-2">Status: <span id="statusSuratPenawaran" class="text-gray-600 font-medium">Loading...</span></p>
+                            <div class="space-y-2">
+                                <p class="text-xs text-gray-600 font-mono" id="namaSuratPenawaran">Loading...</p>
+                                <button id="downloadSuratPenawaranBtn" onclick="downloadDocument('penawaran')" class="text-red-600 hover:text-red-700 text-sm font-medium hidden">
+                                    <i class="fas fa-download mr-1"></i>Download
+                                </button>
+                            </div>
                         </div>
-                        <div class="text-sm text-gray-600">Progress</div>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <i class="fas fa-file-pdf text-purple-600 text-lg"></i>
+                            <h5 class="font-medium text-gray-800">Surat Pesanan</h5>
+                        </div>
+                        <div id="detailSuratPesanan">
+                            <p class="text-sm text-gray-500 mb-2">Status: <span id="statusSuratPesanan" class="text-gray-600 font-medium">Loading...</span></p>
+                            <div class="space-y-2">
+                                <p class="text-xs text-gray-600 font-mono" id="namaSuratPesanan">Loading...</p>
+                                <button id="downloadSuratPesananBtn" onclick="downloadDocument('pesanan')" class="text-purple-600 hover:text-purple-700 text-sm font-medium hidden">
+                                    <i class="fas fa-download mr-1"></i>Download
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -180,20 +149,171 @@
 
         <!-- Modal Footer -->
         <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200 flex-shrink-0">
-            <div class="flex space-x-3">
-                <button type="button" onclick="printPotensiDetail()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    <i class="fas fa-print mr-2"></i>Print
-                </button>
-                <button type="button" onclick="exportPotensiPDF()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                    <i class="fas fa-file-pdf mr-2"></i>Export PDF
-                </button>
-            </div>
-            <button type="button" onclick="closeModal('modalDetailPotensi')" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                <i class="fas fa-times mr-2"></i>Tutup
+
+            <button type="button" onclick="closeModal('modalDetailPotensi')" class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                Tutup
             </button>
         </div>
     </div>
 </div>
+
+<script>
+let currentDetailPotensiId = null;
+let currentDetailDocuments = null;
+
+function printDetail() {
+    window.print();
+}
+
+function exportPDF() {
+    alert('Exporting to PDF...');
+}
+
+function formatRupiah(angka) {
+    return 'Rp ' + parseInt(angka).toLocaleString('id-ID');
+}
+
+// Function to load documents for the detail modal
+async function loadDetailDocuments(potensiId) {
+    try {
+        currentDetailPotensiId = potensiId;
+        console.log('Loading documents for potensi:', potensiId);
+
+        const response = await fetch(`/marketing/penawaran/project/${potensiId}/data`);
+
+        if (!response.ok) {
+            console.warn('No penawaran data found for potensi', potensiId);
+            setDocumentStatus('tidak_ada');
+            return;
+        }
+
+        const data = await response.json();
+        console.log('Document data received:', data);
+
+        if (data.success && data.data) {
+            currentDetailDocuments = data.data;
+            updateDetailDocumentDisplay(data.data);
+        } else {
+            console.warn('No documents found in response');
+            setDocumentStatus('tidak_ada');
+        }
+    } catch (error) {
+        console.error('Error loading documents:', error);
+        setDocumentStatus('error');
+    }
+}// Function to update document display in detail modal
+function updateDetailDocumentDisplay(documents) {
+    // Update Surat Penawaran
+    updateDetailFileDisplay(
+        'statusSuratPenawaran',
+        'namaSuratPenawaran',
+        'downloadSuratPenawaranBtn',
+        documents.surat_penawaran,
+        'penawaran'
+    );
+
+    // Update Surat Pesanan
+    updateDetailFileDisplay(
+        'statusSuratPesanan',
+        'namaSuratPesanan',
+        'downloadSuratPesananBtn',
+        documents.surat_pesanan,
+        'pesanan'
+    );
+}
+
+// Helper function to update individual file display
+function updateDetailFileDisplay(statusElementId, nameElementId, buttonElementId, filename, type) {
+    const statusElement = document.getElementById(statusElementId);
+    const nameElement = document.getElementById(nameElementId);
+    const buttonElement = document.getElementById(buttonElementId);
+
+    console.log(`Updating detail file display: ${type} = ${filename}`);
+
+    if (statusElement && nameElement && buttonElement) {
+        if (filename && filename !== 'null' && filename !== '' && filename !== null && filename !== undefined) {
+            statusElement.textContent = 'Tersedia';
+            statusElement.className = 'text-green-600 font-medium';
+            nameElement.textContent = filename;
+            nameElement.className = 'text-xs text-gray-600 font-mono';
+            buttonElement.classList.remove('hidden');
+        } else {
+            statusElement.textContent = 'Tidak Ada';
+            statusElement.className = 'text-gray-400 font-medium';
+            nameElement.textContent = 'Tidak ada file';
+            nameElement.className = 'text-xs text-gray-400 font-mono';
+            buttonElement.classList.add('hidden');
+        }
+    }
+}
+
+// Function to set document status when no data found
+function setDocumentStatus(status) {
+    const elements = [
+        {status: 'statusSuratPenawaran', name: 'namaSuratPenawaran', button: 'downloadSuratPenawaranBtn'},
+        {status: 'statusSuratPesanan', name: 'namaSuratPesanan', button: 'downloadSuratPesananBtn'}
+    ];
+
+    elements.forEach(el => {
+        const statusEl = document.getElementById(el.status);
+        const nameEl = document.getElementById(el.name);
+        const buttonEl = document.getElementById(el.button);
+
+        if (statusEl && nameEl && buttonEl) {
+            if (status === 'tidak_ada') {
+                statusEl.textContent = 'Tidak Ada';
+                statusEl.className = 'text-gray-400 font-medium';
+                nameEl.textContent = 'Tidak ada file';
+                nameEl.className = 'text-xs text-gray-400 font-mono';
+            } else if (status === 'error') {
+                statusEl.textContent = 'Error';
+                statusEl.className = 'text-red-500 font-medium';
+                nameEl.textContent = 'Gagal memuat';
+                nameEl.className = 'text-xs text-red-400 font-mono';
+            }
+            buttonEl.classList.add('hidden');
+        }
+    });
+}
+
+// Function to download documents
+function downloadDocument(type) {
+    if (!currentDetailDocuments || !currentDetailPotensiId) {
+        alert('Data dokumen tidak tersedia');
+        return;
+    }
+
+    let filename = null;
+    let downloadType = null;
+
+    if (type === 'penawaran') {
+        filename = currentDetailDocuments.surat_penawaran;
+        downloadType = 'penawaran';
+    } else if (type === 'pesanan') {
+        filename = currentDetailDocuments.surat_pesanan;
+        downloadType = 'pesanan';
+    }
+
+    if (!filename || filename === 'null' || filename === '') {
+        alert('File tidak tersedia untuk didownload');
+        return;
+    }
+
+    console.log('Downloading:', downloadType, filename);
+
+    // Create download URL
+    const downloadUrl = `/marketing/penawaran/project/${currentDetailPotensiId}/download/${downloadType}`;
+
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
 
 <style>
 @media print {
@@ -201,17 +321,12 @@
         display: none !important;
     }
 
-    .max-h-screen {
+    .max-h-\[90vh\] {
         max-height: none !important;
     }
 
     .overflow-y-auto {
         overflow: visible !important;
-    }
-
-    .bg-red-800 {
-        background-color: #dc2626 !important;
-        -webkit-print-color-adjust: exact;
     }
 }
 </style>

@@ -143,16 +143,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-3 sm:mt-0">
-                        <span class="inline-flex px-4 py-2 text-sm font-semibold rounded-full shadow-sm
-                            {{ $potensi['status'] === 'sukses' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-yellow-100 text-yellow-800 border border-yellow-200' }}">
-                            @if($potensi['status'] === 'sukses')
-                                <i class="fas fa-check-circle mr-2"></i>Sukses
-                            @else
-                                <i class="fas fa-clock mr-2"></i>Pending
-                            @endif
-                        </span>
-                    </div>
                 </div>
 
                 <!-- Content Grid -->
@@ -212,10 +202,20 @@
                     </div>
 
                     <div class="flex space-x-2">
-                        <button onclick="openDetailPotensiModal({{ $potensi['id'] }})"
-                                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
+                        <button onclick="viewDetailPotensi({{ $potensi['id'] }})"
+                                class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
                             <i class="fas fa-eye mr-2"></i>
-                            Lihat Detail
+                            Detail
+                        </button>
+                        <button onclick="editPotensi({{ $potensi['id'] }})"
+                                class="inline-flex items-center px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
+                            <i class="fas fa-edit mr-2"></i>
+                            Edit
+                        </button>
+                        <button onclick="deletePotensi({{ $potensi['id'] }})"
+                                class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
+                            <i class="fas fa-trash mr-2"></i>
+                            Hapus
                         </button>
                     </div>
                 </div>
@@ -267,8 +267,19 @@
     </div>
 </div>
 
-<!-- Include Modal Components (Detail only) -->
+<!-- Floating Action Button -->
+<button onclick="openModal('modalTambahPotensi')" class="fixed bottom-4 right-4 sm:bottom-16 sm:right-16 bg-red-600 text-white w-12 h-12 sm:w-16 sm:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
+    <i class="fas fa-plus text-lg sm:text-xl group-hover:rotate-180 transition-transform duration-300"></i>
+    <span class="absolute right-full mr-2 sm:mr-3 bg-gray-800 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap hidden sm:block">
+        Tambah Potensi
+    </span>
+</button>
+
+<!-- Include Modal Components -->
+@include('pages.marketing.potensi-components.tambah')
+@include('pages.marketing.potensi-components.edit')
 @include('pages.marketing.potensi-components.detail')
+@include('pages.marketing.potensi-components.hapus')
 @include('components.success-modal')
 
 <!-- Include Modal Functions -->
@@ -476,6 +487,201 @@
 // Data from controller
 const potensiData = @json($potensiData);
 
+// Function to view detail potensi
+function viewDetailPotensi(id) {
+    console.log('viewDetailPotensi called with ID:', id);
+
+    const data = potensiData.find(p => p.id == id);
+
+    if (!data) {
+        console.error('Data potensi tidak ditemukan dengan ID:', id);
+        alert('Data potensi tidak ditemukan!');
+        return;
+    }
+
+    console.log('Data found:', data);
+
+    // Populate detail modal elements
+    const setElementText = (id, text) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = text || '-';
+        } else {
+            console.warn('Element not found:', id);
+        }
+    };
+
+    // Set basic info
+    setElementText('detailPotensiKodeProyek', data.kode_proyek);
+    setElementText('detailPotensiNamaProyek', data.nama_proyek);
+    setElementText('detailPotensiInstansi', data.instansi);
+    setElementText('detailPotensiKabupatenKota', data.kabupaten_kota);
+    setElementText('detailPotensiJenisPengadaan', data.jenis_pengadaan);
+    setElementText('detailPotensiTanggal', formatTanggal(data.deadline));
+    setElementText('detailPotensiAdminMarketing', data.admin_marketing);
+    setElementText('detailPotensiVendorNama', data.vendor_nama);
+    setElementText('detailPotensiVendorJenis', data.vendor_jenis);
+    setElementText('detailPotensiNilaiProyek', formatRupiah(data.nilai_proyek));
+
+    // Update status badge
+    const statusBadge = document.getElementById('detailPotensiStatusBadge');
+    if (statusBadge) {
+        const status = data.status || 'pending';
+        statusBadge.textContent = ucfirst(status);
+        statusBadge.className = 'inline-flex px-4 py-2 text-sm font-medium rounded-full';
+
+        if (status === 'sukses') {
+            statusBadge.classList.add('bg-green-100', 'text-green-800');
+        } else {
+            statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+        }
+    }
+
+    // Populate daftar barang
+    const daftarBarangContainer = document.getElementById('detailDaftarBarang');
+    const totalKeseluruhanElement = document.getElementById('detailTotalKeseluruhan');
+
+    if (data.daftar_barang && data.daftar_barang.length > 0) {
+        let totalKeseluruhan = 0;
+
+        daftarBarangContainer.innerHTML = '';
+        data.daftar_barang.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'bg-white border border-gray-200 rounded-lg p-4';
+
+            const hargaSatuan = parseFloat(item.harga_satuan) || 0;
+            const jumlah = parseFloat(item.jumlah) || 0;
+            const hargaTotal = parseFloat(item.harga_total) || (hargaSatuan * jumlah);
+            totalKeseluruhan += hargaTotal;
+
+            itemDiv.innerHTML = [
+                '<div class="flex items-start justify-between mb-3">',
+                    '<div class="flex-1">',
+                        '<h6 class="font-semibold text-gray-900">' + (item.nama_barang || '-') + '</h6>',
+                        '<p class="text-sm text-gray-600 mt-1">' + (item.spesifikasi || '-') + '</p>',
+                    '</div>',
+                    '<div class="text-right">',
+                        '<div class="text-lg font-bold text-red-600">' + formatRupiah(hargaTotal) + '</div>',
+                    '</div>',
+                '</div>',
+                '<div class="grid grid-cols-3 gap-4 text-sm text-gray-600">',
+                    '<div>',
+                        '<span class="font-medium">Qty:</span> ' + jumlah,
+                    '</div>',
+                    '<div>',
+                        '<span class="font-medium">Satuan:</span> ' + (item.satuan || '-'),
+                    '</div>',
+                    '<div>',
+                        '<span class="font-medium">Harga Satuan:</span> ' + formatRupiah(hargaSatuan),
+                    '</div>',
+                '</div>'
+            ].join('');
+            daftarBarangContainer.appendChild(itemDiv);
+        });
+
+        if (totalKeseluruhanElement) {
+            totalKeseluruhanElement.textContent = formatRupiah(totalKeseluruhan);
+        }
+    } else if (daftarBarangContainer) {
+        daftarBarangContainer.innerHTML = '<p class="text-gray-500 text-sm">Tidak ada data barang</p>';
+        if (totalKeseluruhanElement) {
+            totalKeseluruhanElement.textContent = 'Rp 0';
+        }
+    }
+
+    // Handle catatan
+    const catatanElement = document.getElementById('detailCatatan');
+    const catatanSection = document.getElementById('detailCatatanSection');
+    if (data.catatan && data.catatan.trim() && catatanElement && catatanSection) {
+        catatanElement.textContent = data.catatan;
+        catatanSection.style.display = 'block';
+    } else if (catatanSection) {
+        catatanSection.style.display = 'none';
+    }
+
+    // Load documents for this project
+    if (typeof loadDetailDocuments === 'function') {
+        loadDetailDocuments(data.id);
+    }
+
+    // Show modal
+    openModal('modalDetailPotensi');
+}
+
+// Function to edit potensi
+function editPotensi(id) {
+    console.log('editPotensi called with ID:', id);
+
+    const data = potensiData.find(p => p.id == id);
+
+    if (!data) {
+        console.error('Data potensi tidak ditemukan dengan ID:', id);
+        alert('Data potensi tidak ditemukan!');
+        return;
+    }
+
+    console.log('Data found for edit:', data);
+
+    // Load data into edit form
+    setTimeout(() => {
+        if (typeof loadEditPotensiData === 'function') {
+            loadEditPotensiData({
+                id: data.id,
+                kode: data.kode_proyek,
+                nama_proyek: data.nama_proyek,
+                instansi: data.instansi,
+                kabupaten: data.kabupaten_kota,
+                jenis_pengadaan: data.jenis_pengadaan,
+                tanggal: data.deadline,
+                admin_marketing: data.admin_marketing,
+                status: data.status || 'pending',
+                tahun_potensi: data.tahun_potensi || data.tahun,
+                id_admin_purchasing: data.id_admin_purchasing,
+                catatan: data.catatan || '',
+                daftar_barang: data.daftar_barang || []
+            });
+        } else {
+            console.warn('loadEditPotensiData function not found');
+        }
+    }, 100);
+
+    // Show modal
+    openModal('modalEditPotensi');
+}
+
+// Function to delete potensi
+function deletePotensi(id) {
+    console.log('deletePotensi called with ID:', id);
+
+    const data = potensiData.find(p => p.id == id);
+
+    if (!data) {
+        console.error('Data potensi tidak ditemukan dengan ID:', id);
+        alert('Data potensi tidak ditemukan!');
+        return;
+    }
+
+    console.log('Data found for delete:', data);
+
+    // Load data into hapus modal
+    if (typeof loadHapusPotensiData === 'function') {
+        loadHapusPotensiData({
+            id: data.id,
+            kode_proyek: data.kode_proyek,
+            nama_proyek: data.nama_proyek,
+            instansi: data.instansi,
+            kabupaten_kota: data.kabupaten_kota,
+            status: data.status || 'pending',
+            vendor_nama: data.vendor_nama
+        });
+    } else {
+        console.warn('loadHapusPotensiData function not found');
+    }
+
+    // Show modal
+    openModal('modalHapusPotensi');
+}
+
 // Function to open modal (if not already defined)
 if (typeof openModal === 'undefined') {
     function openModal(modalId) {
@@ -517,9 +723,43 @@ if (typeof closeModal === 'undefined') {
     }
 }
 
+// Function to show success modal (if not already defined)
+if (typeof showSuccessModal === 'undefined') {
+    function showSuccessModal(message) {
+        if (document.getElementById('successModal')) {
+            document.getElementById('successMessage').textContent = message;
+            openModal('successModal');
+        } else {
+            alert(message);
+        }
+    }
+}
+
 // Format rupiah function
 function formatRupiah(angka) {
     return 'Rp ' + parseInt(angka).toLocaleString('id-ID');
+}
+
+// Format tanggal function
+function formatTanggal(tanggal) {
+    if (!tanggal || tanggal === '-') return '-';
+    try {
+        const date = new Date(tanggal);
+        return date.toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return tanggal;
+    }
+}
+
+// Helper function untuk capitalize first letter
+function ucfirst(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 // Search and filter functionality
@@ -541,7 +781,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Initialize tambah potensi modal when FAB is clicked
+    const fabButton = document.querySelector('button[onclick*="modalTambahPotensi"]');
+    if (fabButton) {
+        fabButton.addEventListener('click', function() {
+            setTimeout(() => {
+                if (typeof initTambahPotensiModal === 'function') {
+                    initTambahPotensiModal();
+                }
+            }, 100);
+        });
+    }
 });
+
+// Fallback for old function name compatibility
+function openDetailPotensiModal(id) {
+    viewDetailPotensi(id);
+}
 </script>
 
 @endsection
