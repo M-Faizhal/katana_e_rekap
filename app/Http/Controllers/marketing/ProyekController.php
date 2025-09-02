@@ -115,6 +115,15 @@ class ProyekController extends Controller
 
     public function store(Request $request)
     {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak memiliki akses untuk membuat proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
         // Debug: Log data yang diterima
         Log::info('Data proyek yang diterima:', $request->all());
 
@@ -228,6 +237,15 @@ class ProyekController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak memiliki akses untuk mengupdate proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
         $proyek = Proyek::findOrFail($id);
 
         // Debug: Log data yang diterima untuk update
@@ -336,6 +354,15 @@ class ProyekController extends Controller
 
     public function destroy($id)
     {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak memiliki akses untuk menghapus proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
         $proyek = Proyek::findOrFail($id);
         $proyek->delete();
 
@@ -347,6 +374,15 @@ class ProyekController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak memiliki akses untuk mengubah status proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
         $proyek = Proyek::findOrFail($id);
 
         $request->validate([

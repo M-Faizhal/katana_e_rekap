@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PenawaranController extends Controller
 {
@@ -73,6 +74,15 @@ class PenawaranController extends Controller
 
     public function store(Request $request)
     {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak memiliki akses untuk membuat penawaran. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
         $request->validate([
             'id_proyek' => 'required|exists:proyek,id_proyek',
             'tanggal_penawaran' => 'required|date',
@@ -172,6 +182,15 @@ class PenawaranController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak memiliki akses untuk mengupdate penawaran. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
         $request->validate([
             'tanggal_penawaran' => 'required|date',
             'catatan' => 'nullable|string',

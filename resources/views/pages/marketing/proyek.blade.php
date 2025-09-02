@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('title', 'Proyek - Cyber KATANA')
 
 @section('content')
@@ -24,6 +23,9 @@ $pembayaranCount = countByStatus($proyekData, 'pembayaran');
 $pengirimanCount = countByStatus($proyekData, 'pengiriman');
 $selesaiCount = countByStatus($proyekData, 'selesai');
 $gagalCount = countByStatus($proyekData, 'gagal');
+
+// Cek akses user
+$hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing';
 @endphp
 
 <!-- Header Section -->
@@ -32,6 +34,14 @@ $gagalCount = countByStatus($proyekData, 'gagal');
         <div>
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Manajemen Proyek</h1>
             <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola dan pantau semua proyek Anda</p>
+            @if(!$hasEditAccess)
+            <div class="mt-2 bg-red-700 bg-opacity-50 rounded-lg px-3 py-2">
+                <p class="text-red-100 text-xs sm:text-sm">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Mode View Only - Anda hanya dapat melihat data proyek
+                </p>
+            </div>
+            @endif
         </div>
         <div class="hidden sm:block lg:block">
             <i class="fas fa-handshake text-3xl sm:text-4xl lg:text-6xl"></i>
@@ -229,18 +239,22 @@ $gagalCount = countByStatus($proyekData, 'gagal');
                         </div>
                     </div>
                     <div class="flex items-center space-x-1 sm:space-x-2 self-start" onclick="event.stopPropagation()">
+                        @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
                         <button onclick="buatPenawaran({{ $proyek['id'] }})" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200" title="Buat Penawaran">
                             <i class="fas fa-file-invoice text-sm"></i>
                         </button>
+                        @endif
                         <button onclick="viewDetail({{ $proyek['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
                             <i class="fas fa-eye text-sm"></i>
                         </button>
+                        @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
                         <button onclick="editProyek({{ $proyek['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
                             <i class="fas fa-edit text-sm"></i>
                         </button>
                         <button onclick="deleteProyek({{ $proyek['id'] }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
                             <i class="fas fa-trash text-sm"></i>
                         </button>
+                        @endif
                     </div>
                 </div>
 
@@ -349,12 +363,14 @@ $gagalCount = countByStatus($proyekData, 'gagal');
 </div>
 
 <!-- Floating Action Button -->
+@if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
 <button onclick="openModal('modalTambahProyek')" class="fixed bottom-4 right-4 sm:bottom-16 sm:right-16 bg-red-600 text-white w-12 h-12 sm:w-16 sm:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
     <i class="fas fa-plus text-lg sm:text-xl group-hover:rotate-180 transition-transform duration-300"></i>
     <span class="absolute right-full mr-2 sm:mr-3 bg-gray-800 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap hidden sm:block">
         Tambah Proyek
     </span>
 </button>
+@endif
 
 <!-- Include Modal Components -->
 @include('pages.marketing.proyek-components.tambah')
@@ -889,6 +905,12 @@ function getStatusClass(status) {
 
 // Function to create penawaran (redirect to penawaran page)
 function buatPenawaran(id) {
+    // Check user role access
+    @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
+        alert('Tidak memiliki akses untuk membuat penawaran. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.');
+        return;
+    @endif
+
     console.log('buatPenawaran called with ID:', id);
 
     const data = proyekData.find(p => p.id == id);
@@ -905,6 +927,12 @@ function buatPenawaran(id) {
 
 // Function to edit proyek
 function editProyek(id) {
+    // Check user role access
+    @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
+        alert('Tidak memiliki akses untuk mengedit proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.');
+        return;
+    @endif
+
     console.log('editProyek called with ID:', id);
 
     const data = proyekData.find(p => p.id == id);
@@ -992,6 +1020,12 @@ function editProyek(id) {
 
 // Function to delete proyek
 function deleteProyek(id) {
+    // Check user role access
+    @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
+        alert('Tidak memiliki akses untuk menghapus proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.');
+        return;
+    @endif
+
     console.log('deleteProyek called with ID:', id);
 
     const data = proyekData.find(p => p.id == id);

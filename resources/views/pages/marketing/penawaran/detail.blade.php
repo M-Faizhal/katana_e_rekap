@@ -162,6 +162,7 @@
                 <i class="fas fa-box-open text-gray-300 text-4xl mb-4"></i>
                 <h4 class="text-lg font-medium text-gray-700 mb-2">Belum Ada Data Barang</h4>
                 <p class="text-gray-500 mb-4">Proyek ini belum memiliki data barang. Silakan tambah data barang terlebih dahulu di proyek.</p>
+                @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
                 <div class="space-y-2">
                 <button onclick="openEditPenawaranModal()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">
                     <i class="fas fa-plus mr-1"></i>
@@ -169,6 +170,14 @@
                 </button>
                 <p class="text-xs text-gray-400">atau edit proyek untuk menambah data barang</p>
                 </div>
+                @else
+                <div class="space-y-2">
+                <p class="text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
+                    <i class="fas fa-lock mr-1"></i>
+                    Hanya superadmin dan admin marketing yang dapat menambah detail penawaran
+                </p>
+                </div>
+                @endif
             </div>
             @endif
         </div>
@@ -234,6 +243,7 @@
     <div class="space-y-6">
 
         <!-- Document Upload Form -->
+        @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
         <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <i class="fas fa-upload text-red-600 mr-2"></i>
@@ -310,6 +320,19 @@
                 </button>
             </form>
         </div>
+        @else
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-lock text-gray-600 mr-2"></i>
+                Upload Dokumen
+            </h3>
+            <div class="text-center py-8">
+                <i class="fas fa-lock text-gray-400 text-4xl mb-4"></i>
+                <h4 class="text-lg font-medium text-gray-700 mb-2">Akses Terbatas</h4>
+                <p class="text-gray-500">Hanya superadmin dan admin marketing yang dapat mengupload dokumen penawaran.</p>
+            </div>
+        </div>
+        @endif
 
         <!-- Current Documents -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
