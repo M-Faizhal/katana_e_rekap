@@ -180,6 +180,9 @@ class KalkulasiController extends Controller
                     'index' => $index,
                     'id_barang' => $item['id_barang'] ?? null,
                     'id_vendor' => $item['id_vendor'] ?? null,
+                    'harga_vendor' => $item['harga_vendor'] ?? 0,
+                    'harga_diskon' => $item['harga_diskon'] ?? 0, // INPUT dari frontend
+                    'nilai_diskon' => $item['nilai_diskon'] ?? 0, // CALCULATED
                     'hps' => $item['hps'] ?? 0
                 ]);
 
@@ -189,57 +192,57 @@ class KalkulasiController extends Controller
                     'id_vendor' => $item['id_vendor'] ?? null,
                     'qty' => $item['qty'] ?? 1,
                     'harga_vendor' => $item['harga_vendor'] ?? 0,
-                    'diskon_amount' => $item['nilai_diskon'] ?? 0, // Frontend uses nilai_diskon
-                    'total_diskon' => $item['total_diskon'] ?? 0,
-                    'harga_akhir' => $item['harga_diskon'] ?? 0, // Frontend uses harga_diskon
+                    'harga_diskon' => $item['harga_diskon'] ?? 0, // INPUT: Harga setelah diskon  
+                    'diskon_amount' => $item['nilai_diskon'] ?? 0, // CALCULATED: nilai diskon per item
+                    'total_diskon' => $item['total_diskon'] ?? 0, // CALCULATED: total diskon
+                    'harga_akhir' => $item['harga_diskon'] ?? 0, // Untuk kompatibilitas
                     'total_harga_hpp' => $item['total_harga'] ?? 0,
                     'jumlah_volume' => $item['jumlah_volume'] ?? 0,
-                    'kenaikan_percent' => $item['persen_kenaikan'] ?? 0, // Frontend uses persen_kenaikan
+                    'kenaikan_percent' => $item['persen_kenaikan'] ?? 0,
                     'proyeksi_kenaikan' => $item['proyeksi_kenaikan'] ?? 0,
-                    'pph' => $item['pph_dinas'] ?? 0, // Frontend uses pph_dinas
-                    'ppn' => $item['ppn_dinas'] ?? 0, // Frontend uses ppn_dinas
+                    'pph' => $item['pph_dinas'] ?? 0,
+                    'ppn' => $item['ppn_dinas'] ?? 0,
                     'ongkir' => $item['ongkir'] ?? 0,
                     'hps' => $item['hps'] ?? 0,
                     'harga_per_pcs' => $item['harga_per_pcs'] ?? 0,
-                    'harga_pagu_dinas_per_pcs' => $item['harga_pagu_dinas_per_pcs'] ?? 0, // Menggunakan nama field yang sama dengan JavaScript
-                    'nilai_sp' => $item['nilai_sp'] ?? 0, // Menambahkan mapping untuk nilai SP
+                    'harga_pagu_dinas_per_pcs' => $item['harga_pagu_dinas_per_pcs'] ?? 0,
+                    'nilai_sp' => $item['nilai_sp'] ?? 0,
                     'nilai_tkdn_percent' => $item['nilai_tkdn_percent'] ?? 0,
                     'jenis_vendor' => $item['jenis_vendor'] ?? null,
-                    'nilai_pagu_anggaran' => $item['pagu_total'] ?? 0, // Frontend uses pagu_total
+                    'nilai_pagu_anggaran' => $item['pagu_total'] ?? 0,
                     'nilai_penawaran_hps' => $item['nilai_penawaran_hps'] ?? 0,
                     'nilai_pesanan' => $item['nilai_pesanan'] ?? 0,
-                    'nilai_selisih' => $item['selisih_pagu_hps'] ?? 0, // Frontend uses selisih_pagu_hps
-                    'nilai_dpp' => $item['dpp'] ?? 0, // Frontend uses dpp
+                    'nilai_selisih' => $item['selisih_pagu_hps'] ?? 0,
+                    'nilai_dpp' => $item['dpp'] ?? 0,
                     'ppn_percent' => $item['ppn_percent'] ?? 11,
                     'pph_badan_percent' => $item['pph_badan_percent'] ?? 1.5,
                     'nilai_ppn' => $item['nilai_ppn'] ?? 0,
-                    'nilai_pph_badan' => $item['pph_from_dpp'] ?? 0, // Frontend uses pph_from_dpp
-                    'nilai_asumsi_cair' => $item['asumsi_nilai_cair'] ?? 0, // Frontend uses asumsi_nilai_cair
+                    'nilai_pph_badan' => $item['pph_from_dpp'] ?? 0,
+                    'nilai_asumsi_cair' => $item['asumsi_nilai_cair'] ?? 0,
                     'sub_total_langsung' => $item['sub_total_langsung'] ?? 0,
-                    'bank_cost' => $item['gross_nilai_bank_cost'] ?? 0, // Frontend uses gross_nilai_bank_cost
-                    'biaya_ops' => $item['gross_nilai_biaya_ops'] ?? 0, // Frontend uses gross_nilai_biaya_ops
-                    'bendera' => $item['gross_nilai_bendera'] ?? 0, // Frontend uses gross_nilai_bendera
+                    'bank_cost' => $item['gross_nilai_bank_cost'] ?? 0,
+                    'biaya_ops' => $item['gross_nilai_biaya_ops'] ?? 0,
+                    'bendera' => $item['gross_nilai_bendera'] ?? 0,
                     'omzet_dinas_percent' => $item['omzet_dinas_percent'] ?? 0,
-                    'omzet_dinas' => $item['omzet_nilai_dinas'] ?? 0, // Frontend uses omzet_nilai_dinas
-                    'bendera_percent' => $item['bendera_percent'] ?? 0, // Menambahkan mapping untuk persen bendera
-                    'bank_cost_percent' => $item['bank_cost_percent'] ?? 0, // Menambahkan mapping untuk persen bank cost
-                    'biaya_ops_percent' => $item['biaya_ops_percent'] ?? 0, // Menambahkan mapping untuk persen biaya ops
+                    'omzet_dinas' => $item['omzet_nilai_dinas'] ?? 0,
+                    'bendera_percent' => $item['bendera_percent'] ?? 0,
+                    'bank_cost_percent' => $item['bank_cost_percent'] ?? 0,
+                    'biaya_ops_percent' => $item['biaya_ops_percent'] ?? 0,
                     'gross_bendera' => $item['gross_nilai_bendera'] ?? 0,
                     'gross_bank_cost' => $item['gross_nilai_bank_cost'] ?? 0,
                     'gross_biaya_ops' => $item['gross_nilai_biaya_ops'] ?? 0,
-                    'sub_total_tidak_langsung' => $item['sub_total_biaya_tidak_langsung'] ?? 0, // Frontend uses sub_total_biaya_tidak_langsung
-                    'nett' => $item['nilai_nett_income'] ?? 0, // Frontend uses nilai_nett_income
-                    'nett_percent' => $item['nett_income_persentase'] ?? 0, // Frontend uses nett_income_persentase
+                    'sub_total_tidak_langsung' => $item['sub_total_biaya_tidak_langsung'] ?? 0,
+                    'nett' => $item['nilai_nett_income'] ?? 0,
+                    'nett_percent' => $item['nett_income_persentase'] ?? 0,
                     'nilai_nett_pcs' => $item['nilai_nett_pcs'] ?? 0,
-                    'total_nett_pcs' => $item['total_nilai_nett_per_pcs'] ?? 0, // Frontend uses total_nilai_nett_per_pcs
+                    'total_nett_pcs' => $item['total_nilai_nett_per_pcs'] ?? 0,
                     'gross_income' => $item['gross_income'] ?? 0,
-                    'gross_income_percent' => $item['gross_income_persentase'] ?? 0, // Frontend uses gross_income_persentase
+                    'gross_income_percent' => $item['gross_income_persentase'] ?? 0,
                     'nett_income' => $item['nilai_nett_income'] ?? 0,
                     'nett_income_percent' => $item['nett_income_persentase'] ?? 0,
-                    'catatan' => $item['catatan'] ?? null,
-                    'catatan' => $item['catatan'] ?? null,
                     'keterangan_1' => $item['keterangan_1'] ?? null,
                     'keterangan_2' => $item['keterangan_2'] ?? null,
+                    'catatan' => $item['catatan'] ?? null,
                 ]);
 
                 Log::info('Kalkulasi item saved', ['id' => $kalkulasi->id_kalkulasi]);
@@ -607,9 +610,10 @@ class KalkulasiController extends Controller
                 $data['nama_vendor'] = $item->vendor ? $item->vendor->nama_vendor : '';
                 $data['satuan'] = $item->barang ? $item->barang->satuan : 'pcs';
 
-                // Map field names yang berbeda antara database dan frontend
-                $data['nilai_diskon'] = $data['diskon_amount'] ?? 0;
-                $data['harga_diskon'] = $data['harga_akhir'] ?? 0;
+                // REVISED: Map field names untuk logika baru
+                // LOGIKA BARU: harga_diskon = INPUT, nilai_diskon = CALCULATED
+                $data['harga_diskon'] = $data['harga_diskon'] ?? $data['harga_akhir'] ?? 0; // INPUT field
+                $data['nilai_diskon'] = $data['diskon_amount'] ?? 0; // CALCULATED field
                 $data['total_harga'] = $data['total_harga_hpp'] ?? 0;
                 $data['persen_kenaikan'] = $data['kenaikan_percent'] ?? 0;
                 $data['pph_dinas'] = $data['pph'] ?? 0;

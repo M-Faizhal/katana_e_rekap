@@ -91,7 +91,6 @@ class HPSCalculator {
         // Get basic values
         const qty = parseFloat(calculated.qty) || 1;
         const hargaVendor = parseFloat(calculated.harga_vendor) || 0;
-        const nilaiDiskon = parseFloat(calculated.nilai_diskon) || 0; // ← INPUT: Diskon per item
         const persenKenaikan = parseFloat(calculated.persen_kenaikan) || 0;
         const hargaPaguDinasPerPcs = parseFloat(calculated.harga_pagu_dinas_per_pcs) || 0;
         const nilaiSp = parseFloat(calculated.nilai_sp) || 0;
@@ -101,21 +100,23 @@ class HPSCalculator {
         const bankCostPercent = parseFloat(calculated.bank_cost_percent) || 0;
         const biayaOpsPercent = parseFloat(calculated.biaya_ops_percent) || 0;
 
-        // === FIXED DISCOUNT CALCULATION ===
-        // 8. NILAI DISKON (per item) → INPUT dari admin
-        calculated.nilai_diskon = nilaiDiskon;
+        // === REVISED DISCOUNT CALCULATION ===
+        // LOGIKA BARU: Admin input harga_diskon, sistem hitung nilai_diskon otomatis
+        // INPUT: harga_diskon (harga akhir setelah diskon)
+        const hargaDiskon = parseFloat(calculated.harga_diskon) || hargaVendor;
+        calculated.harga_diskon = hargaDiskon;
+        calculated.harga_akhir = hargaDiskon; // For compatibility
+        
+        // 8. NILAI DISKON (per item) → CALCULATED: Harga Vendor - Harga Diskon
+        const nilaiDiskon = hargaVendor - hargaDiskon;
+        calculated.nilai_diskon = Math.max(0, nilaiDiskon);
         
         // 9. TOTAL DISKON = NILAI DISKON × QTY → CALCULATED
-        const totalDiskon = nilaiDiskon * qty;
+        const totalDiskon = calculated.nilai_diskon * qty;
         calculated.total_diskon = totalDiskon;
         
-        // 10. HARGA DISKON (Harga Akhir) = Harga Vendor - Nilai Diskon
-        const hargaDiskon = hargaVendor - nilaiDiskon;
-        calculated.harga_diskon = Math.max(0, hargaDiskon);
-        calculated.harga_akhir = calculated.harga_diskon; // For compatibility
-        
         // 11. TOTAL HARGA = HARGA DISKON × QTY
-        const totalHarga = calculated.harga_diskon * qty;
+        const totalHarga = hargaDiskon * qty;
         calculated.total_harga = totalHarga;
         
         // 12. JUMLAH VOLUME YANG DIKERJAKAN = HARGA AKHIR × QTY
@@ -257,8 +258,8 @@ class HPSCalculator {
             
             // Detail totals
             totalItems: this.kalkulasiData.length,
-            totalNilaiDiskon: 0,      // ← Changed: Total nilai diskon (per item)
-            totalDiskon: 0,           // ← Changed: Total diskon keseluruhan
+            totalNilaiDiskon: 0,      // ← CALCULATED: Total nilai diskon (per item)
+            totalDiskon: 0,           // ← CALCULATED: Total diskon keseluruhan
             totalVolume: 0,
             totalProyeksiKenaikan: 0,
             totalPpnDinas: 0,
@@ -288,8 +289,8 @@ class HPSCalculator {
             summary.totalHpp += parseFloat(item.jumlah_volume) || 0;
             summary.totalHps += parseFloat(item.hps) || 0;
             summary.totalNett += parseFloat(item.nilai_nett_income) || 0;
-            summary.totalNilaiDiskon += parseFloat(item.nilai_diskon) || 0;  // ← Fixed: per item
-            summary.totalDiskon += parseFloat(item.total_diskon) || 0;       // ← Fixed: total calculated
+            summary.totalNilaiDiskon += parseFloat(item.nilai_diskon) || 0;  // ← CALCULATED: per item
+            summary.totalDiskon += parseFloat(item.total_diskon) || 0;       // ← CALCULATED: total
             summary.totalVolume += parseFloat(item.jumlah_volume) || 0;
             summary.totalProyeksiKenaikan += parseFloat(item.proyeksi_kenaikan) || 0;
             summary.totalPpnDinas += parseFloat(item.ppn_dinas) || 0;
@@ -341,9 +342,9 @@ class HPSCalculator {
             satuan: 'Unit',
             qty: 1,
             harga_vendor: 0,
-            nilai_diskon: 0,          // ← INPUT: Diskon per item
+            harga_diskon: 0,          // ← INPUT: Harga setelah diskon
+            nilai_diskon: 0,          // ← CALCULATED: Diskon per item
             total_diskon: 0,          // ← CALCULATED: Total diskon
-            harga_diskon: 0,
             harga_akhir: 0,
             total_harga: 0,
             jumlah_volume: 0,

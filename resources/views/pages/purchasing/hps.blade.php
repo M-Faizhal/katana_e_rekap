@@ -28,6 +28,23 @@
         </div>
     </div>
 
+    <!-- Info Box untuk Logika Baru -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-info-circle text-blue-600 text-lg"></i>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-blue-800">Informasi Kalkulasi Diskon</h3>
+                <div class="mt-2 text-sm text-blue-700">
+                    <p class="mb-1">• <strong>Harga Diskon:</strong> Input harga akhir setelah diskon (kolom kuning)</p>
+                    <p class="mb-1">• <strong>Nilai Diskon:</strong> Otomatis dihitung (Harga Vendor - Harga Diskon)</p>
+                    <p>• <strong>Total Diskon:</strong> Otomatis dihitung (Nilai Diskon × Qty)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Action Buttons -->
     @if($canEdit || (Auth::user()->role === 'superadmin'))
     <div class="bg-gray-50 rounded-lg p-4 mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
@@ -144,9 +161,9 @@
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Satuan</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Qty</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Harga Vendor</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Nilai Diskon</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Total Diskon</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Harga Diskon</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-yellow-100" title="Input: Harga akhir setelah diskon">Harga Diskon <br><small class="text-blue-600">(INPUT)</small></th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-gray-100" title="Calculated: Harga Vendor - Harga Diskon">Nilai Diskon <br><small class="text-gray-600">(AUTO)</small></th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-gray-100" title="Calculated: Nilai Diskon × Qty">Total Diskon <br><small class="text-gray-600">(AUTO)</small></th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Total Harga</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Jumlah Volume</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Kenaikan</th>
@@ -277,6 +294,18 @@
     table-layout: fixed;
 }
 
+/* Input vs Calculated field styling */
+.hps-table .bg-yellow-100 input {
+    background-color: #fef3c7 !important;
+    border-color: #f59e0b !important;
+    font-weight: 600;
+}
+
+.hps-table .bg-gray-50 span {
+    color: #6b7280 !important;
+    font-style: italic;
+}
+
 .hps-table input[type="text"],
 .hps-table input[type="number"],
 .hps-table select {
@@ -357,6 +386,12 @@
 @push('scripts')
 <script src="{{ asset('js/hps-calculator.js') }}"></script>
 <script>
+// IMPORTANT: Logika Diskon Telah Diubah
+// LOGIKA BARU:
+// - harga_diskon = INPUT (yang diinput admin, harga akhir setelah diskon)
+// - nilai_diskon = CALCULATED (otomatis dihitung: harga_vendor - harga_diskon)
+// - total_diskon = CALCULATED (otomatis dihitung: nilai_diskon × qty)
+
 // Global variables
 let currentProyekId = {{ $proyek->id_proyek ?? 'null' }};
 let currentProject = @json($proyek);
@@ -478,14 +513,14 @@ function createKalkulasiTableRow(item, index) {
             <td class="px-2 py-3">
                 <input type="number" value="${item.harga_vendor || 0}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3">
-                <input type="number" value="${item.nilai_diskon || 0}" onchange="updateValue(${index}, 'nilai_diskon', this.value)" class="no-spin text-right w-20" placeholder="Per item" ${!canEdit ? 'readonly' : ''}>
+            <td class="px-2 py-3 bg-yellow-100">
+                <input type="number" value="${item.harga_diskon || 0}" onchange="updateValue(${index}, 'harga_diskon', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="Input harga final" title="INPUT: Masukkan harga akhir setelah diskon" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-yellow-50 text-xs">
-                <span>${formatRupiah(item.total_diskon || 0)}</span>
+            <td class="px-2 py-3 bg-gray-50 text-xs">
+                <span class="text-gray-600" title="CALCULATED: Harga Vendor - Harga Diskon">${formatRupiah(item.nilai_diskon || 0)}</span>
             </td>
-            <td class="px-2 py-3 bg-yellow-50 text-xs">
-                <span>${formatRupiah(item.harga_diskon || 0)}</span>
+            <td class="px-2 py-3 bg-gray-50 text-xs">
+                <span class="text-gray-600" title="CALCULATED: Nilai Diskon × Qty">${formatRupiah(item.total_diskon || 0)}</span>
             </td>
             <td class="px-2 py-3 bg-yellow-50 text-xs">
                 <span>${formatRupiah(item.total_harga || 0)}</span>
@@ -748,6 +783,18 @@ function updateVendor(index, vendorId) {
 }
 
 function updateValue(index, field, value) {
+    // Validasi khusus untuk harga_diskon
+    if (field === 'harga_diskon') {
+        const hargaVendor = parseFloat(kalkulasiData[index].harga_vendor) || 0;
+        const hargaDiskon = parseFloat(value) || 0;
+        
+        if (hargaDiskon > hargaVendor && hargaVendor > 0) {
+            showErrorMessage('Harga diskon tidak boleh lebih besar dari harga vendor!');
+            // Reset ke harga vendor jika lebih besar
+            value = hargaVendor;
+        }
+    }
+    
     kalkulasiData[index][field] = value;
     calculateRow(index);
     populateKalkulasiTable();
