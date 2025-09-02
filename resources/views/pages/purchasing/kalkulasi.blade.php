@@ -47,7 +47,7 @@
     <form method="GET" action="{{ route('purchasing.kalkulasi') }}" class="space-y-3 sm:space-y-0 sm:flex sm:gap-3 md:gap-4 sm:items-center sm:justify-between">
         <div class="flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto">
             <div class="relative flex-1 sm:flex-none">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari proyek..." 
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari proyek..."
                        class="border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pl-9 sm:pl-10 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 w-full sm:w-48 md:w-64 text-sm">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
             </div>
@@ -95,11 +95,11 @@
                             $isSuperadmin = $currentUser->role === 'superadmin';
                             $canAccess = ($currentUser->role === 'admin_purchasing' && $p->id_admin_purchasing == $currentUser->id_user) || $isSuperadmin;
                         @endphp
-                        <tr class="hover:bg-gray-50 {{ $canAccess ? 'cursor-pointer' : 'cursor-not-allowed opacity-75' }}" 
-                            @if($canAccess) onclick="window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'" @endif>>>
-                            
+                        <tr class="hover:bg-gray-50 {{ $canAccess ? 'cursor-pointer' : 'cursor-not-allowed opacity-75' }}"
+                            @if($canAccess) onclick="window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'" @endif>
+
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $loop->iteration }}</td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">
                                     @if($p->proyekBarang && $p->proyekBarang->count() > 0)
@@ -113,16 +113,16 @@
                                 </div>
                                 <div class="text-sm text-gray-500">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 @php
                                     $marketingName = 'N/A';
@@ -136,7 +136,7 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $marketingName }}</div>
                                 <div class="text-sm text-gray-500">Marketing</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 @php
                                     $purchasingName = 'N/A';
@@ -150,7 +150,7 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $purchasingName }}</div>
                                 <div class="text-sm text-gray-500">Purchasing</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">
                                     @if($p->proyekBarang && $p->proyekBarang->count() > 0)
@@ -167,14 +167,14 @@
                                     @endif
                                 </div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-bold text-red-600">{{ 'Rp ' . number_format($p->harga_total, 0, ',', '.') }}</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
                                 @if($canAccess)
-                                    <button onclick="event.stopPropagation(); openHpsModal({{ $p->id_proyek }})" 
+                                    <button onclick="event.stopPropagation(); openHpsModal({{ $p->id_proyek }})"
                                             class="text-red-600 hover:text-red-900 mr-3"
                                             title="Buka Kalkulasi HPS">
                                         <i class="fas fa-calculator"></i> Kalkulasi
@@ -211,9 +211,9 @@
                     $currentUser = Auth::user();
                     $canAccess = $currentUser->role === 'admin_purchasing' && $p->id_admin_purchasing == $currentUser->id_user;
                 @endphp
-                
-                <div class="border-b border-gray-200 p-3 sm:p-4 hover:bg-gray-50 {{ $canAccess ? 'cursor-pointer' : 'cursor-not-allowed opacity-75' }}" 
-                     @if($canAccess) onclick="openHpsModal({{ $p->id_proyek }})" @endif>>
+
+                <div class="border-b border-gray-200 p-3 sm:p-4 hover:bg-gray-50 {{ $canAccess ? 'cursor-pointer' : 'cursor-not-allowed opacity-75' }}"
+                     @if($canAccess) onclick="openHpsModal({{ $p->id_proyek }})" @endif>
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex-1">
                             <h3 class="text-sm sm:text-base font-medium text-gray-900 line-clamp-2">
@@ -232,7 +232,7 @@
                             Menunggu
                         </span>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Klien</p>
@@ -244,7 +244,7 @@
                             <p class="text-sm font-medium text-gray-900">{{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</p>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Marketing</p>
@@ -273,7 +273,7 @@
                             <p class="text-sm font-medium text-gray-900">{{ $purchasingName }}</p>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500">Jumlah & Total</span>
@@ -289,10 +289,10 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="flex gap-2 pt-2 border-t border-gray-100">
                         @if($canAccess)
-                            <button onclick="event.stopPropagation(); window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'" 
+                            <button onclick="event.stopPropagation(); window.location.href='/purchasing/kalkulasi/{{ $p->id_proyek }}/hps'"
                                     class="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors duration-200">
                                 <i class="fas fa-calculator mr-1"></i> Kalkulasi
                             </button>
@@ -326,7 +326,7 @@
                 <h2 class="text-base sm:text-lg font-semibold text-gray-800">Proyek dalam Proses Penawaran</h2>
                 <p class="text-xs sm:text-sm text-gray-600 mt-1">Proyek yang sedang dalam tahap penawaran dengan status menunggu</p>
             </div>
-            
+
             <!-- Desktop Table View -->
             <div class="hidden lg:block overflow-x-auto">
                 <table class="w-full">
@@ -350,7 +350,7 @@
                         @forelse($proyekProses as $p)
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $loop->iteration }}</td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">
                                     @if($p->proyekBarang && $p->proyekBarang->count() > 0)
@@ -364,23 +364,23 @@
                                 </div>
                                 <div class="text-sm text-gray-500">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $p->penawaran->no_penawaran ?? 'N/A' }}</div>
                                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                     {{ $p->penawaran->status ?? 'Menunggu' }}
                                 </span>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $p->penawaran ? \Carbon\Carbon::parse($p->penawaran->tanggal_penawaran)->format('d M Y') : 'N/A' }}
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 @php
                                     $marketingName = 'N/A';
@@ -394,7 +394,7 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $marketingName }}</div>
                                 <div class="text-sm text-gray-500">Marketing</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 @php
                                     $purchasingName = 'N/A';
@@ -408,7 +408,7 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $purchasingName }}</div>
                                 <div class="text-sm text-gray-500">Purchasing</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-bold text-blue-600">{{ 'Rp ' . number_format($p->penawaran->total_penawaran ?? 0, 0, ',', '.') }}</div>
                                 <div class="text-sm text-gray-500">
@@ -419,9 +419,9 @@
                                     @endif
                                 </div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewPenawaranDetail({{ $p->id_proyek }})" 
+                                <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
                                         class="text-blue-600 hover:text-blue-900"
                                         title="Lihat Detail Penawaran">
                                     <i class="fas fa-eye"></i> Detail
@@ -459,7 +459,7 @@
                             {{ $p->penawaran->status ?? 'Menunggu' }}
                         </span>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Klien</p>
@@ -472,7 +472,7 @@
                             <p class="text-xs text-gray-500">{{ $p->penawaran ? \Carbon\Carbon::parse($p->penawaran->tanggal_penawaran)->format('d M Y') : 'N/A' }}</p>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Marketing</p>
@@ -501,7 +501,7 @@
                             <p class="text-sm font-medium text-gray-900">{{ $purchasingName }}</p>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500">Total Penawaran</span>
@@ -517,9 +517,9 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="pt-2 border-t border-gray-100">
-                        <button onclick="viewPenawaranDetail({{ $p->id_proyek }})" 
+                        <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
                                 class="w-full bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors duration-200">
                             <i class="fas fa-eye mr-1"></i> Lihat Detail
                         </button>
@@ -542,7 +542,7 @@
                 <h2 class="text-base sm:text-lg font-semibold text-gray-800">Penawaran Berhasil (ACC)</h2>
                 <p class="text-xs sm:text-sm text-gray-600 mt-1">Proyek yang penawaran telah diterima/ACC oleh klien</p>
             </div>
-            
+
             <!-- Desktop Table View -->
             <div class="hidden lg:block overflow-x-auto">
                 <table class="w-full">
@@ -566,7 +566,7 @@
                         @forelse($proyekBerhasil as $p)
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $loop->iteration }}</td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">
                                     @if($p->proyekBarang && $p->proyekBarang->count() > 0)
@@ -580,23 +580,23 @@
                                 </div>
                                 <div class="text-sm text-gray-500">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $p->penawaran->no_penawaran ?? 'N/A' }}</div>
                                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                                     {{ $p->penawaran->status ?? 'ACC' }}
                                 </span>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $p->penawaran ? \Carbon\Carbon::parse($p->penawaran->updated_at)->format('d M Y') : 'N/A' }}
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 @php
                                     $marketingName = 'N/A';
@@ -610,7 +610,7 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $marketingName }}</div>
                                 <div class="text-sm text-gray-500">Marketing</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 @php
                                     $purchasingName = 'N/A';
@@ -624,7 +624,7 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $purchasingName }}</div>
                                 <div class="text-sm text-gray-500">Purchasing</div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-bold text-green-600">{{ 'Rp ' . number_format($p->penawaran->total_penawaran ?? 0, 0, ',', '.') }}</div>
                                 <div class="text-sm text-gray-500">
@@ -635,9 +635,9 @@
                                     @endif
                                 </div>
                             </td>
-                            
+
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewPenawaranDetail({{ $p->id_proyek }})" 
+                                <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
                                         class="text-green-600 hover:text-green-900"
                                         title="Lihat Detail Penawaran">
                                     <i class="fas fa-eye"></i> Detail
@@ -675,7 +675,7 @@
                             {{ $p->penawaran->status ?? 'ACC' }}
                         </span>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Klien</p>
@@ -688,7 +688,7 @@
                             <p class="text-xs text-gray-500">ACC: {{ $p->penawaran ? \Carbon\Carbon::parse($p->penawaran->updated_at)->format('d M Y') : 'N/A' }}</p>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Marketing</p>
@@ -717,7 +717,7 @@
                             <p class="text-sm font-medium text-gray-900">{{ $purchasingName }}</p>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500">Total Penawaran</span>
@@ -733,9 +733,9 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="pt-2 border-t border-gray-100">
-                        <button onclick="viewPenawaranDetail({{ $p->id_proyek }})" 
+                        <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
                                 class="w-full bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
                             <i class="fas fa-eye mr-1"></i> Lihat Detail
                         </button>
@@ -782,7 +782,7 @@
         padding: 8px 12px;
         font-size: 12px;
     }
-    
+
     .tab-button i {
         display: none;
     }
@@ -802,20 +802,20 @@ function showTab(tabName) {
         content.classList.add('hidden');
         content.classList.remove('active');
     });
-    
+
     // Remove active state from all tab buttons
     document.querySelectorAll('.tab-button').forEach(button => {
         button.classList.remove('border-red-600', 'text-red-600', 'bg-red-50');
         button.classList.add('border-transparent', 'text-gray-500');
     });
-    
+
     // Show selected tab content
     const contentElement = document.getElementById(`content-${tabName}`);
     if (contentElement) {
         contentElement.classList.remove('hidden');
         contentElement.classList.add('active');
     }
-    
+
     // Add active state to selected tab button
     const buttonElement = document.getElementById(`tab-${tabName}`);
     if (buttonElement) {
