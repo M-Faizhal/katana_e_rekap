@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/proyek/wilayah', [ProyekController::class, 'getWilayahForSelect'])->name('marketing.proyek.wilayah');
         Route::get('/proyek/next-kode', [ProyekController::class, 'getNextKodeProyek'])->name('marketing.proyek.next-kode');
         Route::get('/proyek/current-user', [ProyekController::class, 'getCurrentUser'])->name('marketing.proyek.current-user');
+        Route::get('/proyek/download-spesifikasi/{file}', [ProyekController::class, 'downloadSpesifikasi'])->name('marketing.proyek.download-spesifikasi');
 
         // Wilayah Routes
         Route::get('/wilayah', [WilayahController::class, 'index'])->name('marketing.wilayah');
@@ -78,7 +79,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/potensi/wilayah/select', [PotensiController::class, 'getWilayahForSelect'])->name('marketing.potensi.wilayah');
         Route::get('/potensi/kode/next', [PotensiController::class, 'getNextKodeProyek'])->name('marketing.potensi.nextKode');
         Route::get('/potensi/user/current', [PotensiController::class, 'getCurrentUser'])->name('marketing.potensi.currentUser');
-        
+
         // Penawaran Routes
         Route::get('/penawaran', [PenawaranController::class, 'index'])->name('marketing.penawaran');
         Route::get('/penawaran/{proyekId}', [PenawaranController::class, 'show'])->name('marketing.penawaran.detail');

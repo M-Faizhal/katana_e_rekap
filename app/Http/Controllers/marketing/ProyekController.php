@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Exception;
 
@@ -43,6 +44,10 @@ class ProyekController extends Controller
                         'qty' => $barang->jumlah, // Tambahkan untuk compatibility
                         'satuan' => $barang->satuan,
                         'spesifikasi' => $barang->spesifikasi,
+                        'spesifikasi_type' => $barang->spesifikasi_type ?? 'text',
+                        'spesifikasi_file_path' => $barang->spesifikasi_file,
+                        'spesifikasi_file' => $barang->spesifikasi_file,
+                        'spesifikasi_file_name' => $barang->spesifikasi_file_name,
                         'harga_satuan' => $barang->harga_satuan ?? 0,
                         'harga_total' => $barang->harga_total ?? 0
                     ];
@@ -190,11 +195,34 @@ class ProyekController extends Controller
             foreach ($daftarBarang as $index => $barang) {
                 $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
 
+                // Handle file upload untuk spesifikasi
+                $spesifikasiFilePath = null;
+                $spesifikasiFileName = null;
+                $spesifikasiType = $barang['spesifikasi_type'] ?? 'text';
+
+                if ($spesifikasiType === 'file' && $request->hasFile("barang.{$index}.spesifikasi_file")) {
+                    $file = $request->file("barang.{$index}.spesifikasi_file");
+
+                    // Validate file
+                    if ($file->isValid()) {
+                        $originalName = $file->getClientOriginalName();
+                        $extension = $file->getClientOriginalExtension();
+                        $fileName = 'spesifikasi_' . $proyek->kode_proyek . '_' . ($index + 1) . '_' . time() . '.' . $extension;
+
+                        // Store file
+                        $spesifikasiFilePath = $file->storeAs('spesifikasi', $fileName, 'public');
+                        $spesifikasiFileName = $originalName;
+                    }
+                }
+
                 $proyekBarang = $proyek->proyekBarang()->create([
                     'nama_barang' => $barang['nama_barang'],
                     'jumlah' => $barang['jumlah'],
                     'satuan' => $barang['satuan'],
-                    'spesifikasi' => $barang['spesifikasi'] ?? 'Spesifikasi standar',
+                    'spesifikasi' => $spesifikasiType === 'text' ? ($barang['spesifikasi'] ?? 'Spesifikasi standar') : '',
+                    'spesifikasi_file' => $spesifikasiFilePath,
+                    'spesifikasi_file_name' => $spesifikasiFileName,
+                    'spesifikasi_type' => $spesifikasiType,
                     'harga_satuan' => $barang['harga_satuan'] ?? null,
                     'harga_total' => $harga_total
                 ]);
@@ -206,11 +234,34 @@ class ProyekController extends Controller
         else {
             $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
 
+            // Handle file upload untuk spesifikasi single barang
+            $spesifikasiFilePath = null;
+            $spesifikasiFileName = null;
+            $spesifikasiType = $request->spesifikasi_type ?? 'text';
+
+            if ($spesifikasiType === 'file' && $request->hasFile('spesifikasi_file')) {
+                $file = $request->file('spesifikasi_file');
+
+                // Validate file
+                if ($file->isValid()) {
+                    $originalName = $file->getClientOriginalName();
+                    $extension = $file->getClientOriginalExtension();
+                    $fileName = 'spesifikasi_' . $proyek->kode_proyek . '_1_' . time() . '.' . $extension;
+
+                    // Store file
+                    $spesifikasiFilePath = $file->storeAs('spesifikasi', $fileName, 'public');
+                    $spesifikasiFileName = $originalName;
+                }
+            }
+
             $proyek->proyekBarang()->create([
                 'nama_barang' => $request->nama_barang,
                 'jumlah' => $request->jumlah,
                 'satuan' => $request->satuan,
-                'spesifikasi' => $request->spesifikasi,
+                'spesifikasi' => $spesifikasiType === 'text' ? $request->spesifikasi : '',
+                'spesifikasi_file' => $spesifikasiFilePath,
+                'spesifikasi_file_name' => $spesifikasiFileName,
+                'spesifikasi_type' => $spesifikasiType,
                 'harga_satuan' => $request->harga_satuan,
                 'harga_total' => $harga_total
             ]);
@@ -287,11 +338,34 @@ class ProyekController extends Controller
                 foreach ($request->daftar_barang as $index => $barang) {
                     $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
 
+                    // Handle file upload untuk spesifikasi
+                    $spesifikasiFilePath = null;
+                    $spesifikasiFileName = null;
+                    $spesifikasiType = $barang['spesifikasi_type'] ?? 'text';
+
+                    if ($spesifikasiType === 'file' && $request->hasFile("daftar_barang.{$index}.spesifikasi_file")) {
+                        $file = $request->file("daftar_barang.{$index}.spesifikasi_file");
+
+                        // Validate file
+                        if ($file->isValid()) {
+                            $originalName = $file->getClientOriginalName();
+                            $extension = $file->getClientOriginalExtension();
+                            $fileName = 'spesifikasi_' . $proyek->kode_proyek . '_' . ($index + 1) . '_' . time() . '.' . $extension;
+
+                            // Store file
+                            $spesifikasiFilePath = $file->storeAs('spesifikasi', $fileName, 'public');
+                            $spesifikasiFileName = $originalName;
+                        }
+                    }
+
                     $proyekBarang = $proyek->proyekBarang()->create([
                         'nama_barang' => $barang['nama_barang'],
                         'jumlah' => $barang['jumlah'],
                         'satuan' => $barang['satuan'],
-                        'spesifikasi' => $barang['spesifikasi'] ?? 'Spesifikasi standar',
+                        'spesifikasi' => $spesifikasiType === 'text' ? ($barang['spesifikasi'] ?? 'Spesifikasi standar') : '',
+                        'spesifikasi_file' => $spesifikasiFilePath,
+                        'spesifikasi_file_name' => $spesifikasiFileName,
+                        'spesifikasi_type' => $spesifikasiType,
                         'harga_satuan' => $barang['harga_satuan'] ?? null,
                         'harga_total' => $harga_total
                     ]);
@@ -303,11 +377,34 @@ class ProyekController extends Controller
             else {
                 $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
 
+                // Handle file upload untuk spesifikasi single barang
+                $spesifikasiFilePath = null;
+                $spesifikasiFileName = null;
+                $spesifikasiType = $request->spesifikasi_type ?? 'text';
+
+                if ($spesifikasiType === 'file' && $request->hasFile('spesifikasi_file')) {
+                    $file = $request->file('spesifikasi_file');
+
+                    // Validate file
+                    if ($file->isValid()) {
+                        $originalName = $file->getClientOriginalName();
+                        $extension = $file->getClientOriginalExtension();
+                        $fileName = 'spesifikasi_' . $proyek->kode_proyek . '_1_' . time() . '.' . $extension;
+
+                        // Store file
+                        $spesifikasiFilePath = $file->storeAs('spesifikasi', $fileName, 'public');
+                        $spesifikasiFileName = $originalName;
+                    }
+                }
+
                 $proyekBarang = $proyek->proyekBarang()->create([
                     'nama_barang' => $request->nama_barang,
                     'jumlah' => $request->jumlah,
                     'satuan' => $request->satuan,
-                    'spesifikasi' => $request->spesifikasi,
+                    'spesifikasi' => $spesifikasiType === 'text' ? $request->spesifikasi : '',
+                    'spesifikasi_file' => $spesifikasiFilePath,
+                    'spesifikasi_file_name' => $spesifikasiFileName,
+                    'spesifikasi_type' => $spesifikasiType,
                     'harga_satuan' => $request->harga_satuan,
                     'harga_total' => $harga_total
                 ]);
@@ -443,5 +540,24 @@ class ProyekController extends Controller
         } else {
             return 'rendah';
         }
+    }
+
+    /**
+     * Download spesifikasi file
+     */
+    public function downloadSpesifikasi($file)
+    {
+        $filePath = storage_path('app/public/spesifikasi/' . $file);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['error' => 'File tidak ditemukan'], 404);
+        }
+
+        $headers = [
+            'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => 'attachment; filename="' . basename($file) . '"',
+        ];
+
+        return response()->file($filePath, $headers);
     }
 }

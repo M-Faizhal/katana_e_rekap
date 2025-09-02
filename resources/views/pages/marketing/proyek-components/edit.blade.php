@@ -188,6 +188,9 @@
                                     <a id="downloadSuratPenawaran" href="#" class="text-red-600 hover:text-red-700 hidden" title="Download">
                                         <i class="fas fa-download text-sm"></i>
                                     </a>
+                                    <button type="button" id="deleteSuratPenawaran" onclick="deleteCurrentDocument('surat_penawaran')" class="text-red-600 hover:text-red-700 hidden" title="Hapus">
+                                        <i class="fas fa-trash text-sm"></i>
+                                    </button>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
@@ -200,6 +203,9 @@
                                     <a id="downloadSuratPesanan" href="#" class="text-purple-600 hover:text-purple-700 hidden" title="Download">
                                         <i class="fas fa-download text-sm"></i>
                                     </a>
+                                    <button type="button" id="deleteSuratPesanan" onclick="deleteCurrentDocument('surat_pesanan')" class="text-purple-600 hover:text-purple-700 hidden" title="Hapus">
+                                        <i class="fas fa-trash text-sm"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -334,6 +340,9 @@ function addEditItem(itemData = null) {
     let satuan = '';
     let hargaSatuan = '';
     let spesifikasi = '';
+    let spesifikasiType = 'text';
+    let spesifikasiFile = '';
+    let spesifikasiFileName = '';
 
     if (itemData) {
         nama = itemData.nama || itemData.nama_barang || '';
@@ -341,6 +350,9 @@ function addEditItem(itemData = null) {
         satuan = itemData.satuan || '';
         hargaSatuan = itemData.harga_satuan || '';
         spesifikasi = itemData.spesifikasi || '';
+        spesifikasiType = itemData.spesifikasi_type || 'text';
+        spesifikasiFile = itemData.spesifikasi_file || itemData.spesifikasi_file_path || '';
+        spesifikasiFileName = itemData.spesifikasi_file_name || '';
     }
 
     const itemHtml = `
@@ -386,8 +398,67 @@ function addEditItem(itemData = null) {
                 </div>
             </div>
             <div class="mt-3">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi</label>
-                <textarea name="barang[${editItemCounter}][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Masukkan spesifikasi barang...">${spesifikasi}</textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Spesifikasi</label>
+
+                <!-- Opsi Pilihan -->
+                <div class="flex gap-2 mb-3">
+                    <button type="button" onclick="toggleSpesifikasiMode(this, 'text', ${editItemCounter})" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-center hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 spesifikasi-mode-btn ${spesifikasiType === 'text' ? 'active' : ''}">
+                        <i class="fas fa-keyboard mr-2"></i>Ketik Manual
+                    </button>
+                    <button type="button" onclick="toggleSpesifikasiMode(this, 'file', ${editItemCounter})" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-center hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 spesifikasi-mode-btn ${spesifikasiType === 'file' ? 'active' : ''}">
+                        <i class="fas fa-file-upload mr-2"></i>Upload File
+                    </button>
+                </div>
+
+                <!-- Input Spesifikasi Manual -->
+                <div class="spesifikasi-text-input ${spesifikasiType === 'text' ? '' : 'hidden'}">
+                    <textarea name="barang[${editItemCounter}][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Masukkan spesifikasi barang...">${spesifikasi}</textarea>
+                </div>
+
+                <!-- Input Upload File -->
+                <div class="spesifikasi-file-input ${spesifikasiType === 'file' ? '' : 'hidden'}">
+                    ${spesifikasiFile ? `
+                    <!-- File yang sudah ada -->
+                    <div class="current-file-info bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-file text-blue-600"></i>
+                                <span class="text-sm font-medium text-blue-800">File saat ini:</span>
+                                <span class="text-sm text-blue-600">${spesifikasiFileName || spesifikasiFile}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button type="button" onclick="downloadSpesifikasiFile('${spesifikasiFile}')" class="text-blue-600 hover:text-blue-700 text-sm">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                                <button type="button" onclick="deleteCurrentFile(this, ${editItemCounter})" class="text-red-600 hover:text-red-700 text-sm">
+                                    <i class="fas fa-trash"></i> Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors duration-200">
+                        <input type="file" name="barang[${editItemCounter}][spesifikasi_file]" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden spesifikasi-file-input-field" onchange="handleFileUpload(this, ${editItemCounter})">
+                        <div class="upload-area" onclick="this.parentElement.querySelector('input[type=file]').click()">
+                            <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                            <p class="text-sm text-gray-600 mb-1">${spesifikasiFile ? 'Klik untuk ganti file spesifikasi' : 'Klik untuk upload file spesifikasi'}</p>
+                            <p class="text-xs text-gray-500">PDF, DOC, XLS, JPG, PNG (Max 10MB)</p>
+                        </div>
+                        <div class="file-preview hidden">
+                            <div class="flex items-center justify-center space-x-2 text-sm text-green-600">
+                                <i class="fas fa-file"></i>
+                                <span class="file-name"></span>
+                                <button type="button" onclick="removeFile(this, ${editItemCounter})" class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden input untuk mode spesifikasi -->
+                <input type="hidden" name="barang[${editItemCounter}][spesifikasi_type]" value="${spesifikasiType}" class="spesifikasi-type-input">
             </div>
         </div>
     `;
@@ -610,6 +681,15 @@ function hidePenawaranStatus() {
 function updateFileDisplay(textElementId, linkElementId, filename, type = null) {
     const textElement = document.getElementById(textElementId);
     const linkElement = document.getElementById(linkElementId);
+    
+    // Get delete button based on textElementId
+    let deleteButtonId;
+    if (textElementId === 'currentSuratPenawaran') {
+        deleteButtonId = 'deleteSuratPenawaran';
+    } else if (textElementId === 'currentSuratPersetujuan') {
+        deleteButtonId = 'deleteSuratPesanan';
+    }
+    const deleteButton = deleteButtonId ? document.getElementById(deleteButtonId) : null;
 
     console.log(`Updating file display: ${textElementId} = ${filename}, type = ${type}`);
 
@@ -626,6 +706,11 @@ function updateFileDisplay(textElementId, linkElementId, filename, type = null) 
                 linkElement.classList.remove('hidden');
                 console.log(`Download link set: ${downloadUrl}`);
             }
+
+            // Show delete button if file exists
+            if (deleteButton) {
+                deleteButton.classList.remove('hidden');
+            }
         } else {
             textElement.textContent = 'Tidak ada file';
             textElement.classList.remove('text-gray-600');
@@ -635,6 +720,11 @@ function updateFileDisplay(textElementId, linkElementId, filename, type = null) 
             if (linkElement) {
                 linkElement.classList.add('hidden');
                 linkElement.href = '#';
+            }
+
+            // Hide delete button
+            if (deleteButton) {
+                deleteButton.classList.add('hidden');
             }
         }
     } else {
@@ -828,14 +918,28 @@ function collectEditFormData() {
             const satuanSelect = item.querySelector('select[name*="[satuan]"]');
             const hargaSatuanInput = item.querySelector('input[name*="[harga_satuan]"]');
             const spesifikasiTextarea = item.querySelector('textarea[name*="[spesifikasi]"]');
+            const spesifikasiTypeInput = item.querySelector('input[name*="[spesifikasi_type]"]');
+            const spesifikasiFileInput = item.querySelector('input[name*="[spesifikasi_file]"]');
+            const deleteFileInput = item.querySelector('input[name*="[delete_spesifikasi_file]"]');
 
             const barangData = {
                 nama_barang: namaInput ? namaInput.value : '',
                 jumlah: qtyInput ? parseInt(qtyInput.value) || 1 : 1,
                 satuan: satuanSelect ? satuanSelect.value || 'Unit' : 'Unit',
                 spesifikasi: spesifikasiTextarea ? spesifikasiTextarea.value || 'Spesifikasi standar' : 'Spesifikasi standar',
-                harga_satuan: hargaSatuanInput ? parseFloat(hargaSatuanInput.value) || null : null
+                harga_satuan: hargaSatuanInput ? parseFloat(hargaSatuanInput.value) || null : null,
+                spesifikasi_type: spesifikasiTypeInput ? spesifikasiTypeInput.value : 'text'
             };
+
+            // Handle file deletion
+            if (deleteFileInput && deleteFileInput.value === '1') {
+                barangData.delete_spesifikasi_file = true;
+            }
+
+            // Handle new file upload
+            if (spesifikasiFileInput && spesifikasiFileInput.files && spesifikasiFileInput.files[0]) {
+                barangData.spesifikasi_file = spesifikasiFileInput.files[0];
+            }
 
             if (barangData.nama_barang) {
                 data.daftar_barang.push(barangData);
@@ -926,4 +1030,170 @@ window.testPenawaranAPI = function(proyekId) {
     console.log('Testing penawaran API for project:', proyekId);
     fetchPenawaranData(proyekId);
 };
+
+// Function untuk toggle spesifikasi mode pada edit
+function toggleSpesifikasiMode(button, mode, itemIndex) {
+    const item = button.closest('.barang-item-edit');
+    if (!item) return;
+
+    const textInput = item.querySelector('.spesifikasi-text-input');
+    const fileInput = item.querySelector('.spesifikasi-file-input');
+    const typeInput = item.querySelector('.spesifikasi-type-input');
+    const modeButtons = item.querySelectorAll('.spesifikasi-mode-btn');
+
+    // Reset all buttons
+    modeButtons.forEach(btn => {
+        btn.classList.remove('active', 'bg-blue-500', 'text-white', 'border-blue-500');
+        btn.classList.add('border-gray-300', 'text-gray-700');
+    });
+
+    // Activate current button
+    button.classList.remove('border-gray-300', 'text-gray-700');
+    button.classList.add('active', 'bg-blue-500', 'text-white', 'border-blue-500');
+
+    // Show/hide inputs
+    if (mode === 'text') {
+        textInput.classList.remove('hidden');
+        fileInput.classList.add('hidden');
+        typeInput.value = 'text';
+    } else {
+        textInput.classList.add('hidden');
+        fileInput.classList.remove('hidden');
+        typeInput.value = 'file';
+    }
+}
+
+// Function untuk handle file upload pada edit
+function handleFileUpload(input, itemIndex) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const item = input.closest('.barang-item-edit');
+    if (!item) return;
+
+    const uploadArea = item.querySelector('.upload-area');
+    const filePreview = item.querySelector('.file-preview');
+    const fileName = item.querySelector('.file-name');
+
+    if (uploadArea && filePreview && fileName) {
+        uploadArea.classList.add('hidden');
+        filePreview.classList.remove('hidden');
+        fileName.textContent = file.name;
+    }
+}
+
+// Function untuk remove file pada edit
+function removeFile(button, itemIndex) {
+    const item = button.closest('.barang-item-edit');
+    if (!item) return;
+
+    const uploadArea = item.querySelector('.upload-area');
+    const filePreview = item.querySelector('.file-preview');
+    const fileInput = item.querySelector('.spesifikasi-file-input-field');
+
+    if (uploadArea && filePreview && fileInput) {
+        fileInput.value = '';
+        uploadArea.classList.remove('hidden');
+        filePreview.classList.add('hidden');
+    }
+}
+
+// Function untuk menghapus file yang sudah ada di server
+function deleteCurrentFile(button, itemIndex) {
+    if (!confirm('Apakah Anda yakin ingin menghapus file ini?')) {
+        return;
+    }
+
+    const item = button.closest('.barang-item-edit');
+    if (!item) return;
+
+    const currentFileInfo = item.querySelector('.current-file-info');
+    if (!currentFileInfo) return;
+
+    // Hide the current file info
+    currentFileInfo.style.display = 'none';
+
+    // Add hidden input to mark file for deletion
+    const deleteInput = document.createElement('input');
+    deleteInput.type = 'hidden';
+    deleteInput.name = `barang[${itemIndex}][delete_spesifikasi_file]`;
+    deleteInput.value = '1';
+    item.appendChild(deleteInput);
+
+    // Update upload area text
+    const uploadArea = item.querySelector('.upload-area p');
+    if (uploadArea) {
+        uploadArea.textContent = 'Klik untuk upload file spesifikasi baru';
+    }
+
+    console.log(`Marked file for deletion for item ${itemIndex}`);
+}
+
+// Function untuk menghapus dokumen surat yang sudah ada
+function deleteCurrentDocument(documentType) {
+    const documentNames = {
+        'surat_penawaran': 'Surat Penawaran',
+        'surat_pesanan': 'Surat Pesanan'
+    };
+
+    const documentName = documentNames[documentType] || documentType;
+    
+    if (!confirm(`Apakah Anda yakin ingin menghapus ${documentName}?`)) {
+        return;
+    }
+
+    // Get current project ID
+    const proyekId = document.getElementById('editId').value;
+    if (!proyekId) {
+        alert('ID Proyek tidak ditemukan!');
+        return;
+    }
+
+    // Hide delete button and show loading
+    const deleteButtonId = documentType === 'surat_penawaran' ? 'deleteSuratPenawaran' : 'deleteSuratPesanan';
+    const deleteButton = document.getElementById(deleteButtonId);
+    if (deleteButton) {
+        deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
+        deleteButton.disabled = true;
+    }
+
+    // Send delete request to server
+    fetch(`/marketing/penawaran/delete-document/${proyekId}/${documentType}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update display to show no file
+            if (documentType === 'surat_penawaran') {
+                updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
+            } else {
+                updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
+            }
+            
+            // Show success message
+            if (typeof showSuccessModal === 'function') {
+                showSuccessModal(`${documentName} berhasil dihapus!`);
+            } else {
+                alert(`${documentName} berhasil dihapus!`);
+            }
+        } else {
+            throw new Error(data.message || `Gagal menghapus ${documentName}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting document:', error);
+        alert(`Terjadi kesalahan: ${error.message}`);
+        
+        // Restore delete button
+        if (deleteButton) {
+            deleteButton.innerHTML = '<i class="fas fa-trash text-sm"></i>';
+            deleteButton.disabled = false;
+        }
+    });
+}
 </script>

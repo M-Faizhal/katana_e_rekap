@@ -66,6 +66,30 @@
     .alert-info {
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     }
+
+    /* Spesifikasi Mode Styles */
+    .spesifikasi-mode-btn.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+
+    .spesifikasi-mode-btn {
+        transition: all 0.2s ease;
+    }
+
+    .upload-area {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .upload-area:hover {
+        background-color: #f8fafc;
+    }
+
+    .file-preview {
+        transition: all 0.3s ease;
+    }
 </style>
 
 <!-- Custom Alert Modal -->
@@ -262,8 +286,46 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi</label>
-                                <textarea name="barang[0][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Deskripsi atau spesifikasi barang (opsional)"></textarea>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spesifikasi</label>
+
+                                <!-- Opsi Pilihan -->
+                                <div class="flex gap-2 mb-3">
+                                    <button type="button" onclick="toggleSpesifikasiMode(this, 'text', 0)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-center hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 spesifikasi-mode-btn active">
+                                        <i class="fas fa-keyboard mr-2"></i>Ketik Manual
+                                    </button>
+                                    <button type="button" onclick="toggleSpesifikasiMode(this, 'file', 0)" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-center hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 spesifikasi-mode-btn">
+                                        <i class="fas fa-file-upload mr-2"></i>Upload File
+                                    </button>
+                                </div>
+
+                                <!-- Input Spesifikasi Manual -->
+                                <div class="spesifikasi-text-input">
+                                    <textarea name="barang[0][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Deskripsi atau spesifikasi barang (opsional)"></textarea>
+                                </div>
+
+                                <!-- Input Upload File -->
+                                <div class="spesifikasi-file-input hidden">
+                                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors duration-200">
+                                        <input type="file" name="barang[0][spesifikasi_file]" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden spesifikasi-file-input-field" onchange="handleFileUpload(this, 0)">
+                                        <div class="upload-area" onclick="this.parentElement.querySelector('input[type=file]').click()">
+                                            <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                            <p class="text-sm text-gray-600 mb-1">Klik untuk upload file spesifikasi</p>
+                                            <p class="text-xs text-gray-500">PDF, DOC, XLS, JPG, PNG (Max 10MB)</p>
+                                        </div>
+                                        <div class="file-preview hidden">
+                                            <div class="flex items-center justify-center space-x-2 text-sm text-green-600">
+                                                <i class="fas fa-file"></i>
+                                                <span class="file-name"></span>
+                                                <button type="button" onclick="removeFile(this, 0)" class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden input untuk mode spesifikasi -->
+                                <input type="hidden" name="barang[0][spesifikasi_type]" value="text" class="spesifikasi-type-input">
                             </div>
                         </div>
                     </div>
@@ -360,6 +422,8 @@ function tambahBarang() {
             input.value = '';
         } else if (input.tagName === 'SELECT') {
             input.selectedIndex = 0;
+        } else if (input.type === 'file') {
+            input.value = '';
         }
 
         // Remove readonly untuk input yang baru
@@ -371,6 +435,47 @@ function tambahBarang() {
             }
         }
     });
+
+    // Update onclick attributes untuk spesifikasi mode buttons
+    clonedTemplate.querySelectorAll('button[onclick*="toggleSpesifikasiMode"]').forEach(button => {
+        const onclick = button.getAttribute('onclick');
+        if (onclick) {
+            button.setAttribute('onclick', onclick.replace('0)', `${itemCounter})`));
+        }
+    });
+
+    // Update onclick attributes untuk file handling
+    clonedTemplate.querySelectorAll('input[onchange*="handleFileUpload"]').forEach(input => {
+        const onchange = input.getAttribute('onchange');
+        if (onchange) {
+            input.setAttribute('onchange', onchange.replace('0)', `${itemCounter})`));
+        }
+    });
+
+    clonedTemplate.querySelectorAll('button[onclick*="removeFile"]').forEach(button => {
+        const onclick = button.getAttribute('onclick');
+        if (onclick) {
+            button.setAttribute('onclick', onclick.replace('0)', `${itemCounter})`));
+        }
+    });
+
+    // Reset spesifikasi mode ke text untuk item baru
+    const modeButtons = clonedTemplate.querySelectorAll('.spesifikasi-mode-btn');
+    modeButtons.forEach((btn, idx) => {
+        btn.classList.remove('active');
+        if (idx === 0) { // Text mode button
+            btn.classList.add('active');
+        }
+    });
+
+    // Show text input, hide file input
+    const textInput = clonedTemplate.querySelector('.spesifikasi-text-input');
+    const fileInput = clonedTemplate.querySelector('.spesifikasi-file-input');
+    if (textInput) textInput.classList.remove('hidden');
+    if (fileInput) fileInput.classList.add('hidden');
+
+    // Reset file preview
+    hideFilePreview(clonedTemplate);
 
     // Show delete button untuk item baru
     const deleteButton = clonedTemplate.querySelector('button[onclick="hapusBarang(this)"]');
@@ -629,9 +734,6 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
         return;
     }
 
-    // Kumpulkan data form
-    const formDataObject = collectTambahFormData();
-
     // Submit data
     const submitButton = e.target.querySelector('button[type="submit"]') || document.querySelector('button[form="formTambahProyek"]');
 
@@ -646,22 +748,66 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
     submitButton.disabled = true;
 
-    // Create FormData untuk traditional form submission
+    // Create FormData untuk menangani file uploads
     const formData = new FormData();
-    
+
+    // Add basic form data
+    const formElement = document.getElementById('formTambahProyek');
+    const basicFormData = new FormData(formElement);
+
     // Add basic data
-    Object.keys(formDataObject).forEach(key => {
-        if (key !== 'daftar_barang') {
-            formData.append(key, formDataObject[key]);
+    formData.append('tanggal', basicFormData.get('tanggal'));
+    formData.append('kab_kota', basicFormData.get('kabupaten_kota'));
+    formData.append('instansi', basicFormData.get('nama_instansi'));
+    formData.append('jenis_pengadaan', basicFormData.get('jenis_pengadaan'));
+    formData.append('id_admin_purchasing', basicFormData.get('admin_purchasing'));
+    formData.append('catatan', basicFormData.get('catatan') || '');
+    formData.append('potensi', basicFormData.get('potensi') || 'tidak');
+    formData.append('tahun_potensi', parseInt(basicFormData.get('tahun_potensi')) || new Date().getFullYear());
+
+    // Ambil ID admin marketing dari user yang login
+    const adminMarketingId = document.getElementById('currentUserId')?.value;
+    formData.append('id_admin_marketing', adminMarketingId ? parseInt(adminMarketingId) : 1);
+
+    // Kumpulkan data barang dan file
+    const barangItems = document.querySelectorAll('.barang-item');
+    const daftarBarang = [];
+
+    barangItems.forEach((item, index) => {
+        const namaBarang = item.querySelector('input[name*="[nama]"]')?.value?.trim();
+        const qty = item.querySelector('input[name*="[qty]"]')?.value;
+        const satuan = item.querySelector('select[name*="[satuan]"]')?.value;
+        const hargaSatuan = item.querySelector('input[name*="[harga_satuan]"]')?.value;
+        const spesifikasi = item.querySelector('textarea[name*="[spesifikasi]"]')?.value?.trim();
+        const spesifikasiType = item.querySelector('.spesifikasi-type-input')?.value || 'text';
+        const fileInput = item.querySelector('.spesifikasi-file-input-field');
+
+        // Hanya tambahkan barang yang memiliki data minimal (nama, qty, satuan)
+        if (namaBarang && qty && satuan) {
+            const barang = {
+                nama_barang: namaBarang,
+                jumlah: parseInt(qty) || 1,
+                satuan: satuan,
+                harga_satuan: hargaSatuan ? parseFloat(hargaSatuan) : null,
+                spesifikasi: spesifikasiType === 'text' ? (spesifikasi || 'Spesifikasi standar') : '',
+                spesifikasi_type: spesifikasiType
+            };
+
+            daftarBarang.push(barang);
+
+            // Add file to FormData if exists
+            if (spesifikasiType === 'file' && fileInput && fileInput.files[0]) {
+                formData.append(`barang[${index}][spesifikasi_file]`, fileInput.files[0]);
+            }
         }
     });
 
-    // Add daftar_barang sebagai JSON string
-    if (formDataObject.daftar_barang) {
-        formData.append('daftar_barang', JSON.stringify(formDataObject.daftar_barang));
+    // Add daftar_barang as JSON string
+    if (daftarBarang.length > 0) {
+        formData.append('daftar_barang', JSON.stringify(daftarBarang));
     }
 
-    console.log('Sending FormData with:');
+    console.log('FormData yang akan dikirim:');
     for (let [key, value] of formData.entries()) {
         console.log(key, value);
     }
@@ -678,11 +824,11 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     .then(response => {
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
             return response.json();
@@ -696,7 +842,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     })
     .then(data => {
         console.log('Response data:', data);
-        
+
         if (data.success) {
             // Reset form
             this.reset();
@@ -721,9 +867,9 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     .catch(error => {
         console.error('Error:', error);
         console.error('Error stack:', error.stack);
-        
+
         let errorMessage = 'Terjadi kesalahan: ' + error.message;
-        
+
         // Handle different types of errors
         if (error.message.includes('500')) {
             errorMessage = 'Terjadi kesalahan server (500). Periksa log aplikasi untuk detail.';
@@ -732,7 +878,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
         } else if (error.message.includes('422')) {
             errorMessage = 'Data yang dikirim tidak valid (422). Periksa validasi form.';
         }
-        
+
         showErrorAlert(errorMessage, 'Error');
     })
     .finally(() => {
@@ -1165,6 +1311,121 @@ function showInfoAlert(message, title = null) {
 
 function showConfirmAlert(message, title = null) {
     return showCustomAlert(message, 'confirm', title, true);
+}
+
+// Spesifikasi Mode Functions
+function toggleSpesifikasiMode(button, mode, index) {
+    const container = button.closest('.barang-item');
+    const textInput = container.querySelector('.spesifikasi-text-input');
+    const fileInput = container.querySelector('.spesifikasi-file-input');
+    const typeInput = container.querySelector('.spesifikasi-type-input');
+    const modeButtons = container.querySelectorAll('.spesifikasi-mode-btn');
+
+    // Reset all buttons
+    modeButtons.forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Activate clicked button
+    button.classList.add('active');
+
+    // Set hidden input value
+    if (typeInput) {
+        typeInput.value = mode;
+    }
+
+    if (mode === 'text') {
+        textInput.classList.remove('hidden');
+        fileInput.classList.add('hidden');
+        // Clear file input
+        const fileInputField = fileInput.querySelector('input[type="file"]');
+        if (fileInputField) {
+            fileInputField.value = '';
+            hideFilePreview(container);
+        }
+    } else {
+        textInput.classList.add('hidden');
+        fileInput.classList.remove('hidden');
+        // Clear text input
+        const textArea = textInput.querySelector('textarea');
+        if (textArea) {
+            textArea.value = '';
+        }
+    }
+}
+
+function handleFileUpload(input, index) {
+    const file = input.files[0];
+    const container = input.closest('.barang-item');
+
+    if (!file) {
+        hideFilePreview(container);
+        return;
+    }
+
+    // Validate file size (10MB max)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+        showErrorAlert('Ukuran file terlalu besar. Maksimal 10MB.');
+        input.value = '';
+        hideFilePreview(container);
+        return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/jpeg',
+        'image/jpg',
+        'image/png'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        showErrorAlert('Tipe file tidak didukung. Gunakan PDF, DOC, XLS, atau gambar (JPG, PNG).');
+        input.value = '';
+        hideFilePreview(container);
+        return;
+    }
+
+    // Show file preview
+    showFilePreview(container, file.name);
+}
+
+function showFilePreview(container, fileName) {
+    const uploadArea = container.querySelector('.upload-area');
+    const filePreview = container.querySelector('.file-preview');
+    const fileNameSpan = container.querySelector('.file-name');
+
+    if (uploadArea && filePreview && fileNameSpan) {
+        uploadArea.classList.add('hidden');
+        filePreview.classList.remove('hidden');
+        fileNameSpan.textContent = fileName;
+    }
+}
+
+function hideFilePreview(container) {
+    const uploadArea = container.querySelector('.upload-area');
+    const filePreview = container.querySelector('.file-preview');
+
+    if (uploadArea && filePreview) {
+        uploadArea.classList.remove('hidden');
+        filePreview.classList.add('hidden');
+    }
+}
+
+function removeFile(button, index) {
+    const container = button.closest('.barang-item');
+    const fileInput = container.querySelector('.spesifikasi-file-input-field');
+
+    if (fileInput) {
+        fileInput.value = '';
+    }
+
+    hideFilePreview(container);
 }
 
 </script>

@@ -18,6 +18,9 @@ class ProyekBarang extends Model
         'jumlah',
         'satuan',
         'spesifikasi',
+        'spesifikasi_file',
+        'spesifikasi_file_name',
+        'spesifikasi_type',
         'harga_satuan',
         'harga_total'
     ];

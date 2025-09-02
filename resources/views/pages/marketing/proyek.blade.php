@@ -821,6 +821,33 @@ function viewDetail(id) {
         formattedData.daftar_barang.forEach((item, index) => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 mb-3';
+
+            // Buat HTML untuk spesifikasi
+            let spesifikasiHTML = '';
+            if (item.spesifikasi_type === 'file' && item.spesifikasi_file_name) {
+                spesifikasiHTML = `
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-file text-blue-600"></i>
+                                <span class="font-medium text-gray-700">Spesifikasi File:</span>
+                                <span class="text-sm text-gray-600">${item.spesifikasi_file_name}</span>
+                            </div>
+                            <button onclick="downloadSpesifikasiFile('${item.spesifikasi_file}')" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                <i class="fas fa-download mr-1"></i>Download
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (item.spesifikasi && item.spesifikasi.trim() !== '') {
+                spesifikasiHTML = `
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <span class="font-medium text-gray-700">Spesifikasi:</span>
+                        <p class="text-sm text-gray-600 mt-1">${item.spesifikasi}</p>
+                    </div>
+                `;
+            }
+
             itemDiv.innerHTML = [
                 '<div class="flex justify-between items-start mb-2">',
                     '<h5 class="font-medium text-gray-800">' + item.nama + '</h5>',
@@ -836,7 +863,8 @@ function viewDetail(id) {
                     '<div>',
                         '<span class="font-medium">Harga Satuan:</span> ' + formatRupiah(item.harga_satuan),
                     '</div>',
-                '</div>'
+                '</div>',
+                spesifikasiHTML
             ].join('');
             daftarBarangContainer.appendChild(itemDiv);
         });
@@ -1457,6 +1485,29 @@ function validateDropdownChange(selectElement, proyekId) {
     // For example, checking if the user has permission to change status
 
     return true;
+}
+
+// Function to download spesifikasi file
+function downloadSpesifikasiFile(filePath) {
+    if (!filePath) {
+        showErrorMessage('File tidak ditemukan');
+        return;
+    }
+
+    // Extract filename from path
+    const fileName = filePath.split('/').pop();
+
+    // Create download link using Laravel route
+    const downloadUrl = `/marketing/proyek/download-spesifikasi/${fileName}`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = '';
+    link.target = '_blank';
+
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // Initialize on page load
