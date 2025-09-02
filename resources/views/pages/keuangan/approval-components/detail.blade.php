@@ -7,7 +7,7 @@
         <div>
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Detail Approval Pembayaran</h1>
             <p class="text-indigo-100 text-sm sm:text-base lg:text-lg">
-                {{ $pembayaran->penawaran->proyek->nama_barang }} - {{ $pembayaran->penawaran->proyek->nama_klien }}
+                {{ $pembayaran->penawaran->proyek->nama_barang }} - {{ $pembayaran->penawaran->proyek->kode_proyek }}
             </p>
         </div>
         <div class="hidden sm:block lg:block">
@@ -162,8 +162,8 @@
                         <dd class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->nama_barang }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-sm font-medium text-gray-500">Klien:</dt>
-                        <dd class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->nama_klien }}</dd>
+                        <dt class="text-sm font-medium text-gray-500">Kode Proyek:</dt>
+                        <dd class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->kode_proyek }}</dd>
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Instansi:</dt>

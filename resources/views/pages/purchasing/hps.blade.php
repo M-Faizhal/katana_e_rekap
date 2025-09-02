@@ -10,7 +10,7 @@
             <div class="flex-1 min-w-0">
                 <h1 class="text-xl font-semibold text-gray-900 truncate">Kalkulasi HPS (Harga Perkiraan Sendiri)</h1>
                 <div class="text-sm text-gray-600 mt-1 flex flex-wrap items-center gap-2">
-                    <span class="font-medium">Proyek:</span> <span class="truncate">{{ $proyek->nama_klien ?? '-' }}</span>
+                    <span class="font-medium">Proyek:</span> <span class="truncate">{{ $proyek->kode_proyek ?? '-' }}</span>
                     <span class="hidden sm:inline">|</span>
                     <span class="font-medium">ID:</span> <span>{{ $proyek->id_proyek ?? '-' }}</span>
                     <span class="hidden sm:inline">|</span>

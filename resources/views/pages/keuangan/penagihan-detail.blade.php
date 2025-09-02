@@ -158,8 +158,8 @@
                     </div>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Klien</label>
-                            <p class="text-sm font-medium text-gray-900">{{ $penagihanDinas->proyek->nama_klien }}</p>
+                            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Proyek</label>
+                            <p class="text-sm font-medium text-gray-900">{{ $penagihanDinas->proyek->kode_proyek }}</p>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak Klien</label>

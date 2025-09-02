@@ -131,7 +131,6 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ranking</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Proyek</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Omset</th>
@@ -144,19 +143,7 @@
                 @endphp
                 @forelse($vendorOmset as $index => $vendor)
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            @if($index < 3)
-                                <div class="w-8 h-8 rounded-full bg-{{ $index == 0 ? 'yellow' : ($index == 1 ? 'gray' : 'yellow') }}-400 flex items-center justify-center text-white font-bold text-sm">
-                                    {{ $index + 1 }}
-                                </div>
-                            @else
-                                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-sm">
-                                    {{ $index + 1 }}
-                                </div>
-                            @endif
-                        </div>
-                    </td>
+                    
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">{{ $vendor->nama_vendor }}</div>
                     </td>
