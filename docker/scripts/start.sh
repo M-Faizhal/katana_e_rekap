@@ -30,11 +30,28 @@ php artisan view:cache
 
 # Create storage symlink
 echo "Creating storage symlink..."
-php artisan storage:link
+# Remove existing link if exists
+if [ -L "/var/www/html/public/storage" ]; then
+    rm /var/www/html/public/storage
+fi
+# Create symlink
+php artisan storage:link || true
+
+# Alternative: Copy storage files if symlink fails
+if [ ! -d "/var/www/html/public/storage" ]; then
+    echo "Symlink failed, creating directory and copying files..."
+    mkdir -p /var/www/html/public/storage
+    cp -r /var/www/html/storage/app/public/* /var/www/html/public/storage/ 2>/dev/null || true
+fi
 
 # Set proper permissions
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 755 /var/www/html/public
+
+# Sync storage files
+echo "Syncing storage files..."
+/var/www/html/docker/scripts/sync-storage.sh
 
 echo "Starting Apache..."
 apache2-foreground
