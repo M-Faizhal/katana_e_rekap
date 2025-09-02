@@ -366,14 +366,22 @@ class ProyekController extends Controller
 
     public function getUsersForSelect()
     {
+        $currentUserId = Auth::id();
+        
         $users = User::select('id_user', 'nama', 'role')
             ->whereIn('role', ['superadmin', 'admin_marketing', 'admin_purchasing', 'admin_keuangan'])
             ->orderBy('nama')
             ->get();
 
+        // Add current user flag to each user
+        $usersWithCurrentFlag = $users->map(function ($user) use ($currentUserId) {
+            $user->is_current_user = $user->id_user == $currentUserId;
+            return $user;
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $users
+            'data' => $usersWithCurrentFlag
         ]);
     }
 

@@ -50,16 +50,16 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Pengadaan</label>
                             <select id="editJenisPengadaan" name="jenis_pengadaan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih jenis pengadaan</option>
-                                <option value="Pelelangan Umum">Pelelangan Umum</option>
-                                <option value="Pelelangan Terbatas">Pelelangan Terbatas</option>
-                                <option value="Pemilihan Langsung">Pemilihan Langsung</option>
-                                <option value="Penunjukan Langsung">Penunjukan Langsung</option>
-                                <option value="Tender">Tender</option>
+                                <option value="E-Katalog">E-Katalog</option>
+                                <option value="Pengadaan Langsung">Pengadaan Langsung</option>
+                                <option value="Tender">Tender / Mini Kompetisi</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
-                            <input type="text" id="editAdminMarketing" name="admin_marketing" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600" value="[Nama User Login]" readonly>
+                            <select id="editAdminMarketing" name="id_admin_marketing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                                <option value="">Pilih admin marketing</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
@@ -278,8 +278,14 @@ function loadEditData(data) {
     setElementValue('editTahunPotensi', data.tahun_potensi);
     setElementValue('editStatus', data.status);
 
-    // Set admin marketing (readonly field)
-    setElementValue('editAdminMarketing', data.admin_marketing);
+    // Set admin marketing dengan ID
+    const adminMarketingSelect = document.getElementById('editAdminMarketing');
+    if (adminMarketingSelect && data.id_admin_marketing) {
+        // Wait for options to load then set value
+        setTimeout(() => {
+            adminMarketingSelect.value = data.id_admin_marketing;
+        }, 100);
+    }
 
     // Set admin purchasing dengan ID
     const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
@@ -775,6 +781,7 @@ function validateEditForm() {
         { id: 'editKabupatenKota', label: 'Kabupaten/Kota' },
         { id: 'editNamaInstansi', label: 'Nama Instansi' },
         { id: 'editJenisPengadaan', label: 'Jenis Pengadaan' },
+        { id: 'editAdminMarketing', label: 'Admin Marketing' },
         { id: 'editAdminPurchasing', label: 'Admin Purchasing' }
     ];
 
@@ -866,6 +873,42 @@ function collectEditFormData() {
     return data;
 }
 
+// Function to load admin marketing options for edit
+async function loadEditAdminMarketingOptions() {
+    try {
+        const response = await fetch('/marketing/proyek/users');
+        const data = await response.json();
+
+        if (data.success) {
+            const select = document.getElementById('editAdminMarketing');
+            if (select) {
+                // Store current value
+                const currentValue = select.value;
+
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Pilih admin marketing</option>';
+
+                // Add options for marketing and admin roles
+                data.data.forEach(user => {
+                    if (user.role === 'admin_marketing' || user.role === 'superadmin') {
+                        const option = document.createElement('option');
+                        option.value = user.id_user;
+                        option.textContent = user.nama;
+                        select.appendChild(option);
+                    }
+                });
+
+                // Restore current value if it exists
+                if (currentValue) {
+                    select.value = currentValue;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading admin marketing options for edit:', error);
+    }
+}
+
 // Function to load admin purchasing options for edit
 async function loadEditAdminPurchasingOptions() {
     try {
@@ -904,6 +947,9 @@ async function loadEditAdminPurchasingOptions() {
 
 // Initialize edit modal
 document.addEventListener('DOMContentLoaded', function() {
+    // Load admin marketing options
+    loadEditAdminMarketingOptions();
+    
     // Load admin purchasing options
     loadEditAdminPurchasingOptions();
 

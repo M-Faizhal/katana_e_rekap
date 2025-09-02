@@ -151,21 +151,17 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Pengadaan</label>
                             <select name="jenis_pengadaan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih jenis pengadaan</option>
-                                <option value="Pelelangan Umum">Pelelangan Umum</option>
-                                <option value="Pelelangan Terbatas">Pelelangan Terbatas</option>
-                                <option value="Pemilihan Langsung">Pemilihan Langsung</option>
-                                <option value="Penunjukan Langsung">Penunjukan Langsung</option>
-                                <option value="Tender">Tender</option>
+                                <option value="E-Katalog">E-Katalog</option>
+                                <option value="Pengadaan Langsung">Pengadaan Langsung</option>
+                                <option value="Tender">Tender / Mini Kompetisi</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
-                            <div class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 flex items-center">
-                                <i class="fas fa-user mr-2 text-blue-500"></i>
-                                <span id="currentUserName">Loading...</span>
-                            </div>
-                            <input type="hidden" name="id_admin_marketing" id="currentUserId">
-                            <small class="text-gray-500 text-xs mt-1">Otomatis diisi dengan nama user yang login</small>
+                            <select name="id_admin_marketing" id="adminMarketingSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                                <option value="">Pilih admin marketing</option>
+                            </select>
+                            <small class="text-gray-500 text-xs mt-1">Pilih admin marketing yang bertanggung jawab untuk proyek ini</small>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
@@ -408,7 +404,6 @@ function tambahBarang() {
 }
 
 async function hapusBarang(button) {
-}async function hapusBarang(button) {
     const item = button.closest('.barang-item');
     const itemName = item.querySelector('h5').textContent;
 
@@ -750,6 +745,7 @@ async function validateTambahForm() {
         { name: 'kabupaten_kota', label: 'Kabupaten/Kota' },
         { name: 'nama_instansi', label: 'Nama Instansi' },
         { name: 'jenis_pengadaan', label: 'Jenis Pengadaan' },
+        { name: 'id_admin_marketing', label: 'Admin Marketing' },
         { name: 'admin_purchasing', label: 'Admin Purchasing' }
     ];
 
@@ -762,10 +758,10 @@ async function validateTambahForm() {
         }
     }
 
-    // Validasi admin marketing sudah terisi
-    const adminMarketingId = document.getElementById('currentUserId')?.value;
+    // Validasi admin marketing sudah dipilih
+    const adminMarketingId = document.querySelector('[name="id_admin_marketing"]')?.value;
     if (!adminMarketingId) {
-        await showErrorAlert('Data user login tidak ditemukan. Silakan refresh halaman dan coba lagi.', 'Error Login');
+        await showErrorAlert('Admin Marketing harus dipilih!', 'Data Tidak Lengkap');
         return false;
     }
 
@@ -870,9 +866,9 @@ function collectTambahFormData() {
         data.spesifikasi = 'Spesifikasi standar';
     }
 
-    // Ambil ID admin marketing dari user yang login
-    const adminMarketingId = document.getElementById('currentUserId')?.value;
-    data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : 1;
+    // Ambil ID admin marketing dari form
+    const adminMarketingId = formData.get('id_admin_marketing');
+    data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : null;
 
     console.log('Data yang akan dikirim:', data);
     console.log('Jumlah barang:', daftarBarang.length);
@@ -915,6 +911,24 @@ function resetTambahModal() {
         potensiValue.value = '';
     }
 
+    // Reset admin marketing dropdown to current user
+    const adminMarketingSelect = document.getElementById('adminMarketingSelect');
+    if (adminMarketingSelect) {
+        // Find and select the current user option
+        const currentUserOption = adminMarketingSelect.querySelector('option[selected]');
+        if (currentUserOption) {
+            adminMarketingSelect.value = currentUserOption.value;
+        } else {
+            adminMarketingSelect.selectedIndex = 0;
+        }
+    }
+
+    // Reset admin purchasing dropdown
+    const adminPurchasingSelect = document.getElementById('adminPurchasingSelect');
+    if (adminPurchasingSelect) {
+        adminPurchasingSelect.selectedIndex = 0;
+    }
+
     // Reset items to 1
     const container = document.getElementById('daftarBarang');
     const items = container.querySelectorAll('.barang-item');
@@ -925,6 +939,40 @@ function resetTambahModal() {
     updateDeleteButtons();
     updateBarangCounter();
     hitungTotalKeseluruhan();
+}
+
+// Function to load admin marketing options
+async function loadAdminMarketingOptions() {
+    try {
+        const response = await fetch('/marketing/proyek/users');
+        const data = await response.json();
+
+        if (data.success) {
+            const select = document.getElementById('adminMarketingSelect');
+            if (select) {
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Pilih admin marketing</option>';
+
+                // Add options for marketing and admin roles
+                data.data.forEach(user => {
+                    if (user.role === 'admin_marketing' || user.role === 'superadmin') {
+                        const option = document.createElement('option');
+                        option.value = user.id_user;
+                        option.textContent = user.nama;
+                        
+                        // Set current user as default selected
+                        if (user.is_current_user) {
+                            option.selected = true;
+                        }
+                        
+                        select.appendChild(option);
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading admin marketing options:', error);
+    }
 }
 
 // Function to load admin purchasing options
@@ -957,49 +1005,17 @@ async function loadAdminPurchasingOptions() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Load admin marketing options
+    loadAdminMarketingOptions();
+    
     // Load admin purchasing options
     loadAdminPurchasingOptions();
 
     // Load preview kode proyek
     loadPreviewKodeProyek();
 
-    // Load current user data
-    loadCurrentUserData();
-
     console.log('Tambah modal initialized');
 });
-
-// Function to load current user data
-async function loadCurrentUserData() {
-    try {
-        const response = await fetch('/marketing/proyek/current-user');
-        const data = await response.json();
-
-        if (data.success) {
-            const nameElement = document.getElementById('currentUserName');
-            const idElement = document.getElementById('currentUserId');
-
-            if (nameElement && data.data.nama) {
-                nameElement.textContent = data.data.nama;
-            }
-
-            if (idElement && data.data.id) {
-                idElement.value = data.data.id;
-            }
-        } else {
-            const nameElement = document.getElementById('currentUserName');
-            if (nameElement) {
-                nameElement.textContent = 'Error loading user';
-            }
-        }
-    } catch (error) {
-        console.error('Error loading current user data:', error);
-        const nameElement = document.getElementById('currentUserName');
-        if (nameElement) {
-            nameElement.textContent = 'Error loading user';
-        }
-    }
-}
 
 // Function to load preview kode proyek
 async function loadPreviewKodeProyek() {
