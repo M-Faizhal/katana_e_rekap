@@ -13,6 +13,7 @@ use App\Models\Pembayaran;
 use App\Models\PenagihanDinas;
 use App\Models\KalkulasiHps;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class LaporanController extends Controller
@@ -519,50 +520,74 @@ class LaporanController extends Controller
      */
     private function getHutangVendorStatistics()
     {
-        // Hitung total modal vendor dari kalkulasi HPS (total_harga_hpp)
-        $totalModalVendor = KalkulasiHps::whereHas('proyek', function($query) {
-                $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']);
-            })
-            ->sum('total_harga_hpp');
+        // Menggunakan logic yang sama persis dengan tabs "Proyek Perlu Bayar"
+        $proyekQuery = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'pembayaran.vendor'])
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->whereHas('penawaranAktif', function ($query) {
+                $query->where('status', 'ACC');
+            });
 
-        // Hitung total yang sudah dibayar (Approved)
-        $totalSudahDibayar = Pembayaran::where('status_verifikasi', 'Approved')
-            ->sum('nominal_bayar');
+        // Debug: Log project count
+        $proyekCount = $proyekQuery->count();
+        \Log::info("Hutang Vendor Stats - Proyek count: " . $proyekCount);
 
-        // Total hutang = Modal vendor - yang sudah dibayar
-        $totalHutang = $totalModalVendor - $totalSudahDibayar;
-
-        // Hitung hutang yang sudah jatuh tempo
-        // Ini berdasarkan pembayaran yang belum approved dan tanggalnya sudah lewat
-        $hutangJatuhTempo = Pembayaran::whereIn('status_verifikasi', ['Pending', 'Ditolak'])
-            ->where('tanggal_bayar', '<', Carbon::now())
-            ->sum('nominal_bayar');
-
-        // Jumlah vendor yang masih ada hutang (vendor yang ada di kalkulasi HPS tapi belum lunas)
-        $vendorDenganModal = KalkulasiHps::whereHas('proyek', function($query) {
-                $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']);
-            })
-            ->select('id_vendor')
-            ->groupBy('id_vendor')
-            ->havingRaw('SUM(total_harga_hpp) > 0')
-            ->get();
-
+        $totalHutang = 0;
+        $hutangJatuhTempo = 0;
         $jumlahVendorBelumLunas = 0;
-        foreach ($vendorDenganModal as $vendor) {
-            $totalModal = KalkulasiHps::whereHas('proyek', function($query) {
-                    $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']);
-                })
-                ->where('id_vendor', $vendor->id_vendor)
-                ->sum('total_harga_hpp');
+        $vendorBelumLunas = collect();
 
-            $totalDibayar = Pembayaran::where('id_vendor', $vendor->id_vendor)
-                ->where('status_verifikasi', 'Approved')
-                ->sum('nominal_bayar');
+        $proyekQuery->get()->each(function ($proyek) use (&$totalHutang, &$hutangJatuhTempo, &$jumlahVendorBelumLunas, &$vendorBelumLunas) {
+            // Ambil vendor yang terlibat dalam proyek ini
+            $vendors = $proyek->penawaranAktif->penawaranDetail
+                ->pluck('barang.vendor')
+                ->unique('id_vendor')
+                ->filter(); // Remove null values
 
-            if ($totalModal > $totalDibayar) {
-                $jumlahVendorBelumLunas++;
-            }
-        }
+            \Log::info("Proyek {$proyek->kode_proyek} has " . $vendors->count() . " vendors");
+
+            $vendors->each(function ($vendor) use ($proyek, &$totalHutang, &$hutangJatuhTempo, &$vendorBelumLunas) {
+                $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                    ->where('id_vendor', $vendor->id_vendor)
+                    ->sum('total_harga_hpp');
+
+                $totalDibayarApproved = $proyek->pembayaran
+                    ->where('id_vendor', $vendor->id_vendor)
+                    ->where('status_verifikasi', 'Approved')
+                    ->sum('nominal_bayar');
+
+                $sisaBayar = $totalVendor - $totalDibayarApproved;
+
+                \Log::info("Vendor {$vendor->nama_vendor} - Total: {$totalVendor}, Dibayar: {$totalDibayarApproved}, Sisa: {$sisaBayar}");
+
+                // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
+                $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+
+                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
+                if ($sisaBayar > 0 || $warning_hps) {
+                    $totalHutang += $sisaBayar;
+                    
+                    // Tambahkan vendor ke collection (untuk menghitung jumlah vendor unik)
+                    $vendorKey = $vendor->id_vendor;
+                    if (!$vendorBelumLunas->has($vendorKey)) {
+                        $vendorBelumLunas->put($vendorKey, $vendor);
+                    }
+
+                    // Hitung hutang jatuh tempo dari pembayaran pending/ditolak yang sudah lewat
+                    $pembayaranTerlambat = $proyek->pembayaran
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->whereIn('status_verifikasi', ['Pending', 'Ditolak'])
+                        ->filter(function($pembayaran) {
+                            return $pembayaran->tanggal_bayar < Carbon::now();
+                        });
+                    
+                    $hutangJatuhTempo += $pembayaranTerlambat->sum('nominal_bayar');
+                }
+            });
+        });
+
+        $jumlahVendorBelumLunas = $vendorBelumLunas->count();
+
+        \Log::info("Final stats - Total Hutang: {$totalHutang}, Vendor Count: {$jumlahVendorBelumLunas}");
 
         // Rata-rata hutang per vendor
         $rataRataHutang = $jumlahVendorBelumLunas > 0 ? $totalHutang / $jumlahVendorBelumLunas : 0;
@@ -576,61 +601,76 @@ class LaporanController extends Controller
     }
 
     /**
-     * Get hutang vendor list
+     * Get hutang vendor list - Using exact same logic as tabs "Proyek Perlu Bayar"
      */
     private function getHutangVendorList(Request $request)
     {
-        // Ambil semua vendor yang ada di kalkulasi HPS untuk proyek aktif
+        // Ambil proyek yang statusnya 'Pembayaran', 'Pengiriman', 'Selesai' dan sudah ada penawaran yang di-ACC
+        // Dengan vendor yang terlibat - sama persis dengan tabs "Proyek Perlu Bayar"
+        $proyekQuery = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->whereHas('penawaranAktif', function ($query) {
+                $query->where('status', 'ACC');
+            });
+
         $vendorData = collect();
-        
-        $vendors = KalkulasiHps::with(['vendor', 'proyek'])
-            ->whereHas('proyek', function($query) {
-                $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']);
-            })
-            ->select('id_vendor', 'id_proyek', DB::raw('SUM(total_harga_hpp) as total_modal'))
-            ->groupBy('id_vendor', 'id_proyek')
-            ->havingRaw('SUM(total_harga_hpp) > 0')
-            ->get();
 
-        foreach ($vendors as $vendorProyek) {
-            // Hitung total yang sudah dibayar untuk vendor ini di proyek ini
-            $totalDibayar = Pembayaran::whereHas('penawaran', function($query) use ($vendorProyek) {
-                    $query->where('id_proyek', $vendorProyek->id_proyek);
-                })
-                ->where('id_vendor', $vendorProyek->id_vendor)
-                ->where('status_verifikasi', 'Approved')
-                ->sum('nominal_bayar');
+        $proyekQuery->get()->each(function ($proyek) use (&$vendorData) {
+            // Ambil vendor yang terlibat dalam proyek ini
+            $vendors = $proyek->penawaranAktif->penawaranDetail
+                ->pluck('barang.vendor')
+                ->unique('id_vendor')
+                ->filter(); // Remove null values
 
-            $sisaHutang = $vendorProyek->total_modal - $totalDibayar;
+            $vendors->each(function ($vendor) use ($proyek, &$vendorData) {
+                $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                    ->where('id_vendor', $vendor->id_vendor)
+                    ->sum('total_harga_hpp');
 
-            // Hanya tambahkan jika masih ada hutang
-            if ($sisaHutang > 0) {
-                // Ambil pembayaran pending/ditolak terbaru untuk informasi jatuh tempo
-                $pembayaranTerbaru = Pembayaran::whereHas('penawaran', function($query) use ($vendorProyek) {
-                        $query->where('id_proyek', $vendorProyek->id_proyek);
-                    })
-                    ->where('id_vendor', $vendorProyek->id_vendor)
-                    ->whereIn('status_verifikasi', ['Pending', 'Ditolak'])
-                    ->orderBy('tanggal_bayar', 'desc')
-                    ->first();
+                $totalDibayarApproved = $proyek->pembayaran
+                    ->where('id_vendor', $vendor->id_vendor)
+                    ->where('status_verifikasi', 'Approved')
+                    ->sum('nominal_bayar');
 
-                $data = (object) [
-                    'nama_vendor' => $vendorProyek->vendor->nama_vendor,
-                    'kontak_vendor' => $vendorProyek->vendor->kontak,
-                    'kode_proyek' => $vendorProyek->proyek->kode_proyek,
-                    'nama_klien' => $vendorProyek->proyek->nama_klien,
-                    'nominal_pembayaran' => $sisaHutang,
-                    'jatuh_tempo' => $pembayaranTerbaru ? $pembayaranTerbaru->tanggal_bayar : null,
-                    'status_pembayaran' => $pembayaranTerbaru ? $pembayaranTerbaru->status_verifikasi : 'Belum Bayar',
-                    'catatan' => $pembayaranTerbaru ? $pembayaranTerbaru->catatan : 'Belum ada pembayaran diajukan',
-                    'hari_telat' => $pembayaranTerbaru && $pembayaranTerbaru->tanggal_bayar < Carbon::now() 
-                        ? Carbon::now()->diffInDays(Carbon::parse($pembayaranTerbaru->tanggal_bayar)) 
-                        : 0
-                ];
+                $sisaBayar = $totalVendor - $totalDibayarApproved;
 
-                $vendorData->push($data);
-            }
-        }
+                // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
+                $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+
+                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
+                if ($sisaBayar > 0 || $warning_hps) {
+                    // Ambil pembayaran pending/ditolak terbaru untuk informasi jatuh tempo
+                    $pembayaranTerbaru = $proyek->pembayaran
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->whereIn('status_verifikasi', ['Pending', 'Ditolak'])
+                        ->sortByDesc('tanggal_bayar')
+                        ->first();
+
+                    $data = (object) [
+                        'nama_vendor' => $vendor->nama_vendor,
+                        'kontak_vendor' => $vendor->kontak,
+                        'kode_proyek' => $proyek->kode_proyek,
+                        'nama_klien' => $proyek->nama_klien,
+                        'nama_barang' => $proyek->nama_barang,
+                        'instansi' => $proyek->instansi,
+                        'nominal_pembayaran' => $sisaBayar,
+                        'total_vendor' => $totalVendor,
+                        'total_dibayar_approved' => $totalDibayarApproved,
+                        'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
+                        'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
+                        'warning_hps' => $warning_hps,
+                        'jatuh_tempo' => $pembayaranTerbaru ? $pembayaranTerbaru->tanggal_bayar : null,
+                        'status_pembayaran' => $pembayaranTerbaru ? $pembayaranTerbaru->status_verifikasi : 'Belum Bayar',
+                        'catatan' => $pembayaranTerbaru ? $pembayaranTerbaru->catatan : ($warning_hps ? $warning_hps : 'Belum ada pembayaran diajukan'),
+                        'hari_telat' => $pembayaranTerbaru && $pembayaranTerbaru->tanggal_bayar < Carbon::now() 
+                            ? Carbon::now()->diffInDays(Carbon::parse($pembayaranTerbaru->tanggal_bayar)) 
+                            : 0
+                    ];
+
+                    $vendorData->push($data);
+                }
+            });
+        });
 
         // Apply filters
         if ($request->filled('status')) {
@@ -641,6 +681,8 @@ class LaporanController extends Controller
                     return $vendor->hari_telat > 0;
                 } elseif ($request->status == 'rejected') {
                     return $vendor->status_pembayaran == 'Ditolak';
+                } elseif ($request->status == 'hps_kosong') {
+                    return $vendor->warning_hps !== null;
                 }
                 return true;
             });
@@ -839,7 +881,7 @@ class LaporanController extends Controller
                     'sisa_pembayaran' => $sisaPembayaran,
                     'status_pembayaran' => $statusTerbaru,
                     'tanggal_jatuh_tempo' => $jatuhTempo,
-                    'hari_telat' => $jatuhTempo && $jatuhTempo < Carbon::now() 
+                    'hari_telat' => $jatuhTempo && Carbon::parse($jatuhTempo)->isPast() 
                         ? Carbon::now()->diffInDays(Carbon::parse($jatuhTempo)) 
                         : 0
                 ]);

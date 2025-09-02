@@ -113,6 +113,7 @@
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak</option>
                     <option value="overdue" {{ request('status') == 'overdue' ? 'selected' : '' }}>Terlambat</option>
+                    <option value="hps_kosong" {{ request('status') == 'hps_kosong' ? 'selected' : '' }}>HPS Belum Diisi</option>
                 </select>
             </div>
 
@@ -171,10 +172,10 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nominal</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Bayar</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Vendor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sudah Dibayar</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sisa Bayar</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterlambatan</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
                 </tr>
             </thead>
@@ -183,14 +184,39 @@
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">{{ $hutang->nama_vendor }}</div>
+                        @if($hutang->kontak_vendor)
+                            <div class="text-sm text-gray-500">{{ $hutang->kontak_vendor }}</div>
+                        @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">{{ $hutang->kode_proyek }}</div>
                         <div class="text-sm text-gray-500">{{ $hutang->nama_klien }}</div>
+                        @if($hutang->instansi)
+                            <div class="text-xs text-gray-400">{{ $hutang->instansi }}</div>
+                        @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        @if($hutang->warning_hps)
+                            <span class="text-orange-600">-</span>
+                            <div class="text-xs text-orange-600">{{ $hutang->warning_hps }}</div>
+                        @else
+                            @php
+                                $nominal = $hutang->total_vendor;
+                                if ($nominal >= 1000000000) {
+                                    echo 'Rp ' . number_format($nominal / 1000000000, 1, ',', '.') . ' M';
+                                } elseif ($nominal >= 1000000) {
+                                    echo 'Rp ' . number_format($nominal / 1000000, 1, ',', '.') . ' jt';
+                                } elseif ($nominal >= 1000) {
+                                    echo 'Rp ' . number_format($nominal / 1000, 1, ',', '.') . ' rb';
+                                } else {
+                                    echo 'Rp ' . number_format($nominal, 0, ',', '.');
+                                }
+                            @endphp
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         @php
-                            $nominal = $hutang->nominal_pembayaran;
+                            $nominal = $hutang->total_dibayar_approved;
                             if ($nominal >= 1000000000) {
                                 echo 'Rp ' . number_format($nominal / 1000000000, 1, ',', '.') . ' M';
                             } elseif ($nominal >= 1000000) {
@@ -201,44 +227,61 @@
                                 echo 'Rp ' . number_format($nominal, 0, ',', '.');
                             }
                         @endphp
+                        @if($hutang->total_vendor > 0)
+                            <div class="text-xs text-gray-500">{{ number_format($hutang->persen_bayar, 1) }}%</div>
+                        @endif
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        @if($hutang->jatuh_tempo)
-                            {{ \Carbon\Carbon::parse($hutang->jatuh_tempo)->format('d/m/Y') }}
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        @if($hutang->warning_hps)
+                            <span class="text-orange-600">-</span>
                         @else
-                            Belum ada
+                            @php
+                                $nominal = $hutang->nominal_pembayaran;
+                                if ($nominal >= 1000000000) {
+                                    echo '<span class="text-red-600">Rp ' . number_format($nominal / 1000000000, 1, ',', '.') . ' M</span>';
+                                } elseif ($nominal >= 1000000) {
+                                    echo '<span class="text-red-600">Rp ' . number_format($nominal / 1000000, 1, ',', '.') . ' jt</span>';
+                                } elseif ($nominal >= 1000) {
+                                    echo '<span class="text-red-600">Rp ' . number_format($nominal / 1000, 1, ',', '.') . ' rb</span>';
+                                } else {
+                                    echo '<span class="text-red-600">Rp ' . number_format($nominal, 0, ',', '.') . '</span>';
+                                }
+                            @endphp
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            @if($hutang->status_pembayaran == 'Pending') bg-yellow-100 text-yellow-800
-                            @elseif($hutang->status_pembayaran == 'Ditolak') bg-red-100 text-red-800
-                            @elseif($hutang->status_pembayaran == 'Approved') bg-green-100 text-green-800
-                            @else bg-gray-100 text-gray-800 @endif">
-                            @if($hutang->status_pembayaran == 'Pending')
-                                Pending
-                            @elseif($hutang->status_pembayaran == 'Ditolak')
-                                Ditolak
-                            @elseif($hutang->status_pembayaran == 'Approved')
-                                Disetujui
-                            @else
-                                {{ $hutang->status_pembayaran }}
-                            @endif
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        @if($hutang->hari_telat > 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                {{ $hutang->hari_telat }} hari
+                        @if($hutang->warning_hps)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                HPS Belum Diisi
                             </span>
                         @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                On Time
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                @if($hutang->status_pembayaran == 'Pending') bg-yellow-100 text-yellow-800
+                                @elseif($hutang->status_pembayaran == 'Ditolak') bg-red-100 text-red-800
+                                @elseif($hutang->status_pembayaran == 'Approved') bg-green-100 text-green-800
+                                @else bg-gray-100 text-gray-800 @endif">
+                                @if($hutang->status_pembayaran == 'Pending')
+                                    Pending
+                                @elseif($hutang->status_pembayaran == 'Ditolak')
+                                    Ditolak
+                                @elseif($hutang->status_pembayaran == 'Approved')
+                                    Disetujui
+                                @else
+                                    {{ $hutang->status_pembayaran }}
+                                @endif
                             </span>
+                        @endif
+                        @if($hutang->hari_telat > 0)
+                            <div class="text-xs text-red-600 mt-1">Terlambat {{ $hutang->hari_telat }} hari</div>
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $hutang->catatan ?? 'Pembayaran ke vendor' }}
+                        @if($hutang->jatuh_tempo && !$hutang->warning_hps)
+                            <div class="text-xs text-gray-500 mt-1">
+                                Jatuh tempo: {{ \Carbon\Carbon::parse($hutang->jatuh_tempo)->format('d/m/Y') }}
+                            </div>
+                        @endif
                     </td>
                 </tr>
                 @empty
