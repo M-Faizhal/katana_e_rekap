@@ -65,11 +65,16 @@ class VendorController extends Controller
             // Validate basic vendor data first
             $basicValidation = $request->validate([
                 'nama_vendor' => 'required|string|max:255',
-                'email' => 'required|email|unique:vendor,email',
+                'email' => 'nullable|email|unique:vendor,email',
                 'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
                 'kontak' => 'required|string|max:255',
                 'alamat' => 'nullable|string',
             ]);
+            
+            // Handle empty email - set to null if empty
+            if (empty($request->email)) {
+                $request->merge(['email' => null]);
+            }
             
             Log::info('Basic validation passed');
             
@@ -229,7 +234,7 @@ class VendorController extends Controller
 
         $request->validate([
             'nama_vendor' => 'required|string|max:255',
-            'email' => 'required|email|unique:vendor,email,' . $id . ',id_vendor',
+            'email' => 'nullable|email|unique:vendor,email,' . $id . ',id_vendor',
             'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
             'kontak' => 'required|string|max:255',
             'alamat' => 'nullable|string',
@@ -243,6 +248,11 @@ class VendorController extends Controller
             'barang.*.harga_vendor' => 'required_with:barang|numeric|min:0',
             'barang.*.foto_barang' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
+
+        // Handle empty email - set to null if empty
+        if (empty($request->email)) {
+            $request->merge(['email' => null]);
+        }
 
         DB::beginTransaction();
 

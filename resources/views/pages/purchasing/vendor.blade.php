@@ -532,7 +532,6 @@ function submitEditVendor() {
     // Validate required fields before sending
     const requiredFields = {
         'nama_vendor': document.getElementById('editNamaVendor').value,
-        'email': document.getElementById('editEmailVendor').value,
         'jenis_perusahaan': document.getElementById('editJenisPerusahaan').value,
         'kontak': document.getElementById('editKontakVendor').value
     };
@@ -545,14 +544,20 @@ function submitEditVendor() {
         }
     }
     
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(requiredFields.email)) {
-        showToast('Format email tidak valid!', 'error');
-        return;
+    // Validate email format only if email is provided
+    const emailValue = document.getElementById('editEmailVendor').value;
+    if (emailValue && emailValue.trim() !== '') {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailValue)) {
+            showToast('Format email tidak valid!', 'error');
+            return;
+        }
     }
     
-    console.log('Vendor data being sent:', requiredFields);
+    console.log('Vendor data being sent:', {
+        ...requiredFields,
+        email: document.getElementById('editEmailVendor').value || ''
+    });
     
     // Add barang data with validation
     let validProductCount = 0;
