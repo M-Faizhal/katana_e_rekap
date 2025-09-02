@@ -578,17 +578,14 @@ document.addEventListener('keydown', function(e) {
                                 <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                         <div class="text-center">
-                                            <p class="text-blue-700 font-medium">Harga ke Klien</p>
+                                            <p class="text-blue-700 font-medium">Harga Penawaran</p>
                                             <p class="text-lg font-bold text-blue-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}</p>
                                         </div>
                                         <div class="text-center">
                                             <p class="text-green-700 font-medium">Total Modal Vendor</p>
                                             <p class="text-lg font-bold text-green-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
                                         </div>
-                                        <div class="text-center">
-                                            <p class="text-purple-700 font-medium">Margin Keuntungan</p>
-                                            <p class="text-lg font-bold text-purple-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran - $proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
-                                        </div>
+                                       
                                     </div>
                                 </div>
                                 
@@ -871,17 +868,14 @@ document.addEventListener('keydown', function(e) {
                         <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                 <div class="text-center">
-                                    <p class="text-blue-700 font-medium">Harga ke Klien</p>
+                                    <p class="text-blue-700 font-medium">HargaPenawaran</p>
                                     <p class="text-lg font-bold text-blue-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}</p>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-green-700 font-medium">Total Modal Vendor</p>
                                     <p class="text-lg font-bold text-green-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
                                 </div>
-                                <div class="text-center">
-                                    <p class="text-purple-700 font-medium">Margin Keuntungan</p>
-                                    <p class="text-lg font-bold text-purple-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran - $proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
-                                </div>
+                               
                             </div>
                         </div>
                         

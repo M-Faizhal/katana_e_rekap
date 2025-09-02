@@ -60,8 +60,8 @@
                             <div class="text-sm font-medium text-gray-900">{{ $penagihanDinas->proyek->instansi }}</div>
                         </div>
                         <div>
-                            <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Nama Klien</span>
-                            <div class="text-sm font-medium text-gray-900">{{ $penagihanDinas->proyek->nama_klien }}</div>
+                            <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Kode Proyek</span>
+                            <div class="text-sm font-medium text-gray-900">{{ $penagihanDinas->proyek->kode_proyek }}</div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>

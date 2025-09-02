@@ -122,8 +122,8 @@
                     <p class="text-sm text-gray-900">{{ $penagihanDinas->proyek->instansi }}</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</label>
-                    <p class="text-sm text-gray-900">{{ $penagihanDinas->proyek->nama_klien }}</p>
+                    <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Proyek</label>
+                    <p class="text-sm text-gray-900">{{ $penagihanDinas->proyek->kode_proyek }}</p>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Jatuh Tempo</label>

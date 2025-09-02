@@ -115,7 +115,7 @@
                             </td>
                             
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $p->nama_klien }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
                             </td>
                             
@@ -236,7 +236,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Klien</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $p->nama_klien }}</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</p>
                             <p class="text-xs text-gray-500">{{ $p->instansi }}</p>
                         </div>
                         <div>
@@ -366,7 +366,7 @@
                             </td>
                             
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $p->nama_klien }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
                             </td>
                             
@@ -463,7 +463,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Klien</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $p->nama_klien }}</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</p>
                             <p class="text-xs text-gray-500">{{ $p->instansi }}</p>
                         </div>
                         <div>
@@ -582,7 +582,7 @@
                             </td>
                             
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $p->nama_klien }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
                             </td>
                             
@@ -679,7 +679,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                         <div>
                             <p class="text-xs text-gray-500">Klien</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $p->nama_klien }}</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</p>
                             <p class="text-xs text-gray-500">{{ $p->instansi }}</p>
                         </div>
                         <div>

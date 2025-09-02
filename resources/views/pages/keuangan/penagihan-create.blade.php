@@ -74,8 +74,8 @@
                             <div class="text-sm font-medium text-gray-900">{{ $proyek->instansi }}</div>
                         </div>
                         <div>
-                            <span class="text-xs text-gray-500 uppercase tracking-wider">Nama Klien</span>
-                            <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_klien }}</div>
+                            <span class="text-xs text-gray-500 uppercase tracking-wider">Kode Proyek</span>
+                            <div class="text-sm font-medium text-gray-900">{{ $proyek->kode_proyek }}</div>
                         </div>
                         <div>
                             <span class="text-xs text-gray-500 uppercase tracking-wider">Kontak Klien</span>

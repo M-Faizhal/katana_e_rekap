@@ -66,7 +66,7 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">{{ $pembayaran->penawaran->proyek->nama_barang }}</div>
-                        <div class="text-sm text-gray-600">{{ $pembayaran->penawaran->proyek->nama_klien }}</div>
+                        <div class="text-sm text-gray-600">{{ $pembayaran->penawaran->proyek->kode_proyek }}</div>
                         <div class="text-xs text-gray-500">{{ $pembayaran->penawaran->no_penawaran }}</div>
                     </td>
                     <td class="px-6 py-4">

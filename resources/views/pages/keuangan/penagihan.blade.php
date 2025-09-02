@@ -119,7 +119,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_klien }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $proyek->kode_proyek }}</div>
                                     @if($proyek->kontak_klien)
                                     <div class="text-sm text-gray-500">{{ $proyek->kontak_klien }}</div>
                                     @endif
@@ -238,7 +238,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <div class="text-sm font-medium text-gray-900">{{ $penagihan->proyek->nama_klien }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $penagihan->proyek->kode_proyek }}</div>
                                     <div class="text-xs text-gray-500">
                                         <i class="fas fa-map-marker-alt mr-1"></i>
                                         {{ $penagihan->proyek->kab_kota }}
@@ -363,7 +363,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <div class="text-sm font-medium text-gray-900">{{ $penagihan->proyek->nama_klien }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $penagihan->proyek->kode_proyek }}</div>
                                     <div class="text-xs text-gray-500">
                                         <i class="fas fa-map-marker-alt mr-1"></i>
                                         {{ $penagihan->proyek->kab_kota }}
