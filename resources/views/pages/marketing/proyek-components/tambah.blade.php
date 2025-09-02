@@ -66,6 +66,33 @@
     .alert-info {
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     }
+
+    /* Harga Satuan Input Styling */
+    .harga-satuan-wrapper {
+        position: relative;
+    }
+
+    .harga-satuan-wrapper::before {
+        content: 'Rp';
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        font-size: 0.875rem;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .harga-satuan-input {
+        padding-left: 35px !important;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.5px;
+    }
+
+    .harga-satuan-input:focus {
+        padding-left: 35px !important;
+    }
 </style>
 
 <!-- Custom Alert Modal -->
@@ -245,8 +272,10 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Satuan (Rp)</label>
-                                    <input type="number" name="barang[0][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input" placeholder="0" min="0" onchange="hitungTotal(this)">
-                                    <small class="text-gray-500 text-xs">Opsional - untuk estimasi</small>
+                                    <div class="harga-satuan-wrapper">
+                                        <input type="text" name="barang[0][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input" placeholder="1,500,000" oninput="formatHargaSatuan(this)" onchange="hitungTotal(this)">
+                                    </div>
+                                    <small class="text-gray-500 text-xs">Opsional - untuk estimasi (contoh: 1,500,000)</small>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Total (Rp)</label>
@@ -359,6 +388,22 @@ function tambahBarang() {
             input.value = '';
         } else if (input.tagName === 'SELECT') {
             input.selectedIndex = 0;
+        }
+
+        // Pastikan input harga satuan menggunakan format yang benar
+        if (input.classList.contains('harga-satuan-input')) {
+            input.type = 'text';
+            input.setAttribute('oninput', 'formatHargaSatuan(this)');
+            input.setAttribute('onchange', 'hitungTotal(this)');
+            input.placeholder = '1,500,000';
+
+            // Pastikan wrapper ada untuk input harga satuan
+            if (!input.parentElement.classList.contains('harga-satuan-wrapper')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'harga-satuan-wrapper';
+                input.parentElement.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+            }
         }
 
         // Remove readonly untuk input yang baru
@@ -485,14 +530,55 @@ function updateBarangCounter() {
 function hitungTotal(input) {
     const row = input.closest('.barang-item');
     const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-    const hargaSatuan = parseFloat(row.querySelector('.harga-satuan-input').value) || 0;
+
+    // Get numeric value from formatted harga satuan
+    let hargaSatuan = 0;
+    const hargaSatuanInput = row.querySelector('.harga-satuan-input');
+    if (hargaSatuanInput) {
+        hargaSatuan = parseFloat(hargaSatuanInput.value.replace(/,/g, '')) || 0;
+    }
+
     const total = qty * hargaSatuan;
 
     const totalInput = row.querySelector('.harga-total-input');
     if (totalInput) {
-        totalInput.value = total;
+        totalInput.value = formatRupiahNumber(total);
     }
     hitungTotalKeseluruhan();
+}
+
+// Function to format number with commas for harga satuan input
+function formatHargaSatuan(input) {
+    // Get the cursor position before formatting
+    let cursorPosition = input.selectionStart;
+    let oldValue = input.value;
+
+    // Remove all non-digit characters
+    let value = input.value.replace(/[^\d]/g, '');
+
+    // Format with commas
+    if (value) {
+        // Add commas every 3 digits
+        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Update input value
+    input.value = value;
+
+    // Adjust cursor position after formatting
+    let commasBeforeCursor = (oldValue.substring(0, cursorPosition).match(/,/g) || []).length;
+    let commasAfterCursor = (value.substring(0, cursorPosition).match(/,/g) || []).length;
+    let newCursorPosition = cursorPosition + (commasAfterCursor - commasBeforeCursor);
+
+    // Set cursor position
+    setTimeout(() => {
+        input.setSelectionRange(newCursorPosition, newCursorPosition);
+    }, 0);
+}
+
+// Function to format rupiah for display
+function formatRupiahNumber(angka) {
+    return angka.toLocaleString('id-ID');
 }
 
 function hitungTotalKeseluruhan() {
@@ -503,7 +589,8 @@ function hitungTotalKeseluruhan() {
 
         if (qtyInput && hargaSatuanInput) {
             const qty = parseFloat(qtyInput.value) || 0;
-            const hargaSatuan = parseFloat(hargaSatuanInput.value) || 0;
+            // Remove commas from formatted price before parsing
+            const hargaSatuan = parseFloat(hargaSatuanInput.value.replace(/,/g, '')) || 0;
             total += qty * hargaSatuan;
         }
     });
@@ -834,8 +921,11 @@ function collectTambahFormData() {
         const namaBarang = item.querySelector('input[name*="[nama]"]')?.value?.trim();
         const qty = item.querySelector('input[name*="[qty]"]')?.value;
         const satuan = item.querySelector('select[name*="[satuan]"]')?.value;
-        const hargaSatuan = item.querySelector('input[name*="[harga_satuan]"]')?.value;
+        const hargaSatuanRaw = item.querySelector('input[name*="[harga_satuan]"]')?.value;
         const spesifikasi = item.querySelector('textarea[name*="[spesifikasi]"]')?.value?.trim();
+
+        // Remove commas from harga satuan before parsing
+        const hargaSatuan = hargaSatuanRaw ? parseFloat(hargaSatuanRaw.replace(/,/g, '')) : null;
 
         // Hanya tambahkan barang yang memiliki data minimal (nama, qty, satuan)
         if (namaBarang && qty && satuan) {
@@ -843,7 +933,7 @@ function collectTambahFormData() {
                 nama_barang: namaBarang,
                 jumlah: parseInt(qty) || 1,
                 satuan: satuan,
-                harga_satuan: hargaSatuan ? parseFloat(hargaSatuan) : null,
+                harga_satuan: hargaSatuan,
                 spesifikasi: spesifikasi || 'Spesifikasi standar'
             });
         }
@@ -1016,6 +1106,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load preview kode proyek
     loadPreviewKodeProyek();
+
+    // Add keypress event listener for harga satuan inputs to only allow numbers
+    document.addEventListener('keypress', function(e) {
+        if (e.target.classList.contains('harga-satuan-input')) {
+            // Allow: backspace, delete, tab, escape, enter
+            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true)) {
+                return;
+            }
+            // Ensure that it is a number and stop the keypress
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        }
+    });
 
     console.log('Tambah modal initialized');
 });
