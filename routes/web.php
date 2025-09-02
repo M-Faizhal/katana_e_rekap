@@ -146,6 +146,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/approval/{id_pembayaran}/reject', [ApprovalController::class, 'reject'])->name('keuangan.approval.reject');
         Route::get('/approval-approved', [ApprovalController::class, 'approved'])->name('keuangan.approval.approved');
         Route::get('/approval-rejected', [ApprovalController::class, 'rejected'])->name('keuangan.approval.rejected');
+        
+        // API endpoint untuk status pembayaran proyek
+        Route::get('/project-payment-status/{proyekId}', [ApprovalController::class, 'getProjectPaymentStatus'])->name('keuangan.project.payment.status');
 
         // Penagihan Dinas routes
         Route::get('/penagihan', [PenagihanDinasController::class, 'index'])->name('keuangan.penagihan');

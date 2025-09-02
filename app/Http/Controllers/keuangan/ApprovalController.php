@@ -14,6 +14,20 @@ use Illuminate\Support\Facades\Log;
 class ApprovalController extends Controller
 {
     /**
+     * ALUR KERJA OTOMATIS PERUBAHAN STATUS PROYEK:
+     * 
+     * 1. Admin Keuangan approve pembayaran
+     * 2. System cek apakah semua vendor sudah lunas:
+     *    - Hitung total modal untuk setiap vendor
+     *    - Hitung total yang sudah dibayar untuk setiap vendor
+     *    - Bandingkan: jika total dibayar >= total modal, vendor dianggap lunas
+     * 3. Jika SEMUA vendor sudah lunas DAN status proyek masih "Penawaran" atau "Pembayaran":
+     *    - Otomatis ubah status proyek menjadi "Pengiriman"
+     *    - Log perubahan untuk audit trail
+     * 4. Berikan feedback kepada user tentang perubahan status
+     */
+
+    /**
      * Display pending payments for approval
      */
     public function index()
@@ -137,49 +151,54 @@ class ApprovalController extends Controller
                 'catatan' => $request->catatan
             ]);
 
-            // Hitung ulang status lunas untuk vendor ini
+            // Hitung ulang status lunas untuk semua vendor dalam proyek
             $proyek = $pembayaran->penawaran->proyek;
             
-            // Hitung total modal untuk vendor ini
-            $totalModalVendor = $proyek->penawaranAktif->penawaranDetail
-                ->where('barang.id_vendor', $pembayaran->id_vendor)
-                ->sum(function($detail) {
-                    return $detail->qty * $detail->barang->harga_vendor;
-                });
-
-            // Hitung total yang sudah dibayar untuk vendor ini (termasuk yang baru di-approve)
-            $totalDibayarVendor = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
-                ->where('id_vendor', $pembayaran->id_vendor)
-                ->where('status_verifikasi', 'Approved')
-                ->sum('nominal_bayar');
+            // Log untuk debugging
+            Log::info('Checking project payment status after approval', [
+                'project_id' => $proyek->id_proyek,
+                'payment_id' => $pembayaran->id_pembayaran,
+                'vendor_id' => $pembayaran->id_vendor,
+                'current_project_status' => $proyek->status
+            ]);
 
             // Check apakah semua vendor sudah lunas
-            $allVendorsData = $proyek->penawaranAktif->penawaranDetail
-                ->groupBy('barang.id_vendor')
-                ->map(function($details, $vendorId) use ($proyek) {
-                    $totalVendor = $details->sum(function($detail) {
-                        return $detail->qty * $detail->barang->harga_vendor;
-                    });
+            $allVendorsLunas = $this->checkAllVendorsPaid($proyek);
+            $vendorSummary = $this->getVendorPaymentSummary($proyek);
 
-                    $totalDibayarVendor = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
-                        ->where('id_vendor', $vendorId)
-                        ->where('status_verifikasi', 'Approved')
-                        ->sum('nominal_bayar');
+            // Log vendor payment summary
+            Log::info('Vendor payment summary', [
+                'project_id' => $proyek->id_proyek,
+                'vendor_summary' => $vendorSummary,
+                'all_vendors_lunas' => $allVendorsLunas
+            ]);
 
-                    return $totalVendor <= $totalDibayarVendor;
-                });
-
-            // Update status proyek jika semua vendor sudah lunas
-            if ($allVendorsData->every(function($isLunas) {
-                return $isLunas;
-            })) {
+            // Update status proyek jika semua vendor sudah lunas DAN proyek dalam status yang tepat
+            $statusChanged = false;
+            if ($allVendorsLunas && in_array($proyek->status, ['Penawaran', 'Pembayaran'])) {
+                $oldStatus = $proyek->status;
                 $proyek->update(['status' => 'Pengiriman']);
+                $statusChanged = true;
+                
+                Log::info('Project status updated to Pengiriman', [
+                    'project_id' => $proyek->id_proyek,
+                    'old_status' => $oldStatus,
+                    'new_status' => 'Pengiriman',
+                    'triggered_by_payment' => $pembayaran->id_pembayaran,
+                    'approved_by' => Auth::user()->id_user
+                ]);
             }
 
             DB::commit();
 
+            // Prepare success message
+            $successMessage = 'Pembayaran berhasil disetujui';
+            if ($statusChanged) {
+                $successMessage .= '. Status proyek otomatis berubah menjadi "Pengiriman" karena semua vendor sudah lunas.';
+            }
+
             return redirect()->route('keuangan.approval')
-                ->with('success', 'Pembayaran berhasil disetujui');
+                ->with('success', $successMessage);
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -229,6 +248,108 @@ class ApprovalController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan saat menolak pembayaran');
+        }
+    }
+
+    /**
+     * Helper method: Check if all vendors in a project are fully paid
+     */
+    private function checkAllVendorsPaid($proyek)
+    {
+        $vendorGroups = $proyek->penawaranAktif->penawaranDetail
+            ->filter(function($detail) {
+                return $detail->barang && $detail->barang->id_vendor;
+            })
+            ->groupBy('barang.id_vendor');
+
+        foreach ($vendorGroups as $vendorId => $details) {
+            // Hitung total modal untuk vendor ini
+            $totalVendor = $details->sum(function($detail) {
+                return $detail->qty * ($detail->barang->harga_vendor ?? 0);
+            });
+
+            // Hitung total yang sudah dibayar untuk vendor ini
+            $totalDibayarVendor = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
+                ->where('id_vendor', $vendorId)
+                ->where('status_verifikasi', 'Approved')
+                ->sum('nominal_bayar');
+
+            // Jika ada vendor yang belum lunas, return false
+            if ($totalDibayarVendor < $totalVendor) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Helper method: Get vendor payment summary for a project
+     */
+    private function getVendorPaymentSummary($proyek)
+    {
+        $vendorSummary = [];
+        $vendorGroups = $proyek->penawaranAktif->penawaranDetail
+            ->filter(function($detail) {
+                return $detail->barang && $detail->barang->id_vendor;
+            })
+            ->groupBy('barang.id_vendor');
+
+        foreach ($vendorGroups as $vendorId => $details) {
+            $totalVendor = $details->sum(function($detail) {
+                return $detail->qty * ($detail->barang->harga_vendor ?? 0);
+            });
+
+            $totalDibayarVendor = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
+                ->where('id_vendor', $vendorId)
+                ->where('status_verifikasi', 'Approved')
+                ->sum('nominal_bayar');
+
+            $vendorSummary[$vendorId] = [
+                'total_modal' => $totalVendor,
+                'total_dibayar' => $totalDibayarVendor,
+                'sisa' => $totalVendor - $totalDibayarVendor,
+                'lunas' => $totalDibayarVendor >= $totalVendor,
+                'vendor_name' => $details->first()->barang->vendor->nama_vendor ?? 'Unknown'
+            ];
+        }
+
+        return $vendorSummary;
+    }
+
+    /**
+     * API endpoint: Get project payment status
+     */
+    public function getProjectPaymentStatus($proyekId)
+    {
+        try {
+            $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor'])->findOrFail($proyekId);
+            
+            if (!$proyek->penawaranAktif) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Proyek belum memiliki penawaran aktif'
+                ], 404);
+            }
+
+            $allVendorsLunas = $this->checkAllVendorsPaid($proyek);
+            $vendorSummary = $this->getVendorPaymentSummary($proyek);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'project_id' => $proyek->id_proyek,
+                    'project_status' => $proyek->status,
+                    'all_vendors_paid' => $allVendorsLunas,
+                    'vendor_summary' => $vendorSummary,
+                    'can_change_to_pengiriman' => $allVendorsLunas && in_array($proyek->status, ['Penawaran', 'Pembayaran'])
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
