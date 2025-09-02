@@ -681,7 +681,7 @@ function hidePenawaranStatus() {
 function updateFileDisplay(textElementId, linkElementId, filename, type = null) {
     const textElement = document.getElementById(textElementId);
     const linkElement = document.getElementById(linkElementId);
-    
+
     // Get delete button based on textElementId
     let deleteButtonId;
     if (textElementId === 'currentSuratPenawaran') {
@@ -1137,7 +1137,7 @@ function deleteCurrentDocument(documentType) {
     };
 
     const documentName = documentNames[documentType] || documentType;
-    
+
     if (!confirm(`Apakah Anda yakin ingin menghapus ${documentName}?`)) {
         return;
     }
@@ -1174,7 +1174,7 @@ function deleteCurrentDocument(documentType) {
             } else {
                 updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
             }
-            
+
             // Show success message
             if (typeof showSuccessModal === 'function') {
                 showSuccessModal(`${documentName} berhasil dihapus!`);
@@ -1188,7 +1188,7 @@ function deleteCurrentDocument(documentType) {
     .catch(error => {
         console.error('Error deleting document:', error);
         alert(`Terjadi kesalahan: ${error.message}`);
-        
+
         // Restore delete button
         if (deleteButton) {
             deleteButton.innerHTML = '<i class="fas fa-trash text-sm"></i>';
