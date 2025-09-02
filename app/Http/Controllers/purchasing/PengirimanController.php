@@ -43,18 +43,39 @@ class PengirimanController extends Controller
                         ->sum('total_harga_hpp');
 
                     // Hitung yang sudah dibayar untuk vendor ini (approved saja)
-                    $totalDibayarApproved = $proyek->pembayaran
+                    $pembayaranApproved = $proyek->pembayaran
                         ->where('id_vendor', $vendor->id_vendor)
-                        ->where('status_verifikasi', 'Approved')
-                        ->sum('nominal_bayar');
+                        ->where('status_verifikasi', 'Approved');
+                    
+                    $totalDibayarApproved = $pembayaranApproved->sum('nominal_bayar');
 
                     $isLunas = $totalVendor <= $totalDibayarApproved;
                     $hasPembayaranApproved = $totalDibayarApproved > 0; // Ada pembayaran yang sudah approved
 
+                    // Debug log untuk setiap vendor
+                    Log::info('Vendor Payment Check:', [
+                        'proyek_id' => $proyek->id_proyek,
+                        'vendor_id' => $vendor->id_vendor,
+                        'vendor_name' => $vendor->nama_vendor,
+                        'total_vendor' => $totalVendor,
+                        'pembayaran_approved_count' => $pembayaranApproved->count(),
+                        'pembayaran_approved_data' => $pembayaranApproved->map(function($p) {
+                            return [
+                                'id' => $p->id_pembayaran,
+                                'nominal' => $p->nominal_bayar,
+                                'status' => $p->status_verifikasi,
+                                'tanggal' => $p->tanggal_pembayaran
+                            ];
+                        })->toArray(),
+                        'total_dibayar_approved' => $totalDibayarApproved,
+                        'has_approved_payment' => $hasPembayaranApproved,
+                        'is_lunas' => $isLunas
+                    ]);
+
                     // Cek apakah sudah ada pengiriman untuk vendor ini di penawaran ini
                     $pengiriman = Pengiriman::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
                         ->where('id_vendor', $vendor->id_vendor)
-                        ->first();
+                        ->get();
 
                     return [
                         'vendor' => $vendor->toArray(),
@@ -63,7 +84,7 @@ class PengirimanController extends Controller
                         'status_lunas' => $isLunas,
                         'has_approved_payment' => $hasPembayaranApproved,
                         'pengiriman' => $pengiriman ? $pengiriman->toArray() : null,
-                        'ready_to_ship' => $hasPembayaranApproved && !$pengiriman // Bisa kirim jika ada pembayaran approved
+                        'ready_to_ship' => $hasPembayaranApproved && $pengiriman->isEmpty() // Bisa kirim jika ada pembayaran approved dan belum ada pengiriman
                     ];
                 })->filter(function ($vendorData) {
                     return $vendorData['has_approved_payment']; // Hanya vendor yang ada pembayaran approved
@@ -108,9 +129,12 @@ class PengirimanController extends Controller
         // Debug log untuk memastikan struktur data benar
         Log::info('Proyek Ready Data Structure:', [
             'count' => $proyekReady->count(),
-            'sample' => $proyekReady->first() ? [
+            'sample' => $proyekReady->count() > 0 ? [
+                'proyek_id' => $proyekReady->first()->id_proyek,
+                'proyek_status' => $proyekReady->first()->status,
                 'vendors_ready_count' => count($proyekReady->first()->vendors_ready),
-                'vendors_ready_sample' => $proyekReady->first()->vendors_ready[0] ?? 'No vendors ready'
+                'vendors_ready_sample' => $proyekReady->first()->vendors_ready[0] ?? 'No vendors ready',
+                'all_vendors_ready' => $proyekReady->first()->vendors_ready
             ] : 'No projects'
         ]);
 
