@@ -202,10 +202,6 @@
                             Daftar Barang
                             <span id="barangCounter" class="ml-2 bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">1 item</span>
                         </h4>
-                        <button type="button" onclick="tambahBarang()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-white hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 flex items-center shadow-md hover:shadow-lg">
-                            <i class="fas fa-plus mr-2"></i>
-                            Tambah Barang
-                        </button>
                     </div>
 
                     <div id="daftarBarang" class="space-y-4">
@@ -262,6 +258,13 @@
                                 <textarea name="barang[0][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Deskripsi atau spesifikasi barang (opsional)"></textarea>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="button" onclick="tambahBarang()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-white hover:text-red-600 hover:border-2 hover:border-red-600 transition-all duration-200 flex items-center shadow-md hover:shadow-lg">
+                            <i class="fas fa-plus mr-2"></i>
+                            Tambah Barang
+                        </button>
                     </div>
 
                     <!-- Total Keseluruhan -->
@@ -643,7 +646,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
 
     // Create FormData untuk traditional form submission
     const formData = new FormData();
-    
+
     // Add basic data
     Object.keys(formDataObject).forEach(key => {
         if (key !== 'daftar_barang') {
@@ -673,11 +676,11 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     .then(response => {
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
             return response.json();
@@ -691,7 +694,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     })
     .then(data => {
         console.log('Response data:', data);
-        
+
         if (data.success) {
             // Reset form
             this.reset();
@@ -716,9 +719,9 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
     .catch(error => {
         console.error('Error:', error);
         console.error('Error stack:', error.stack);
-        
+
         let errorMessage = 'Terjadi kesalahan: ' + error.message;
-        
+
         // Handle different types of errors
         if (error.message.includes('500')) {
             errorMessage = 'Terjadi kesalahan server (500). Periksa log aplikasi untuk detail.';
@@ -727,7 +730,7 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
         } else if (error.message.includes('422')) {
             errorMessage = 'Data yang dikirim tidak valid (422). Periksa validasi form.';
         }
-        
+
         showErrorAlert(errorMessage, 'Error');
     })
     .finally(() => {
@@ -959,12 +962,12 @@ async function loadAdminMarketingOptions() {
                         const option = document.createElement('option');
                         option.value = user.id_user;
                         option.textContent = user.nama;
-                        
+
                         // Set current user as default selected
                         if (user.is_current_user) {
                             option.selected = true;
                         }
-                        
+
                         select.appendChild(option);
                     }
                 });
@@ -1007,7 +1010,7 @@ async function loadAdminPurchasingOptions() {
 document.addEventListener('DOMContentLoaded', function() {
     // Load admin marketing options
     loadAdminMarketingOptions();
-    
+
     // Load admin purchasing options
     loadAdminPurchasingOptions();
 
