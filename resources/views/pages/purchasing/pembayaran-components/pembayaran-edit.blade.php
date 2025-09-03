@@ -306,7 +306,7 @@
                         Batal
                     </a>
                 </div>
-
+            </form>
                 <!-- Delete Button -->
                 <form action="{{ route('purchasing.pembayaran.destroy', $pembayaran->id_pembayaran) }}" 
                       method="POST" 

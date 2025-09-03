@@ -117,7 +117,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modal Vendor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Bayar</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
@@ -157,19 +157,10 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($vendorData['status_lunas'])
                                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                                <i class="fas fa-check-circle mr-1"></i>Lunas (100%)
+                                                <i class="fas fa-check-circle mr-1"></i>Siap Kirim
                                             </span>
-                                        @else
-                                            @php $persenBayar = $vendorData['total_vendor'] > 0 ? ($vendorData['total_dibayar_approved'] / $vendorData['total_vendor']) * 100 : 0; @endphp
-                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                <i class="fas fa-credit-card mr-1"></i>{{ round($persenBayar) }}% Terbayar
-                                            </span>
-                                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $persenBayar }}%"></div>
-                                            </div>
-                                        @endif
+                                        
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         @php

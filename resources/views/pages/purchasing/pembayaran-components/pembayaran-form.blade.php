@@ -518,8 +518,60 @@
 </div>
 
 @push('scripts')
+<style>
+/* Disable scroll on number inputs */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Prevent scroll wheel from changing number input values */
+input[type=number] {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Prevent scroll wheel from changing number input values
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    
+    numberInputs.forEach(function(input) {
+        // Disable scroll wheel on number inputs
+        input.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }, { passive: false });
+        
+        // Also prevent mousewheel event
+        input.addEventListener('mousewheel', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }, { passive: false });
+        
+        // Prevent DOMMouseScroll for Firefox
+        input.addEventListener('DOMMouseScroll', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }, { passive: false });
+        
+        // Blur the input when mouse enters to prevent accidental scroll
+        input.addEventListener('mouseenter', function() {
+            if (document.activeElement === this) {
+                this.blur();
+            }
+        });
+    });
+    
     // File upload handling
     const fileInput = document.getElementById('bukti_bayar');
     const fileInfo = document.getElementById('file-info');
