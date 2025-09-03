@@ -20,16 +20,17 @@ class ProyekController extends Controller
     public function index()
     {
         // Ambil semua data proyek dengan relasi admin marketing, purchasing, wilayah, dan proyek barang
+        // UBAH DARI orderBy('tanggal', 'asc') MENJADI orderBy('created_at', 'desc')
         $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
-            ->orderBy('tanggal', 'asc')
+            ->orderBy('created_at', 'desc') // Proyek yang baru dibuat di atas
             ->get();
 
         // Transform data untuk view
         $proyekData = $proyekData->map(function ($proyek) {
             // Get latest penawaran for this project
             $latestPenawaran = Penawaran::with('details')->where('id_proyek', $proyek->id_proyek)
-                                      ->orderBy('id_penawaran', 'desc')
-                                      ->first();
+                                    ->orderBy('id_penawaran', 'desc')
+                                    ->first();
             // Prioritas daftar barang: proyekBarang -> penawaran detail -> fallback proyek langsung
             $daftarBarang = [];
 
@@ -112,7 +113,6 @@ class ProyekController extends Controller
 
         return view('pages.marketing.proyek', compact('proyekData', 'totalProyek'));
     }
-
     public function store(Request $request)
     {
         // Role-based access control: Allow superadmin and admin_marketing

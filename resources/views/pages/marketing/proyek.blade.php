@@ -205,36 +205,6 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                                     {{ ucfirst($proyek['status']) }}
                                 </span>
 
-                                {{-- @if(!empty($proyek['surat_penawaran']) && !empty($proyek['surat_kontrak']))
-                                    <!-- Dropdown untuk ubah status jika surat penawaran dan kontrak sudah ada -->
-                                    <select onchange="changeStatusQuick({{ $proyek['id'] }}, this.value, this)"
-                                            onclick="event.stopPropagation()"
-                                            data-current-status="{{ $proyek['status'] }}"
-                                            class="status-dropdown text-xs bg-white border border-gray-300 hover:border-gray-400 text-gray-700 px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-red-500 transition-all duration-200"
-                                            title="Ubah Status Cepat">
-                                        <option value="">Ubah Status</option>
-                                        @if($proyek['status'] !== 'penawaran')
-                                            <option value="penawaran">📄 Penawaran</option>
-                                        @endif
-                                        @if($proyek['status'] !== 'pembayaran')
-                                            <option value="pembayaran">💳 Pembayaran</option>
-                                        @endif
-                                        @if($proyek['status'] !== 'pengiriman')
-                                            <option value="pengiriman">🚚 Pengiriman</option>
-                                        @endif
-                                        @if($proyek['status'] !== 'selesai')
-                                            <option value="selesai">🏆 Selesai</option>
-                                        @endif
-                                        @if($proyek['status'] !== 'gagal')
-                                            <option value="gagal">❌ Gagal</option>
-                                        @endif
-                                    </select>
-                                @else
-                                    <!-- Tombol modal untuk ubah status jika surat belum lengkap -->
-                                    <button onclick="event.stopPropagation(); openStatusModal({{ $proyek['id'] }})" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full transition-colors duration-200" title="Ubah Status">
-                                        <i class="fas fa-edit mr-1"></i>Ubah
-                                    </button>
-                                @endif --}}
                             </div>
                         </div>
                     </div>
