@@ -158,12 +158,12 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Proyek</h3>
                 <dl class="space-y-4">
                     <div class="flex justify-between">
-                        <dt class="text-sm font-medium text-gray-500">Nama Barang:</dt>
-                        <dd class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->nama_barang }}</dd>
-                    </div>
-                    <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Kode Proyek:</dt>
                         <dd class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->kode_proyek }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-sm font-medium text-gray-500">Kota/Kab:</dt>
+                        <dd class="text-sm text-gray-900">{{ $pembayaran->penawaran->proyek->kab_kota }}</dd>
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Instansi:</dt>

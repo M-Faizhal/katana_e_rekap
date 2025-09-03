@@ -25,12 +25,12 @@
             <div class="bg-green-700/30 rounded-lg p-3">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                        <span class="text-green-200">Barang:</span>
-                        <span class="font-semibold ml-2">{{ $proyek->nama_barang }}</span>
+                        <span class="text-green-200">Kode Proyek:</span>
+                        <span class="font-semibold ml-2">{{ $proyek->kode_proyek }}</span>
                     </div>
                     <div>
-                        <span class="text-green-200">Klien:</span>
-                        <span class="font-semibold ml-2">{{ $proyek->nama_klien }} - {{ $proyek->instansi }}</span>
+                        <span class="text-green-200">Nama Instansi:</span>
+                        <span class="font-semibold ml-2">{{ $proyek->instansi }} - {{ $proyek->kab_kota }}</span>
                     </div>
                 </div>
             </div>
@@ -53,8 +53,8 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Proyek</h3>
                 <div class="space-y-2">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Klien:</span>
-                        <span class="font-medium">{{ $proyek->nama_klien }}</span>
+                        <span class="text-gray-600">Kode Proyek:</span>
+                        <span class="font-medium">{{ $proyek->kode_proyek }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">Instansi:</span>

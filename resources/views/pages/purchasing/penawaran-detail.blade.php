@@ -46,8 +46,8 @@
                     <p class="text-gray-900 font-medium">PRJ{{ str_pad($proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}</p>
                 </div>
                 <div>
-                    <label class="text-sm font-medium text-gray-500">Nama Klien</label>
-                    <p class="text-gray-900 font-medium">{{ $proyek->nama_klien }}</p>
+                    <label class="text-sm font-medium text-gray-500">Kota/Kab</label>
+                    <p class="text-gray-900 font-medium">{{ $proyek->kab_kota }}</p>
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-500">Instansi</label>

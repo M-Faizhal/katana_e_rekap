@@ -217,14 +217,14 @@
                             </a>
                             @if($isAdminKeuangan)
                                 <!-- Modern Approve Button -->
-                                <button onclick="openApproveModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->nama_barang }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}', '{{ $pembayaran->vendor->nama_vendor }}')" 
+                                <button onclick="openApproveModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->kode_proyek }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}', '{{ $pembayaran->vendor->nama_vendor }}')" 
                                         class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-all duration-200 shadow-sm">
                                     <i class="fas fa-check mr-1.5"></i>
                                     Approve
                                 </button>
                                 
                                 <!-- Modern Reject Button -->
-                                <button onclick="openRejectModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->nama_barang }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}', '{{ $pembayaran->vendor->nama_vendor }}')" 
+                                <button onclick="openRejectModal({{ $pembayaran->id_pembayaran }}, '{{ $pembayaran->penawaran->proyek->kode_proyek }}', '{{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}', '{{ $pembayaran->vendor->nama_vendor }}')" 
                                         class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200 shadow-sm">
                                     <i class="fas fa-times mr-1.5"></i>
                                     Reject

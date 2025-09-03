@@ -86,12 +86,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-3">
                     <div class="flex justify-between">
-                        <span class="text-sm text-blue-700 font-medium">Nama Barang:</span>
-                        <span class="font-semibold text-blue-900">{{ $proyek->nama_barang }}</span>
+                        <span class="text-sm text-blue-700 font-medium">Kode Proyek:</span>
+                        <span class="font-semibold text-blue-900">{{ $proyek->kode_proyek }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-sm text-blue-700 font-medium">Klien:</span>
-                        <span class="font-semibold text-blue-900">{{ $proyek->nama_klien }}</span>
+                        <span class="text-sm text-blue-700 font-medium">Kota/Kab:</span>
+                        <span class="font-semibold text-blue-900">{{ $proyek->kab_kota }}</span>
                     </div>
                 </div>
                 <div class="space-y-3">

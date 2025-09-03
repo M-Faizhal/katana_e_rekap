@@ -141,8 +141,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         <div>
-                                            <div class="font-medium">Rp {{ number_format($vendorData['total_vendor'], 0, ',', '.') }}</div>
-                                            <div class="text-blue-600 text-xs">
+                                            <div class="text-blue-700 text-md">
                                                 Dibayar: Rp {{ number_format($vendorData['total_dibayar_approved'], 0, ',', '.') }}
                                             </div>
                                             @php

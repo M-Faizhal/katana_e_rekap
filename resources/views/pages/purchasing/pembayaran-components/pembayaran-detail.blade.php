@@ -164,16 +164,16 @@
                     </h3>
                     <dl class="space-y-4">
                         <div class="flex justify-between items-start">
-                            <dt class="text-sm font-medium text-gray-600">Nama Barang:</dt>
-                            <dd class="text-sm font-semibold text-gray-900 text-right max-w-xs">{{ $pembayaran->penawaran->proyek->nama_barang }}</dd>
+                            <dt class="text-sm font-medium text-gray-600">Kode Proyek:</dt>
+                            <dd class="text-sm font-semibold text-gray-900 text-right max-w-xs">{{ $pembayaran->penawaran->proyek->kode_proyek }}</dd>
                         </div>
                         <div class="flex justify-between items-start">
                             <dt class="text-sm font-medium text-gray-600">Vendor:</dt>
                             <dd class="text-sm font-semibold text-purple-700 text-right max-w-xs bg-purple-100 px-2 py-1 rounded">{{ $pembayaran->vendor->nama_vendor ?? 'N/A' }}</dd>
                         </div>
                         <div class="flex justify-between items-start">
-                            <dt class="text-sm font-medium text-gray-600">Klien:</dt>
-                            <dd class="text-sm font-medium text-gray-900 text-right max-w-xs">{{ $pembayaran->penawaran->proyek->nama_klien }}</dd>
+                            <dt class="text-sm font-medium text-gray-600">Kota/Kab:</dt>
+                            <dd class="text-sm font-medium text-gray-900 text-right max-w-xs">{{ $pembayaran->penawaran->proyek->kab_kota }}</dd>
                         </div>
                         <div class="flex justify-between items-start">
                             <dt class="text-sm font-medium text-gray-600">Instansi:</dt>

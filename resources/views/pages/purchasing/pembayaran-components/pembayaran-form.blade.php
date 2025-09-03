@@ -74,12 +74,12 @@
                     </h3>
                     <div class="bg-gray-50 rounded-lg p-4 space-y-3">
                         <div class="flex justify-between items-start">
-                            <span class="text-gray-600 font-medium">Nama Barang:</span>
-                            <span class="font-semibold text-gray-900 text-right">{{ $proyek->nama_barang }}</span>
+                            <span class="text-gray-600 font-medium">Kode Proyek:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ $proyek->kode_proyek }}</span>
                         </div>
                         <div class="flex justify-between items-start">
-                            <span class="text-gray-600 font-medium">Klien:</span>
-                            <span class="font-semibold text-gray-900 text-right">{{ $proyek->nama_klien }}</span>
+                            <span class="text-gray-600 font-medium">Kota/Kab:</span>
+                            <span class="font-semibold text-gray-900 text-right">{{ $proyek->kab_kota }}</span>
                         </div>
                         <div class="flex justify-between items-start">
                             <span class="text-gray-600 font-medium">Instansi:</span>
