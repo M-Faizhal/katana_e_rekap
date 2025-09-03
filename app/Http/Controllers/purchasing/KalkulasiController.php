@@ -13,6 +13,7 @@ use App\Models\PenawaranDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class KalkulasiController extends Controller
 {
@@ -171,19 +172,49 @@ class KalkulasiController extends Controller
 
             $proyekId = $request->id_proyek;
 
+            // Get existing approval file before deleting records
+            $existingApprovalFile = KalkulasiHps::where('id_proyek', $proyekId)
+                                               ->whereNotNull('bukti_file_approval')
+                                               ->value('bukti_file_approval');
+
             // Hapus kalkulasi lama jika ada
             KalkulasiHps::where('id_proyek', $proyekId)->delete();
 
+            // Cek apakah ada file approval yang sudah diupload sebelumnya
+            $approvalFiles = glob(storage_path('app/public/approval_files/*' . $proyekId . '_approval*'));
+            $approvalFileName = null;
+            if (!empty($approvalFiles)) {
+                // Ambil file terbaru jika ada beberapa
+                $latestFile = array_reduce($approvalFiles, function($latest, $file) {
+                    return ($latest === null || filemtime($file) > filemtime($latest)) ? $file : $latest;
+                });
+                if ($latestFile) {
+                    $approvalFileName = basename($latestFile);
+                }
+            }
+
+            // Log untuk debugging approval file
+            Log::info('Approval file check during save', [
+                'project_id' => $proyekId,
+                'storage_path_search' => storage_path('app/public/approval_files/*' . $proyekId . '_approval*'),
+                'found_files' => $approvalFiles,
+                'found_files_count' => count($approvalFiles),
+                'approval_file_name' => $approvalFileName,
+                'latest_file_exists' => isset($latestFile) && $latestFile ? file_exists($latestFile) : false,
+                'storage_directory_exists' => is_dir(storage_path('app/public/approval_files'))
+            ]);
+
             // Simpan kalkulasi baru
             foreach ($request->kalkulasi as $index => $item) {
-                Log::info('Saving kalkulasi item', [
+                Log::info('Creating kalkulasi item with detailed data', [
                     'index' => $index,
                     'id_barang' => $item['id_barang'] ?? null,
                     'id_vendor' => $item['id_vendor'] ?? null,
                     'harga_vendor' => $item['harga_vendor'] ?? 0,
-                    'harga_diskon' => $item['harga_diskon'] ?? 0, // INPUT dari frontend
-                    'nilai_diskon' => $item['nilai_diskon'] ?? 0, // CALCULATED
-                    'hps' => $item['hps'] ?? 0
+                    'harga_diskon' => $item['harga_diskon'] ?? 0,
+                    'nilai_diskon' => $item['nilai_diskon'] ?? 0,
+                    'hps' => $item['hps'] ?? 0,
+                    'approval_file_to_assign' => $approvalFileName
                 ]);
 
                 $kalkulasi = KalkulasiHps::create([
@@ -242,10 +273,16 @@ class KalkulasiController extends Controller
                     'nett_income_percent' => $item['nett_income_persentase'] ?? 0,
                     'keterangan_1' => $item['keterangan_1'] ?? null,
                     'keterangan_2' => $item['keterangan_2'] ?? null,
+                    'bukti_file_approval' => $approvalFileName, // Assign approval file name only
                     'catatan' => $item['catatan'] ?? null,
                 ]);
 
-                Log::info('Kalkulasi item saved', ['id' => $kalkulasi->id_kalkulasi]);
+                Log::info('Kalkulasi item saved successfully', [
+                    'id' => $kalkulasi->id_kalkulasi,
+                    'approval_file_assigned' => $approvalFileName,
+                    'approval_file_in_db' => $kalkulasi->bukti_file_approval,
+                    'approval_file_matches' => $kalkulasi->bukti_file_approval === $approvalFileName
+                ]);
             }
 
             // Update total nilai proyek dari kalkulasi HPS
@@ -642,7 +679,35 @@ class KalkulasiController extends Controller
                 return $data;
             });
 
-            return view('pages.purchasing.hps', compact('proyek', 'kalkulasiData', 'canEdit'));
+            // Get current approval file if exists
+            $currentApprovalFile = null;
+            $approvalFiles = glob(storage_path('app/public/approval_files/*' . $id . '_approval*'));
+            if (!empty($approvalFiles)) {
+                // Ambil file terbaru jika ada beberapa
+                $latestFile = array_reduce($approvalFiles, function($latest, $file) {
+                    return ($latest === null || filemtime($file) > filemtime($latest)) ? $file : $latest;
+                });
+                if ($latestFile) {
+                    $currentApprovalFile = 'approval_files/' . basename($latestFile);
+                }
+            }
+            
+            // Jika tidak ada file di storage, cek dari database
+            if (!$currentApprovalFile) {
+                $approvalFromDb = KalkulasiHps::where('id_proyek', $id)
+                                            ->whereNotNull('bukti_file_approval')
+                                            ->value('bukti_file_approval');
+                if ($approvalFromDb) {
+                    // Jika di database hanya nama file, tambahkan path
+                    if (strpos($approvalFromDb, '/') === false) {
+                        $currentApprovalFile = 'approval_files/' . $approvalFromDb;
+                    } else {
+                        $currentApprovalFile = $approvalFromDb;
+                    }
+                }
+            }
+
+            return view('pages.purchasing.hps', compact('proyek', 'kalkulasiData', 'canEdit', 'currentApprovalFile'));
         } catch (\Exception $e) {
             return redirect()->route('purchasing.kalkulasi')->with('error', 'Proyek tidak ditemukan');
         }
@@ -896,5 +961,110 @@ class KalkulasiController extends Controller
                 'message' => 'Gagal memperbarui status penawaran'
             ], 500);
         }
+    }
+
+    public function manageApprovalFile(Request $request)
+    {
+        try {
+            $action = $request->input('action', 'upload'); // default to upload
+            $idProyek = $request->input('id_proyek');
+            
+            // Validate basic requirements
+            $request->validate([
+                'action' => 'required|in:upload,delete',
+                'id_proyek' => 'required|exists:proyek,id_proyek'
+            ]);
+
+            if ($action === 'upload') {
+                return $this->handleUploadApproval($request, $idProyek);
+            } else {
+                return $this->handleDeleteApproval($request, $idProyek);
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = collect($e->errors())->flatten()->implode(', ');
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid: ' . $errors
+            ], 400);
+        } catch (\Exception $e) {
+            Log::error('Error managing approval file', [
+                'action' => $request->input('action'),
+                'id_proyek' => $request->input('id_proyek'),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function handleUploadApproval(Request $request, $idProyek)
+    {
+        // Validate file upload requirements
+        $request->validate([
+            'bukti_approval' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048'
+        ]);
+
+        $file = $request->file('bukti_approval');
+        
+        // Delete existing approval files for this project
+        $existingFiles = glob(storage_path('app/public/approval_files/*' . $idProyek . '_approval*'));
+        foreach ($existingFiles as $existingFile) {
+            if (file_exists($existingFile)) {
+                unlink($existingFile);
+            }
+        }
+        
+        // Create new filename with timestamp
+        $fileName = $idProyek . '_approval_' . time() . '.' . $file->getClientOriginalExtension();
+        
+        // Store file in storage/app/public/approval_files
+        $filePath = $file->storeAs('approval_files', $fileName, 'public');
+        
+        Log::info('Approval file uploaded and stored temporarily', [
+            'id_proyek' => $idProyek,
+            'file_path' => $filePath,
+            'file_name' => $fileName,
+            'uploaded_by' => Auth::id()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'File bukti approval berhasil diupload',
+            'file_path' => asset('storage/' . $filePath),
+            'file_name' => $fileName
+        ]);
+    }
+
+    private function handleDeleteApproval(Request $request, $idProyek)
+    {
+        // Delete approval files for this project
+        $approvalFiles = glob(storage_path('app/public/approval_files/*' . $idProyek . '_approval*'));
+        $deletedFiles = [];
+        
+        foreach ($approvalFiles as $file) {
+            if (file_exists($file)) {
+                unlink($file);
+                $deletedFiles[] = basename($file);
+            }
+        }
+        
+        // Also clear from database if exists
+        KalkulasiHps::where('id_proyek', $idProyek)
+                    ->update(['bukti_file_approval' => null]);
+
+        Log::info('Approval files deleted', [
+            'id_proyek' => $idProyek,
+            'deleted_files' => $deletedFiles,
+            'deleted_by' => Auth::id()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'File bukti approval berhasil dihapus'
+        ]);
     }
 }

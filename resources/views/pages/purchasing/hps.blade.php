@@ -243,6 +243,104 @@
         </div>
     </div>
 
+    <!-- Bukti Approval Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-file-check text-green-600 mr-2"></i>
+                    Bukti Approval Kalkulasi
+                </h3>
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Max 2MB (PDF, JPG, PNG)
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4">
+            @if($canEdit || (Auth::user()->role === 'superadmin'))
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Upload Area -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-gray-700">Upload File Bukti Approval</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                            <div class="space-y-2">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400"></i>
+                                <div class="text-sm text-gray-600">
+                                    <label for="bukti-approval-file" class="cursor-pointer text-blue-600 hover:text-blue-500">
+                                        Klik untuk upload file
+                                    </label>
+                                    atau drag & drop
+                                </div>
+                                <input type="file" id="bukti-approval-file" name="bukti_approval" 
+                                       accept=".pdf,.jpg,.jpeg,.png" 
+                                       onchange="handleFileUpload(this)"
+                                       class="hidden">
+                                <div class="text-xs text-gray-500">
+                                    PDF, JPG, PNG (Max 2MB)
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        <div id="upload-progress" class="hidden">
+                            <div class="bg-gray-200 rounded-full h-2">
+                                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <div class="text-sm text-gray-600 mt-1" id="upload-status">Uploading...</div>
+                        </div>
+                        
+                        <!-- Error/Success Messages -->
+                        <div id="upload-message" class="hidden"></div>
+                    </div>
+                    
+                    <!-- Current File Display -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-gray-700">File Saat Ini</label>
+                        <div id="current-file-display" class="border border-gray-200 rounded-lg p-4">
+                            @if(isset($currentApprovalFile) && $currentApprovalFile)
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-file-alt text-blue-500 text-xl"></i>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ basename($currentApprovalFile) }}</div>
+                                            <div class="text-xs text-gray-500">
+                                                Uploaded: {{ \Carbon\Carbon::parse($proyek->updated_at)->format('d/m/Y H:i') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <a href="{{ asset('storage/' . $currentApprovalFile) }}" target="_blank" 
+                                           class="text-blue-600 hover:text-blue-800 text-sm">
+                                            <i class="fas fa-eye mr-1"></i>Lihat
+                                        </a>
+                                        <button onclick="deleteApprovalFile()" 
+                                                class="text-red-600 hover:text-red-800 text-sm">
+                                            <i class="fas fa-trash mr-1"></i>Hapus
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="text-center text-gray-500 py-4">
+                                    <i class="fas fa-file-alt text-3xl text-gray-300 mb-2"></i>
+                                    <div class="text-sm">Belum ada file bukti approval</div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-lock text-amber-600 mr-2"></i>
+                        <span class="text-amber-700">Anda tidak memiliki akses untuk upload file bukti approval.</span>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <!-- Action Footer -->
     <div class="flex justify-between items-center bg-white rounded-lg p-4 border border-gray-200">
         <div class="text-sm text-gray-600">
@@ -1129,6 +1227,175 @@ function showErrorMessage(message) {
             }
         }, 300);
     }, 4000);
+}
+
+// Handle file upload for bukti approval
+function handleFileUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file size (2MB max)
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    if (file.size > maxSize) {
+        showErrorMessage('Ukuran file terlalu besar. Maksimal 2MB.');
+        input.value = '';
+        return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+        showErrorMessage('Tipe file tidak diizinkan. Hanya PDF, JPG, PNG yang diperbolehkan.');
+        input.value = '';
+        return;
+    }
+    
+    uploadApprovalFile(file);
+}
+
+// Upload approval file
+async function uploadApprovalFile(file) {
+    if (!currentProyekId) {
+        showErrorMessage('ID Proyek tidak ditemukan');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('bukti_approval', file);
+    formData.append('id_proyek', currentProyekId);
+    formData.append('action', 'upload');
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    
+    // Show progress
+    const progressDiv = document.getElementById('upload-progress');
+    const progressBar = document.getElementById('progress-bar');
+    const statusDiv = document.getElementById('upload-status');
+    const messageDiv = document.getElementById('upload-message');
+    
+    progressDiv.classList.remove('hidden');
+    messageDiv.classList.add('hidden');
+    
+    try {
+        const xhr = new XMLHttpRequest();
+        
+        // Track upload progress
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+                statusDiv.textContent = `Uploading... ${Math.round(percentComplete)}%`;
+            }
+        });
+        
+        xhr.onload = function() {
+            progressDiv.classList.add('hidden');
+            
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    showSuccessMessage('File bukti approval berhasil diupload');
+                    updateCurrentFileDisplay(response.file_path, response.file_name || file.name);
+                    // Clear input
+                    document.getElementById('bukti-approval-file').value = '';
+                } else {
+                    showErrorMessage(response.message || 'Gagal upload file');
+                }
+            } else {
+                showErrorMessage('Terjadi kesalahan saat upload file');
+            }
+        };
+        
+        xhr.onerror = function() {
+            progressDiv.classList.add('hidden');
+            showErrorMessage('Terjadi kesalahan saat upload file');
+        };
+        
+        xhr.open('POST', '/purchasing/kalkulasi/manage-approval');
+        xhr.send(formData);
+        
+    } catch (error) {
+        progressDiv.classList.add('hidden');
+        showErrorMessage('Terjadi kesalahan saat upload file');
+        console.error('Upload error:', error);
+    }
+}
+
+// Update current file display
+function updateCurrentFileDisplay(filePath, fileName) {
+    const currentFileDisplay = document.getElementById('current-file-display');
+    const now = new Date().toLocaleString('id-ID');
+    
+    currentFileDisplay.innerHTML = `
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-file-alt text-blue-500 text-xl"></i>
+                <div>
+                    <div class="text-sm font-medium text-gray-900">${fileName}</div>
+                    <div class="text-xs text-gray-500">
+                        Uploaded: ${now}
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <a href="${filePath}" target="_blank" 
+                   class="text-blue-600 hover:text-blue-800 text-sm">
+                    <i class="fas fa-eye mr-1"></i>Lihat
+                </a>
+                <button onclick="deleteApprovalFile()" 
+                        class="text-red-600 hover:text-red-800 text-sm">
+                    <i class="fas fa-trash mr-1"></i>Hapus
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Delete approval file
+async function deleteApprovalFile() {
+    if (!currentProyekId) {
+        showErrorMessage('ID Proyek tidak ditemukan');
+        return;
+    }
+    
+    if (!confirm('Apakah Anda yakin ingin menghapus file bukti approval?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/purchasing/kalkulasi/delete-approval', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                id_proyek: currentProyekId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccessMessage('File bukti approval berhasil dihapus');
+            updateCurrentFileDisplayEmpty();
+        } else {
+            showErrorMessage(data.message || 'Gagal menghapus file');
+        }
+    } catch (error) {
+        showErrorMessage('Terjadi kesalahan saat menghapus file');
+        console.error('Delete error:', error);
+    }
+}
+
+// Update current file display to empty state
+function updateCurrentFileDisplayEmpty() {
+    const currentFileDisplay = document.getElementById('current-file-display');
+    currentFileDisplay.innerHTML = `
+        <div class="text-center text-gray-500 py-4">
+            <i class="fas fa-file-alt text-3xl text-gray-300 mb-2"></i>
+            <div class="text-sm">Belum ada file bukti approval</div>
+        </div>
+    `;
 }
 </script>
 @endpush

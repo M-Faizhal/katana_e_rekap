@@ -114,6 +114,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/kalkulasi/penawaran/preview', [KalkulasiController::class, 'previewPenawaran'])->name('kalkulasi.penawaran.preview');
         Route::get('/kalkulasi/penawaran/{proyekId}/detail', [KalkulasiController::class, 'detailPenawaran'])->name('kalkulasi.penawaran.detail');
         Route::put('/kalkulasi/penawaran/{penawaranId}/status', [KalkulasiController::class, 'updatePenawaranStatus'])->name('kalkulasi.penawaran.status');
+        
+        // Approval File Management (Combined Route)
+        Route::post('/kalkulasi/manage-approval', [KalkulasiController::class, 'manageApprovalFile'])->name('kalkulasi.manage.approval');
 
         // New: HPS Items Summary Page
         Route::get('/kalkulasi/{id}/hps/summary', [KalkulasiController::class, 'hpsSummary'])->name('purchasing.kalkulasi.hps.summary');

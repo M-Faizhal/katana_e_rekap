@@ -65,6 +65,7 @@ class KalkulasiHps extends Model
         'catatan',
         'keterangan_1',
         'keterangan_2',
+        'bukti_file_approval',
     ];
 
     protected $casts = [
