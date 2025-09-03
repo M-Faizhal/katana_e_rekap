@@ -93,8 +93,8 @@
                                 <span class="text-sm font-medium text-gray-600">File Spesifikasi:</span>
                             </div>
                             <a id="detailSpesifikasiFileLink" href="#" target="_blank" class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200">
-                                <i class="fas fa-download mr-2"></i>
-                                <span id="detailSpesifikasiFileName">Download File</span>
+                                <i class="fas fa-eye mr-2"></i>
+                                <span id="detailSpesifikasiFileName">Lihat File</span>
                             </a>
                         </div>
                     </div>

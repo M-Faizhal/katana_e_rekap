@@ -573,14 +573,15 @@ class PenagihanDinasController extends Controller
             abort(404, 'Dokumen tidak ditemukan.');
         }
 
-        $filePath = $penagihanDinas->$jenis; // Path sudah lengkap dari database
+        $filePath = 'penagihan-dinas/dokumen/' . $penagihanDinas->$jenis;
         
         if (!Storage::disk('public')->exists($filePath)) {
             abort(404, 'File tidak ditemukan.');
         }
 
         $file = Storage::disk('public')->get($filePath);
-        $mimeType = Storage::disk('public')->mimeType($filePath);
+        $absolutePath = Storage::disk('public')->path($filePath);
+        $mimeType = mime_content_type($absolutePath);
         
         return response($file, 200)
             ->header('Content-Type', $mimeType)
@@ -591,14 +592,15 @@ class PenagihanDinasController extends Controller
     {
         $buktiPembayaran = BuktiPembayaran::findOrFail($buktiId);
         
-        $filePath = $buktiPembayaran->bukti_pembayaran; // Path sudah lengkap dari database
+        $filePath = 'penagihan-dinas/bukti-pembayaran/' . $buktiPembayaran->bukti_pembayaran;
         
         if (!Storage::disk('public')->exists($filePath)) {
             abort(404, 'File tidak ditemukan.');
         }
 
         $file = Storage::disk('public')->get($filePath);
-        $mimeType = Storage::disk('public')->mimeType($filePath);
+        $absolutePath = Storage::disk('public')->path($filePath);
+        $mimeType = mime_content_type($absolutePath);
         
         return response($file, 200)
             ->header('Content-Type', $mimeType)

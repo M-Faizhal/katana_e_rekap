@@ -1031,7 +1031,16 @@ function switchDetailTab(tabName) {
 // Fungsi untuk melihat file yang sudah diupload
 function viewFile(filePath) {
     if (filePath) {
-        const fullUrl = `/storage/${filePath}`;
+        let fullUrl;
+        // Tentukan path berdasarkan jenis file
+        if (filePath.includes('_surat_jalan_')) {
+            fullUrl = `/storage/pengiriman/surat_jalan/${filePath}`;
+        } else if (filePath.includes('_foto_') || filePath.includes('_tanda_terima_')) {
+            fullUrl = `/storage/pengiriman/dokumentasi/${filePath}`;
+        } else {
+            // Fallback untuk kompatibilitas file lama
+            fullUrl = `/storage/${filePath}`;
+        }
         window.open(fullUrl, '_blank');
     }
 }

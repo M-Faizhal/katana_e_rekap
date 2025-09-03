@@ -304,10 +304,10 @@
                             <i class="fas fa-file-pdf text-red-500 mr-2"></i>
                             <span class="text-sm font-medium text-gray-900">{{ $label }}</span>
                         </div>
-                        <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $penagihanDinas->$field) }}" download
+                        <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $penagihanDinas->$field) }}" target="_blank"
                            class="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors">
-                            <i class="fas fa-download mr-1"></i>
-                            <span class="text-sm">Download</span>
+                            <i class="fas fa-eye mr-1"></i>
+                            <span class="text-sm">Lihat</span>
                         </a>
                     </div>
                     @else
@@ -370,10 +370,10 @@
                             ID: #{{ str_pad($bukti->id, 4, '0', STR_PAD_LEFT) }}
                         </div>
                         @if($bukti->bukti_pembayaran)
-                        <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" download
+                        <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" target="_blank"
                            class="inline-flex items-center px-3 py-1 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200">
-                            <i class="fas fa-download mr-1"></i>
-                            Download Bukti
+                            <i class="fas fa-eye mr-1"></i>
+                            Lihat Bukti
                         </a>
                         @else
                         <span class="inline-flex items-center px-3 py-1 text-xs text-gray-500 bg-gray-100 rounded-lg">

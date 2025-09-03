@@ -267,11 +267,11 @@
                             <span class="text-sm font-medium text-gray-700">Surat Pesanan</span>
                         </div>
                         
-                        <a href="{{ asset('storage/' . $pembayaran->penawaran->surat_pesanan) }}" 
-                           download
-                           class="inline-flex items-center px-3 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 w-full justify-center">
-                            <i class="fas fa-download mr-2"></i>
-                            Download Surat Pesanan
+                        <a href="{{ asset('storage/penawaran/' . $pembayaran->penawaran->surat_pesanan) }}" 
+                           target="_blank"
+                           class="inline-flex items-center px-3 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 w-full justify-center transition-colors">
+                            <i class="fas fa-eye mr-2"></i>
+                            Lihat Surat Pesanan
                         </a>
                     </div>
                 </div>
@@ -297,11 +297,11 @@
                             <span class="text-sm font-medium text-gray-700">Surat Penawaran</span>
                         </div>
                         
-                        <a href="{{ asset('storage/' . $pembayaran->penawaran->surat_penawaran) }}" 
-                           download
-                           class="inline-flex items-center px-3 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 w-full justify-center">
-                            <i class="fas fa-download mr-2"></i>
-                            Download Surat Penawaran
+                        <a href="{{ asset('storage/penawaran/' . $pembayaran->penawaran->surat_penawaran) }}" 
+                           target="_blank"
+                           class="inline-flex items-center px-3 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 w-full justify-center transition-colors">
+                            <i class="fas fa-eye mr-2"></i>
+                            Lihat Surat Penawaran
                         </a>
                     </div>
                 </div>

@@ -356,7 +356,7 @@
                         const fileName = document.getElementById('detailSpesifikasiFileName');
                         
                         fileLink.href = `{{ asset('storage/') }}/${produk.spesifikasi_file}`;
-                        fileName.textContent = produk.spesifikasi_file.split('/').pop() || 'Download File';
+                        fileName.textContent = produk.spesifikasi_file.split('/').pop() || 'Lihat File';
                         fileContainer.style.display = 'block';
                     } else {
                         fileContainer.style.display = 'none';

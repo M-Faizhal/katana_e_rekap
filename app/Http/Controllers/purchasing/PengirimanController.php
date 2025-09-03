@@ -200,7 +200,10 @@ class PengirimanController extends Controller
             // Upload file surat jalan jika ada
             $filePath = null;
             if ($request->hasFile('file_surat_jalan')) {
-                $filePath = $request->file('file_surat_jalan')->store('pengiriman/surat_jalan', 'public');
+                $file = $request->file('file_surat_jalan');
+                $fileName = time() . '_surat_jalan_' . $file->getClientOriginalName();
+                $file->storeAs('pengiriman/surat_jalan', $fileName, 'public');
+                $filePath = $fileName; // Simpan hanya nama file
             }
 
             // Buat pengiriman
@@ -226,7 +229,7 @@ class PengirimanController extends Controller
             DB::rollback();
             
             if ($filePath) {
-                Storage::disk('public')->delete($filePath);
+                Storage::disk('public')->delete('pengiriman/surat_jalan/' . $filePath);
             }
             
             return back()->with('error', 'Terjadi kesalahan saat membuat pengiriman');
@@ -270,11 +273,14 @@ class PengirimanController extends Controller
                 if ($request->hasFile($field)) {
                     // Hapus file lama jika ada
                     if ($pengiriman->$field) {
-                        Storage::disk('public')->delete($pengiriman->$field);
+                        Storage::disk('public')->delete('pengiriman/dokumentasi/' . $pengiriman->$field);
                     }
                     
                     // Upload file baru
-                    $updateData[$field] = $request->file($field)->store('pengiriman/dokumentasi', 'public');
+                    $file = $request->file($field);
+                    $fileName = time() . '_' . $field . '_' . $file->getClientOriginalName();
+                    $file->storeAs('pengiriman/dokumentasi', $fileName, 'public');
+                    $updateData[$field] = $fileName; // Simpan hanya nama file
                 }
             }
 
@@ -395,11 +401,11 @@ class PengirimanController extends Controller
         return response()->json([
             'pengiriman' => $pengiriman,
             'files' => [
-                'file_surat_jalan' => $pengiriman->file_surat_jalan ? Storage::url($pengiriman->file_surat_jalan) : null,
-                'foto_berangkat' => $pengiriman->foto_berangkat ? Storage::url($pengiriman->foto_berangkat) : null,
-                'foto_perjalanan' => $pengiriman->foto_perjalanan ? Storage::url($pengiriman->foto_perjalanan) : null,
-                'foto_sampai' => $pengiriman->foto_sampai ? Storage::url($pengiriman->foto_sampai) : null,
-                'tanda_terima' => $pengiriman->tanda_terima ? Storage::url($pengiriman->tanda_terima) : null,
+                'file_surat_jalan' => $pengiriman->file_surat_jalan ? Storage::url('pengiriman/surat_jalan/' . $pengiriman->file_surat_jalan) : null,
+                'foto_berangkat' => $pengiriman->foto_berangkat ? Storage::url('pengiriman/dokumentasi/' . $pengiriman->foto_berangkat) : null,
+                'foto_perjalanan' => $pengiriman->foto_perjalanan ? Storage::url('pengiriman/dokumentasi/' . $pengiriman->foto_perjalanan) : null,
+                'foto_sampai' => $pengiriman->foto_sampai ? Storage::url('pengiriman/dokumentasi/' . $pengiriman->foto_sampai) : null,
+                'tanda_terima' => $pengiriman->tanda_terima ? Storage::url('pengiriman/dokumentasi/' . $pengiriman->tanda_terima) : null,
             ]
         ]);
     }
@@ -432,16 +438,19 @@ class PengirimanController extends Controller
         try {
             // Hapus file-file yang terkait
             $files = [
-                $pengiriman->file_surat_jalan,
-                $pengiriman->foto_berangkat,
-                $pengiriman->foto_perjalanan,
-                $pengiriman->foto_sampai,
-                $pengiriman->tanda_terima
+                ['file' => $pengiriman->file_surat_jalan, 'folder' => 'pengiriman/surat_jalan'],
+                ['file' => $pengiriman->foto_berangkat, 'folder' => 'pengiriman/dokumentasi'],
+                ['file' => $pengiriman->foto_perjalanan, 'folder' => 'pengiriman/dokumentasi'],
+                ['file' => $pengiriman->foto_sampai, 'folder' => 'pengiriman/dokumentasi'],
+                ['file' => $pengiriman->tanda_terima, 'folder' => 'pengiriman/dokumentasi']
             ];
 
-            foreach ($files as $file) {
-                if ($file && Storage::disk('public')->exists($file)) {
-                    Storage::disk('public')->delete($file);
+            foreach ($files as $fileData) {
+                if ($fileData['file']) {
+                    $fullPath = $fileData['folder'] . '/' . $fileData['file'];
+                    if (Storage::disk('public')->exists($fullPath)) {
+                        Storage::disk('public')->delete($fullPath);
+                    }
                 }
             }
 
@@ -476,6 +485,11 @@ class PengirimanController extends Controller
         foreach ($folders as $folder) {
             $allFiles = Storage::disk('public')->files($folder);
             
+            // Ambil nama file saja (tanpa path)
+            $allFileNames = array_map(function($file) {
+                return basename($file);
+            }, $allFiles);
+
             $usedFiles = Pengiriman::whereNotNull('file_surat_jalan')
                 ->orWhereNotNull('foto_berangkat')
                 ->orWhereNotNull('foto_perjalanan')
@@ -493,11 +507,11 @@ class PengirimanController extends Controller
                 })
                 ->toArray();
 
-            $orphanedFiles = array_diff($allFiles, $usedFiles);
+            $orphanedFileNames = array_diff($allFileNames, $usedFiles);
 
-            foreach ($orphanedFiles as $file) {
+            foreach ($orphanedFileNames as $fileName) {
                 try {
-                    Storage::disk('public')->delete($file);
+                    Storage::disk('public')->delete($folder . '/' . $fileName);
                     $deletedCount++;
                 } catch (\Exception $e) {
                     // Silent fail

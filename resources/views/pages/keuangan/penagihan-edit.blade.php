@@ -335,10 +335,10 @@
                                                 <div class="text-xs text-green-600">Klik lihat untuk preview</div>
                                             </div>
                                         </div>
-                                        <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $penagihanDinas->$field) }}" download
+                                        <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $penagihanDinas->$field) }}" target="_blank"
                                            class="inline-flex items-center px-3 py-1 border border-green-300 rounded-md shadow-sm text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors duration-200">
-                                            <i class="fas fa-download mr-1"></i>
-                                            Download
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Lihat
                                         </a>
                                     </div>
                                 </div>
@@ -434,10 +434,10 @@
                                     Dibuat: {{ $bukti->created_at->format('d M Y H:i') }}
                                 </div>
                                 @if($bukti->bukti_pembayaran)
-                                <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" download
+                                <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" target="_blank"
                                    class="inline-flex items-center px-2 py-1 border border-green-300 rounded text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors duration-200">
-                                    <i class="fas fa-download mr-1"></i>
-                                    Download Bukti
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Lihat Bukti
                                 </a>
                                 @endif
                             </div>

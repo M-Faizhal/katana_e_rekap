@@ -191,11 +191,11 @@
                             <span class="text-sm font-medium text-gray-700">Surat Pesanan</span>
                         </div>
                         
-                        <a href="{{ asset('storage/' . $proyek->penawaranAktif->surat_pesanan) }}" 
-                           download
+                        <a href="{{ asset('storage/penawaran/' . $proyek->penawaranAktif->surat_pesanan) }}" 
+                           target="_blank"
                            class="inline-flex items-center px-4 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 w-full justify-center transition-colors">
-                            <i class="fas fa-download mr-2"></i>
-                            Download Surat Pesanan
+                            <i class="fas fa-eye mr-2"></i>
+                            Lihat Surat Pesanan
                         </a>
                     </div>
                 </div>
@@ -221,11 +221,11 @@
                             <span class="text-sm font-medium text-gray-700">Surat Penawaran</span>
                         </div>
                         
-                        <a href="{{ asset('storage/' . $proyek->penawaranAktif->surat_penawaran) }}" 
-                           download
+                        <a href="{{ asset('storage/penawaran/' . $proyek->penawaranAktif->surat_penawaran) }}" 
+                           target="_blank"
                            class="inline-flex items-center px-4 py-2 border border-green-300 shadow-sm text-sm leading-4 font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 w-full justify-center transition-colors">
-                            <i class="fas fa-download mr-2"></i>
-                            Download Surat Penawaran
+                            <i class="fas fa-eye mr-2"></i>
+                            Lihat Surat Penawaran
                         </a>
                     </div>
                 </div>

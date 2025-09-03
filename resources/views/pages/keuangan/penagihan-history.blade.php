@@ -131,8 +131,8 @@
                     <p class="text-sm text-gray-900">{{ $penagihanDinas->proyek->instansi }}</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Proyek</label>
-                    <p class="text-sm text-gray-900">{{ $penagihanDinas->proyek->kode_proyek }}</p>
+                    <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Proyek</label>
+                    <p class="text-sm text-gray-900">{{ $penagihanDinas->proyek->nama_barang }}</p>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Jatuh Tempo</label>
@@ -247,10 +247,10 @@
                                         <span class="font-medium">Bukti Pembayaran</span>
                                     </div>
                                     @if($bukti->bukti_pembayaran)
-                                    <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" download
+                                    <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" target="_blank"
                                        class="inline-flex items-center px-4 py-2 border border-green-300 rounded-lg shadow-sm text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100 hover:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200">
-                                        <i class="fas fa-download mr-2"></i>
-                                        Download Bukti
+                                        <i class="fas fa-eye mr-2"></i>
+                                        Lihat Bukti
                                     </a>
                                     @else
                                     <span class="text-sm text-gray-400">Tidak tersedia</span>

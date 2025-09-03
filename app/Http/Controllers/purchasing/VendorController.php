@@ -143,7 +143,9 @@ class VendorController extends Controller
                     if ($request->hasFile("barang.{$index}.foto_barang")) {
                         try {
                             $foto = $request->file("barang.{$index}.foto_barang");
-                            $fotoPath = $foto->store('barang/foto', 'public');
+                            $fileName = time() . '_' . $index . '_' . $foto->getClientOriginalName();
+                            $foto->storeAs('', $fileName, 'public');
+                            $fotoPath = $fileName;
                         } catch (\Exception $e) {
                             // Continue without photo if upload fails
                             Log::error('Failed to upload photo for barang: ' . $e->getMessage());
@@ -154,7 +156,9 @@ class VendorController extends Controller
                     if ($request->hasFile("barang.{$index}.spesifikasi_file")) {
                         try {
                             $spesifikasiFile = $request->file("barang.{$index}.spesifikasi_file");
-                            $spesifikasiFilePath = $spesifikasiFile->store('barang/spesifikasi', 'public');
+                            $fileName = time() . '_spec_' . $index . '_' . $spesifikasiFile->getClientOriginalName();
+                            $spesifikasiFile->storeAs('', $fileName, 'public');
+                            $spesifikasiFilePath = $fileName;
                         } catch (\Exception $e) {
                             // Continue without spesifikasi file if upload fails
                             Log::error('Failed to upload spesifikasi file for barang: ' . $e->getMessage());
@@ -279,13 +283,17 @@ class VendorController extends Controller
                     // Handle foto upload
                     if ($request->hasFile("barang.{$index}.foto_barang")) {
                         $foto = $request->file("barang.{$index}.foto_barang");
-                        $fotoPath = $foto->store('barang/foto', 'public');
+                        $fileName = time() . '_' . $index . '_' . $foto->getClientOriginalName();
+                        $foto->storeAs('', $fileName, 'public');
+                        $fotoPath = $fileName;
                     }
 
                     // Handle spesifikasi file upload
                     if ($request->hasFile("barang.{$index}.spesifikasi_file")) {
                         $spesifikasiFile = $request->file("barang.{$index}.spesifikasi_file");
-                        $spesifikasiFilePath = $spesifikasiFile->store('barang/spesifikasi', 'public');
+                        $fileName = time() . '_spec_' . $index . '_' . $spesifikasiFile->getClientOriginalName();
+                        $spesifikasiFile->storeAs('', $fileName, 'public');
+                        $spesifikasiFilePath = $fileName;
                     }
 
                     if (isset($barangData['id_barang']) && $barangData['id_barang']) {

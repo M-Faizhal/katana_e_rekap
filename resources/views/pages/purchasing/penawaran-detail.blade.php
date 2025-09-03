@@ -102,7 +102,7 @@
                 <label class="text-sm font-medium text-gray-500 block mb-2">Dokumen</label>
                 <div class="flex flex-wrap gap-2">
                     @if($penawaran->surat_penawaran)
-                    <a href="{{ route('penawaran.download', ['type' => 'penawaran', 'filename' => $penawaran->surat_penawaran]) }}" 
+                    <a href="{{ asset('storage/penawaran/' . $penawaran->surat_penawaran) }}" 
                        target="_blank"
                        class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors">
                         @php
@@ -113,11 +113,11 @@
                         @endphp
                         <i class="{{ $icon }} mr-2"></i>
                         Surat Penawaran
-                        <i class="fas fa-download ml-2 text-xs"></i>
+                        <i class="fas fa-eye ml-2 text-xs"></i>
                     </a>
                     @endif
                     @if($penawaran->surat_pesanan)
-                    <a href="{{ route('penawaran.download', ['type' => 'pesanan', 'filename' => $penawaran->surat_pesanan]) }}" 
+                    <a href="{{ asset('storage/penawaran/' . $penawaran->surat_pesanan) }}" 
                        target="_blank"
                        class="inline-flex items-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
                         @php
@@ -128,7 +128,7 @@
                         @endphp
                         <i class="{{ $icon }} mr-2"></i>
                         Surat Pesanan
-                        <i class="fas fa-download ml-2 text-xs"></i>
+                        <i class="fas fa-eye ml-2 text-xs"></i>
                     </a>
                     @endif
                 </div>

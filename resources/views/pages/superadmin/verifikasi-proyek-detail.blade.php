@@ -190,10 +190,10 @@
                                     <h5 class="font-medium text-gray-900 text-sm">Surat Penawaran</h5>
                                     <p class="text-xs text-gray-500">Dokumen penawaran resmi</p>
                                 </div>
-                                <a href="{{ asset('storage/' . $penawaran->surat_penawaran) }}" download
+                                <a href="{{ asset('storage/penawaran/' . $penawaran->surat_penawaran) }}" target="_blank"
                                    class="text-blue-600 hover:text-blue-800 text-sm transition-colors">
-                                    <i class="fas fa-download mr-1"></i>
-                                    <span class="text-sm">Download</span>
+                                    <i class="fas fa-eye mr-1"></i>
+                                    <span class="text-sm">Lihat</span>
                                 </a>
                             </div>
                         </div>
@@ -419,10 +419,10 @@
                                         <h5 class="font-medium text-gray-900 text-sm">Surat Lainnya</h5>
                                         <p class="text-xs text-gray-500">Dokumen pendukung lainnya</p>
                                     </div>
-                                    <a href="{{ asset('storage/' . $tagihan->surat_lainnya) }}" download
+                                    <a href="{{ asset('storage/' . $tagihan->surat_lainnya) }}" target="_blank"
                                        class="text-blue-600 hover:text-blue-800 transition-colors">
-                                        <i class="fas fa-download mr-1"></i>
-                                        <span class="text-sm">Download</span>
+                                        <i class="fas fa-eye mr-1"></i>
+                                        <span class="text-sm">Lihat</span>
                                     </a>
                                 </div>
                             </div>
@@ -574,9 +574,9 @@
                                             <h5 class="font-medium text-gray-900 text-sm">File Surat Jalan</h5>
                                             <p class="text-xs text-gray-500">Dokumen pengiriman resmi</p>
                                         </div>
-                                        <a href="{{ asset('storage/' . $pengiriman->file_surat_jalan) }}" download
+                                        <a href="{{ asset('storage/pengiriman/surat_jalan/' . $pengiriman->file_surat_jalan) }}" target="_blank"
                                            class="text-blue-600 hover:text-blue-800">
-                                            <i class="fas fa-download"></i>
+                                            <i class="fas fa-eye"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -592,10 +592,10 @@
                                 <div class="text-center">
                                     <h5 class="font-medium text-gray-900 mb-2 text-sm">Foto Berangkat</h5>
                                     @if($pengiriman->foto_berangkat)
-                                        <img src="{{ asset('storage/' . $pengiriman->foto_berangkat) }}" 
+                                        <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_berangkat) }}" 
                                              alt="Foto Berangkat" 
                                              class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
-                                             onclick="openImageModal('{{ asset('storage/' . $pengiriman->foto_berangkat) }}', 'Foto Berangkat - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">
+                                             onclick="openImageModal('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_berangkat) }}', 'Foto Berangkat - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">>
                                     @else
                                         <div class="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400"></i>
@@ -607,10 +607,10 @@
                                 <div class="text-center">
                                     <h5 class="font-medium text-gray-900 mb-2 text-sm">Foto Perjalanan</h5>
                                     @if($pengiriman->foto_perjalanan)
-                                        <img src="{{ asset('storage/' . $pengiriman->foto_perjalanan) }}" 
+                                        <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_perjalanan) }}" 
                                              alt="Foto Perjalanan" 
                                              class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
-                                             onclick="openImageModal('{{ asset('storage/' . $pengiriman->foto_perjalanan) }}', 'Foto Perjalanan - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">
+                                             onclick="openImageModal('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_perjalanan) }}', 'Foto Perjalanan - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">>
                                     @else
                                         <div class="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400"></i>
@@ -622,10 +622,10 @@
                                 <div class="text-center">
                                     <h5 class="font-medium text-gray-900 mb-2 text-sm">Foto Sampai</h5>
                                     @if($pengiriman->foto_sampai)
-                                        <img src="{{ asset('storage/' . $pengiriman->foto_sampai) }}" 
+                                        <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_sampai) }}" 
                                              alt="Foto Sampai" 
                                              class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
-                                             onclick="openImageModal('{{ asset('storage/' . $pengiriman->foto_sampai) }}', 'Foto Sampai - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">
+                                             onclick="openImageModal('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_sampai) }}', 'Foto Sampai - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">>
                                     @else
                                         <div class="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400"></i>
@@ -637,10 +637,10 @@
                                 <div class="text-center">
                                     <h5 class="font-medium text-gray-900 mb-2 text-sm">Tanda Terima</h5>
                                     @if($pengiriman->tanda_terima)
-                                        <img src="{{ asset('storage/' . $pengiriman->tanda_terima) }}" 
+                                        <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->tanda_terima) }}" 
                                              alt="Tanda Terima" 
                                              class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
-                                             onclick="openImageModal('{{ asset('storage/' . $pengiriman->tanda_terima) }}', 'Tanda Terima - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">
+                                             onclick="openImageModal('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->tanda_terima) }}', 'Tanda Terima - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">>
                                     @else
                                         <div class="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400"></i>

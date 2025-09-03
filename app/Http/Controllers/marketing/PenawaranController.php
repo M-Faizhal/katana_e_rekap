@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 
 class PenawaranController extends Controller
 {
@@ -74,15 +73,6 @@ class PenawaranController extends Controller
 
     public function store(Request $request)
     {
-        // Role-based access control: Allow superadmin and admin_marketing
-        $user = Auth::user();
-        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak memiliki akses untuk membuat penawaran. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
-            ], 403);
-        }
-
         $request->validate([
             'id_proyek' => 'required|exists:proyek,id_proyek',
             'tanggal_penawaran' => 'required|date',
@@ -116,26 +106,25 @@ class PenawaranController extends Controller
             // Handle file uploads
             if ($request->hasFile('surat_penawaran')) {
                 // Delete old file if exists
-                if ($penawaran->surat_penawaran && Storage::exists('public/penawaran/' . $penawaran->surat_penawaran)) {
-                    Storage::delete('public/penawaran/' . $penawaran->surat_penawaran);
+                if ($penawaran->surat_penawaran && Storage::disk('public')->exists('penawaran/' . $penawaran->surat_penawaran)) {
+                    Storage::disk('public')->delete('penawaran/' . $penawaran->surat_penawaran);
                 }
 
                 $file = $request->file('surat_penawaran');
                 $filename = time() . '_penawaran_' . $file->getClientOriginalName();
-                $file->storeAs('public/penawaran', $filename);
+                Storage::disk('public')->putFileAs('penawaran', $file, $filename);
                 $penawaran->surat_penawaran = $filename;
                 $suratPenawaranUploaded = true;
             }
-
             if ($request->hasFile('surat_pesanan')) {
                 // Delete old file if exists
-                if ($penawaran->surat_pesanan && Storage::exists('public/penawaran/' . $penawaran->surat_pesanan)) {
-                    Storage::delete('public/penawaran/' . $penawaran->surat_pesanan);
+                if ($penawaran->surat_pesanan && Storage::disk('public')->exists('penawaran/' . $penawaran->surat_pesanan)) {
+                    Storage::disk('public')->delete('penawaran/' . $penawaran->surat_pesanan);
                 }
 
                 $file = $request->file('surat_pesanan');
                 $filename = time() . '_pesanan_' . $file->getClientOriginalName();
-                $file->storeAs('public/penawaran', $filename);
+                Storage::disk('public')->putFileAs('penawaran', $file, $filename);
                 $penawaran->surat_pesanan = $filename;
             }
 
@@ -182,15 +171,6 @@ class PenawaranController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Role-based access control: Allow superadmin and admin_marketing
-        $user = Auth::user();
-        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak memiliki akses untuk mengupdate penawaran. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
-            ], 403);
-        }
-
         $request->validate([
             'tanggal_penawaran' => 'required|date',
             'catatan' => 'nullable|string',
@@ -218,26 +198,25 @@ class PenawaranController extends Controller
             // Handle file uploads
             if ($request->hasFile('surat_penawaran')) {
                 // Delete old file if exists
-                if ($penawaran->surat_penawaran && Storage::exists('public/penawaran/' . $penawaran->surat_penawaran)) {
-                    Storage::delete('public/penawaran/' . $penawaran->surat_penawaran);
+                if ($penawaran->surat_penawaran && Storage::disk('public')->exists('penawaran/' . $penawaran->surat_penawaran)) {
+                    Storage::disk('public')->delete('penawaran/' . $penawaran->surat_penawaran);
                 }
 
                 $file = $request->file('surat_penawaran');
                 $filename = time() . '_penawaran_' . $file->getClientOriginalName();
-                $file->storeAs('public/penawaran', $filename);
+                Storage::disk('public')->putFileAs('penawaran', $file, $filename);
                 $penawaran->surat_penawaran = $filename;
                 $suratPenawaranUploaded = true;
             }
-
             if ($request->hasFile('surat_pesanan')) {
                 // Delete old file if exists
-                if ($penawaran->surat_pesanan && Storage::exists('public/penawaran/' . $penawaran->surat_pesanan)) {
-                    Storage::delete('public/penawaran/' . $penawaran->surat_pesanan);
+                if ($penawaran->surat_pesanan && Storage::disk('public')->exists('penawaran/' . $penawaran->surat_pesanan)) {
+                    Storage::disk('public')->delete('penawaran/' . $penawaran->surat_pesanan);
                 }
 
                 $file = $request->file('surat_pesanan');
                 $filename = time() . '_pesanan_' . $file->getClientOriginalName();
-                $file->storeAs('public/penawaran', $filename);
+                Storage::disk('public')->putFileAs('penawaran', $file, $filename);
                 $penawaran->surat_pesanan = $filename;
             }
 

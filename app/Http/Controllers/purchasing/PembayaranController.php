@@ -392,7 +392,10 @@ class PembayaranController extends Controller
             // Upload bukti pembayaran dulu
             $buktiPath = null;
             if ($request->hasFile('bukti_bayar')) {
-                $buktiPath = $request->file('bukti_bayar')->store('pembayaran', 'public');
+                $buktiFile = $request->file('bukti_bayar');
+                $fileName = time() . '_bukti_' . $buktiFile->getClientOriginalName();
+                $buktiFile->storeAs('', $fileName, 'public');
+                $buktiPath = $fileName;
             }
 
             // Simpan pembayaran
@@ -640,7 +643,10 @@ class PembayaranController extends Controller
             // Handle file upload jika ada file baru
             if ($request->hasFile('bukti_bayar')) {
                 // Upload file baru
-                $newBuktiPath = $request->file('bukti_bayar')->store('pembayaran', 'public');
+                $buktiFile = $request->file('bukti_bayar');
+                $fileName = time() . '_bukti_' . $buktiFile->getClientOriginalName();
+                $buktiFile->storeAs('', $fileName, 'public');
+                $newBuktiPath = $fileName;
                 
                 // Hapus file lama jika ada dan berbeda
                 if ($oldBuktiPath && $oldBuktiPath !== $newBuktiPath) {
@@ -740,15 +746,17 @@ class PembayaranController extends Controller
      */
     public function cleanupOrphanedFiles()
     {
-        // Ambil semua file di folder pembayaran
-        $allFiles = Storage::disk('public')->files('pembayaran');
+        // Ambil semua file di root storage/app/public yang berkaitan dengan pembayaran (berdasarkan prefix)
+        $allFiles = collect(Storage::disk('public')->files(''))->filter(function($file) {
+            return strpos($file, '_bukti_') !== false;
+        });
         
         // Ambil semua path file yang masih digunakan di database
         $usedFiles = Pembayaran::whereNotNull('bukti_bayar')
             ->pluck('bukti_bayar')
             ->toArray();
 
-        $orphanedFiles = array_diff($allFiles, $usedFiles);
+        $orphanedFiles = $allFiles->diff($usedFiles);
         $deletedCount = 0;
 
         foreach ($orphanedFiles as $file) {
