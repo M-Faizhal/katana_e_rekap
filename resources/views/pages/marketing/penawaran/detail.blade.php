@@ -358,8 +358,8 @@
                         </div>
                     </div>
                     @if($penawaran->surat_penawaran)
-                    <a href="{{ route('penawaran.download', ['type' => 'penawaran', 'filename' => $penawaran->surat_penawaran]) }}"
-                       class="text-red-600 hover:text-red-700 p-2">
+                    <a href="{{ asset('storage/penawaran/' . $penawaran->surat_penawaran) }}"
+                       class="text-red-600 hover:text-red-700 p-2" download>
                         <i class="fas fa-download"></i>
                     </a>
                     @endif
@@ -381,12 +381,41 @@
                         </div>
                     </div>
                     @if($penawaran->surat_pesanan)
-                    <a href="{{ route('penawaran.download', ['type' => 'pesanan', 'filename' => $penawaran->surat_pesanan]) }}"
-                       class="text-red-600 hover:text-red-700 p-2">
+                    <a href="{{ asset('storage/penawaran/' . $penawaran->surat_pesanan) }}"
+                       class="text-red-600 hover:text-red-700 p-2" download>
                         <i class="fas fa-download"></i>
                     </a>
                     @endif
                 </div>
+
+                <!-- File Approval -->
+                @if(isset($kalkulasiHps) && $kalkulasiHps && $kalkulasiHps->bukti_file_approval)
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        @php
+                            $fileExtension = strtolower(pathinfo($kalkulasiHps->bukti_file_approval, PATHINFO_EXTENSION));
+                            $isImage = in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']);
+                        @endphp
+                        <i class="fas {{ $isImage ? 'fa-image text-green-500' : 'fa-file-pdf text-red-500' }} mr-3"></i>
+                        <div>
+                            <p class="font-medium text-gray-800">File Approval</p>
+                            <p class="text-xs text-gray-500">{{ $kalkulasiHps->bukti_file_approval }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        @if($isImage)
+                        <button onclick="showImagePreview('{{ asset('storage/approval_files/' . $kalkulasiHps->bukti_file_approval) }}', '{{ $kalkulasiHps->bukti_file_approval }}')"
+                                class="text-blue-600 hover:text-blue-700 p-2" title="Preview">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        @endif
+                        <a href="{{ asset('storage/approval_files/' . $kalkulasiHps->bukti_file_approval) }}"
+                           class="text-red-600 hover:text-red-700 p-2" title="Download" download>
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 
@@ -520,6 +549,56 @@ function calculateTotal() {
 function openEditPenawaranModal() {
     alert('Fitur edit detail penawaran akan segera tersedia');
 }
+
+// Functions for image preview modal
+function showImagePreview(imageUrl, fileName) {
+    const modal = document.getElementById('imagePreviewModal');
+    document.getElementById('previewImage').src = imageUrl;
+    document.getElementById('imageTitle').textContent = 'Preview: ' + fileName;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeImagePreview() {
+    const modal = document.getElementById('imagePreviewModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.getElementById('previewImage').src = '';
+}
+
+// Close modal when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('imagePreviewModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeImagePreview();
+            }
+        });
+    }
+
+    // Close modal with ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImagePreview();
+        }
+    });
+});
 </script>
+
+<!-- Modal Preview Image untuk File Approval -->
+<div id="imagePreviewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-lg max-w-4xl max-h-screen overflow-auto m-4">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 id="imageTitle" class="text-lg font-medium text-gray-900">Preview File Approval</h3>
+            <button onclick="closeImagePreview()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4">
+            <img id="previewImage" src="" alt="Preview" class="max-w-full h-auto mx-auto">
+        </div>
+    </div>
+</div>
 
 @endsection

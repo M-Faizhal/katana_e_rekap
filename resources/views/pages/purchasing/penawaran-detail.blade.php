@@ -226,6 +226,110 @@
 
     <!-- Data Kalkulasi HPS (Lengkap) -->
     @if($kalkulasiData->count() > 0)
+    <!-- Bukti Approval Kalkulasi -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">
+                <i class="fas fa-file-check text-green-600 mr-2"></i>
+                Bukti Approval Kalkulasi
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">File bukti persetujuan yang digunakan dalam kalkulasi HPS</p>
+        </div>
+        <div class="p-4">
+            @php
+                // Get approval file from kalkulasi data (all records should have same file)
+                $approvalFile = $kalkulasiData->where('bukti_file_approval', '!=', null)->first();
+                $approvalFileName = $approvalFile ? $approvalFile->bukti_file_approval : null;
+                
+                // Check if file exists in storage
+                $fileExists = false;
+                $filePath = null;
+                if ($approvalFileName) {
+                    // If filename contains path, use as is, otherwise add path
+                    if (strpos($approvalFileName, '/') !== false) {
+                        $filePath = $approvalFileName;
+                    } else {
+                        $filePath = 'approval_files/' . $approvalFileName;
+                    }
+                    $fileExists = file_exists(storage_path('app/public/' . $filePath));
+                }
+            @endphp
+            
+            @if($approvalFileName && $fileExists)
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            @php
+                                $extension = strtolower(pathinfo($approvalFileName, PATHINFO_EXTENSION));
+                                $iconClass = 'fas fa-file-alt';
+                                $iconColor = 'text-blue-500';
+                                
+                                if (in_array($extension, ['pdf'])) {
+                                    $iconClass = 'fas fa-file-pdf';
+                                    $iconColor = 'text-red-500';
+                                } elseif (in_array($extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                    $iconClass = 'fas fa-file-image';
+                                    $iconColor = 'text-green-500';
+                                } elseif (in_array($extension, ['doc', 'docx'])) {
+                                    $iconClass = 'fas fa-file-word';
+                                    $iconColor = 'text-blue-600';
+                                }
+                            @endphp
+                            <i class="{{ $iconClass }} {{ $iconColor }} text-2xl"></i>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ basename($approvalFileName) }}</div>
+                                <div class="text-xs text-gray-500">
+                                    Diupload: {{ $approvalFile->updated_at ? $approvalFile->updated_at->format('d/m/Y H:i') : '-' }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Ukuran: {{ file_exists(storage_path('app/public/' . $filePath)) ? number_format(filesize(storage_path('app/public/' . $filePath)) / 1024, 1) . ' KB' : 'Unknown' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="{{ asset('storage/' . $filePath) }}" target="_blank" 
+                               class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors">
+                                <i class="fas fa-eye mr-2"></i>
+                                Lihat File
+                            </a>
+                            <a href="{{ asset('storage/' . $filePath) }}" download 
+                               class="inline-flex items-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
+                                <i class="fas fa-download mr-2"></i>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview for images -->
+                    @if(in_array($extension, ['jpg', 'jpeg', 'png', 'gif']))
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="text-sm font-medium text-gray-700 mb-2">Preview:</div>
+                        <div class="max-w-md">
+                            <img src="{{ asset('storage/' . $filePath) }}" 
+                                 alt="Preview approval file" 
+                                 class="max-w-full h-auto rounded-lg border border-gray-300 shadow-sm cursor-pointer"
+                                 onclick="showImageModal('{{ asset('storage/' . $filePath) }}', '{{ basename($approvalFileName) }}')">
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">Klik gambar untuk melihat ukuran penuh</div>
+                    </div>
+                    @endif
+                </div>
+            @else
+                <div class="text-center text-gray-500 py-6">
+                    <i class="fas fa-file-alt text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-lg font-medium mb-2">Tidak Ada File Bukti Approval</p>
+                    <p class="text-sm">File bukti approval tidak tersedia untuk kalkulasi ini.</p>
+                    @if($approvalFileName && !$fileExists)
+                    <p class="text-sm text-red-600 mt-2">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        File "{{ $approvalFileName }}" tidak ditemukan di server
+                    </p>
+                    @endif
+                </div>
+            @endif
+        </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div class="p-4 border-b border-gray-200">
             <h2 class="text-lg font-semibold text-gray-800">
@@ -441,6 +545,26 @@
         </div>
     </div>
 </div>
+
+<!-- Modal untuk Preview Gambar -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="relative max-w-5xl max-h-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-white" id="image-title">Preview Image</h3>
+                <button onclick="closeImageModal()" class="text-white hover:text-gray-300">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <img id="modal-image" src="" alt="Preview" class="max-w-full max-h-screen object-contain rounded-lg">
+            <div class="flex justify-center mt-4">
+                <button onclick="closeImageModal()" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -461,10 +585,37 @@ function closeSpecModal() {
     document.getElementById('spec-modal').classList.add('hidden');
 }
 
+// Show image modal
+function showImageModal(imageSrc, imageTitle) {
+    document.getElementById('modal-image').src = imageSrc;
+    document.getElementById('image-title').textContent = imageTitle || 'Preview Image';
+    document.getElementById('image-modal').classList.remove('hidden');
+}
+
+// Close image modal
+function closeImageModal() {
+    document.getElementById('image-modal').classList.add('hidden');
+}
+
 // Close modal when clicking outside
 document.getElementById('spec-modal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeSpecModal();   
+    }
+});
+
+// Close image modal when clicking outside
+document.getElementById('image-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();   
+    }
+});
+
+// Handle escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeSpecModal();
+        closeImageModal();
     }
 });
 </script>

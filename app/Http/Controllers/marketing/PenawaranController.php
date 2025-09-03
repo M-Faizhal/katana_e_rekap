@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Proyek;
 use App\Models\Penawaran;
 use App\Models\PenawaranDetail;
+use App\Models\KalkulasiHps;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -68,7 +69,12 @@ class PenawaranController extends Controller
             }
         }
 
-        return view('pages.marketing.penawaran.detail', compact('proyek', 'penawaran', 'penawaranDetails'));
+        // Ambil data kalkulasi HPS untuk file approval
+        $kalkulasiHps = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                                   ->whereNotNull('bukti_file_approval')
+                                   ->first();
+
+        return view('pages.marketing.penawaran.detail', compact('proyek', 'penawaran', 'penawaranDetails', 'kalkulasiHps'));
     }
 
     public function store(Request $request)
