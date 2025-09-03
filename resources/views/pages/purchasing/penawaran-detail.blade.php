@@ -27,6 +27,10 @@
                     <i class="fas fa-arrow-left mr-2"></i>
                     Kembali
                 </a>
+                <a href="{{ route('purchasing.kalkulasi.hps.summary', ['id' => $proyek->id_proyek]) }}" target="_blank" rel="noopener" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                    <i class="fas fa-table mr-2"></i>
+                    Ringkasan HPS
+                </a>
             </div>
         </div>
     </div>

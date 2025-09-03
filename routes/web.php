@@ -115,6 +115,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/kalkulasi/penawaran/{proyekId}/detail', [KalkulasiController::class, 'detailPenawaran'])->name('kalkulasi.penawaran.detail');
         Route::put('/kalkulasi/penawaran/{penawaranId}/status', [KalkulasiController::class, 'updatePenawaranStatus'])->name('kalkulasi.penawaran.status');
 
+        // New: HPS Items Summary Page
+        Route::get('/kalkulasi/{id}/hps/summary', [KalkulasiController::class, 'hpsSummary'])->name('purchasing.kalkulasi.hps.summary');
+
         // Pembayaran Routes
         Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('purchasing.pembayaran');
         Route::get('/pembayaran/create/{id_proyek}/{id_vendor?}', [PembayaranController::class, 'create'])->name('purchasing.pembayaran.create');

@@ -648,6 +648,29 @@ class KalkulasiController extends Controller
         }
     }
 
+    public function hpsSummary($id)
+    {
+        try {
+            $user = Auth::user();
+            $isSuperadmin = $user->role === 'superadmin';
+
+            if (!$isSuperadmin && $user->role !== 'admin_purchasing') {
+                return redirect()->route('purchasing.kalkulasi')->with('error', 'Akses ditolak. Hanya admin purchasing atau superadmin yang dapat mengakses halaman ini.');
+            }
+
+            $proyek = Proyek::with(['adminMarketing', 'adminPurchasing', 'proyekBarang'])->findOrFail($id);
+
+            // Ambil data kalkulasi lengkap dengan relasi barang dan vendor
+            $kalkulasiData = KalkulasiHps::with(['barang', 'vendor'])
+                ->where('id_proyek', $id)
+                ->get();
+
+            return view('pages.purchasing.hps-summary', compact('proyek', 'kalkulasiData'));
+        } catch (\Exception $e) {
+            return redirect()->route('purchasing.kalkulasi')->with('error', 'Proyek tidak ditemukan');
+        }
+    }
+
     public function getProyekItems($id)
     {
         try {

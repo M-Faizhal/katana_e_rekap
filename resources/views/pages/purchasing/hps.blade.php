@@ -28,22 +28,6 @@
         </div>
     </div>
 
-    <!-- Info Box untuk Logika Baru -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div class="flex items-start">
-            <div class="flex-shrink-0">
-                <i class="fas fa-info-circle text-blue-600 text-lg"></i>
-            </div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-blue-800">Informasi Kalkulasi Diskon</h3>
-                <div class="mt-2 text-sm text-blue-700">
-                    <p class="mb-1">• <strong>Harga Diskon:</strong> Input harga akhir setelah diskon (kolom kuning)</p>
-                    <p class="mb-1">• <strong>Nilai Diskon:</strong> Otomatis dihitung (Harga Vendor - Harga Diskon)</p>
-                    <p>• <strong>Total Diskon:</strong> Otomatis dihitung (Nilai Diskon × Qty)</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Action Buttons -->
     @if($canEdit || (Auth::user()->role === 'superadmin'))
@@ -52,14 +36,7 @@
             <button onclick="clearVendorData()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm">
                 Hapus Semua Data Vendor
             </button>
-            <button onclick="recalculateAll()" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm">
-                <i class="fas fa-calculator mr-1"></i>
-                Hitung Ulang
-            </button>
-            <button onclick="validateCalculation()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg text-sm">
-                <i class="fas fa-check-circle mr-1"></i>
-                Validasi
-            </button>
+           
         </div>
         <div class="text-sm text-gray-600 flex items-center">
             @if(Auth::user()->role === 'superadmin')
@@ -141,12 +118,18 @@
                     Kalkulasi HPS (Harga Perkiraan Sendiri)
                     <span class="text-sm font-normal text-green-600 ml-2">(Area Admin Purchasing)</span>
                 </h2>
-                @if($canEdit ?? false)
-                <button onclick="addVendorItem()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-                    <i class="fas fa-plus"></i>
-                    Tambah Item Vendor
-                </button>
-                @endif
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('purchasing.kalkulasi.hps.summary', ['id' => $proyek->id_proyek]) }}" target="_blank" rel="noopener" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                        <i class="fas fa-table"></i>
+                        Ringkasan HPS
+                    </a>
+                    @if($canEdit ?? false)
+                    <button onclick="addVendorItem()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        Tambah Item Vendor
+                    </button>
+                    @endif
+                </div>
             </div>
         </div>
         
