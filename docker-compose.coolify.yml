@@ -24,7 +24,6 @@ services:
       - MAIL_MAILER=log
     volumes:
       - storage_data:/var/www/html/storage
-      - public_storage:/var/www/html/public/storage
     depends_on:
       - db
     networks:
@@ -35,7 +34,7 @@ services:
       - "traefik.http.routers.katana.rule=Host(`${DOMAIN:-katana.localhost}`)"
       - "traefik.http.routers.katana.entrypoints=websecure"
       - "traefik.http.routers.katana.tls.certresolver=letsencrypt"
-      - "traefik.http.services.katana.loadbalancer.server.port=80"
+      - "traefik.http.services.katana.loadbalancer.server.port=8000"
 
   db:
     image: mysql:8.0
