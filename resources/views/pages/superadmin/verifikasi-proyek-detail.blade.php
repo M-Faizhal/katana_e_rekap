@@ -355,7 +355,7 @@
                                         <h5 class="font-medium text-gray-900 text-sm">Berita Acara Serah Terima</h5>
                                         <p class="text-xs text-gray-500">Dokumen serah terima barang</p>
                                     </div>
-                                    <a href="{{ asset('storage/' . $tagihan->berita_acara_serah_terima) }}" target="_blank"
+                                    <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $tagihan->berita_acara_serah_terima) }}" target="_blank"
                                        class="text-blue-600 hover:text-blue-800 transition-colors">
                                         <i class="fas fa-external-link-alt mr-1"></i>
                                         <span class="text-sm">Lihat</span>
@@ -371,7 +371,7 @@
                                         <h5 class="font-medium text-gray-900 text-sm">Invoice</h5>
                                         <p class="text-xs text-gray-500">Dokumen invoice resmi</p>
                                     </div>
-                                    <a href="{{ asset('storage/' . $tagihan->invoice) }}" target="_blank"
+                                    <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $tagihan->invoice) }}" target="_blank"
                                        class="text-blue-600 hover:text-blue-800 transition-colors">
                                         <i class="fas fa-external-link-alt mr-1"></i>
                                         <span class="text-sm">Lihat</span>
@@ -387,7 +387,7 @@
                                         <h5 class="font-medium text-gray-900 text-sm">PNBP</h5>
                                         <p class="text-xs text-gray-500">Penerimaan Negara Bukan Pajak</p>
                                     </div>
-                                    <a href="{{ asset('storage/' . $tagihan->pnbp) }}" target="_blank"
+                                    <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $tagihan->pnbp) }}" target="_blank"
                                        class="text-blue-600 hover:text-blue-800 transition-colors">
                                         <i class="fas fa-external-link-alt mr-1"></i>
                                         <span class="text-sm">Lihat</span>
@@ -403,7 +403,7 @@
                                         <h5 class="font-medium text-gray-900 text-sm">Faktur Pajak</h5>
                                         <p class="text-xs text-gray-500">Dokumen pajak</p>
                                     </div>
-                                    <a href="{{ asset('storage/' . $tagihan->faktur_pajak) }}" target="_blank"
+                                    <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $tagihan->faktur_pajak) }}" target="_blank"
                                        class="text-blue-600 hover:text-blue-800 transition-colors">
                                         <i class="fas fa-external-link-alt mr-1"></i>
                                         <span class="text-sm">Lihat</span>
@@ -419,7 +419,7 @@
                                         <h5 class="font-medium text-gray-900 text-sm">Surat Lainnya</h5>
                                         <p class="text-xs text-gray-500">Dokumen pendukung lainnya</p>
                                     </div>
-                                    <a href="{{ asset('storage/' . $tagihan->surat_lainnya) }}" target="_blank"
+                                    <a href="{{ asset('storage/penagihan-dinas/dokumen/' . $tagihan->surat_lainnya) }}" target="_blank"
                                        class="text-blue-600 hover:text-blue-800 transition-colors">
                                         <i class="fas fa-eye mr-1"></i>
                                         <span class="text-sm">Lihat</span>
@@ -451,7 +451,7 @@
                                 @if($bukti->bukti_pembayaran)
                                 <div class="flex items-center justify-between mt-2">
                                     <span class="text-xs text-gray-600">File Bukti:</span>
-                                    <a href="{{ asset('storage/' . $bukti->bukti_pembayaran) }}" target="_blank"
+                                    <a href="{{ asset('storage/penagihan-dinas/bukti-pembayaran/' . $bukti->bukti_pembayaran) }}" target="_blank"
                                        class="text-blue-600 hover:text-blue-800 text-sm">
                                         <i class="fas fa-external-link-alt mr-1"></i>
                                         Lihat
