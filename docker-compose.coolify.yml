@@ -34,7 +34,7 @@ services:
       - "traefik.http.routers.katana.rule=Host(`${DOMAIN:-katana.localhost}`)"
       - "traefik.http.routers.katana.entrypoints=websecure"
       - "traefik.http.routers.katana.tls.certresolver=letsencrypt"
-      - "traefik.http.services.katana.loadbalancer.server.port=8000"
+      - "traefik.http.services.katana.loadbalancer.server.port=80"
 
   db:
     image: mysql:8.0
