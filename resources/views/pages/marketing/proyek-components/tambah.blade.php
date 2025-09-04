@@ -279,7 +279,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Total (Rp)</label>
-                                    <input type="number" name="barang[0][harga_total]" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm harga-total-input" placeholder="0" readonly>
+                                    <input type="text" name="barang[0][harga_total]" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 text-sm harga-total-input" placeholder="0" readonly>
                                 </div>
                             </div>
                             <div class="mt-3">
@@ -404,6 +404,16 @@ function tambahBarang() {
                 input.parentElement.insertBefore(wrapper, input);
                 wrapper.appendChild(input);
             }
+        }
+
+        // Pastikan input harga total menggunakan type text untuk format yang benar
+        if (input.classList.contains('harga-total-input')) {
+            input.type = 'text';
+        }
+
+        // Tambahkan event listener untuk qty input
+        if (input.classList.contains('qty-input')) {
+            input.setAttribute('onchange', 'hitungTotal(this)');
         }
 
         // Remove readonly untuk input yang baru
@@ -542,7 +552,8 @@ function hitungTotal(input) {
 
     const totalInput = row.querySelector('.harga-total-input');
     if (totalInput) {
-        totalInput.value = formatRupiahNumber(total);
+        // Format dengan koma sebagai pemisah ribuan
+        totalInput.value = total > 0 ? total.toLocaleString('id-ID') : '0';
     }
     hitungTotalKeseluruhan();
 }
