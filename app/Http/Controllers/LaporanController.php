@@ -1092,4 +1092,178 @@ public function exportTSV(Request $request)
             ->orderBy('total_piutang', 'desc')
             ->paginate(10);
     }
+
+    /**
+     * Export omset report to Excel/CSV
+     */
+    public function exportOmset(Request $request)
+    {
+        // Get omset data with the same filters as the view
+        $year = $request->get('year', date('Y'));
+        $month = $request->get('month');
+        $period = $request->get('period', 'monthly');
+
+        // Debug logging
+        Log::info('Export Omset Debug:', [
+            'year' => $year,
+            'month' => $month,
+            'period' => $period
+        ]);
+
+        // Get omset data for export
+        $omsetData = $this->getOmsetData($year, $month, $period);
+        
+        // Create request object for admin methods
+        $filterRequest = new Request();
+        $filterRequest->merge([
+            'year' => $year,
+            'month' => $month,
+            'period' => $period
+        ]);
+        
+        $adminMarketing = $this->getAdminMarketingOmset($filterRequest);
+        $adminPurchasing = $this->getAdminPurchasingOmset($filterRequest);
+
+        // Debug logging for data
+        Log::info('Export Data Debug:', [
+            'omsetDataCount' => count($omsetData),
+            'adminMarketingCount' => count($adminMarketing),
+            'adminPurchasingCount' => count($adminPurchasing),
+            'firstOmsetData' => $omsetData[0] ?? null,
+            'firstMarketingData' => $adminMarketing[0] ?? null
+        ]);
+
+        // Create CSV response
+        $filename = 'laporan-omset-' . $year . ($month ? '-' . str_pad($month, 2, '0', STR_PAD_LEFT) : '') . '-' . Carbon::now()->format('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($omsetData, $adminMarketing, $adminPurchasing, $year, $month, $period) {
+            $file = fopen('php://output', 'w');
+            
+            // Add BOM for proper UTF-8 encoding in Excel
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Add header information
+            fputcsv($file, ['LAPORAN OMSET'], ';');
+            fputcsv($file, ['Tahun: ' . $year], ';');
+            if ($month) {
+                fputcsv($file, ['Bulan: ' . Carbon::createFromDate($year, $month, 1)->format('F Y')], ';');
+            }
+            fputcsv($file, ['Periode: ' . ucfirst($period)], ';');
+            fputcsv($file, ['Tanggal Export: ' . Carbon::now()->format('d/m/Y H:i:s')], ';');
+            fputcsv($file, [], ';'); // Empty row
+
+            // Omset per bulan/periode
+            fputcsv($file, ['DATA OMSET PER ' . strtoupper($period)], ';');
+            fputcsv($file, ['Periode', 'Jumlah Omset (Rp)'], ';');
+            
+            foreach ($omsetData as $data) {
+                fputcsv($file, [
+                    $data['label'],
+                    number_format($data['value'], 0, ',', '.')
+                ], ';');
+            }
+            
+            fputcsv($file, [], ';'); // Empty row
+
+            // Top Marketing
+            fputcsv($file, ['TOP MARKETING'], ';');
+            fputcsv($file, ['Nama Admin', 'Jumlah Proyek', 'Total Omset (Rp)'], ';');
+            
+            foreach ($adminMarketing as $admin) {
+                fputcsv($file, [
+                    $admin->name ?? $admin->nama ?? 'N/A',
+                    $admin->jumlah_proyek ?? $admin->total_proyek ?? 0,
+                    number_format($admin->total_omset ?? 0, 0, ',', '.')
+                ], ';');
+            }
+            
+            fputcsv($file, [], ';'); // Empty row
+
+            // Top Purchasing
+            fputcsv($file, ['TOP PURCHASING'], ';');
+            fputcsv($file, ['Nama Admin', 'Jumlah Proyek', 'Total Omset (Rp)'], ';');
+            
+            foreach ($adminPurchasing as $admin) {
+                fputcsv($file, [
+                    $admin->name ?? $admin->nama ?? 'N/A',
+                    $admin->jumlah_proyek ?? $admin->total_proyek ?? 0,
+                    number_format($admin->total_omset ?? 0, 0, ',', '.')
+                ], ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Get omset data for charts and export
+     */
+    private function getOmsetData($year, $month = null, $period = 'monthly')
+    {
+        $data = [];
+        
+        if ($period === 'monthly') {
+            // Get monthly data for the year
+            for ($m = 1; $m <= 12; $m++) {
+                if ($month && $month != $m) {
+                    continue; // Skip if specific month is requested
+                }
+                
+                // Use the same logic as other methods - exclude only Gagal and Menunggu
+                $omset = KalkulasiHps::whereHas('proyek', function($q) use ($year, $m) {
+                    $q->whereNotIn('status', ['Gagal', 'Menunggu'])
+                      ->whereYear('created_at', $year)
+                      ->whereMonth('created_at', $m);
+                })
+                ->sum('nett_income');
+
+                $data[] = [
+                    'label' => Carbon::createFromDate($year, $m, 1)->format('F Y'),
+                    'value' => $omset ?? 0
+                ];
+            }
+        } elseif ($period === 'quarterly') {
+            // Get quarterly data
+            for ($q = 1; $q <= 4; $q++) {
+                $startMonth = ($q - 1) * 3 + 1;
+                $endMonth = $q * 3;
+                
+                $omset = KalkulasiHps::whereHas('proyek', function($query) use ($year, $startMonth, $endMonth) {
+                    $query->whereNotIn('status', ['Gagal', 'Menunggu'])
+                          ->whereYear('created_at', $year)
+                          ->whereBetween(DB::raw('MONTH(created_at)'), [$startMonth, $endMonth]);
+                })
+                ->sum('nett_income');
+
+                $data[] = [
+                    'label' => 'Q' . $q . ' ' . $year,
+                    'value' => $omset ?? 0
+                ];
+            }
+        } else {
+            // Yearly data
+            $omset = KalkulasiHps::whereHas('proyek', function($q) use ($year) {
+                $q->whereNotIn('status', ['Gagal', 'Menunggu'])
+                  ->whereYear('created_at', $year);
+            })
+            ->sum('nett_income');
+
+            $data[] = [
+                'label' => 'Tahun ' . $year,
+                'value' => $omset ?? 0
+            ];
+        }
+
+        return $data;
+    }
 }

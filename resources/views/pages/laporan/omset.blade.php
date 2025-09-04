@@ -111,11 +111,20 @@
                     <option value="yearly">Tahunan</option>
                 </select>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200">
-                    <i class="fas fa-filter mr-2"></i>Terapkan Filter
-                </button>
-            </div>
+        </form>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 mt-4">
+            <button type="submit" form="filterForm" class="flex-1 sm:flex-none bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all duration-200">
+                <i class="fas fa-search mr-2"></i>Terapkan Filter
+            </button>
+            <button onclick="resetFilters()" class="flex-1 sm:flex-none border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                <i class="fas fa-undo mr-2"></i>Reset Filter
+            </button>
+            <button onclick="exportOmsetReport()" class="flex-1 sm:flex-none bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200">
+                <i class="fas fa-download mr-2"></i>Export Excel
+            </button>
+        </div>
         </form>
     </div>
 </div>
@@ -501,5 +510,85 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Omset chart loaded for year ' + currentYear);
 });
+
+// Export function
+function exportOmsetReport() {
+    // Get current filter values
+    const year = document.getElementById('yearFilter').value;
+    const month = document.getElementById('monthFilter').value;
+    const period = document.getElementById('periodFilter').value;
+
+    // Build export URL with same filters
+    const params = new URLSearchParams({
+        year: year,
+        period: period
+    });
+    
+    if (month) {
+        params.append('month', month);
+    }
+
+    const exportUrl = '{{ route("laporan.export-omset") }}?' + params.toString();
+
+    // Show export notification
+    showNotification('Export sedang diproses...', 'info');
+
+    // Trigger download
+    window.location.href = exportUrl;
+
+    // Show success notification after a delay
+    setTimeout(() => {
+        showNotification('Export berhasil! File sedang diunduh...', 'success');
+    }, 1000);
+}
+
+// Apply filters function (deprecated - using form submit instead)
+// function applyFilters() {
+//     const year = document.getElementById('yearFilter').value;
+//     const month = document.getElementById('monthFilter').value;
+//     const period = document.getElementById('periodFilter').value;
+//     
+//     loadChartData(year, month || null, period);
+// }
+
+// Reset filters function
+function resetFilters() {
+    document.getElementById('yearFilter').value = currentYear;
+    document.getElementById('monthFilter').value = '';
+    document.getElementById('periodFilter').value = 'monthly';
+    
+    loadChartData(currentYear, null, 'monthly');
+}
+
+// Simple notification function
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 
+        'bg-blue-500'
+    } text-white`;
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${
+                type === 'success' ? 'fa-check-circle' : 
+                type === 'error' ? 'fa-exclamation-circle' : 
+                'fa-info-circle'
+            } mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
+}
 </script>
 @endsection
