@@ -353,19 +353,52 @@
                                     @elseif($city['level'] == 'medium') orange-600
                                     @else red-300
                                     @endif
-                                ">Rp {{ $city['sales'] }}M</span>
+                                ">
+                                    @php
+                                        $sales = $city['sales'];
+                                        if ($sales >= 1000) {
+                                            echo 'Rp ' . number_format($sales / 1000, 1) . ' M';
+                                        } elseif ($sales >= 1) {
+                                            echo 'Rp ' . number_format($sales, 1) . ' juta';
+                                        } else {
+                                            echo 'Rp ' . number_format($sales * 1000, 0) . ' ribu';
+                                        }
+                                    @endphp
+                                </span>
                             </div>
                             @endforeach
                             @if($geographicStats['others_sales'] > 0)
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600">{{ $geographicStats['total_cities'] - 4 }} Kota Lainnya:</span>
-                                <span class="font-bold text-gray-600">Rp {{ $geographicStats['others_sales'] }}M</span>
+                                <span class="font-bold text-gray-600">
+                                    @php
+                                        $others = $geographicStats['others_sales'];
+                                        if ($others >= 1000) {
+                                            echo 'Rp ' . number_format($others / 1000, 1) . ' M';
+                                        } elseif ($others >= 1) {
+                                            echo 'Rp ' . number_format($others, 1) . ' juta';
+                                        } else {
+                                            echo 'Rp ' . number_format($others * 1000, 0) . ' ribu';
+                                        }
+                                    @endphp
+                                </span>
                             </div>
                             @endif
                             <hr class="border-gray-200 my-0.5 sm:my-2">
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-700 font-medium">Total ({{ $geographicStats['total_cities'] }} Kota):</span>
-                                <span class="font-bold text-red-600">Rp {{ $geographicStats['total_sales'] }}M</span>
+                                <span class="font-bold text-red-600">
+                                    @php
+                                        $total = $geographicStats['total_sales'];
+                                        if ($total >= 1000) {
+                                            echo 'Rp ' . number_format($total / 1000, 1) . ' M';
+                                        } elseif ($total >= 1) {
+                                            echo 'Rp ' . number_format($total, 1) . ' juta';
+                                        } else {
+                                            echo 'Rp ' . number_format($total * 1000, 0) . ' ribu';
+                                        }
+                                    @endphp
+                                </span>
                             </div>
                         @else
                             <div class="text-center py-4 text-gray-500">
@@ -740,13 +773,24 @@ document.addEventListener('DOMContentLoaded', function() {
             overlappingGroups.forEach((group, index) => {
                 console.log(`Group ${index + 1}:`, group.map(cityIndex => citiesData[cityIndex].name));
             });
-            
+
             // Keep info div hidden
             infoDiv.style.display = 'none';
         } else {
             console.log('No marker collisions detected');
             // Keep info div hidden
             infoDiv.style.display = 'none';
+        }
+    }
+
+    // Function to format currency based on value
+    function formatCurrency(value) {
+        if (value >= 1000) {
+            return `Rp ${(value / 1000).toFixed(1)} M`;
+        } else if (value >= 1) {
+            return `Rp ${value.toFixed(1)} juta`;
+        } else {
+            return `Rp ${(value * 1000).toFixed(0)} ribu`;
         }
     }
 
@@ -849,7 +893,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span style="margin-right: 6px;">📍</span>${city.area} • ${city.population}
                 </div>
                 <div style="font-size: 12px; color: #E5E7EB; margin-bottom: 4px; display: flex; align-items: center;">
-                    <span style="margin-right: 6px;">💰</span>Penjualan: <strong style="color: #34D399; margin-left: 4px;">Rp ${city.sales}M</strong>
+                    <span style="margin-right: 6px;">💰</span>Penjualan: <strong style="color: #34D399; margin-left: 4px;">${formatCurrency(city.sales)}</strong>
                 </div>
                 <div style="font-size: 12px; color: #E5E7EB; margin-bottom: 4px; display: flex; align-items: center;">
                     <span style="margin-right: 6px;">📊</span>Proyek: <strong style="color: #60A5FA; margin-left: 4px;">${city.projects} proyek</strong>
