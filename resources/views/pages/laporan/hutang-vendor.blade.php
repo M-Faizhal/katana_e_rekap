@@ -121,11 +121,13 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
                 <select id="vendor-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
                     <option value="">Semua Vendor</option>
-                    @foreach($hutangVendor->unique('nama_vendor') as $vendor)
-                        <option value="{{ $vendor->nama_vendor }}" {{ request('vendor') == $vendor->nama_vendor ? 'selected' : '' }}>
-                            {{ $vendor->nama_vendor }}
-                        </option>
-                    @endforeach
+                    @if(isset($allVendors))
+                        @foreach($allVendors as $vendor)
+                            <option value="{{ $vendor->nama_vendor }}" {{ request('vendor') == $vendor->nama_vendor ? 'selected' : '' }}>
+                                {{ $vendor->nama_vendor }}
+                            </option>
+                        @endforeach
+                    @endif
                 </select>
             </div>
 
