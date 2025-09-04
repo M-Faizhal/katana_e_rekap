@@ -176,6 +176,7 @@
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Nett Income</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Nett %</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Keterangan</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">TKDN</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Aksi</th>
                     </tr>
                 </thead>
@@ -688,7 +689,10 @@ function createKalkulasiTableRow(item, index) {
                 <span class="font-bold ${(item.nett_income_persentase || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${formatPercent(item.nett_income_persentase || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="text" value="${item.keterangan_1 || ''}" onchange="updateValue(${index}, 'keterangan_1', this.value)" class="w-20 text-xs" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.keterangan_1 || ''}" onchange="updateValue(${index}, 'keterangan_1', this.value)" class="w-20 text-xs" placeholder="Keterangan" ${!canEdit ? 'readonly' : ''}>
+            </td>
+            <td class="px-2 py-3">
+                <input type="text" value="${item.keterangan_2 || ''}" onchange="updateValue(${index}, 'keterangan_2', this.value)" class="w-20 text-xs" placeholder="TKDN" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
                 ${canEdit ? `<button onclick="removeItem(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">
