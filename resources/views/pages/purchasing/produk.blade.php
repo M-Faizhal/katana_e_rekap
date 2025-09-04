@@ -250,7 +250,7 @@
                             <!-- Product Image -->
                             <div class="w-full h-28 sm:h-48 bg-gray-100 overflow-hidden">
                                 @if($item->foto_barang)
-                                    <img src="{{ asset('storage/' . $item->foto_barang) }}" 
+                                    <img src="{{ asset('storage/app/public/barang/' . $item->foto_barang) }}" 
                                          alt="{{ $item->nama_barang }}" 
                                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 @else

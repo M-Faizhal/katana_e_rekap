@@ -258,7 +258,7 @@
                             <!-- Product Image -->
                             <div class="w-full h-28 sm:h-48 bg-gray-100 overflow-hidden">
                                 @if($item->foto_barang)
-                                    <img src="{{ asset('storage/' . $item->foto_barang) }}" 
+                                    <img src="{{ asset('storage/app/public/barang/' . $item->foto_barang) }}" 
                                          alt="{{ $item->nama_barang }}" 
                                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 @else
@@ -355,7 +355,7 @@
                         const fileLink = document.getElementById('detailSpesifikasiFileLink');
                         const fileName = document.getElementById('detailSpesifikasiFileName');
                         
-                        fileLink.href = `{{ asset('storage') }}/${produk.spesifikasi_file}`;
+                        fileLink.href = `{{ asset('storage/app/public/barang/spesifikasi') }}/${produk.spesifikasi_file}`;
                         fileName.textContent = produk.spesifikasi_file.split('/').pop() || 'Lihat File';
                         fileContainer.style.display = 'block';
                     } else {
