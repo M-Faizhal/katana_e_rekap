@@ -1011,7 +1011,7 @@ class KalkulasiController extends Controller
         $file = $request->file('bukti_approval');
         
         // Delete existing approval files for this project
-        $existingFiles = glob(storage_path('app/public/approval_files/*' . $idProyek . '_approval*'));
+        $existingFiles = glob(storage_path('app/public/approval_files/' . $idProyek . '_approval*'));
         foreach ($existingFiles as $existingFile) {
             if (file_exists($existingFile)) {
                 unlink($existingFile);
@@ -1042,7 +1042,7 @@ class KalkulasiController extends Controller
     private function handleDeleteApproval(Request $request, $idProyek)
     {
         // Delete approval files for this project
-        $approvalFiles = glob(storage_path('app/public/approval_files/*' . $idProyek . '_approval*'));
+        $approvalFiles = glob(storage_path('app/public/approval_files/' . $idProyek . '_approval*'));
         $deletedFiles = [];
         
         foreach ($approvalFiles as $file) {
@@ -1068,3 +1068,4 @@ class KalkulasiController extends Controller
         ]);
     }
 }
+    

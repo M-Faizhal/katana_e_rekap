@@ -7,6 +7,7 @@ use App\Models\Pengiriman;
 use App\Models\Penawaran;
 use App\Models\User;
 use App\Models\Wilayah;
+use App\Models\KalkulasiHps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -143,6 +144,12 @@ class Proyek extends Model
     public function penagihanDinas()
     {
         return $this->hasMany(PenagihanDinas::class, 'proyek_id', 'id_proyek');
+    }
+
+    // Relasi ke kalkulasi HPS
+    public function kalkulasiHps()
+    {
+        return $this->hasMany(KalkulasiHps::class, 'id_proyek', 'id_proyek');
     }
 
     // Alias untuk kompatibilitas - relationship untuk penawaran aktif/terbaru
