@@ -378,7 +378,7 @@
 <!-- Usia Hutang Section -->
 <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 mb-6 sm:mb-8">
     <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
-        <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Usia Piutang Klien</h3>
+        <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Usia Piutang Klien (Top 5)</h3>
         <div class="flex items-center space-x-2">
             <span class="px-2 sm:px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs sm:text-sm font-medium">{{ $debtAgeAnalysis->count() }} Invoice</span>
             <a href="{{ route('laporan.piutang-dinas') }}" class="text-purple-600 hover:text-purple-700 text-xs sm:text-sm font-medium whitespace-nowrap">
@@ -387,62 +387,17 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        @forelse($debtAgeAnalysis as $debt)
-        @php
-            // Set color classes based on age category
-            $colorClasses = [
-                'green' => ['bg' => 'green-50', 'border' => 'green-500', 'text' => 'green-600', 'icon' => 'green-500'],
-                'yellow' => ['bg' => 'yellow-50', 'border' => 'yellow-500', 'text' => 'yellow-600', 'icon' => 'yellow-500'],
-                'orange' => ['bg' => 'orange-50', 'border' => 'orange-500', 'text' => 'orange-600', 'icon' => 'orange-500'],
-                'red' => ['bg' => 'red-50', 'border' => 'red-500', 'text' => 'red-600', 'icon' => 'red-500']
-            ];
-
-            $colors = $colorClasses[$debt->color_class] ?? $colorClasses['red'];
-
-            // Determine icon based on age category
-            $ageIcon = $debt->days_overdue <= 30 ? 'fa-check-circle' :
-                      ($debt->days_overdue <= 60 ? 'fa-exclamation-triangle' :
-                      ($debt->days_overdue <= 90 ? 'fa-clock' : 'fa-ban'));
-        @endphp
-        <div class="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-{{ $colors['bg'] }} to-{{ $colors['bg'] }} rounded-xl border-l-4 border-{{ $colors['border'] }}">
-            <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-{{ $colors['icon'] }} rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-                    <i class="fas {{ $ageIcon }} text-white text-sm sm:text-base"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                    <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $debt->instansi }}</p>
-                    <p class="text-xs sm:text-sm text-gray-600">{{ $debt->kode_proyek }}</p>
-                    <p class="text-xs text-{{ $colors['text'] }} font-medium">{{ $debt->nomor_invoice }}</p>
-                </div>
-            </div>
-            <div class="text-right flex-shrink-0 ml-2">
-                <p class="text-sm sm:text-lg font-bold text-{{ $colors['text'] }}">
-                    @if($debt->outstanding_amount >= 1000000000)
-                        Rp {{ number_format($debt->outstanding_amount / 1000000000, 1) }}M
-                    @elseif($debt->outstanding_amount >= 1000000)
-                        Rp {{ number_format($debt->outstanding_amount / 1000000, 1) }}jt
-                    @elseif($debt->outstanding_amount >= 1000)
-                        Rp {{ number_format($debt->outstanding_amount / 1000, 0) }}rb
-                    @else
-                        Rp {{ number_format($debt->outstanding_amount, 0) }}
-                    @endif
-                </p>
-                <div class="flex flex-col items-end space-y-1">
-                    <span class="px-2 py-1 bg-{{ $colors['bg'] }} text-{{ $colors['text'] }} rounded-full text-xs font-medium border border-{{ $colors['border'] }}">
-                        {{ $debt->age_category }}
-                    </span>
-                    <span class="text-xs text-gray-500 font-medium">{{ $debt->status_text }}</span>
-                </div>
-            </div>
-        </div>
-        @empty
-        <div class="col-span-1 md:col-span-2 text-center py-8 text-gray-500">
-            <i class="fas fa-clock text-3xl mb-2"></i>
-            <p>Tidak ada data usia hutang saat ini</p>
-        </div>
-        @endforelse
+    @if($debtAgeAnalysis->count() > 0)
+    <!-- Chart Container -->
+    <div class="h-64 sm:h-80 mb-6">
+        <canvas id="debtAgeChart"></canvas>
     </div>
+    @else
+    <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-clock text-3xl mb-2"></i>
+        <p>Tidak ada data usia hutang saat ini</p>
+    </div>
+    @endif
 
     <!-- Legend for Age Categories -->
     <div class="mt-4 pt-4 border-t border-gray-200">
@@ -1244,6 +1199,158 @@ function toggleStats() {
 
 // Dashboard Chart Variables
 let dashboardOmsetChart;
+
+// Debt Age Chart Configuration
+@if($debtAgeAnalysis->count() > 0)
+document.addEventListener('DOMContentLoaded', function() {
+    const debtAgeCtx = document.getElementById('debtAgeChart');
+    if (debtAgeCtx) {
+        // Take only top 5 items and prepare data
+        const debtData = @json($debtAgeAnalysis->take(5));
+
+        // Function to get color based on age category
+        function getColorByAgeCategory(colorClass) {
+            const colorMap = {
+                'green': {
+                    bg: 'rgba(34, 197, 94, 0.8)',
+                    border: 'rgba(34, 197, 94, 1)'
+                },
+                'yellow': {
+                    bg: 'rgba(234, 179, 8, 0.8)',
+                    border: 'rgba(234, 179, 8, 1)'
+                },
+                'orange': {
+                    bg: 'rgba(249, 115, 22, 0.8)',
+                    border: 'rgba(249, 115, 22, 1)'
+                },
+                'red': {
+                    bg: 'rgba(239, 68, 68, 0.8)',
+                    border: 'rgba(239, 68, 68, 1)'
+                }
+            };
+            return colorMap[colorClass] || colorMap['red'];
+        }
+
+        // Prepare chart data
+        const labels = debtData.map(debt => debt.instansi);
+        const amounts = debtData.map(debt => debt.outstanding_amount);
+        const backgroundColors = debtData.map(debt => getColorByAgeCategory(debt.color_class).bg);
+        const borderColors = debtData.map(debt => getColorByAgeCategory(debt.color_class).border);
+
+        // Format currency for tooltips
+        function formatCurrency(value) {
+            if (value >= 1000000000) {
+                return 'Rp ' + (value / 1000000000).toFixed(1) + 'M';
+            } else if (value >= 1000000) {
+                return 'Rp ' + (value / 1000000).toFixed(1) + 'jt';
+            } else if (value >= 1000) {
+                return 'Rp ' + (value / 1000).toFixed(0) + 'rb';
+            } else {
+                return 'Rp ' + value.toLocaleString();
+            }
+        }
+
+        new Chart(debtAgeCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Outstanding Amount',
+                    data: amounts,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                indexAxis: 'y', // This makes it horizontal
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(context) {
+                                const index = context[0].dataIndex;
+                                return debtData[index].instansi;
+                            },
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                const debt = debtData[index];
+                                return [
+                                    'Jumlah: ' + formatCurrency(context.parsed.x),
+                                    'Proyek: ' + debt.kode_proyek,
+                                    'Invoice: ' + debt.nomor_invoice,
+                                    'Kategori: ' + debt.age_category,
+                                    'Status: ' + debt.status_text
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#6B7280',
+                            font: {
+                                size: 11
+                            },
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#374151',
+                            font: {
+                                size: 12,
+                                weight: '500'
+                            },
+                            callback: function(value, index) {
+                                const label = this.getLabelForValue(value);
+                                return label.length > 20 ? label.substring(0, 20) + '...' : label;
+                            }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    }
+});
+@endif
+
 const currentYear = {{ date('Y') }};
 
 // Function to format Rupiah in Indonesian format
