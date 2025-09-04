@@ -285,6 +285,37 @@
                             <div class="mt-3">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi</label>
                                 <textarea name="barang[0][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Deskripsi atau spesifikasi barang (opsional)"></textarea>
+
+                                <!-- File Upload Option -->
+                                <div class="mt-2">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="enableFileUpload_0" class="file-upload-checkbox mr-2 text-red-600 focus:ring-red-500" onchange="toggleFileUpload(this, 0)">
+                                        <label for="enableFileUpload_0" class="text-sm text-gray-600 cursor-pointer flex items-center">
+                                            <i class="fas fa-paperclip mr-1 text-gray-500"></i>
+                                            Tambah lampiran file spesifikasi
+                                        </label>
+                                    </div>
+
+                                    <!-- File Upload Area (Hidden by default) -->
+                                    <div id="fileUploadArea_0" class="mt-3 hidden">
+                                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-400 transition-colors duration-200">
+                                            <input type="file" name="barang[0][files][]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden" id="fileInput_0" onchange="handleFileSelect(this, 0)">
+                                            <label for="fileInput_0" class="cursor-pointer">
+                                                <div class="text-gray-500">
+                                                    <i class="fas fa-cloud-upload-alt text-2xl mb-2"></i>
+                                                    <p class="text-sm font-medium">Klik untuk browse atau drag & drop files</p>
+                                                    <p class="text-xs mt-1">PDF, DOC, XLS, JPG, PNG (Max 5MB per file)</p>
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                        <!-- Selected Files Preview -->
+                                        <div id="filePreview_0" class="mt-3 space-y-2 hidden">
+                                            <div class="text-sm font-medium text-gray-700 mb-2">File terpilih:</div>
+                                            <div id="fileList_0" class="space-y-1"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -383,11 +414,28 @@ function tambahBarang() {
             input.setAttribute('name', name.replace('[0]', `[${itemCounter}]`));
         }
 
+        // Update IDs for file upload elements
+        const id = input.getAttribute('id');
+        if (id) {
+            input.setAttribute('id', id.replace('_0', `_${itemCounter}`));
+        }
+
+        // Update onchange attributes for file inputs
+        const onchange = input.getAttribute('onchange');
+        if (onchange && onchange.includes('toggleFileUpload')) {
+            input.setAttribute('onchange', onchange.replace('0)', `${itemCounter})`));
+        }
+        if (onchange && onchange.includes('handleFileSelect')) {
+            input.setAttribute('onchange', onchange.replace('0)', `${itemCounter})`));
+        }
+
         // Reset values
         if (input.type === 'text' || input.type === 'number' || input.tagName === 'TEXTAREA') {
             input.value = '';
         } else if (input.tagName === 'SELECT') {
             input.selectedIndex = 0;
+        } else if (input.type === 'checkbox') {
+            input.checked = false;
         }
 
         // Pastikan input harga satuan menggunakan format yang benar
@@ -423,6 +471,19 @@ function tambahBarang() {
             if (input.classList.contains('harga-total-input')) {
                 input.setAttribute('readonly', true);
             }
+        }
+    });
+
+    // Update labels dan divs untuk file upload
+    clonedTemplate.querySelectorAll('label, div').forEach(element => {
+        const forAttr = element.getAttribute('for');
+        if (forAttr) {
+            element.setAttribute('for', forAttr.replace('_0', `_${itemCounter}`));
+        }
+
+        const id = element.getAttribute('id');
+        if (id) {
+            element.setAttribute('id', id.replace('_0', `_${itemCounter}`));
         }
     });
 
@@ -497,11 +558,40 @@ function updateItemNumbers() {
             titleElement.textContent = `Item ${index + 1}`;
         }
 
-        // Update input names
+        // Update input names and IDs
         item.querySelectorAll('input, select, textarea').forEach(input => {
             const name = input.getAttribute('name');
             if (name && name.includes('[')) {
                 input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+            }
+
+            // Update IDs for file upload elements
+            const id = input.getAttribute('id');
+            if (id && id.includes('_')) {
+                const newId = id.replace(/_\d+$/, `_${index}`);
+                input.setAttribute('id', newId);
+            }
+
+            // Update onchange attributes for file inputs
+            const onchange = input.getAttribute('onchange');
+            if (onchange && onchange.includes('toggleFileUpload')) {
+                input.setAttribute('onchange', onchange.replace(/\d+\)/, `${index})`));
+            }
+            if (onchange && onchange.includes('handleFileSelect')) {
+                input.setAttribute('onchange', onchange.replace(/\d+\)/, `${index})`));
+            }
+        });
+
+        // Update labels and divs for file upload
+        item.querySelectorAll('label, div').forEach(element => {
+            const forAttr = element.getAttribute('for');
+            if (forAttr && forAttr.includes('_')) {
+                element.setAttribute('for', forAttr.replace(/_\d+$/, `_${index}`));
+            }
+
+            const id = element.getAttribute('id');
+            if (id && id.includes('_')) {
+                element.setAttribute('id', id.replace(/_\d+$/, `_${index}`));
             }
         });
     });
@@ -614,6 +704,164 @@ function hitungTotalKeseluruhan() {
 
 function formatRupiah(angka) {
     return 'Rp ' + angka.toLocaleString('id-ID');
+}
+
+// File Upload Functions for Spesifikasi
+function toggleFileUpload(checkbox, index) {
+    const fileUploadArea = document.getElementById(`fileUploadArea_${index}`);
+    if (fileUploadArea) {
+        if (checkbox.checked) {
+            fileUploadArea.classList.remove('hidden');
+            // Add animation
+            fileUploadArea.style.opacity = '0';
+            fileUploadArea.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                fileUploadArea.style.transition = 'all 0.3s ease';
+                fileUploadArea.style.opacity = '1';
+                fileUploadArea.style.transform = 'translateY(0)';
+            }, 10);
+        } else {
+            fileUploadArea.classList.add('hidden');
+            // Clear files when hiding
+            clearSpecFiles(index);
+        }
+    }
+}
+
+function handleFileSelect(input, index) {
+    const files = input.files;
+    const filePreview = document.getElementById(`filePreview_${index}`);
+    const fileList = document.getElementById(`fileList_${index}`);
+
+    if (files.length > 0) {
+        filePreview.classList.remove('hidden');
+        fileList.innerHTML = '';
+
+        // Validate and display files
+        let validFiles = [];
+        Array.from(files).forEach((file, fileIndex) => {
+            if (validateFile(file)) {
+                validFiles.push(file);
+                const fileItem = createFilePreviewItem(file, index, fileIndex);
+                fileList.appendChild(fileItem);
+            }
+        });
+
+        if (validFiles.length === 0) {
+            filePreview.classList.add('hidden');
+            input.value = ''; // Clear invalid files
+        }
+    } else {
+        filePreview.classList.add('hidden');
+    }
+}
+
+function validateFile(file) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/jpeg',
+        'image/jpg',
+        'image/png'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        showNotification(`File ${file.name} tidak didukung. Gunakan PDF, DOC, XLS, atau gambar.`, 'error');
+        return false;
+    }
+
+    if (file.size > maxSize) {
+        showNotification(`File ${file.name} terlalu besar. Maksimal 5MB.`, 'error');
+        return false;
+    }
+
+    return true;
+}
+
+function createFilePreviewItem(file, itemIndex, fileIndex) {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'flex items-center justify-between bg-gray-50 rounded-lg p-2 border border-gray-200';
+
+    const fileSize = (file.size / 1024).toFixed(1);
+    const fileIcon = getFileIcon(file.type);
+
+    fileItem.innerHTML = `
+        <div class="flex items-center flex-1">
+            <i class="${fileIcon} text-gray-500 mr-2"></i>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
+                <p class="text-xs text-gray-500">${fileSize} KB</p>
+            </div>
+        </div>
+        <button type="button" onclick="removeSpecFile(${itemIndex}, ${fileIndex})"
+                class="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full p-1 transition-colors duration-200">
+            <i class="fas fa-times text-xs"></i>
+        </button>
+    `;
+
+    return fileItem;
+}
+
+function getFileIcon(mimeType) {
+    if (mimeType.includes('pdf')) return 'fas fa-file-pdf text-red-500';
+    if (mimeType.includes('word')) return 'fas fa-file-word text-blue-500';
+    if (mimeType.includes('excel') || mimeType.includes('sheet')) return 'fas fa-file-excel text-green-500';
+    if (mimeType.includes('image')) return 'fas fa-file-image text-purple-500';
+    return 'fas fa-file text-gray-500';
+}
+
+function removeSpecFile(itemIndex, fileIndex) {
+    const fileInput = document.getElementById(`fileInput_${itemIndex}`);
+    const fileList = document.getElementById(`fileList_${itemIndex}`);
+    const filePreview = document.getElementById(`filePreview_${itemIndex}`);
+
+    if (fileInput && fileList) {
+        // Remove the file from the input (this is tricky with file inputs)
+        // We'll need to create a new FileList without the removed file
+        const dt = new DataTransfer();
+        const files = fileInput.files;
+
+        for (let i = 0; i < files.length; i++) {
+            if (i !== fileIndex) {
+                dt.items.add(files[i]);
+            }
+        }
+
+        fileInput.files = dt.files;
+
+        // Remove the visual element
+        const fileItems = fileList.children;
+        if (fileItems[fileIndex]) {
+            fileItems[fileIndex].remove();
+        }
+
+        // Hide preview if no files left
+        if (fileInput.files.length === 0) {
+            filePreview.classList.add('hidden');
+        }
+
+        // Re-index remaining file items
+        Array.from(fileList.children).forEach((item, index) => {
+            const removeBtn = item.querySelector('button');
+            if (removeBtn) {
+                removeBtn.setAttribute('onclick', `removeSpecFile(${itemIndex}, ${index})`);
+            }
+        });
+    }
+}
+
+function clearSpecFiles(index) {
+    const fileInput = document.getElementById(`fileInput_${index}`);
+    const filePreview = document.getElementById(`filePreview_${index}`);
+    const fileList = document.getElementById(`fileList_${index}`);
+
+    if (fileInput) fileInput.value = '';
+    if (filePreview) filePreview.classList.add('hidden');
+    if (fileList) fileList.innerHTML = '';
 }
 
 // Function to show notification
@@ -757,9 +1005,25 @@ document.getElementById('formTambahProyek').addEventListener('submit', async fun
         formData.append('daftar_barang', JSON.stringify(formDataObject.daftar_barang));
     }
 
+    // Add file uploads untuk setiap item barang
+    const barangItems = document.querySelectorAll('.barang-item');
+    barangItems.forEach((item, index) => {
+        const fileInput = item.querySelector(`input[name="barang[${index}][files][]"]`);
+        if (fileInput && fileInput.files.length > 0) {
+            // Add each file with the same naming convention
+            Array.from(fileInput.files).forEach(file => {
+                formData.append(`barang[${index}][files][]`, file);
+            });
+        }
+    });
+
     console.log('Sending FormData with:');
     for (let [key, value] of formData.entries()) {
-        console.log(key, value);
+        if (value instanceof File) {
+            console.log(key, `File: ${value.name} (${value.size} bytes)`);
+        } else {
+            console.log(key, value);
+        }
     }
 
     // Kirim data ke server

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Exception;
 
@@ -44,6 +45,7 @@ class ProyekController extends Controller
                         'qty' => $barang->jumlah, // Tambahkan untuk compatibility
                         'satuan' => $barang->satuan,
                         'spesifikasi' => $barang->spesifikasi,
+                        'spesifikasi_files' => $barang->spesifikasi_files ?? [],
                         'harga_satuan' => $barang->harga_satuan ?? 0,
                         'harga_total' => $barang->harga_total ?? 0
                     ];
@@ -199,27 +201,43 @@ class ProyekController extends Controller
             foreach ($daftarBarang as $index => $barang) {
                 $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
 
+                // Handle file upload untuk item ini
+                $specFiles = [];
+                if ($request->hasFile("barang.{$index}.files")) {
+                    $files = $request->file("barang.{$index}.files");
+                    $specFiles = $this->handleSpecificationFiles($files, $proyek->id_proyek, $index);
+                }
+
                 $proyekBarang = $proyek->proyekBarang()->create([
                     'nama_barang' => $barang['nama_barang'],
                     'jumlah' => $barang['jumlah'],
                     'satuan' => $barang['satuan'],
                     'spesifikasi' => $barang['spesifikasi'] ?? 'Spesifikasi standar',
+                    'spesifikasi_files' => $specFiles,
                     'harga_satuan' => $barang['harga_satuan'] ?? null,
                     'harga_total' => $harga_total
                 ]);
 
-                Log::info('Barang disimpan:', ['index' => $index + 1, 'id' => $proyekBarang->id_proyek_barang, 'nama' => $barang['nama_barang']]);
+                Log::info('Barang disimpan:', ['index' => $index + 1, 'id' => $proyekBarang->id_proyek_barang, 'nama' => $barang['nama_barang'], 'files' => count($specFiles)]);
             }
         }
         // Jika single barang, simpan juga ke proyek_barang untuk konsistensi
         else {
             $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
 
+            // Handle file upload untuk single item
+            $specFiles = [];
+            if ($request->hasFile('barang.0.files')) {
+                $files = $request->file('barang.0.files');
+                $specFiles = $this->handleSpecificationFiles($files, $proyek->id_proyek, 0);
+            }
+
             $proyek->proyekBarang()->create([
                 'nama_barang' => $request->nama_barang,
                 'jumlah' => $request->jumlah,
                 'satuan' => $request->satuan,
                 'spesifikasi' => $request->spesifikasi,
+                'spesifikasi_files' => $specFiles,
                 'harga_satuan' => $request->harga_satuan,
                 'harga_total' => $harga_total
             ]);
@@ -305,32 +323,48 @@ class ProyekController extends Controller
                 foreach ($request->daftar_barang as $index => $barang) {
                     $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
 
+                    // Handle file upload untuk item ini
+                    $specFiles = [];
+                    if ($request->hasFile("barang.{$index}.files")) {
+                        $files = $request->file("barang.{$index}.files");
+                        $specFiles = $this->handleSpecificationFiles($files, $proyek->id_proyek, $index);
+                    }
+
                     $proyekBarang = $proyek->proyekBarang()->create([
                         'nama_barang' => $barang['nama_barang'],
                         'jumlah' => $barang['jumlah'],
                         'satuan' => $barang['satuan'],
                         'spesifikasi' => $barang['spesifikasi'] ?? 'Spesifikasi standar',
+                        'spesifikasi_files' => $specFiles,
                         'harga_satuan' => $barang['harga_satuan'] ?? null,
                         'harga_total' => $harga_total
                     ]);
 
-                    Log::info('Barang diupdate:', ['index' => $index + 1, 'id' => $proyekBarang->id_proyek_barang, 'nama' => $barang['nama_barang']]);
+                    Log::info('Barang diupdate:', ['index' => $index + 1, 'id' => $proyekBarang->id_proyek_barang, 'nama' => $barang['nama_barang'], 'files' => count($specFiles)]);
                 }
             }
             // Jika single barang, simpan juga ke proyek_barang untuk konsistensi
             else {
                 $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
 
+                // Handle file upload untuk single item
+                $specFiles = [];
+                if ($request->hasFile('barang.0.files')) {
+                    $files = $request->file('barang.0.files');
+                    $specFiles = $this->handleSpecificationFiles($files, $proyek->id_proyek, 0);
+                }
+
                 $proyekBarang = $proyek->proyekBarang()->create([
                     'nama_barang' => $request->nama_barang,
                     'jumlah' => $request->jumlah,
                     'satuan' => $request->satuan,
                     'spesifikasi' => $request->spesifikasi,
+                    'spesifikasi_files' => $specFiles,
                     'harga_satuan' => $request->harga_satuan,
                     'harga_total' => $harga_total
                 ]);
 
-                Log::info('Single barang diupdate:', ['id' => $proyekBarang->id_proyek_barang, 'nama' => $request->nama_barang]);
+                Log::info('Single barang diupdate:', ['id' => $proyekBarang->id_proyek_barang, 'nama' => $request->nama_barang, 'files' => count($specFiles)]);
             }
 
             DB::commit();
@@ -487,5 +521,111 @@ class ProyekController extends Controller
         } else {
             return 'rendah';
         }
+    }
+
+    /**
+     * Handle file upload untuk spesifikasi barang
+     */
+    private function handleSpecificationFiles($files, $proyekId, $itemIndex)
+    {
+        $fileData = [];
+
+        if (!$files || !is_array($files)) {
+            return $fileData;
+        }
+
+        foreach ($files as $file) {
+            if ($file && $file->isValid()) {
+                // Validasi file
+                $maxSize = 5 * 1024 * 1024; // 5MB
+                $allowedTypes = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'];
+
+                if ($file->getSize() > $maxSize) {
+                    continue; // Skip file yang terlalu besar
+                }
+
+                $extension = $file->getClientOriginalExtension();
+                if (!in_array(strtolower($extension), $allowedTypes)) {
+                    continue; // Skip file dengan tipe tidak diizinkan
+                }
+
+                // Generate nama file unik
+                $originalName = $file->getClientOriginalName();
+                $timestamp = time();
+                $storedName = "proj_{$proyekId}_item_{$itemIndex}_{$timestamp}_{$originalName}";
+
+                // Simpan file
+                $filePath = $file->storeAs('specifications', $storedName, 'public');
+
+                if ($filePath) {
+                    $fileData[] = [
+                        'original_name' => $originalName,
+                        'stored_name' => $storedName,
+                        'file_path' => $filePath,
+                        'file_size' => $file->getSize(),
+                        'mime_type' => $file->getMimeType(),
+                        'uploaded_at' => now()->toDateTimeString()
+                    ];
+                }
+            }
+        }
+
+        return $fileData;
+    }
+
+    /**
+     * Download specification file
+     */
+    public function downloadFile($filename)
+    {
+        $filePath = storage_path('app/public/specifications/' . $filename);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        // Security check - pastikan filename valid
+        if (!preg_match('/^proj_\d+_item_\d+_\d+_.+$/', $filename)) {
+            abort(403, 'Akses ditolak');
+        }
+
+        return response()->download($filePath);
+    }
+
+    /**
+     * Preview specification file (untuk PDF dan gambar)
+     */
+    public function previewFile($filename)
+    {
+        $filePath = storage_path('app/public/specifications/' . $filename);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        // Security check - pastikan filename valid
+        if (!preg_match('/^proj_\d+_item_\d+_\d+_.+$/', $filename)) {
+            abort(403, 'Akses ditolak');
+        }
+
+        $mimeType = mime_content_type($filePath);
+
+        // Hanya allow preview untuk PDF dan gambar
+        $allowedMimes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif'
+        ];
+
+        if (!in_array($mimeType, $allowedMimes)) {
+            return response()->json(['error' => 'File tidak bisa di-preview'], 400);
+        }
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"'
+        ]);
     }
 }

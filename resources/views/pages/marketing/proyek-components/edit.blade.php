@@ -340,6 +340,7 @@ function addEditItem(itemData = null) {
     let satuan = '';
     let hargaSatuan = '';
     let spesifikasi = '';
+    let existingFiles = [];
 
     if (itemData) {
         nama = itemData.nama || itemData.nama_barang || '';
@@ -347,6 +348,7 @@ function addEditItem(itemData = null) {
         satuan = itemData.satuan || '';
         hargaSatuan = itemData.harga_satuan || '';
         spesifikasi = itemData.spesifikasi || '';
+        existingFiles = itemData.spesifikasi_files || [];
     }
 
     const itemHtml = `
@@ -394,6 +396,65 @@ function addEditItem(itemData = null) {
             <div class="mt-3">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi</label>
                 <textarea name="barang[${editItemCounter}][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Masukkan spesifikasi barang...">${spesifikasi}</textarea>
+
+                <!-- Existing Files Display -->
+                ${existingFiles && existingFiles.length > 0 ? `
+                <div class="mt-2">
+                    <div class="text-sm font-medium text-gray-700 mb-2">📎 File spesifikasi yang ada (${existingFiles.length} file):</div>
+                    <div class="space-y-1">
+                        ${existingFiles.map(file => `
+                            <div class="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas ${getFileIcon(file.original_name)} text-gray-500"></i>
+                                    <span class="font-medium">${file.original_name}</span>
+                                    <span class="text-gray-500">(${formatFileSize(file.file_size)})</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    ${file.mime_type && file.mime_type.includes('pdf') ? `
+                                        <button type="button" onclick="previewFile('${file.stored_name}')" class="text-blue-600 hover:text-blue-800 p-1">
+                                            <i class="fas fa-eye" title="Preview"></i>
+                                        </button>
+                                    ` : ''}
+                                    <button type="button" onclick="downloadFile('${file.stored_name}')" class="text-green-600 hover:text-green-800 p-1">
+                                        <i class="fas fa-download" title="Download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- File Upload Option -->
+                <div class="mt-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="enableFileUploadEdit_${editItemCounter}" class="file-upload-checkbox-edit mr-2 text-red-600 focus:ring-red-500" onchange="toggleFileUploadEdit(this, ${editItemCounter})">
+                        <label for="enableFileUploadEdit_${editItemCounter}" class="text-sm text-gray-600 cursor-pointer flex items-center">
+                            <i class="fas fa-paperclip mr-1 text-gray-500"></i>
+                            ${existingFiles && existingFiles.length > 0 ? 'Tambah file baru' : 'Tambah lampiran file spesifikasi'}
+                        </label>
+                    </div>
+
+                    <!-- File Upload Area (Hidden by default) -->
+                    <div id="fileUploadAreaEdit_${editItemCounter}" class="mt-3 hidden">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-400 transition-colors duration-200">
+                            <input type="file" name="barang[${editItemCounter}][files][]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden" id="fileInputEdit_${editItemCounter}" onchange="handleFileSelectEdit(this, ${editItemCounter})">
+                            <label for="fileInputEdit_${editItemCounter}" class="cursor-pointer">
+                                <div class="text-gray-500">
+                                    <i class="fas fa-cloud-upload-alt text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium">Klik untuk browse atau drag & drop files</p>
+                                    <p class="text-xs mt-1">PDF, DOC, XLS, JPG, PNG (Max 5MB per file)</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Selected Files Preview -->
+                        <div id="filePreviewEdit_${editItemCounter}" class="mt-3 space-y-2 hidden">
+                            <div class="text-sm font-medium text-gray-700 mb-2">File terpilih:</div>
+                            <div id="fileListEdit_${editItemCounter}" class="space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -426,10 +487,41 @@ function updateEditItemNumbers() {
     const items = document.querySelectorAll('.barang-item-edit');
     items.forEach((item, index) => {
         item.querySelector('h5').textContent = `Item ${index + 1}`;
-        item.querySelectorAll('input, select').forEach(input => {
+
+        // Update input names and IDs
+        item.querySelectorAll('input, select, textarea').forEach(input => {
             const name = input.getAttribute('name');
             if (name) {
                 input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+            }
+
+            // Update IDs for file upload elements
+            const id = input.getAttribute('id');
+            if (id && id.includes('Edit_')) {
+                const newId = id.replace(/Edit_\d+$/, `Edit_${index}`);
+                input.setAttribute('id', newId);
+            }
+
+            // Update onchange attributes for file inputs
+            const onchange = input.getAttribute('onchange');
+            if (onchange && onchange.includes('toggleFileUploadEdit')) {
+                input.setAttribute('onchange', onchange.replace(/\d+\)/, `${index})`));
+            }
+            if (onchange && onchange.includes('handleFileSelectEdit')) {
+                input.setAttribute('onchange', onchange.replace(/\d+\)/, `${index})`));
+            }
+        });
+
+        // Update labels and divs for file upload
+        item.querySelectorAll('label, div').forEach(element => {
+            const forAttr = element.getAttribute('for');
+            if (forAttr && forAttr.includes('Edit_')) {
+                element.setAttribute('for', forAttr.replace(/Edit_\d+$/, `Edit_${index}`));
+            }
+
+            const id = element.getAttribute('id');
+            if (id && id.includes('Edit_')) {
+                element.setAttribute('id', id.replace(/Edit_\d+$/, `Edit_${index}`));
             }
         });
     });
@@ -732,14 +824,26 @@ function initializeEditFormSubmission() {
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
         submitButton.disabled = true;
 
+        // Create FormData instead of JSON for file upload support
+        const form = document.getElementById('formEditProyek');
+        const formDataObj = new FormData(form);
+
+        // Add method override for PUT
+        formDataObj.append('_method', 'PUT');
+
+        // Add barang data manually to ensure proper structure
+        if (formData.daftar_barang && formData.daftar_barang.length > 0) {
+            formDataObj.append('daftar_barang', JSON.stringify(formData.daftar_barang));
+        }
+
         // Kirim data ke server
         fetch(`/marketing/proyek/${proyekId}`, {
-            method: 'PUT',
+            method: 'POST', // Use POST with _method override for file uploads
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                // Don't set Content-Type, let browser set it for FormData
             },
-            body: JSON.stringify(formData)
+            body: formDataObj
         })
         .then(response => response.json())
         .then(data => {
@@ -949,7 +1053,7 @@ async function loadEditAdminPurchasingOptions() {
 document.addEventListener('DOMContentLoaded', function() {
     // Load admin marketing options
     loadEditAdminMarketingOptions();
-    
+
     // Load admin purchasing options
     loadEditAdminPurchasingOptions();
 
@@ -972,4 +1076,194 @@ window.testPenawaranAPI = function(proyekId) {
     console.log('Testing penawaran API for project:', proyekId);
     fetchPenawaranData(proyekId);
 };
+
+// File Upload Functions for Edit Form
+function toggleFileUploadEdit(checkbox, index) {
+    const fileUploadArea = document.getElementById(`fileUploadAreaEdit_${index}`);
+    if (fileUploadArea) {
+        if (checkbox.checked) {
+            fileUploadArea.classList.remove('hidden');
+            // Add animation
+            fileUploadArea.style.opacity = '0';
+            fileUploadArea.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                fileUploadArea.style.transition = 'all 0.3s ease';
+                fileUploadArea.style.opacity = '1';
+                fileUploadArea.style.transform = 'translateY(0)';
+            }, 10);
+        } else {
+            fileUploadArea.classList.add('hidden');
+            // Clear files when hiding
+            clearSpecFilesEdit(index);
+        }
+    }
+}
+
+function handleFileSelectEdit(input, index) {
+    const files = input.files;
+    const filePreview = document.getElementById(`filePreviewEdit_${index}`);
+    const fileList = document.getElementById(`fileListEdit_${index}`);
+
+    if (files.length > 0) {
+        filePreview.classList.remove('hidden');
+        fileList.innerHTML = '';
+
+        // Validate and display files
+        let validFiles = [];
+        Array.from(files).forEach((file, fileIndex) => {
+            if (validateFileEdit(file)) {
+                validFiles.push(file);
+                const fileItem = createFilePreviewItemEdit(file, index, fileIndex);
+                fileList.appendChild(fileItem);
+            }
+        });
+
+        if (validFiles.length === 0) {
+            filePreview.classList.add('hidden');
+            input.value = ''; // Clear invalid files
+        }
+    } else {
+        filePreview.classList.add('hidden');
+    }
+}
+
+function validateFileEdit(file) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/jpeg',
+        'image/jpg',
+        'image/png'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        alert(`File ${file.name} tidak didukung. Gunakan PDF, DOC, XLS, atau gambar.`);
+        return false;
+    }
+
+    if (file.size > maxSize) {
+        alert(`File ${file.name} terlalu besar. Maksimal 5MB.`);
+        return false;
+    }
+
+    return true;
+}
+
+function createFilePreviewItemEdit(file, itemIndex, fileIndex) {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'flex items-center justify-between bg-gray-50 rounded-lg p-2 border border-gray-200';
+
+    const fileSize = (file.size / 1024).toFixed(1);
+    const fileIcon = getFileIconEdit(file.type);
+
+    fileItem.innerHTML = `
+        <div class="flex items-center flex-1">
+            <i class="${fileIcon} text-gray-500 mr-2"></i>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
+                <p class="text-xs text-gray-500">${fileSize} KB</p>
+            </div>
+        </div>
+        <button type="button" onclick="removeSpecFileEdit(${itemIndex}, ${fileIndex})"
+                class="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full p-1 transition-colors duration-200">
+            <i class="fas fa-times text-xs"></i>
+        </button>
+    `;
+
+    return fileItem;
+}
+
+function getFileIconEdit(mimeType) {
+    if (mimeType.includes('pdf')) return 'fas fa-file-pdf text-red-500';
+    if (mimeType.includes('word')) return 'fas fa-file-word text-blue-500';
+    if (mimeType.includes('excel') || mimeType.includes('sheet')) return 'fas fa-file-excel text-green-500';
+    if (mimeType.includes('image')) return 'fas fa-file-image text-purple-500';
+    return 'fas fa-file text-gray-500';
+}
+
+function removeSpecFileEdit(itemIndex, fileIndex) {
+    const fileInput = document.getElementById(`fileInputEdit_${itemIndex}`);
+    const fileList = document.getElementById(`fileListEdit_${itemIndex}`);
+    const filePreview = document.getElementById(`filePreviewEdit_${itemIndex}`);
+
+    if (fileInput && fileList) {
+        // Remove the file from the input (this is tricky with file inputs)
+        // We'll need to create a new FileList without the removed file
+        const dt = new DataTransfer();
+        const files = fileInput.files;
+
+        for (let i = 0; i < files.length; i++) {
+            if (i !== fileIndex) {
+                dt.items.add(files[i]);
+            }
+        }
+
+        fileInput.files = dt.files;
+
+        // Remove the visual element
+        const fileItems = fileList.children;
+        if (fileItems[fileIndex]) {
+            fileItems[fileIndex].remove();
+        }
+
+        // Hide preview if no files left
+        if (fileInput.files.length === 0) {
+            filePreview.classList.add('hidden');
+        }
+
+        // Re-index remaining file items
+        Array.from(fileList.children).forEach((item, index) => {
+            const removeBtn = item.querySelector('button');
+            if (removeBtn) {
+                removeBtn.setAttribute('onclick', `removeSpecFileEdit(${itemIndex}, ${index})`);
+            }
+        });
+    }
+}
+
+function clearSpecFilesEdit(index) {
+    const fileInput = document.getElementById(`fileInputEdit_${index}`);
+    const filePreview = document.getElementById(`filePreviewEdit_${index}`);
+    const fileList = document.getElementById(`fileListEdit_${index}`);
+
+    if (fileInput) fileInput.value = '';
+    if (filePreview) filePreview.classList.add('hidden');
+    if (fileList) fileList.innerHTML = '';
+}
+
+// Helper functions for file display
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    switch (ext) {
+        case 'pdf': return 'fa-file-pdf text-red-500';
+        case 'doc':
+        case 'docx': return 'fa-file-word text-blue-500';
+        case 'xls':
+        case 'xlsx': return 'fa-file-excel text-green-500';
+        case 'jpg':
+        case 'jpeg':
+        case 'png': return 'fa-file-image text-purple-500';
+        default: return 'fa-file text-gray-500';
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function downloadFile(filename) {
+    window.open(`/marketing/proyek/file/${filename}`, '_blank');
+}
+
+function previewFile(filename) {
+    window.open(`/marketing/proyek/file/${filename}/preview`, '_blank');
+}
 </script>

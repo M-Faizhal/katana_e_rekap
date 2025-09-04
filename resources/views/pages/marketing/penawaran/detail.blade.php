@@ -138,6 +138,83 @@
                     <p class="text-sm text-gray-700">{{ $detail->spesifikasi }}</p>
                 </div>
                 @endif
+
+                {{-- File Spesifikasi dari Proyek --}}
+                @php
+                    // Cari proyek barang yang sesuai dengan nama barang di penawaran detail
+                    $matchingProyekBarang = null;
+                    if(isset($proyekBarangWithFiles)) {
+                        $matchingProyekBarang = $proyekBarangWithFiles->where('nama_barang', $detail->nama_barang)->first();
+                    }
+                @endphp
+
+                @if($matchingProyekBarang && $matchingProyekBarang->spesifikasi_files)
+                    @php
+                        $files = is_string($matchingProyekBarang->spesifikasi_files)
+                            ? json_decode($matchingProyekBarang->spesifikasi_files, true)
+                            : $matchingProyekBarang->spesifikasi_files;
+                    @endphp
+                    @if($files && is_array($files) && count($files) > 0)
+                    <div class="mt-3">
+                        <label class="text-xs text-gray-500">File Spesifikasi ({{ count($files) }} file)</label>
+                        <div class="mt-2 space-y-2">
+                            @foreach($files as $file)
+                            <div class="flex items-center justify-between bg-white p-2 rounded border text-sm">
+                                <div class="flex items-center space-x-2">
+                                    @php
+                                        $extension = strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION));
+                                        $iconClass = 'fas fa-file text-gray-500';
+                                        $iconColor = 'text-gray-500';
+
+                                        switch($extension) {
+                                            case 'pdf':
+                                                $iconClass = 'fas fa-file-pdf';
+                                                $iconColor = 'text-red-500';
+                                                break;
+                                            case 'doc':
+                                            case 'docx':
+                                                $iconClass = 'fas fa-file-word';
+                                                $iconColor = 'text-blue-500';
+                                                break;
+                                            case 'xls':
+                                            case 'xlsx':
+                                                $iconClass = 'fas fa-file-excel';
+                                                $iconColor = 'text-green-500';
+                                                break;
+                                            case 'jpg':
+                                            case 'jpeg':
+                                            case 'png':
+                                                $iconClass = 'fas fa-file-image';
+                                                $iconColor = 'text-purple-500';
+                                                break;
+                                        }
+                                    @endphp
+                                    <i class="{{ $iconClass }} {{ $iconColor }}"></i>
+                                    <span class="font-medium text-gray-900">{{ $file['original_name'] }}</span>
+                                    <span class="text-gray-500 text-xs">
+                                        ({{ isset($file['file_size']) ? number_format($file['file_size'] / 1024, 1) . ' KB' : 'Unknown size' }})
+                                    </span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    @if($extension === 'pdf')
+                                    <button onclick="previewSpecFile('{{ $file['stored_name'] }}')"
+                                            class="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors"
+                                            title="Preview PDF">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </button>
+                                    @endif
+                                    <button onclick="downloadSpecFile('{{ $file['stored_name'] }}')"
+                                            class="text-green-600 hover:text-green-800 p-1 rounded transition-colors"
+                                            title="Download">
+                                        <i class="fas fa-download text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                @endif
                 </div>
                 @endforeach
 
@@ -230,6 +307,75 @@
                         <label class="text-xs text-gray-500">Spesifikasi</label>
                         <p class="text-sm text-gray-700">{{ $barang->spesifikasi }}</p>
                     </div>
+                    @endif
+
+                    {{-- File Spesifikasi --}}
+                    @if($barang->spesifikasi_files)
+                        @php
+                            $files = is_string($barang->spesifikasi_files)
+                                ? json_decode($barang->spesifikasi_files, true)
+                                : $barang->spesifikasi_files;
+                        @endphp
+                        @if($files && is_array($files) && count($files) > 0)
+                        <div class="mt-2">
+                            <label class="text-xs text-gray-500">File Spesifikasi ({{ count($files) }} file)</label>
+                            <div class="mt-1 space-y-1">
+                                @foreach($files as $file)
+                                <div class="flex items-center justify-between bg-white p-2 rounded border text-sm">
+                                    <div class="flex items-center space-x-2">
+                                        @php
+                                            $extension = strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION));
+                                            $iconClass = 'fas fa-file text-gray-500';
+                                            $iconColor = 'text-gray-500';
+
+                                            switch($extension) {
+                                                case 'pdf':
+                                                    $iconClass = 'fas fa-file-pdf';
+                                                    $iconColor = 'text-red-500';
+                                                    break;
+                                                case 'doc':
+                                                case 'docx':
+                                                    $iconClass = 'fas fa-file-word';
+                                                    $iconColor = 'text-blue-500';
+                                                    break;
+                                                case 'xls':
+                                                case 'xlsx':
+                                                    $iconClass = 'fas fa-file-excel';
+                                                    $iconColor = 'text-green-500';
+                                                    break;
+                                                case 'jpg':
+                                                case 'jpeg':
+                                                case 'png':
+                                                    $iconClass = 'fas fa-file-image';
+                                                    $iconColor = 'text-purple-500';
+                                                    break;
+                                            }
+                                        @endphp
+                                        <i class="{{ $iconClass }} {{ $iconColor }}"></i>
+                                        <span class="font-medium text-gray-900">{{ $file['original_name'] }}</span>
+                                        <span class="text-gray-500 text-xs">
+                                            ({{ isset($file['file_size']) ? number_format($file['file_size'] / 1024, 1) . ' KB' : 'Unknown size' }})
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center space-x-1">
+                                        @if($extension === 'pdf')
+                                        <button onclick="previewSpecFile('{{ $file['stored_name'] }}')"
+                                                class="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors"
+                                                title="Preview PDF">
+                                            <i class="fas fa-eye text-xs"></i>
+                                        </button>
+                                        @endif
+                                        <button onclick="downloadSpecFile('{{ $file['stored_name'] }}')"
+                                                class="text-green-600 hover:text-green-800 p-1 rounded transition-colors"
+                                                title="Download">
+                                            <i class="fas fa-download text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                     @endif
                 </div>
                 @endforeach
@@ -584,6 +730,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Functions for specification file handling
+function downloadSpecFile(filename) {
+    const url = `{{ url('/marketing/proyek/file') }}/${filename}`;
+    window.open(url, '_blank');
+}
+
+function previewSpecFile(filename) {
+    const url = `{{ url('/marketing/proyek/file') }}/${filename}/preview`;
+    window.open(url, '_blank');
+}
 </script>
 
 <!-- Modal Preview Image untuk File Approval -->

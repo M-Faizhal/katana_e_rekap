@@ -910,8 +910,8 @@ function reorderCards() {
 
     // Reset all cards to default order first
     allCards.forEach(card => {
-        card.style.order = '999'; // Put all at end initially
-        card.style.display = 'none'; // Hide all first
+        card.style.order = '999';
+        card.style.display = 'none';
     });
 
     // Set order for visible cards based on currentData
@@ -1021,6 +1021,55 @@ function viewDetail(id) {
         formattedData.daftar_barang.forEach((item, index) => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 mb-3';
+
+            // Build spesifikasi files HTML
+            let filesHtml = '';
+            if (item.spesifikasi_files && Array.isArray(item.spesifikasi_files) && item.spesifikasi_files.length > 0) {
+                filesHtml = `
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <div class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-paperclip mr-2 text-gray-500"></i>
+                            File Spesifikasi (${item.spesifikasi_files.length} file)
+                        </div>
+                        <div class="space-y-1">
+                            ${item.spesifikasi_files.map(file => {
+                                const fileExtension = file.original_name.split('.').pop().toLowerCase();
+                                let fileIcon = 'fas fa-file';
+                                if (['pdf'].includes(fileExtension)) {
+                                    fileIcon = 'fas fa-file-pdf text-red-500';
+                                } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                                    fileIcon = 'fas fa-file-image text-green-500';
+                                } else if (['doc', 'docx'].includes(fileExtension)) {
+                                    fileIcon = 'fas fa-file-word text-blue-500';
+                                } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                                    fileIcon = 'fas fa-file-excel text-green-600';
+                                }
+
+                                return `
+                                    <div class="flex items-center justify-between bg-white border border-gray-200 rounded p-2">
+                                        <div class="flex items-center space-x-2">
+                                            <i class="${fileIcon}"></i>
+                                            <span class="text-sm text-gray-700 truncate">${file.original_name}</span>
+                                            <span class="text-xs text-gray-500">(${formatFileSize(file.file_size)})</span>
+                                        </div>
+                                        <div class="flex space-x-1">
+                                            ${(['pdf', 'jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) ?
+                                                `<button onclick="previewFile('${file.stored_name}')" class="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50" title="Preview">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>` : ''
+                                            }
+                                            <button onclick="downloadFile('${file.stored_name}')" class="text-green-600 hover:text-green-800 text-xs px-2 py-1 rounded hover:bg-green-50" title="Download">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
             itemDiv.innerHTML = [
                 '<div class="flex justify-between items-start mb-2">',
                     '<h5 class="font-medium text-gray-800">' + item.nama + '</h5>',
@@ -1036,7 +1085,11 @@ function viewDetail(id) {
                     '<div>',
                         '<span class="font-medium">Harga Satuan:</span> ' + formatRupiah(item.harga_satuan),
                     '</div>',
-                '</div>'
+                '</div>',
+                '<div class="mt-2 text-sm text-gray-600">',
+                    '<span class="font-medium">Spesifikasi:</span> ' + (item.spesifikasi || 'Tidak ada spesifikasi'),
+                '</div>',
+                filesHtml
             ].join('');
             daftarBarangContainer.appendChild(itemDiv);
         });
@@ -1661,6 +1714,51 @@ function getStatusLabel(status) {
         'gagal': 'Gagal'
     };
     return labels[status] || status;
+}
+
+// Helper function untuk format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Function untuk download file
+function downloadFile(filename) {
+    window.open(`/marketing/proyek/file/${filename}`, '_blank');
+}
+
+// Function untuk preview file
+function previewFile(filename) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full mx-4 overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-lg font-semibold">Preview File: ${filename}</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 h-96 overflow-auto">
+                <iframe src="/marketing/proyek/file/${filename}/preview"
+                        class="w-full h-full border-0"
+                        onload="this.style.height=this.contentWindow.document.body.scrollHeight+'px'">
+                </iframe>
+            </div>
+            <div class="flex justify-end space-x-2 p-4 border-t">
+                <button onclick="downloadFile('${filename}')" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    <i class="fas fa-download mr-2"></i>Download
+                </button>
+                <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
 
 function validateDropdownChange(selectElement, proyekId) {
