@@ -315,9 +315,13 @@
                             <div class="w-2 h-2 sm:w-4 sm:h-4 bg-red-300 rounded-sm shadow-sm flex-shrink-0"></div>
                             <span class="text-xs sm:text-sm text-gray-700 font-medium">< 20M (Rendah)</span>
                         </div>
+                        <hr class="border-gray-300 my-1 sm:my-2">
                         <div class="flex items-center space-x-1 sm:space-x-3">
-                            <div class="w-2 h-2 sm:w-4 sm:h-4 bg-red-800 rounded-full shadow-sm flex-shrink-0 animate-none city-pulse-legend"></div>
-                            <span class="text-xs sm:text-sm text-gray-700 font-medium">Kota Utama</span>
+                            <div class="w-2 h-2 sm:w-3 sm:h-3 bg-gray-400 rounded-full shadow-sm flex-shrink-0 border border-white"></div>
+                            <span class="text-xs sm:text-sm text-gray-700 font-medium">Titik Kota</span>
+                        </div>
+                        <div class="flex items-center space-x-1 sm:space-x-3 mt-1">
+                            <span class="text-xs text-gray-500 ml-4 sm:ml-5">Ukuran = Volume Penjualan</span>
                         </div>
                     </div>
                 </div>
@@ -339,27 +343,37 @@
                 <!-- Statistics Content (Collapsible) -->
                 <div id="statsContent" class="px-2 pb-2 sm:px-3 sm:pb-3 border-t border-gray-200">
                     <div class="space-y-0.5 sm:space-y-2 text-xs sm:text-sm pt-1 sm:pt-2">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Jawa:</span>
-                            <span class="font-bold text-blue-600">Rp 125.5M</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Sumatra:</span>
-                            <span class="font-bold text-green-600">Rp 45.8M</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Kalimantan:</span>
-                            <span class="font-bold text-orange-600">Rp 28.3M</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Lainnya:</span>
-                            <span class="font-bold text-gray-600">Rp 62.1M</span>
-                        </div>
-                        <hr class="border-gray-200 my-0.5 sm:my-2">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-700 font-medium">Total:</span>
-                            <span class="font-bold text-red-600">Rp 261.7M</span>
-                        </div>
+                        @if($geographicStats['total_cities'] > 0)
+                            @foreach($geographicStats['top_cities'] as $city)
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">{{ $city['name'] }}:</span>
+                                <span class="font-bold text-
+                                    @if($city['level'] == 'very-high') blue-600
+                                    @elseif($city['level'] == 'high') green-600
+                                    @elseif($city['level'] == 'medium') orange-600
+                                    @else red-300
+                                    @endif
+                                ">Rp {{ $city['sales'] }}M</span>
+                            </div>
+                            @endforeach
+                            @if($geographicStats['others_sales'] > 0)
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">{{ $geographicStats['total_cities'] - 4 }} Kota Lainnya:</span>
+                                <span class="font-bold text-gray-600">Rp {{ $geographicStats['others_sales'] }}M</span>
+                            </div>
+                            @endif
+                            <hr class="border-gray-200 my-0.5 sm:my-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700 font-medium">Total ({{ $geographicStats['total_cities'] }} Kota):</span>
+                                <span class="font-bold text-red-600">Rp {{ $geographicStats['total_sales'] }}M</span>
+                            </div>
+                        @else
+                            <div class="text-center py-4 text-gray-500">
+                                <i class="fas fa-chart-pie text-2xl mb-2"></i>
+                                <p class="text-xs">Belum ada data penjualan</p>
+                                <p class="text-xs text-gray-400">Data akan muncul setelah ada proyek selesai</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -393,33 +407,142 @@
     background: rgba(0, 0, 0, 0.9);
 }
 
+/* City marker styles */
 .city-marker {
-    border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
+    background: transparent !important;
+    border: none !important;
 }
 
-.city-marker:hover {
-    transform: scale(1.2);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-    animation: pulse-on-hover 0.6s ease-in-out;
+.city-marker .marker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 }
 
-@keyframes pulse-on-hover {
+.city-marker .marker:hover {
+    animation: pulse-marker 0.6s ease-in-out;
+}
+
+@keyframes pulse-marker {
     0%, 100% {
-        box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     }
     50% {
-        box-shadow: 0 4px 8px rgba(0,0,0,0.4), 0 0 0 10px rgba(255,255,255,0.3);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 0 0 10px rgba(255,255,255,0.3);
     }
 }
 
 /* Custom marker colors based on sales performance */
-.marker-very-high { background-color: #3182CE; }
-.marker-high { background-color: #48BB78; }
-.marker-medium { background-color: #ED8936; }
-.marker-low { background-color: #F56565; }
+.marker-very-high {
+    background-color: #3182CE !important;
+    box-shadow: 0 0 0 4px rgba(49, 130, 206, 0.3) !important;
+}
+.marker-high {
+    background-color: #48BB78 !important;
+    box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.3) !important;
+}
+.marker-medium {
+    background-color: #ED8936 !important;
+    box-shadow: 0 0 0 4px rgba(237, 137, 54, 0.3) !important;
+}
+.marker-low {
+    background-color: #F56565 !important;
+    box-shadow: 0 0 0 4px rgba(245, 101, 101, 0.3) !important;
+}
+
+/* Enhanced leaflet interactive elements */
+.leaflet-interactive {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Smooth tooltip animations */
+.custom-tooltip {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 16px rgba(0, 0, 0, 0.2) !important;
+    color: white !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-size: 13px !important;
+    padding: 16px !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform-origin: bottom left !important;
+}
+
+/* Smooth map container */
+#indonesiaMap {
+    transition: filter 0.3s ease !important;
+}
+
+/* Collision warning styles - hidden from users */
+.collision-warning {
+    /* Keep collision detection for internal use but hide visual indicators */
+    /* animation: collision-pulse 2s infinite !important; */
+    position: relative !important;
+}
+
+.collision-warning::before {
+    /* Hide warning icon from users */
+    display: none !important;
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 10px;
+    background: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+@keyframes collision-pulse {
+    /* Disable collision pulse animation for cleaner user experience */
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+}
+
+/* Enhanced marker effects */
+.city-marker .marker {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.city-marker .marker:hover {
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+/* Marker bounce animation on load */
+@keyframes markerBounce {
+    0% {
+        transform: translateY(-20px) scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(-5px) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.city-marker .marker {
+    animation: markerBounce 0.6s ease-out;
+}
 </style>
 
 <script>
@@ -433,123 +556,360 @@ document.addEventListener('DOMContentLoaded', function() {
         maxZoom: 18,
     }).addTo(map);
 
-    // Sales data for Indonesian cities
-    const salesData = [
-        {
-            name: 'Jakarta',
-            position: [-6.2088, 106.8456],
-            sales: 125.5,
-            projects: 28,
-            growth: 25,
-            level: 'very-high'
-        },
-        {
-            name: 'Surabaya',
-            position: [-7.2575, 112.7521],
-            sales: 45.8,
-            projects: 12,
-            growth: 18,
-            level: 'high'
-        },
-        {
-            name: 'Medan',
-            position: [3.5952, 98.6722],
-            sales: 28.3,
-            projects: 8,
-            growth: 12,
-            level: 'medium'
-        },
-        {
-            name: 'Bandung',
-            position: [-6.9175, 107.6191],
-            sales: 22.7,
-            projects: 6,
-            growth: 8,
-            level: 'medium'
-        },
-        {
-            name: 'Makassar',
-            position: [-5.1477, 119.4327],
-            sales: 15.3,
-            projects: 4,
-            growth: 15,
-            level: 'medium'
-        },
-        {
-            name: 'Palembang',
-            position: [-2.9761, 104.7754],
-            sales: 12.4,
-            projects: 3,
-            growth: 7,
-            level: 'low'
-        },
-        {
-            name: 'Semarang',
-            position: [-6.9667, 110.4167],
-            sales: 8.2,
-            projects: 3,
-            growth: 5,
-            level: 'low'
-        },
-        {
-            name: 'Balikpapan',
-            position: [-1.2379, 116.8529],
-            sales: 5.8,
-            projects: 2,
-            growth: 3,
-            level: 'low'
-        },
-        {
-            name: 'Jayapura',
-            position: [-2.5489, 140.7197],
-            sales: 3.2,
-            projects: 1,
-            growth: 2,
-            level: 'low'
+    // City sales data from database (real data)
+    const citiesData = @json($geographicData);
+
+    // Debug: Log the data received from server
+    console.log('Geographic Data from Database:', citiesData);
+
+    // Check if we have data, if not show message
+    if (!citiesData || citiesData.length === 0) {
+        document.getElementById('indonesiaMap').innerHTML = `
+            <div class="flex items-center justify-center h-full">
+                <div class="text-center">
+                    <i class="fas fa-map-marked-alt text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-600 mb-2">Belum Ada Data Penjualan</h3>
+                    <p class="text-gray-500">Data distribusi geografis akan muncul setelah ada proyek yang selesai</p>
+                    <div class="mt-4 text-sm text-gray-400">
+                        <p>Pastikan ada proyek dengan status "Selesai" atau "Pengiriman" di database</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Function to check if two markers are overlapping with improved precision
+    function areMarkersOverlapping(coords1, coords2, zoomLevel) {
+        const pixelDistance = map.distance(coords1, coords2);
+        // Adaptive threshold based on zoom level - closer zoom allows closer markers
+        const threshold = Math.max(5000, 20000 / Math.pow(2, zoomLevel - 4));
+        return pixelDistance < threshold;
+    }
+
+    // Function to apply smart collision avoidance
+    function applySmartCollisionAvoidance() {
+        const processedMarkers = new Set();
+        const collisionGroups = [];
+
+        // Group overlapping markers
+        citiesData.forEach((city1, index1) => {
+            if (processedMarkers.has(index1)) return;
+
+            const group = [index1];
+            const baseCoords = city1.coordinates;
+
+            citiesData.forEach((city2, index2) => {
+                if (index1 !== index2 && !processedMarkers.has(index2)) {
+                    if (areMarkersOverlapping(baseCoords, city2.coordinates, map.getZoom())) {
+                        group.push(index2);
+                    }
+                }
+            });
+
+            if (group.length > 1) {
+                collisionGroups.push(group);
+                group.forEach(i => processedMarkers.add(i));
+            }
+        });
+
+        // Apply circular positioning for collision groups
+        collisionGroups.forEach((group, groupIndex) => {
+            const centerLat = group.reduce((sum, i) => sum + citiesData[i].coordinates[0], 0) / group.length;
+            const centerLng = group.reduce((sum, i) => sum + citiesData[i].coordinates[1], 0) / group.length;
+
+            // Calculate radius based on zoom level
+            const baseRadius = 0.05 / Math.pow(2, Math.max(0, map.getZoom() - 6));
+
+            group.forEach((cityIndex, posIndex) => {
+                if (posIndex === 0) return; // Keep first marker at original position
+
+                // Distribute markers in a circle around the center
+                const angle = (2 * Math.PI * posIndex) / group.length;
+                const radius = baseRadius * (1 + Math.floor(posIndex / 6) * 0.5); // Expand radius for many markers
+
+                const newLat = centerLat + radius * Math.cos(angle);
+                const newLng = centerLng + radius * Math.sin(angle);
+
+                // Update marker position
+                const marker = cityMarkers[cityIndex];
+                if (marker) {
+                    marker.setLatLng([newLat, newLng]);
+
+                    // Add visual indicator for repositioned markers
+                    if (marker._icon) {
+                        const markerElement = marker._icon.querySelector('.marker');
+                        if (markerElement) {
+                            markerElement.style.border = '3px solid #ff6b6b';
+                            markerElement.style.boxShadow = '0 0 0 2px rgba(255, 107, 107, 0.3), 0 4px 8px rgba(0,0,0,0.3)';
+                        }
+                    }
+                }
+            });
+        });
+
+        return collisionGroups;
+    }
+
+    // Function to detect all overlapping markers (simplified)
+    function detectOverlappingMarkers() {
+        const overlappingGroups = [];
+        const processed = new Set();
+
+        citiesData.forEach((city1, index1) => {
+            if (processed.has(index1)) return;
+
+            const group = [index1];
+            citiesData.forEach((city2, index2) => {
+                if (index1 !== index2 && !processed.has(index2)) {
+                    if (areMarkersOverlapping(city1.coordinates, city2.coordinates, map.getZoom())) {
+                        group.push(index2);
+                        processed.add(index2);
+                    }
+                }
+            });
+
+            if (group.length > 1) {
+                group.forEach(i => processed.add(i));
+                overlappingGroups.push(group);
+            }
+        });
+
+        return overlappingGroups;
+    }
+
+    // Function to apply collision effects with smart repositioning
+    function applyCollisionEffects() {
+        // First, reset all markers to original state
+        citiesData.forEach((city, index) => {
+            const marker = cityMarkers[index];
+            if (marker && marker._icon) {
+                const markerElement = marker._icon.querySelector('.marker');
+                if (markerElement) {
+                    markerElement.classList.remove('collision-warning', 'collision-group');
+                    markerElement.style.borderColor = 'white';
+                    markerElement.style.borderWidth = '3px';
+                    markerElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+                }
+            }
+            // Reset marker to original position
+            marker.setLatLng(city.coordinates);
+        });
+
+        // Apply smart collision avoidance
+        const collisionGroups = applySmartCollisionAvoidance();
+
+        // Update collision info display
+        updateCollisionInfo(collisionGroups);
+
+        return collisionGroups;
+    }
+
+    // Function to update collision information display (hidden from users)
+    function updateCollisionInfo(overlappingGroups) {
+        let infoDiv = document.getElementById('collisionInfo');
+        if (!infoDiv) {
+            infoDiv = document.createElement('div');
+            infoDiv.id = 'collisionInfo';
+            infoDiv.style.cssText = `
+                position: absolute;
+                top: 60px;
+                right: 6px;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-blur: 16px;
+                border-radius: 12px;
+                padding: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: 1px solid rgba(0,0,0,0.1);
+                font-size: 12px;
+                font-family: system-ui, -apple-system, sans-serif;
+                z-index: 1000;
+                max-width: 250px;
+                transition: all 0.3s ease;
+                display: none;
+                visibility: hidden;
+                opacity: 0;
+            `;
+            document.querySelector('#indonesiaMap').appendChild(infoDiv);
         }
-    ];
 
-    // Create custom divIcon for each city
-    salesData.forEach(city => {
-        const markerSize = city.level === 'very-high' ? 16 :
-                          city.level === 'high' ? 14 :
-                          city.level === 'medium' ? 12 : 10;
+        // Keep collision detection logic for internal use but hide from users
+        if (overlappingGroups.length > 0) {
+            // Console logging for debugging (only visible to developers)
+            console.log(`Collision detected: ${overlappingGroups.length} groups overlapping`);
+            overlappingGroups.forEach((group, index) => {
+                console.log(`Group ${index + 1}:`, group.map(cityIndex => citiesData[cityIndex].name));
+            });
+            
+            // Keep info div hidden
+            infoDiv.style.display = 'none';
+        } else {
+            console.log('No marker collisions detected');
+            // Keep info div hidden
+            infoDiv.style.display = 'none';
+        }
+    }
 
+    // Function to get marker size based on sales level
+    function getMarkerSize(level) {
+        switch(level) {
+            case 'very-high': return 20;
+            case 'high': return 16;
+            case 'medium': return 14;
+            case 'low': return 12;
+            default: return 10;
+        }
+    }
+
+    // Function to get marker color based on sales level
+    function getMarkerColor(level) {
+        switch(level) {
+            case 'very-high': return '#3182CE';
+            case 'high': return '#48BB78';
+            case 'medium': return '#ED8936';
+            case 'low': return '#F56565';
+            default: return '#CBD5E0';
+        }
+    }
+
+    // Function to get hover color (lighter version)
+    function getHoverColor(level) {
+        switch(level) {
+            case 'very-high': return '#4299E1';
+            case 'high': return '#68D391';
+            case 'medium': return '#F6AD55';
+            case 'low': return '#FC8181';
+            default: return '#E2E8F0';
+        }
+    }
+
+    // Create floating tooltip with enhanced styling
+    const tooltip = document.createElement('div');
+    tooltip.style.cssText = `
+        position: fixed;
+        background: rgba(0, 0, 0, 0.95);
+        color: white;
+        padding: 16px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-family: system-ui, -apple-system, sans-serif;
+        pointer-events: none;
+        z-index: 1000;
+        display: none;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 16px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(16px) saturate(180%);
+        max-width: 250px;
+        transform-origin: bottom left;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    `;
+    document.body.appendChild(tooltip);
+
+    // Add city markers to map
+    const cityMarkers = []; // Store markers for collision detection
+
+    citiesData.forEach((city, index) => {
+        const markerSize = getMarkerSize(city.level);
+
+        // Create custom divIcon for each city
         const customIcon = L.divIcon({
-            className: `city-marker marker-${city.level}`,
-            html: '',
+            className: 'city-marker',
+            html: `<div class="marker marker-${city.level}" style="
+                width: ${markerSize}px;
+                height: ${markerSize}px;
+                background-color: ${getMarkerColor(city.level)};
+                border: 3px solid white;
+                border-radius: 50%;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                cursor: pointer;
+            "></div>`,
             iconSize: [markerSize, markerSize],
             iconAnchor: [markerSize/2, markerSize/2]
         });
 
         // Create marker
-        const marker = L.marker(city.position, { icon: customIcon }).addTo(map);
+        const marker = L.marker(city.coordinates, { icon: customIcon }).addTo(map);
+        cityMarkers.push(marker); // Store marker for collision detection
 
-        // Create popup content
-        const popupContent = `
-            <div style="color: white; font-family: system-ui;">
-                <div style="font-weight: bold; margin-bottom: 4px; color: #FFF;">${city.name}</div>
-                <div style="font-size: 12px; color: #D1D5DB;">Penjualan: Rp ${city.sales}M</div>
-                <div style="font-size: 12px; color: #D1D5DB;">Proyek: ${city.projects} aktif</div>
-                <div style="font-size: 12px; color: #86EFAC;">Pertumbuhan: +${city.growth}%</div>
-            </div>
-        `;
+        // Hover effects
+        marker.on('mouseover', function(e) {
+            const markerElement = e.target._icon.querySelector('.marker');
 
-        // Bind popup to marker
-        marker.bindPopup(popupContent, {
-            offset: [0, -markerSize/2],
-            closeButton: false,
-            className: 'custom-popup'
+            // Enhanced hover effect
+            markerElement.style.transform = 'scale(1.3)';
+            markerElement.style.backgroundColor = getHoverColor(city.level);
+            markerElement.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+            markerElement.style.zIndex = '1000';
+
+            // Show tooltip with fade in effect
+            tooltip.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px; color: #FFF; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px;">${city.name}</div>
+                <div style="font-size: 11px; color: #9CA3AF; margin-bottom: 6px; display: flex; align-items: center;">
+                    <span style="margin-right: 6px;">📍</span>${city.area} • ${city.population}
+                </div>
+                <div style="font-size: 12px; color: #E5E7EB; margin-bottom: 4px; display: flex; align-items: center;">
+                    <span style="margin-right: 6px;">💰</span>Penjualan: <strong style="color: #34D399; margin-left: 4px;">Rp ${city.sales}M</strong>
+                </div>
+                <div style="font-size: 12px; color: #E5E7EB; margin-bottom: 4px; display: flex; align-items: center;">
+                    <span style="margin-right: 6px;">📊</span>Proyek: <strong style="color: #60A5FA; margin-left: 4px;">${city.projects} proyek</strong>
+                </div>
+                <div style="font-size: 12px; color: #E5E7EB; display: flex; align-items: center;">
+                    <span style="margin-right: 6px;">📈</span>Pertumbuhan: <strong style="color: #FBBF24; margin-left: 4px;">+${city.growth}%</strong>
+                </div>
+            `;
+
+            tooltip.style.display = 'block';
+            tooltip.style.opacity = '0';
+            tooltip.style.transform = 'translateY(5px)';
+
+            // Smooth fade in
+            setTimeout(() => {
+                tooltip.style.transition = 'all 0.2s ease-out';
+                tooltip.style.opacity = '1';
+                tooltip.style.transform = 'translateY(0)';
+            }, 10);
         });
 
-        // Show popup on hover, hide on mouseout
-        marker.on('mouseover', function() {
-            this.openPopup();
+        marker.on('mouseout', function(e) {
+            const markerElement = e.target._icon.querySelector('.marker');
+
+            // Reset marker style
+            markerElement.style.transform = 'scale(1)';
+            markerElement.style.backgroundColor = getMarkerColor(city.level);
+            markerElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+
+            // Smooth fade out tooltip
+            tooltip.style.transition = 'all 0.15s ease-in';
+            tooltip.style.opacity = '0';
+            tooltip.style.transform = 'translateY(-3px)';
+
+            setTimeout(() => {
+                tooltip.style.display = 'none';
+                tooltip.style.transition = '';
+            }, 150);
         });
 
-        marker.on('mouseout', function() {
-            this.closePopup();
+        // Mouse move to update tooltip position
+        marker.on('mousemove', function(e) {
+            const x = e.originalEvent.clientX;
+            const y = e.originalEvent.clientY;
+
+            tooltip.style.left = (x + 20) + 'px';
+            tooltip.style.top = (y - 10) + 'px';
         });
+    });
+
+    // Initial collision detection
+    setTimeout(() => {
+        applyCollisionEffects();
+    }, 500);
+
+    // Update collision detection on zoom
+    map.on('zoomend', function() {
+        setTimeout(() => {
+            applyCollisionEffects();
+        }, 100);
     });
 
     // Disable zoom on scroll to prevent accidental zooming
