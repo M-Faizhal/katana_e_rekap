@@ -78,11 +78,12 @@
                 @if($kalkulasiData->count())
                 <tfoot class="bg-gray-50">
                     <tr>
-                        <td colspan="11" class="px-3 py-3 text-right font-semibold">Total</td>
+                        <td colspan="10" class="px-3 py-3 text-right font-semibold">Total</td>
                         <td class="px-3 py-3 font-semibold">{{ 'Rp ' . number_format($kalkulasiData->sum('hps'), 0, ',', '.') }}</td>
                         <td class="px-3 py-3"></td>
                         <td class="px-3 py-3"></td>
-                        <td class="px-3 py-3 font-semibold">{{ 'Rp ' . number_format($kalkulasiData->sum('nilai_nett_pcs'), 0, ',', '.') }}</td>
+                        <td class="px-3 py-3"></td>
+                      
                         <td class="px-3 py-3 font-semibold">{{ 'Rp ' . number_format($kalkulasiData->sum('total_nett_pcs'), 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
