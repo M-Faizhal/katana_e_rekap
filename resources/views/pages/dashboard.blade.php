@@ -27,7 +27,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Omset Bulan Ini</h3>
-                <p class="text-xl sm:text-2xl font-bold text-green-600 mb-1">Rp {{ number_format($stats['omset_bulan_ini'] / 1000000, 1) }}M</p>
+                <p class="text-xl sm:text-2xl font-bold text-green-600 mb-1">Rp {{ $stats['omset_bulan_ini_formatted'] ?? '0' }}</p>
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-arrow-{{ $stats['omset_growth'] >= 0 ? 'up' : 'down' }} text-{{ $stats['omset_growth'] >= 0 ? 'green' : 'red' }}-500 text-sm"></i>
                     <span class="text-sm font-medium text-{{ $stats['omset_growth'] >= 0 ? 'green' : 'red' }}-500">{{ $stats['omset_growth'] >= 0 ? '+' : '' }}{{ $stats['omset_growth'] }}%</span>
@@ -63,7 +63,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Total Hutang</h3>
-                <p class="text-xl sm:text-2xl font-bold text-red-600 mb-1">Rp {{ number_format($stats['total_hutang'] / 1000000, 1) }}M</p>
+                <p class="text-xl sm:text-2xl font-bold text-red-600 mb-1">Rp {{ $stats['total_hutang_formatted'] ?? '0' }}</p>
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-exclamation-triangle text-orange-500 text-sm"></i>
                     <span class="text-sm font-medium text-orange-500">{{ $stats['vendor_pending'] }}</span>
@@ -81,7 +81,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Total Piutang</h3>
-                <p class="text-xl sm:text-2xl font-bold text-yellow-600 mb-1">Rp {{ number_format($stats['total_piutang'] / 1000000, 1) }}M</p>
+                <p class="text-xl sm:text-2xl font-bold text-yellow-600 mb-1">Rp {{ $stats['total_piutang_formatted'] ?? '0' }}</p>
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-clock text-yellow-500 text-sm"></i>
                     <span class="text-sm font-medium text-yellow-500">{{ $stats['dinas_pending'] }}</span>
@@ -97,77 +97,142 @@
     <!-- Left Large Card - Grafik Omset Per Bulan -->
     <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-            <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Grafik Omset Per Bulan</h3>
-            <div class="flex space-x-2">
-                <button class="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-xl text-xs sm:text-sm font-medium hover:bg-green-700 transition-colors duration-200">2024</button>
-                <button class="px-3 sm:px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-200 transition-colors duration-200">2023</button>
-            </div>
-        </div>
-        <div class="h-64 sm:h-80 flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 rounded-xl relative">
-            <!-- Simple Bar Chart Visualization -->
-            <div class="w-full h-full p-2 sm:p-4">
-                <div class="flex items-end justify-between h-full space-x-1 sm:space-x-2">
-                    @foreach($monthlyRevenue as $month)
-                    @php
-                        $maxRevenue = collect($monthlyRevenue)->max('revenue');
-                        $height = $maxRevenue > 0 ? ($month['revenue'] / $maxRevenue) * 100 : 0;
-                        $color = $month['month'] <= date('n') ? 'bg-green-500' : 'bg-gray-300';
-                        if($month['month'] <= date('n') && $month['revenue'] > 0) {
-                            if($month['revenue'] > $maxRevenue * 0.7) $color = 'bg-green-700';
-                            elseif($month['revenue'] > $maxRevenue * 0.5) $color = 'bg-green-600';
-                        }
-                    @endphp
-                    <div class="flex flex-col items-center">
-                        <div class="{{ $color }} rounded-t-lg w-4 sm:w-6 lg:w-8 transition-all duration-500 hover:opacity-80"
-                             style="height: {{ max($height, 3) }}%"
-                             title="{{ $month['month_name'] }}: Rp {{ number_format($month['revenue'] / 1000000, 1) }}M"></div>
-                        <span class="text-xs text-gray-600 mt-1 sm:mt-2">{{ $month['month_name'] }}</span>
-                        <span class="text-xs text-gray-500 hidden sm:block">{{ number_format($month['revenue'] / 1000000, 0) }}M</span>
-                    </div>
-                    @endforeach
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-chart-line text-green-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Grafik Omset Per Bulan</h3>
+                    <p class="text-sm text-gray-600" id="dashboardChartInfo">Data untuk {{ date('Y') }}</p>
                 </div>
             </div>
+            <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700 hidden sm:block">Tahun:</label>
+                <select id="dashboardYearFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white">
+                    @for($year = 2022; $year <= date('Y') + 1; $year++)
+                        <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
+                    @endfor
+                </select>
+            </div>
+        </div>
+        <div class="h-64 sm:h-80">
+            <canvas id="dashboardOmsetChart"></canvas>
         </div>
     </div>
 
     <!-- Right Large Card - Omset Per Orang -->
     <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-            <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Omset Per Orang (Asal Proyek)</h3>
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-trophy text-yellow-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Omset Per Orang</h3>
+                    <p class="text-sm text-gray-600">Top performer marketing & purchasing</p>
+                </div>
+            </div>
             <button class="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium self-start sm:self-auto">
                 Lihat Detail
             </button>
         </div>
-        <div class="space-y-3 sm:space-y-4">
-            @forelse($revenuePerPerson as $person)
-            <div class="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all duration-200">
-                <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-                        <i class="fas fa-user-tie text-white text-sm sm:text-base"></i>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $person->nama }}</p>
-                        <p class="text-xs sm:text-sm text-gray-600">{{ $person->total_projects }} Proyek</p>
-                    </div>
-                </div>
-                <div class="text-right flex-shrink-0 ml-2">
-                    <p class="text-sm sm:text-lg font-bold text-blue-600">Rp {{ number_format($person->total_revenue / 1000000, 1) }}M</p>
-                    <div class="w-16 sm:w-20 bg-gray-200 rounded-full h-2 mt-1">
-                        @php
-                            $maxRevenue = $revenuePerPerson->max('total_revenue');
-                            $percentage = $maxRevenue > 0 ? ($person->total_revenue / $maxRevenue) * 100 : 0;
-                        @endphp
-                        <div class="bg-blue-500 h-2 rounded-full" style="width: {{ $percentage }}%"></div>
-                    </div>
-                </div>
-            </div>
-            @empty
-            <div class="text-center py-8 text-gray-500">
-                <i class="fas fa-users text-3xl mb-2"></i>
-                <p>Belum ada data omset per orang</p>
-            </div>
-            @endforelse
+
+        <div>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omset</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($revenuePerPerson as $index => $person)
+                    @php
+                        $rankColor = $index == 0 ? 'yellow' : ($index == 1 ? 'gray' : ($index == 2 ? 'orange' : 'blue'));
+                        $roleColor = $person->role == 'Marketing' ? 'red' : 'blue';
+                        $rankIcon = $index == 0 ? 'fa-crown' : ($index == 1 ? 'fa-medal' : ($index == 2 ? 'fa-award' : 'fa-user-tie'));
+                    @endphp
+                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-{{ $rankColor }}-100 rounded-full flex items-center justify-center mr-2">
+                                    @if($index < 3)
+                                        <i class="fas {{ $rankIcon }} text-{{ $rankColor }}-600 text-sm"></i>
+                                    @else
+                                        <span class="text-xs font-medium text-{{ $rankColor }}-600">{{ $index + 1 }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-{{ $roleColor }}-100 rounded-xl flex items-center justify-center mr-3">
+                                    <i class="fas fa-user-tie text-{{ $roleColor }}-600 text-sm"></i>
+                                </div>
+                                <div class="text-sm font-medium text-gray-900">{{ $person->nama }}</div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 bg-{{ $roleColor }}-100 text-{{ $roleColor }}-700 rounded-full text-xs font-medium">
+                                {{ $person->role }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $person->total_projects }} proyek
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <div class="flex flex-col">
+                                <span class="text-lg font-bold text-green-600">
+                                    @php
+                                        $formatAmount = function($amount) {
+                                            if ($amount >= 1000000000000) {
+                                                return number_format($amount / 1000000000000, 1, ',', '.') . ' T';
+                                            } elseif ($amount >= 1000000000) {
+                                                return number_format($amount / 1000000000, 1, ',', '.') . ' M';
+                                            } elseif ($amount >= 1000000) {
+                                                return number_format($amount / 1000000, 1, ',', '.') . ' jt';
+                                            } elseif ($amount >= 1000) {
+                                                return number_format($amount / 1000, 1, ',', '.') . ' rb';
+                                            } else {
+                                                return number_format($amount, 0, ',', '.');
+                                            }
+                                        };
+                                    @endphp
+                                    Rp {{ $formatAmount($person->total_revenue) }}
+                                </span>
+                                <div class="w-20 bg-gray-200 rounded-full h-2 mt-1">
+                                    @php
+                                        $maxRevenue = $revenuePerPerson->max('total_revenue');
+                                        $percentage = $maxRevenue > 0 ? ($person->total_revenue / $maxRevenue) * 100 : 0;
+                                    @endphp
+                                    <div class="bg-green-500 h-2 rounded-full transition-all duration-300" style="width: {{ $percentage }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                            <i class="fas fa-users text-3xl mb-2"></i>
+                            <p>Belum ada data omset</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+
+        @if($revenuePerPerson->count() > 0)
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-600">Total Admin: {{ $revenuePerPerson->count() }}</span>
+                <span class="text-gray-600">Total Omset: Rp {{ $formatAmount($revenuePerPerson->sum('total_revenue')) }}</span>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 
@@ -413,6 +478,9 @@
         </div>
     </div>
 </div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- Include Leaflet CSS and JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1030,6 +1098,193 @@ function toggleStats() {
         icon.classList.add('fa-chevron-down');
         icon.style.transform = 'rotate(180deg)';
     }
+}
+
+// Dashboard Chart Variables
+let dashboardOmsetChart;
+const currentYear = {{ date('Y') }};
+
+// Function to format Rupiah in Indonesian format
+function formatRupiahShort(amount) {
+    if (amount >= 1000000000000) {
+        return (amount / 1000000000000).toFixed(1) + ' T';
+    } else if (amount >= 1000000000) {
+        return (amount / 1000000000).toFixed(1) + ' M';
+    } else if (amount >= 1000000) {
+        return (amount / 1000000).toFixed(1) + ' jt';
+    } else if (amount >= 1000) {
+        return (amount / 1000).toFixed(1) + ' rb';
+    } else {
+        return amount.toLocaleString('id-ID');
+    }
+}
+
+// Dashboard Year Selection Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const dashboardYearFilter = document.getElementById('dashboardYearFilter');
+
+    // Initialize chart with current year data
+    const initialMonthlyData = @json($monthlyRevenue ?? []);
+    initializeDashboardChart(initialMonthlyData, currentYear);
+
+    if (dashboardYearFilter) {
+        // Add change handler for year dropdown
+        dashboardYearFilter.addEventListener('change', function() {
+            const selectedYear = parseInt(this.value);
+            loadDashboardChartData(selectedYear);
+        });
+    }
+});
+
+function initializeDashboardChart(monthlyData, year) {
+    const ctx = document.getElementById('dashboardOmsetChart').getContext('2d');
+
+    // Prepare data for chart
+    const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Des'];
+    const data = new Array(12).fill(0);
+
+    if (monthlyData && monthlyData.length > 0) {
+        monthlyData.forEach(item => {
+            if (item.month && item.month >= 1 && item.month <= 12) {
+                data[item.month - 1] = parseFloat(item.revenue) || 0;
+            }
+        });
+    }
+
+    dashboardOmsetChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Omset (Rp)',
+                data: data,
+                borderColor: 'rgb(34, 197, 94)',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                tension: 0.1,
+                fill: true,
+                pointBackgroundColor: 'rgb(34, 197, 94)',
+                pointBorderColor: 'rgb(34, 197, 94)',
+                pointHoverBackgroundColor: 'rgb(21, 128, 61)',
+                pointHoverBorderColor: 'rgb(21, 128, 61)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return formatRupiahShort(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Omset: Rp ' + formatRupiahShort(context.parsed.y);
+                        }
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Update chart info
+    document.getElementById('dashboardChartInfo').textContent = `Data untuk ${year}`;
+}
+
+function loadDashboardChartData(year) {
+    // Show loading state on chart
+    if (dashboardOmsetChart) {
+        dashboardOmsetChart.data.datasets[0].data = new Array(12).fill(0);
+        dashboardOmsetChart.update();
+    }
+
+    // Build URL with parameters
+    const params = new URLSearchParams({
+        year: year
+    });
+
+    // Make AJAX request to get data for selected year
+    fetch(`/dashboard/chart-data?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Update chart with new data
+        updateDashboardChart(data.monthlyRevenue || [], year);
+    })
+    .catch(error => {
+        console.error('Error loading dashboard chart data:', error);
+        // Show error notification
+        showDashboardNotification('Terjadi kesalahan saat memuat data grafik', 'error');
+    });
+}
+
+function updateDashboardChart(monthlyData, year) {
+    if (!dashboardOmsetChart) return;
+
+    // Prepare new data
+    const data = new Array(12).fill(0);
+
+    if (monthlyData && monthlyData.length > 0) {
+        monthlyData.forEach(item => {
+            if (item.month && item.month >= 1 && item.month <= 12) {
+                data[item.month - 1] = parseFloat(item.revenue) || 0;
+            }
+        });
+    }
+
+    // Update chart data
+    dashboardOmsetChart.data.datasets[0].data = data;
+    dashboardOmsetChart.update('active');
+
+    // Update chart info
+    document.getElementById('dashboardChartInfo').textContent = `Data untuk ${year}`;
+}function showDashboardNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+        type === 'success' ? 'bg-green-500' :
+        type === 'error' ? 'bg-red-500' :
+        'bg-blue-500'
+    } text-white`;
+
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${
+                type === 'success' ? 'fa-check-circle' :
+                type === 'error' ? 'fa-exclamation-circle' :
+                'fa-info-circle'
+            } mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
 }
 </script>
 </div>

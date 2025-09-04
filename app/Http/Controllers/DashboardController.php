@@ -11,6 +11,7 @@ use App\Models\Penawaran;
 use App\Models\PenawaranDetail;
 use App\Models\Pembayaran;
 use App\Models\Pengiriman;
+use App\Models\KalkulasiHps;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -49,7 +50,12 @@ class DashboardController extends Controller
         // Get basic statistics
         $stats = $this->getDashboardStats();
 
-        // Get monthly revenue data
+        // Add formatted versions for display (same as omset report)
+        $stats['omset_bulan_ini_formatted'] = $this->formatRupiah($stats['omset_bulan_ini']);
+        $stats['total_hutang_formatted'] = $this->formatRupiah($stats['total_hutang']);
+        $stats['total_piutang_formatted'] = $this->formatRupiah($stats['total_piutang']);
+
+        // Get monthly revenue data (default to current year)
         $monthlyRevenue = $this->getMonthlyRevenue();
 
         // Get revenue per admin marketing
@@ -87,17 +93,22 @@ class DashboardController extends Controller
         $currentYear = Carbon::now()->year;
         $lastMonth = Carbon::now()->subMonth();
 
-        // Calculate omset bulan ini (revenue this month)
-        $omsetBulanIni = Proyek::whereIn('status', ['selesai', 'pengiriman'])
-            ->whereMonth('updated_at', $currentMonth)
-            ->whereYear('updated_at', $currentYear)
-            ->sum('harga_total') ?? 0;
+        // Calculate omset bulan ini (revenue this month) - use same method as omset report
+        // Using nett_income from kalkulasi_hps instead of harga_total from proyek
+        $omsetBulanIni = KalkulasiHps::whereHas('proyek', function($query) use ($currentMonth, $currentYear) {
+                $query->whereNotIn('status', ['Gagal', 'Menunggu']) // Exclude gagal and menunggu
+                      ->whereMonth('created_at', $currentMonth)
+                      ->whereYear('created_at', $currentYear);
+            })
+            ->sum('nett_income') ?? 0;
 
         // Calculate omset bulan lalu untuk perbandingan
-        $omsetBulanLalu = Proyek::whereIn('status', ['selesai', 'pengiriman'])
-            ->whereMonth('updated_at', $lastMonth->month)
-            ->whereYear('updated_at', $lastMonth->year)
-            ->sum('harga_total') ?? 0;
+        $omsetBulanLalu = KalkulasiHps::whereHas('proyek', function($query) use ($lastMonth) {
+                $query->whereNotIn('status', ['Gagal', 'Menunggu'])
+                      ->whereMonth('created_at', $lastMonth->month)
+                      ->whereYear('created_at', $lastMonth->year);
+            })
+            ->sum('nett_income') ?? 0;
 
         // Calculate growth percentage
         $omsetGrowth = $omsetBulanLalu > 0 ?
@@ -153,44 +164,93 @@ class DashboardController extends Controller
     /**
      * Get monthly revenue data for chart
      */
-    private function getMonthlyRevenue()
+    private function getMonthlyRevenue($year = null, $specificMonth = null)
     {
-        $currentYear = Carbon::now()->year;
+        $year = $year ?: Carbon::now()->year;
         $monthlyData = [];
 
-        for ($month = 1; $month <= 12; $month++) {
-            $revenue = Proyek::whereIn('status', ['selesai', 'pengiriman'])
-                ->whereMonth('updated_at', $month)
-                ->whereYear('updated_at', $currentYear)
-                ->sum('harga_total') ?? 0;
+        // If specific month is requested, only return that month's data
+        if ($specificMonth) {
+            $revenue = KalkulasiHps::whereHas('proyek', function($query) use ($specificMonth, $year) {
+                    $query->whereNotIn('status', ['Gagal', 'Menunggu'])
+                          ->whereMonth('created_at', $specificMonth)
+                          ->whereYear('created_at', $year);
+                })
+                ->sum('nett_income') ?? 0;
 
-            $monthlyData[] = [
-                'month' => $month,
-                'month_name' => Carbon::create($currentYear, $month, 1)->format('M'),
-                'revenue' => $revenue
-            ];
+            // Still return 12 months but highlight the selected month
+            for ($month = 1; $month <= 12; $month++) {
+                $monthlyData[] = [
+                    'month' => $month,
+                    'month_name' => Carbon::create($year, $month, 1)->format('M'),
+                    'revenue' => $month == $specificMonth ? $revenue : 0
+                ];
+            }
+        } else {
+            // Return all months
+            for ($month = 1; $month <= 12; $month++) {
+                $revenue = KalkulasiHps::whereHas('proyek', function($query) use ($month, $year) {
+                        $query->whereNotIn('status', ['Gagal', 'Menunggu'])
+                              ->whereMonth('created_at', $month)
+                              ->whereYear('created_at', $year);
+                    })
+                    ->sum('nett_income') ?? 0;
+
+                $monthlyData[] = [
+                    'month' => $month,
+                    'month_name' => Carbon::create($year, $month, 1)->format('M'),
+                    'revenue' => $revenue
+                ];
+            }
         }
 
         return $monthlyData;
     }
 
     /**
-     * Get revenue per admin marketing
+     * Get revenue leaderboard combining marketing and purchasing admins
      */
     private function getRevenuePerPerson()
     {
-        return Proyek::select(
+        // Get marketing admins
+        $marketingAdmins = DB::table('users')
+            ->select(
                 'users.nama',
                 'users.id_user',
-                DB::raw('SUM(proyek.harga_total) as total_revenue'),
-                DB::raw('COUNT(proyek.id_proyek) as total_projects')
+                DB::raw('SUM(kalkulasi_hps.nett_income) as total_revenue'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
+                DB::raw("'Marketing' as role")
             )
-            ->join('users', 'proyek.id_admin_marketing', '=', 'users.id_user')
-            ->whereIn('proyek.status', ['selesai', 'pengiriman'])
+            ->join('proyek', 'proyek.id_admin_marketing', '=', 'users.id_user')
+            ->join('kalkulasi_hps', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
+            ->whereYear('proyek.created_at', Carbon::now()->year)
             ->groupBy('users.id_user', 'users.nama')
-            ->orderBy('total_revenue', 'desc')
-            ->limit(4)
             ->get();
+
+        // Get purchasing admins
+        $purchasingAdmins = DB::table('users')
+            ->select(
+                'users.nama',
+                'users.id_user',
+                DB::raw('SUM(kalkulasi_hps.nett_income) as total_revenue'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
+                DB::raw("'Purchasing' as role")
+            )
+            ->join('proyek', 'proyek.id_admin_purchasing', '=', 'users.id_user')
+            ->join('kalkulasi_hps', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
+            ->whereYear('proyek.created_at', Carbon::now()->year)
+            ->groupBy('users.id_user', 'users.nama')
+            ->get();
+
+        // Combine and sort by revenue
+        $combinedData = collect($marketingAdmins)->merge($purchasingAdmins)
+            ->sortByDesc('total_revenue')
+            ->take(10)
+            ->values();
+
+        return $combinedData;
     }
 
     /**
@@ -275,17 +335,19 @@ class DashboardController extends Controller
                 return collect([]);
             }
 
-            // Always use kab_kota column as it contains city names, not institution names
-            $wilayahData = Proyek::select(
+            // Use nett_income from kalkulasi_hps for consistency with omset report
+            $wilayahData = DB::table('proyek')
+                ->select(
                     DB::raw("TRIM(proyek.kab_kota) as city_name"),
-                    DB::raw('SUM(proyek.harga_total) as total_sales'),
-                    DB::raw('COUNT(proyek.id_proyek) as total_projects'),
-                    DB::raw('AVG(proyek.harga_total) as avg_sales')
+                    DB::raw('SUM(kalkulasi_hps.nett_income) as total_sales'),
+                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
+                    DB::raw('AVG(kalkulasi_hps.nett_income) as avg_sales')
                 )
-                ->whereIn('proyek.status', ['selesai', 'pengiriman'])
+                ->join('kalkulasi_hps', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+                ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
                 ->whereNotNull('proyek.kab_kota')
                 ->where('proyek.kab_kota', '!=', '')
-                ->whereNotNull('proyek.harga_total')
+                ->whereNotNull('kalkulasi_hps.nett_income')
                 ->groupBy('proyek.kab_kota')
                 ->orderBy('total_sales', 'desc')
                 ->get();
@@ -533,17 +595,18 @@ class DashboardController extends Controller
     /**
      * API endpoint for chart data
      */
-    public function getChartData()
+    public function getChartData(Request $request)
     {
-        $monthlyRevenue = $this->getMonthlyRevenue();
+        $year = $request->get('year', Carbon::now()->year);
+        $month = $request->get('month'); // Optional month filter
+
+        $monthlyRevenue = $this->getMonthlyRevenue($year, $month);
         $revenuePerPerson = $this->getRevenuePerPerson();
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'monthly_revenue' => $monthlyRevenue,
-                'revenue_per_person' => $revenuePerPerson
-            ]
+            'monthlyRevenue' => $monthlyRevenue,
+            'revenuePerPerson' => $revenuePerPerson
         ]);
     }
 }
