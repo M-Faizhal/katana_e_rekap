@@ -894,7 +894,7 @@ function calculateTotals() {
     document.getElementById('grand-total-hpp').textContent = formatRupiah(summary.totalHpp);
     document.getElementById('grand-total-hps').textContent = formatRupiah(summary.totalHps);
     document.getElementById('grand-total-nett').textContent = formatRupiah(summary.totalNett);
-    document.getElementById('grand-avg-nett').textContent = formatPercent(summary.avgNettIncomePercent);
+    document.getElementById('grand-avg-nett').textContent = formatPercent(summary.rataRataNet);
     
     // Additional summary details
     if (document.getElementById('total-items')) {

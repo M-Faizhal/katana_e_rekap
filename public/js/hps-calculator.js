@@ -215,7 +215,7 @@ class HPSCalculator {
         calculated.nett_income = nilaiNettIncome; // For compatibility
         calculated.nett = nilaiNettIncome; // For compatibility
         
-        // 34. NETT INCOME PERSENTASE = NILAI NETT INCOME / ASUMSI NILAI CAIR
+        // 34. NETT INCOME PERSENTASE = NILAI NETT INCOME / NILAI ASUMSI CAIR
         const nettIncomePersentase = asumsiNilaiCair > 0 ? (nilaiNettIncome / asumsiNilaiCair) * 100 : 0;
         calculated.nett_income_persentase = nettIncomePersentase;
         calculated.nett_income_percent = nettIncomePersentase; // For compatibility
@@ -317,6 +317,11 @@ class HPSCalculator {
             summary.avgNettIncomePercent = this.kalkulasiData.reduce((sum, item) => 
                 sum + (parseFloat(item.nett_income_persentase) || 0), 0) / count;
         }
+
+        // Rata-rata Net = Total Nilai Nett Income / Total Nilai Asumsi Cair * 100%
+        const rataRataNet = summary.totalAsumsiCair > 0 ? (summary.totalNettIncome / summary.totalAsumsiCair) * 100 : 0;
+        summary.rataRataNet = rataRataNet;
+        summary.rata_rata_net = rataRataNet; // For compatibility
 
         // Overall nett percent vs client requests
         if (summary.totalClientRequests > 0) {
