@@ -67,6 +67,11 @@ class LaporanController extends Controller
      */
     public function omset(Request $request)
     {
+        // Check if this is an AJAX request for filtered data
+        if ($request->ajax()) {
+            return $this->getOmsetFilteredData($request);
+        }
+
         // Get omset statistics
         $stats = $this->getOmsetStatistics();
 
@@ -78,10 +83,20 @@ class LaporanController extends Controller
         // Get monthly omset data (tahun berjalan)
         $monthlyOmset = $this->getMonthlyOmset($request);
 
-        // Get vendor omset data (top 10 vendor)
-        $vendorOmset = $this->getVendorOmset($request);
+        // Get admin omset data instead of vendor
+        $adminMarketing = $this->getAdminMarketingOmset($request);
+        $adminPurchasing = $this->getAdminPurchasingOmset($request);
 
-        return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'vendorOmset'));
+        // Debug log with more detail
+        Log::info('Omset page data:', [
+            'monthlyOmsetCount' => count($monthlyOmset),
+            'adminMarketingCount' => count($adminMarketing),
+            'adminPurchasingCount' => count($adminPurchasing),
+            'year' => $request->get('year', Carbon::now()->year),
+            'month' => $request->get('month')
+        ]);
+
+        return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'adminMarketing', 'adminPurchasing'));
     }
 
     /**
@@ -136,8 +151,8 @@ class LaporanController extends Controller
 
         $stats = [
             'total_proyek' => Proyek::where('status', '!=', 'Gagal')->count(),
-            'proyek_selesai' => Proyek::where('status', 'selesai')->count(),
-            'proyek_berjalan' => Proyek::whereNotIn('status', ['selesai', 'gagal'])->count(),
+            'proyek_selesai' => Proyek::where('status', 'Selesai')->count(),
+            'proyek_berjalan' => Proyek::whereNotIn('status', ['Selesai', 'Gagal'])->count(),
             'total_nilai_proyek' => $totalNilai ?? 0,
             'vendor_aktif' => Vendor::whereHas('barang')->count(),
             'jenis_produk' => Barang::distinct('nama_barang')->count(),
@@ -294,70 +309,228 @@ class LaporanController extends Controller
      * Export report to Excel
      */
     public function export(Request $request)
-    {
-        // Get filtered projects for export
-        $projects = $this->getFilteredProjects($request);
+{
+    // Get projects with HPS kalkulasi only (ACC status and has kalkulasi_hps)
+    $projects = $this->getProjectsWithHPS($request);
 
-        // Create CSV response
-        $filename = 'laporan-proyek-' . Carbon::now()->format('Y-m-d') . '.csv';
+    // Create CSV response
+    $filename = 'laporan-proyek-' . Carbon::now()->format('Y-m-d') . '.csv';
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
+    $headers = [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Pragma' => 'no-cache',
+        'Expires' => '0'
+    ];
 
-        $callback = function() use ($projects) {
-            $file = fopen('php://output', 'w');
+    $callback = function() use ($projects) {
+        $file = fopen('php://output', 'w');
+        
+        // Add BOM for proper UTF-8 encoding in Excel
+        fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
-            // Add CSV headers
-            fputcsv($file, [
-                'Kode Proyek',
-                'Nama Proyek',
-                'Instansi',
-                'Tanggal',
-                'Status',
-                'Admin Marketing',
-                'Admin Purchasing',
-                'Total Nilai',
-                'Vendor',
-                'Produk',
-                'Kategori'
-            ]);
+        // Add CSV headers sesuai format yang diminta
+        fputcsv($file, [
+            'No',
+            'Kab/Kota',
+            'Nama Instansi',
+            'Nama Barang',
+            'Qty',
+            'Satuan',
+            'Spesifikasi',
+            'Pagu Satuan',
+            'Pagu Total',
+            'Jenis Pengadaan',
+            'Note',
+            'Marketing',
+            'Purchasing',
+            'Status'
+        ], ';'); // Gunakan semicolon sebagai delimiter untuk Excel Indonesia
 
-            // Add data rows
-            foreach ($projects as $project) {
-                $vendor = $project->penawaran && $project->penawaran->penawaranDetail->first()
-                    ? $project->penawaran->penawaranDetail->first()->barang->vendor->nama_vendor
-                    : '-';
+        // Add data rows - setiap barang dalam penawaran detail jadi 1 baris
+        $no = 1;
+        foreach ($projects as $project) {
+            if ($project->penawaran && $project->penawaran->penawaranDetail) {
+                foreach ($project->penawaran->penawaranDetail as $detail) {
+                    // Clean data - hapus koma dan karakter khusus yang bisa merusak CSV
+                    $instansi = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
+                        $project->instansi);
+                    
+                    $namaBarang = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
+                        $detail->barang->nama_barang ?? '-');
+                    
+                    $spesifikasi = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
+                        $detail->barang->spesifikasi ?? $detail->barang->deskripsi ?? '-');
+                    
+                    $jenisPN = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
+                        $project->jenis_pengadaan);
+                    
+                    $note = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
+                        $project->catatan ?? '-');
 
-                $produk = $project->penawaran && $project->penawaran->penawaranDetail->first()
-                    ? $project->penawaran->penawaranDetail->first()->barang->nama_barang
-                    : '-';
-
-                $kategori = $project->penawaran && $project->penawaran->penawaranDetail->first()
-                    ? $project->penawaran->penawaranDetail->first()->barang->kategori
-                    : '-';
-
-                fputcsv($file, [
-                    $project->kode_proyek,
-                    $project->nama_klien . ' - ' . $project->jenis_pengadaan,
-                    $project->instansi,
-                    $project->tanggal->format('d/m/Y'),
-                    ucfirst($project->status),
-                    $project->adminMarketing->nama ?? '-',
-                    $project->adminPurchasing->nama ?? '-',
-                    number_format($project->total_nilai ?? 0, 0, ',', '.'),
-                    $vendor,
-                    $produk,
-                    $kategori
-                ]);
+                    fputcsv($file, [
+                        $no,
+                        $project->kab_kota ?? '-', // Kab/Kota dari field kab_kota
+                        $instansi,
+                        $namaBarang,
+                        $detail->qty ?? 0,
+                        $detail->barang->satuan ?? '-',
+                        $spesifikasi,
+                        number_format($detail->harga_satuan ?? 0, 0, ',', '.'),
+                        number_format($detail->subtotal ?? 0, 0, ',', '.'),
+                        $jenisPN,
+                        $note,
+                        $project->adminMarketing->nama ?? '-',
+                        $project->adminPurchasing->nama ?? '-',
+                        ucfirst($project->status)
+                    ], ';');
+                    
+                    $no++;
+                }
             }
+        }
 
-            fclose($file);
-        };
+        fclose($file);
+    };
 
-        return response()->stream($callback, 200, $headers);
+    return response()->stream($callback, 200, $headers);
+}
+
+    /**
+     * Get projects that have HPS kalkulasi (only ACC status with kalkulasi_hps)
+     */
+    private function getProjectsWithHPS(Request $request)
+    {
+        $query = Proyek::with([
+            'adminMarketing',
+            'adminPurchasing',
+            'penawaran.penawaranDetail.barang.vendor',
+            'kalkulasiHps'
+        ])
+        ->whereHas('penawaran', function($q) {
+            $q->where('status', 'ACC');
+        })
+        ->whereHas('kalkulasiHps'); // Hanya proyek yang sudah ada HPS kalkulasi
+
+        // Apply filters (sama seperti getFilteredProjects)
+        if ($request->filled('periode')) {
+            $this->applyPeriodeFilter($query, $request->periode, $request);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('nilai')) {
+            $this->applyNilaiFilter($query, $request->nilai);
+        }
+
+        if ($request->filled('produk')) {
+            $query->whereHas('penawaran.penawaranDetail.barang', function($q) use ($request) {
+                $q->where('nama_barang', 'like', '%' . $request->produk . '%');
+            });
+        }
+
+        if ($request->filled('departemen')) {
+            $query->whereHas('adminMarketing', function($q) use ($request) {
+                $q->where('role', 'like', '%' . $request->departemen . '%');
+            });
+        }
+
+        return $query->orderBy('tanggal', 'desc')->get();
     }
+
+/**
+ * Alternative: Export sebagai Excel langsung menggunakan Laravel Excel
+ * Tambahkan package: composer require maatwebsite/excel
+ */
+/*
+public function exportExcel(Request $request)
+{
+    $projects = $this->getFilteredProjects($request);
+    $filename = 'laporan-proyek-' . Carbon::now()->format('Y-m-d') . '.xlsx';
+    
+    return Excel::download(new ProjectsExport($projects), $filename);
+}
+*/
+
+/**
+ * Export dengan format TSV (Tab-separated values) - lebih aman untuk Excel
+ */
+public function exportTSV(Request $request)
+{
+    $projects = $this->getProjectsWithHPS($request);
+    $filename = 'laporan-proyek-' . Carbon::now()->format('Y-m-d') . '.tsv';
+
+    $headers = [
+        'Content-Type' => 'text/tab-separated-values; charset=UTF-8',
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    ];
+
+    $callback = function() use ($projects) {
+        $file = fopen('php://output', 'w');
+        
+        // Add BOM
+        fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Headers dengan tab separator sesuai format yang diminta
+        fwrite($file, implode("\t", [
+            'No',
+            'Kab/Kota',
+            'Nama Instansi',
+            'Nama Barang',
+            'Qty',
+            'Satuan',
+            'Spesifikasi',
+            'Pagu Satuan',
+            'Pagu Total',
+            'Jenis Pengadaan',
+            'Note',
+            'Marketing',
+            'Purchasing',
+            'Status'
+        ]) . "\n");
+
+        // Data rows - setiap barang dalam penawaran detail jadi 1 baris
+        $no = 1;
+        foreach ($projects as $project) {
+            if ($project->penawaran && $project->penawaran->penawaranDetail) {
+                foreach ($project->penawaran->penawaranDetail as $detail) {
+                    $instansi = str_replace(["\t", "\n", "\r"], [' ', ' ', ' '], $project->instansi);
+                    $namaBarang = str_replace(["\t", "\n", "\r"], [' ', ' ', ' '], $detail->barang->nama_barang ?? '-');
+                    $spesifikasi = str_replace(["\t", "\n", "\r"], [' ', ' ', ' '], $detail->barang->spesifikasi ?? '-');
+                    $jenisPN = str_replace(["\t", "\n", "\r"], [' ', ' ', ' '], $project->jenis_pengadaan);
+                    $note = str_replace(["\t", "\n", "\r"], [' ', ' ', ' '], $project->catatan ?? '-');
+
+                    $row = [
+                        $no,
+                        $project->kab_kota ?? '-',
+                        $instansi,
+                        $namaBarang,
+                        $detail->qty ?? 0,
+                        $detail->barang->satuan ?? '-',
+                        $spesifikasi,
+                        number_format($detail->harga_satuan ?? 0, 0, ',', '.'),
+                        number_format($detail->subtotal ?? 0, 0, ',', '.'),
+                        $jenisPN,
+                        $note,
+                        $project->adminMarketing->nama ?? '-',
+                        $project->adminPurchasing->nama ?? '-',
+                        ucfirst($project->status)
+                    ];
+                    
+                    fwrite($file, implode("\t", $row) . "\n");
+                    $no++;
+                }
+            }
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 
     /**
      * Get project detail for modal
@@ -401,7 +574,7 @@ class LaporanController extends Controller
                             'nama_barang' => $detail->barang->nama_barang,
                             'vendor' => $detail->barang->vendor->nama_vendor,
                             'kategori' => $detail->barang->kategori,
-                            'jumlah' => $detail->jumlah,
+                            'qty' => $detail->qty,
                             'satuan' => $detail->barang->satuan,
                             'harga_satuan' => number_format(floatval($detail->harga_satuan ?? 0), 0, ',', '.'),
                             'subtotal' => number_format(floatval($detail->subtotal ?? 0), 0, ',', '.')
@@ -437,24 +610,25 @@ class LaporanController extends Controller
         $currentMonth = Carbon::now();
         $lastMonth = Carbon::now()->subMonth();
         
-        // Calculate omset from nett_income pada kalkulasi HPS untuk proyek selesai
+        // Calculate omset from nett_income pada kalkulasi HPS
+        // Ubah untuk tidak hanya bergantung pada status 'Selesai'
         $currentMonthOmset = KalkulasiHps::whereHas('proyek', function($query) use ($currentMonth) {
-                $query->where('status', 'selesai')
-                      ->whereMonth('updated_at', $currentMonth->month)
-                      ->whereYear('updated_at', $currentMonth->year);
+                $query->whereNotIn('status', ['Gagal', 'Menunggu']) // Exclude gagal and menunggu
+                      ->whereMonth('created_at', $currentMonth->month)
+                      ->whereYear('created_at', $currentMonth->year);
             })
             ->sum('nett_income');
 
         $lastMonthOmset = KalkulasiHps::whereHas('proyek', function($query) use ($lastMonth) {
-                $query->where('status', 'selesai')
-                      ->whereMonth('updated_at', $lastMonth->month)
-                      ->whereYear('updated_at', $lastMonth->year);
+                $query->whereNotIn('status', ['Gagal', 'Menunggu'])
+                      ->whereMonth('created_at', $lastMonth->month)
+                      ->whereYear('created_at', $lastMonth->year);
             })
             ->sum('nett_income');
 
         $yearlyOmset = KalkulasiHps::whereHas('proyek', function($query) use ($currentMonth) {
-                $query->where('status', 'selesai')
-                      ->whereYear('updated_at', $currentMonth->year);
+                $query->whereNotIn('status', ['Gagal', 'Menunggu'])
+                      ->whereYear('created_at', $currentMonth->year);
             })
             ->sum('nett_income');
 
@@ -470,19 +644,25 @@ class LaporanController extends Controller
     }
 
     /**
-     * Get monthly omset data (tahun berjalan saja)
+     * Get monthly omset data (with filters)
      */
     private function getMonthlyOmset(Request $request)
     {
-        $currentYear = Carbon::now()->year;
+        $year = $request->get('year', Carbon::now()->year);
+        $month = $request->get('month');
         
-        return DB::table('kalkulasi_hps')
+        $query = DB::table('kalkulasi_hps')
             ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-            ->where('proyek.status', 'selesai')
-            ->whereYear('proyek.updated_at', $currentYear)
-            ->select(
-                DB::raw('MONTH(proyek.updated_at) as month'),
-                DB::raw('SUM(kalkulasi_hps.nett_income) as total_omset'),
+            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu']) // Include more statuses
+            ->whereYear('proyek.created_at', $year);
+            
+        if ($month) {
+            $query->whereMonth('proyek.created_at', $month);
+        }
+        
+        return $query->select(
+                DB::raw('MONTH(proyek.created_at) as month'),
+                DB::raw('SUM(COALESCE(kalkulasi_hps.nett_income, 0)) as total_omset'),
                 DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
             )
             ->groupBy('month')
@@ -500,7 +680,7 @@ class LaporanController extends Controller
         return DB::table('vendor')
             ->join('kalkulasi_hps', 'vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor')
             ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-            ->where('proyek.status', 'selesai')
+            ->where('proyek.status', 'Selesai')
             ->whereYear('proyek.updated_at', Carbon::now()->year) // Hanya tahun ini
             ->select(
                 'vendor.nama_vendor',
@@ -516,218 +696,354 @@ class LaporanController extends Controller
     }
 
     /**
-     * Get hutang vendor statistics
+     * Get admin marketing omset data (Top 10 Admin Marketing berdasarkan keuntungan)
      */
-    private function getHutangVendorStatistics()
+    private function getAdminMarketingOmset(Request $request)
     {
-        // Menggunakan logic yang sama persis dengan tabs "Proyek Perlu Bayar"
-        $proyekQuery = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'pembayaran.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->whereHas('penawaranAktif', function ($query) {
-                $query->where('status', 'ACC');
-            });
+        $year = $request->get('year', Carbon::now()->year);
+        $month = $request->get('month');
+        
+        // Ubah query untuk tidak hanya bergantung pada status 'Selesai'
+        $query = DB::table('users')
+            ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
+            ->leftJoin('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
+            ->whereYear('proyek.created_at', $year)
+            ->where('proyek.status', '!=', 'Gagal'); // Exclude gagal projects
+            
+        if ($month) {
+            $query->whereMonth('proyek.created_at', $month);
+        }
+        
+        $result = $query->select(
+                'users.nama as name',
+                DB::raw('COALESCE(SUM(kalkulasi_hps.nett_income), 0) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
+                DB::raw('COALESCE(AVG(kalkulasi_hps.nett_income), 0) as rata_rata_omset_per_proyek')
+            )
+            ->groupBy('users.id_user', 'users.nama')
+            ->orderBy('total_omset', 'desc')
+            ->limit(10)
+            ->get();
 
-        // Debug: Log project count
-        $proyekCount = $proyekQuery->count();
-        \Log::info("Hutang Vendor Stats - Proyek count: " . $proyekCount);
+        // Jika tidak ada data, buat data dummy untuk testing
+        if ($result->isEmpty()) {
+            $allMarketingUsers = DB::table('users')
+                ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
+                ->select(
+                    'users.nama as name',
+                    DB::raw('0 as total_omset'),
+                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
+                    DB::raw('0 as rata_rata_omset_per_proyek')
+                )
+                ->groupBy('users.id_user', 'users.nama')
+                ->limit(10)
+                ->get();
+            
+            return $allMarketingUsers;
+        }
+        
+        return $result;
+    }
 
-        $totalHutang = 0;
-        $hutangJatuhTempo = 0;
-        $jumlahVendorBelumLunas = 0;
-        $vendorBelumLunas = collect();
+    /**
+     * Get admin purchasing omset data (Top 10 Admin Purchasing berdasarkan keuntungan)
+     */
+    private function getAdminPurchasingOmset(Request $request)
+    {
+        $year = $request->get('year', Carbon::now()->year);
+        $month = $request->get('month');
+        
+        // Ubah query untuk tidak hanya bergantung pada status 'Selesai'
+        $query = DB::table('users')
+            ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_purchasing')
+            ->leftJoin('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
+            ->whereYear('proyek.created_at', $year)
+            ->where('proyek.status', '!=', 'Gagal'); // Exclude gagal projects
+            
+        if ($month) {
+            $query->whereMonth('proyek.created_at', $month);
+        }
+        
+        $result = $query->select(
+                'users.nama as name',
+                DB::raw('COALESCE(SUM(kalkulasi_hps.nett_income), 0) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
+                DB::raw('COALESCE(AVG(kalkulasi_hps.nett_income), 0) as rata_rata_omset_per_proyek')
+            )
+            ->groupBy('users.id_user', 'users.nama')
+            ->orderBy('total_omset', 'desc')
+            ->limit(10)
+            ->get();
 
-        $proyekQuery->get()->each(function ($proyek) use (&$totalHutang, &$hutangJatuhTempo, &$jumlahVendorBelumLunas, &$vendorBelumLunas) {
-            // Ambil vendor yang terlibat dalam proyek ini
-            $vendors = $proyek->penawaranAktif->penawaranDetail
-                ->pluck('barang.vendor')
-                ->unique('id_vendor')
-                ->filter(); // Remove null values
+        // Jika tidak ada data, buat data dummy untuk testing
+        if ($result->isEmpty()) {
+            $allPurchasingUsers = DB::table('users')
+                ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_purchasing')
+                ->select(
+                    'users.nama as name',
+                    DB::raw('0 as total_omset'),
+                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
+                    DB::raw('0 as rata_rata_omset_per_proyek')
+                )
+                ->groupBy('users.id_user', 'users.nama')
+                ->limit(10)
+                ->get();
+            
+            return $allPurchasingUsers;
+        }
+        
+        return $result;
+    }
 
-            \Log::info("Proyek {$proyek->kode_proyek} has " . $vendors->count() . " vendors");
+    /**
+     * Get filtered omset data for AJAX requests
+     */
+    private function getOmsetFilteredData(Request $request)
+    {
+        $year = $request->get('year', Carbon::now()->year);
+        $month = $request->get('month');
+        $period = $request->get('period', 'monthly');
 
-            $vendors->each(function ($vendor) use ($proyek, &$totalHutang, &$hutangJatuhTempo, &$vendorBelumLunas) {
-                $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
-                    ->where('id_vendor', $vendor->id_vendor)
-                    ->sum('total_harga_hpp');
+        // Get filtered monthly omset data
+        $monthlyOmset = $this->getFilteredMonthlyOmset($year, $month, $period);
+        
+        // Get filtered admin data
+        $adminMarketing = $this->getAdminMarketingOmset($request);
+        $adminPurchasing = $this->getAdminPurchasingOmset($request);
+        
+        // Get updated stats for the filtered period
+        $stats = $this->getFilteredOmsetStatistics($year, $month);
 
-                $totalDibayarApproved = $proyek->pembayaran
-                    ->where('id_vendor', $vendor->id_vendor)
-                    ->where('status_verifikasi', 'Approved')
-                    ->sum('nominal_bayar');
+        return response()->json([
+            'success' => true,
+            'monthlyOmset' => $monthlyOmset,
+            'adminMarketing' => $adminMarketing,
+            'adminPurchasing' => $adminPurchasing,
+            'stats' => $stats
+        ]);
+    }
 
-                $sisaBayar = $totalVendor - $totalDibayarApproved;
+    /**
+     * Get filtered monthly omset data based on year, month, and period
+     */
+    private function getFilteredMonthlyOmset($year, $month = null, $period = 'monthly')
+    {
+        $query = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->where('proyek.status', 'Selesai');
 
-                \Log::info("Vendor {$vendor->nama_vendor} - Total: {$totalVendor}, Dibayar: {$totalDibayarApproved}, Sisa: {$sisaBayar}");
+        if ($period === 'yearly') {
+            // For yearly view, group by year
+            return $query->select(
+                    DB::raw('YEAR(proyek.updated_at) as year'),
+                    DB::raw('SUM(kalkulasi_hps.nett_income) as total_omset'),
+                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
+                )
+                ->groupBy('year')
+                ->orderBy('year')
+                ->get();
+        } else {
+            // For monthly or quarterly, filter by year and optionally by month
+            $query->whereYear('proyek.updated_at', $year);
+            
+            if ($month) {
+                $query->whereMonth('proyek.updated_at', $month);
+            }
+            
+            return $query->select(
+                    DB::raw('MONTH(proyek.updated_at) as month'),
+                    DB::raw('SUM(kalkulasi_hps.nett_income) as total_omset'),
+                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
+                )
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
+        }
+    }
 
-                // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
-                $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
-
-                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
-                if ($sisaBayar > 0 || $warning_hps) {
-                    $totalHutang += $sisaBayar;
-                    
-                    // Tambahkan vendor ke collection (untuk menghitung jumlah vendor unik)
-                    $vendorKey = $vendor->id_vendor;
-                    if (!$vendorBelumLunas->has($vendorKey)) {
-                        $vendorBelumLunas->put($vendorKey, $vendor);
-                    }
-
-                    // Hitung hutang jatuh tempo dari pembayaran pending/ditolak yang sudah lewat
-                    $pembayaranTerlambat = $proyek->pembayaran
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->whereIn('status_verifikasi', ['Pending', 'Ditolak'])
-                        ->filter(function($pembayaran) {
-                            return $pembayaran->tanggal_bayar < Carbon::now();
-                        });
-                    
-                    $hutangJatuhTempo += $pembayaranTerlambat->sum('nominal_bayar');
-                }
-            });
+    /**
+     * Get filtered omset statistics
+     */
+    private function getFilteredOmsetStatistics($year, $month = null)
+    {
+        $currentQuery = KalkulasiHps::whereHas('proyek', function($query) use ($year, $month) {
+            $query->where('status', 'Selesai')
+                  ->whereYear('updated_at', $year);
+            if ($month) {
+                $query->whereMonth('updated_at', $month);
+            }
         });
 
-        $jumlahVendorBelumLunas = $vendorBelumLunas->count();
+        $currentOmset = $currentQuery->sum('nett_income');
+        
+        // For comparison, get previous period data
+        $previousQuery = KalkulasiHps::whereHas('proyek', function($query) use ($year, $month) {
+            $query->where('status', 'Selesai');
+            if ($month) {
+                // Previous month
+                $prevMonth = $month - 1;
+                $prevYear = $year;
+                if ($prevMonth <= 0) {
+                    $prevMonth = 12;
+                    $prevYear = $year - 1;
+                }
+                $query->whereMonth('updated_at', $prevMonth)->whereYear('updated_at', $prevYear);
+            } else {
+                // Previous year
+                $query->whereYear('updated_at', $year - 1);
+            }
+        });
 
-        \Log::info("Final stats - Total Hutang: {$totalHutang}, Vendor Count: {$jumlahVendorBelumLunas}");
-
-        // Rata-rata hutang per vendor
-        $rataRataHutang = $jumlahVendorBelumLunas > 0 ? $totalHutang / $jumlahVendorBelumLunas : 0;
+        $previousOmset = $previousQuery->sum('nett_income');
+        $pertumbuhan = $previousOmset > 0 ? (($currentOmset - $previousOmset) / $previousOmset) * 100 : 0;
 
         return [
-            'total_hutang' => max(0, $totalHutang),
-            'hutang_jatuh_tempo' => $hutangJatuhTempo ?? 0,
-            'jumlah_vendor' => $jumlahVendorBelumLunas,
-            'rata_rata_hutang' => $rataRataHutang
+            'omset_periode_ini' => $currentOmset ?? 0,
+            'omset_periode_lalu' => $previousOmset ?? 0,
+            'pertumbuhan' => $pertumbuhan,
+            'omset_periode_ini_formatted' => $this->formatRupiah($currentOmset ?? 0),
+            'omset_periode_lalu_formatted' => $this->formatRupiah($previousOmset ?? 0),
         ];
     }
 
     /**
-     * Get hutang vendor list - Using exact same logic as tabs "Proyek Perlu Bayar"
+     * Get chart data for laporan proyek
+     */
+    private function getChartData(Request $request)
+    {
+        $year = $request->get('year', Carbon::now()->year);
+        
+        // Get monthly project data for last 6 months
+        $monthlyProjects = DB::table('proyek')
+            ->select(
+                DB::raw('MONTH(tanggal) as month_num'),
+                DB::raw('MONTHNAME(tanggal) as month_name'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->whereYear('tanggal', $year)
+            ->where('tanggal', '>=', Carbon::now()->subMonths(6)->startOfMonth())
+            ->groupBy('month_num', 'month_name')
+            ->orderBy('month_num')
+            ->get();
+
+        // Transform monthly projects to expected format
+        $monthlyProjectsFormatted = $monthlyProjects->map(function($item) {
+            return [
+                'month' => substr($item->month_name, 0, 3), // Jan, Feb, etc
+                'count' => $item->count
+            ];
+        });
+
+        // Get status distribution
+        $statusDistribution = DB::table('proyek')
+            ->select('status', DB::raw('COUNT(*) as count'))
+            ->whereYear('tanggal', $year)
+            ->where('status', '!=', 'Gagal') // Exclude failed projects
+            ->groupBy('status')
+            ->get();
+
+        // Transform status distribution to expected format
+        $statusDistributionFormatted = $statusDistribution->map(function($item) {
+            return [
+                'status' => $item->status,
+                'total' => $item->count
+            ];
+        });
+
+        // Get monthly values from ACC proposals for last 6 months
+        $monthlyValues = DB::table('penawaran')
+            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+            ->select(
+                DB::raw('MONTH(proyek.tanggal) as month_num'),
+                DB::raw('MONTHNAME(proyek.tanggal) as month_name'),
+                DB::raw('SUM(penawaran.total_penawaran) as total_value')
+            )
+            ->where('penawaran.status', 'ACC')
+            ->whereYear('proyek.tanggal', $year)
+            ->where('proyek.tanggal', '>=', Carbon::now()->subMonths(6)->startOfMonth())
+            ->groupBy('month_num', 'month_name')
+            ->orderBy('month_num')
+            ->get();
+
+        // Transform monthly values to expected format
+        $monthlyValuesFormatted = $monthlyValues->map(function($item) {
+            return [
+                'month' => substr($item->month_name, 0, 3), // Jan, Feb, etc
+                'value' => $item->total_value ?? 0
+            ];
+        });
+
+        return [
+            'status_distribution' => $statusDistributionFormatted,
+            'monthly_projects' => $monthlyProjectsFormatted,
+            'monthly_values' => $monthlyValuesFormatted
+        ];
+    }
+
+    /**
+     * Debug method to test chart data
+     */
+    public function debugChartData(Request $request)
+    {
+        $stats = $this->getStatistics();
+        $chartData = $this->getChartData($request);
+        
+        return response()->json([
+            'stats' => $stats,
+            'chartData' => $chartData,
+            'debug' => [
+                'total_projects' => Proyek::count(),
+                'projects_this_year' => Proyek::whereYear('tanggal', Carbon::now()->year)->count(),
+                'projects_with_penawaran' => Proyek::whereHas('penawaran')->count(),
+                'acc_penawaran' => Penawaran::where('status', 'ACC')->count()
+            ]
+        ]);
+    }
+
+    /**
+     * Get hutang vendor statistics
+     */
+    private function getHutangVendorStatistics()
+    {
+        // Calculate vendor debt from unpaid payments
+        $totalHutang = Pembayaran::where('status_verifikasi', '!=', 'Approved')->sum('nominal_bayar');
+        
+        $hutangJatuhTempo = Pembayaran::where('status_verifikasi', '!=', 'Approved')
+            ->where('tanggal_bayar', '<', Carbon::now())
+            ->sum('nominal_bayar');
+            
+        $jumlahVendor = Pembayaran::where('status_verifikasi', '!=', 'Approved')
+            ->distinct('id_vendor')
+            ->count();
+            
+        $rataRataHutang = $jumlahVendor > 0 ? $totalHutang / $jumlahVendor : 0;
+
+        return [
+            'total_hutang' => $totalHutang ?? 0,
+            'hutang_jatuh_tempo' => $hutangJatuhTempo ?? 0,
+            'jumlah_vendor' => $jumlahVendor ?? 0,
+            'rata_rata_hutang' => $rataRataHutang ?? 0,
+        ];
+    }
+
+    /**
+     * Get hutang vendor list
      */
     private function getHutangVendorList(Request $request)
     {
-        // Ambil proyek yang statusnya 'Pembayaran', 'Pengiriman', 'Selesai' dan sudah ada penawaran yang di-ACC
-        // Dengan vendor yang terlibat - sama persis dengan tabs "Proyek Perlu Bayar"
-        $proyekQuery = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->whereHas('penawaranAktif', function ($query) {
-                $query->where('status', 'ACC');
-            });
-
-        $vendorData = collect();
-
-        $proyekQuery->get()->each(function ($proyek) use (&$vendorData) {
-            // Ambil vendor yang terlibat dalam proyek ini
-            $vendors = $proyek->penawaranAktif->penawaranDetail
-                ->pluck('barang.vendor')
-                ->unique('id_vendor')
-                ->filter(); // Remove null values
-
-            $vendors->each(function ($vendor) use ($proyek, &$vendorData) {
-                $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
-                    ->where('id_vendor', $vendor->id_vendor)
-                    ->sum('total_harga_hpp');
-
-                $totalDibayarApproved = $proyek->pembayaran
-                    ->where('id_vendor', $vendor->id_vendor)
-                    ->where('status_verifikasi', 'Approved')
-                    ->sum('nominal_bayar');
-
-                $sisaBayar = $totalVendor - $totalDibayarApproved;
-
-                // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
-                $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
-
-                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
-                if ($sisaBayar > 0 || $warning_hps) {
-                    // Ambil pembayaran pending/ditolak terbaru untuk informasi jatuh tempo
-                    $pembayaranTerbaru = $proyek->pembayaran
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->whereIn('status_verifikasi', ['Pending', 'Ditolak'])
-                        ->sortByDesc('tanggal_bayar')
-                        ->first();
-
-                    $data = (object) [
-                        'nama_vendor' => $vendor->nama_vendor,
-                        'kontak_vendor' => $vendor->kontak,
-                        'kode_proyek' => $proyek->kode_proyek,
-                        'nama_klien' => $proyek->nama_klien,
-                        'nama_barang' => $proyek->nama_barang,
-                        'instansi' => $proyek->instansi,
-                        'nominal_pembayaran' => $sisaBayar,
-                        'total_vendor' => $totalVendor,
-                        'total_dibayar_approved' => $totalDibayarApproved,
-                        'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
-                        'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
-                        'warning_hps' => $warning_hps,
-                        'jatuh_tempo' => $pembayaranTerbaru ? $pembayaranTerbaru->tanggal_bayar : null,
-                        'status_pembayaran' => $pembayaranTerbaru ? $pembayaranTerbaru->status_verifikasi : 'Belum Bayar',
-                        'catatan' => $pembayaranTerbaru ? $pembayaranTerbaru->catatan : ($warning_hps ? $warning_hps : 'Belum ada pembayaran diajukan'),
-                        'hari_telat' => $pembayaranTerbaru && $pembayaranTerbaru->tanggal_bayar < Carbon::now() 
-                            ? Carbon::now()->diffInDays(Carbon::parse($pembayaranTerbaru->tanggal_bayar)) 
-                            : 0
-                    ];
-
-                    $vendorData->push($data);
-                }
-            });
-        });
-
-        // Apply filters
-        if ($request->filled('status')) {
-            $vendorData = $vendorData->filter(function($vendor) use ($request) {
-                if ($request->status == 'pending') {
-                    return $vendor->status_pembayaran == 'Pending';
-                } elseif ($request->status == 'overdue') {
-                    return $vendor->hari_telat > 0;
-                } elseif ($request->status == 'rejected') {
-                    return $vendor->status_pembayaran == 'Ditolak';
-                } elseif ($request->status == 'hps_kosong') {
-                    return $vendor->warning_hps !== null;
-                }
-                return true;
-            });
-        }
-
-        if ($request->filled('vendor')) {
-            $vendorData = $vendorData->filter(function($vendor) use ($request) {
-                return stripos($vendor->nama_vendor, $request->vendor) !== false;
-            });
-        }
-
-        if ($request->filled('nominal')) {
-            $vendorData = $vendorData->filter(function($vendor) use ($request) {
-                $nominal = $vendor->nominal_pembayaran;
-                switch ($request->nominal) {
-                    case '0-10jt':
-                        return $nominal <= 10000000;
-                    case '10-50jt':
-                        return $nominal > 10000000 && $nominal <= 50000000;
-                    case '50-100jt':
-                        return $nominal > 50000000 && $nominal <= 100000000;
-                    case '100jt+':
-                        return $nominal > 100000000;
-                    default:
-                        return true;
-                }
-            });
-        }
-
-        // Convert to paginated result manually
-        $page = $request->get('page', 1);
-        $perPage = 15;
-        $total = $vendorData->count();
-        $items = $vendorData->slice(($page - 1) * $perPage, $perPage)->values();
-
-        // Create a paginator-like object
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
-            $items,
-            $total,
-            $perPage,
-            $page,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
-
-        return $paginator;
+        return DB::table('vendor')
+            ->join('pembayaran', 'vendor.id_vendor', '=', 'pembayaran.id_vendor')
+            ->select(
+                'vendor.nama_vendor',
+                'vendor.kontak',
+                DB::raw('SUM(pembayaran.nominal_bayar) as total_hutang'),
+                DB::raw('COUNT(pembayaran.id_pembayaran) as jumlah_transaksi'),
+                DB::raw('MIN(pembayaran.tanggal_bayar) as jatuh_tempo_terdekat')
+            )
+            ->where('pembayaran.status_verifikasi', '!=', 'Approved')
+            ->groupBy('vendor.id_vendor', 'vendor.nama_vendor', 'vendor.kontak')
+            ->orderBy('total_hutang', 'desc')
+            ->paginate(10);
     }
 
     /**
@@ -735,60 +1051,24 @@ class LaporanController extends Controller
      */
     private function getPiutangDinasStatistics()
     {
-        // Hitung piutang berdasarkan penawaran ACC yang proyeknya belum selesai pembayaran
-        // Mirip dengan logic di controller penagihan dinas
-        $piutangData = Penawaran::with(['proyek', 'penagihanDinas'])
-            ->where('status', 'ACC')
-            ->whereHas('proyek', function($query) {
-                $query->whereIn('status', ['Pembayaran', 'Pengiriman']); // Proyek yang belum selesai
-            })
-            ->get();
-
-        $totalPiutang = 0;
-        $piutangJatuhTempo = 0;
-
-        foreach ($piutangData as $penawaran) {
-            $totalPenawaran = $penawaran->total_penawaran;
+        // Calculate dinas debt from unpaid penagihan
+        $totalPiutang = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')->sum('total_harga');
+        
+        $piutangJatuhTempo = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
+            ->where('tanggal_jatuh_tempo', '<', Carbon::now())
+            ->sum('total_harga');
             
-            // Hitung yang sudah dibayar dari penagihan dinas
-            $totalDibayar = 0;
-            $hasValidPenagihan = false;
+        $jumlahDinas = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
+            ->distinct('proyek_id')
+            ->count();
             
-            if ($penawaran->penagihanDinas && is_object($penawaran->penagihanDinas)) {
-                $penagihan = $penawaran->penagihanDinas;
-                $hasValidPenagihan = true;
-                
-                if ($penagihan->status_pembayaran == 'lunas') {
-                    $totalDibayar = $penagihan->total_harga;
-                } elseif ($penagihan->status_pembayaran == 'dp') {
-                    $totalDibayar = $penagihan->jumlah_dp ?? 0;
-                }
-            }
-
-            $sisaPiutang = $totalPenawaran - $totalDibayar;
-            
-            // Untuk penawaran yang belum memiliki penagihan dinas, tetap dihitung sebagai piutang penuh
-            // Untuk yang sudah ada penagihan dinas, hitung sisanya
-            if ($sisaPiutang > 0) {
-                $totalPiutang += $sisaPiutang;
-
-                // Cek jatuh tempo dari penagihan dinas yang terkait
-                if ($hasValidPenagihan && 
-                    in_array($penawaran->penagihanDinas->status_pembayaran, ['dp', 'belum_bayar']) &&
-                    $penawaran->penagihanDinas->tanggal_jatuh_tempo < Carbon::now()) {
-                    $piutangJatuhTempo += $sisaPiutang;
-                }
-            }
-        }
-
-        // Jumlah proyek yang memiliki piutang
-        $jumlahProyekBelumLunas = $piutangData->where('total_penawaran', '>', 0)->count();
+        $rataRataPiutang = $jumlahDinas > 0 ? $totalPiutang / $jumlahDinas : 0;
 
         return [
             'total_piutang' => $totalPiutang ?? 0,
             'piutang_jatuh_tempo' => $piutangJatuhTempo ?? 0,
-            'jumlah_proyek' => $jumlahProyekBelumLunas ?? 0,
-            'rata_rata_piutang' => $jumlahProyekBelumLunas > 0 ? ($totalPiutang / $jumlahProyekBelumLunas) : 0
+            'jumlah_dinas' => $jumlahDinas ?? 0,
+            'rata_rata_piutang' => $rataRataPiutang ?? 0,
         ];
     }
 
@@ -797,176 +1077,19 @@ class LaporanController extends Controller
      */
     private function getPiutangDinasList(Request $request)
     {
-        // Ambil data piutang berdasarkan penawaran ACC seperti di controller penagihan dinas
-        $query = Penawaran::with(['proyek', 'penagihanDinas'])
-            ->where('status', 'ACC')
-            ->whereHas('proyek', function($q) {
-                $q->whereIn('status', ['Pembayaran', 'Pengiriman']); // Proyek yang belum selesai
-            });
-
-        // Apply filters
-        if ($request->filled('status')) {
-            if ($request->status == 'pending') {
-                $query->whereHas('penagihanDinas', function($q) {
-                    $q->where('status_pembayaran', 'belum_bayar');
-                });
-            } elseif ($request->status == 'partial') {
-                $query->whereHas('penagihanDinas', function($q) {
-                    $q->where('status_pembayaran', 'dp');
-                });
-            } elseif ($request->status == 'overdue') {
-                $query->whereHas('penagihanDinas', function($q) {
-                    $q->where('tanggal_jatuh_tempo', '<', Carbon::now())
-                      ->whereIn('status_pembayaran', ['dp', 'belum_bayar']);
-                });
-            }
-        }
-
-        if ($request->filled('instansi')) {
-            $query->whereHas('proyek', function($q) use ($request) {
-                $q->where('instansi', 'like', '%' . $request->instansi . '%');
-            });
-        }
-
-        if ($request->filled('nominal')) {
-            switch ($request->nominal) {
-                case '0-10jt':
-                    $query->where('total_penawaran', '<=', 10000000);
-                    break;
-                case '10-50jt':
-                    $query->whereBetween('total_penawaran', [10000001, 50000000]);
-                    break;
-                case '50-100jt':
-                    $query->whereBetween('total_penawaran', [50000001, 100000000]);
-                    break;
-                case '100jt+':
-                    $query->where('total_penawaran', '>', 100000000);
-                    break;
-            }
-        }
-
-        $penawaran = $query->get();
-
-        // Transform data untuk tampilan
-        $piutangData = collect();
-        foreach ($penawaran as $item) {
-            $totalPenawaran = $item->total_penawaran;
-            
-            // Hitung yang sudah dibayar
-            $totalDibayar = 0;
-            $statusTerbaru = 'belum_bayar';
-            $jatuhTempo = null;
-            
-            if ($item->penagihanDinas && is_object($item->penagihanDinas)) {
-                $penagihan = $item->penagihanDinas;
-                if ($penagihan->status_pembayaran == 'lunas') {
-                    $totalDibayar = $penagihan->total_harga;
-                } elseif ($penagihan->status_pembayaran == 'dp') {
-                    $totalDibayar = $penagihan->jumlah_dp ?? 0;
-                    $statusTerbaru = 'dp';
-                }
-                
-                $jatuhTempo = $penagihan->tanggal_jatuh_tempo;
-            }
-
-            $sisaPembayaran = $totalPenawaran - $totalDibayar;
-            
-            // Tampilkan semua penawaran yang masih memiliki sisa pembayaran > 0
-            if ($sisaPembayaran > 0) {
-                $piutangData->push((object) [
-                    'id' => $item->id_penawaran,
-                    'nomor_invoice' => $item->no_penawaran,
-                    'proyek' => $item->proyek,
-                    'total_harga' => $totalPenawaran,
-                    'sisa_pembayaran' => $sisaPembayaran,
-                    'status_pembayaran' => $statusTerbaru,
-                    'tanggal_jatuh_tempo' => $jatuhTempo,
-                    'hari_telat' => $jatuhTempo && Carbon::parse($jatuhTempo)->isPast() 
-                        ? Carbon::now()->diffInDays(Carbon::parse($jatuhTempo)) 
-                        : 0
-                ]);
-            }
-        }
-
-        // Manual pagination
-        $page = $request->get('page', 1);
-        $perPage = 15;
-        $total = $piutangData->count();
-        $items = $piutangData->slice(($page - 1) * $perPage, $perPage)->values();
-
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
-            $items,
-            $total,
-            $perPage,
-            $page,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
-
-        return $paginator;
-    }
-
-    /**
-     * Get chart data for visualization
-     */
-    private function getChartData($request)
-    {
-        // Status distribution chart - hitung berdasarkan proyek yang ada sekarang (tidak termasuk gagal)
-        $statusData = Proyek::select('status', DB::raw('count(*) as total'))
-            ->where('status', '!=', 'gagal')
-            ->groupBy('status')
-            ->orderBy('total', 'desc')
-            ->get();
-
-        // Monthly project count chart (last 6 months) - berdasarkan data yang ada (tidak termasuk gagal)
-        $monthlyData = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $month = Carbon::now()->copy()->subMonths($i);
-            $count = Proyek::whereMonth('tanggal', $month->month)
-                ->whereYear('tanggal', $month->year)
-                ->where('status', '!=', 'gagal')
-                ->count();
-            
-            $monthlyData[] = [
-                'month' => $month->format('M Y'),
-                'count' => $count
-            ];
-        }
-
-        // Monthly value chart (last 6 months) - HANYA dari penawaran ACC
-        $monthlyValueData = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $month = Carbon::now()->copy()->subMonths($i);
-            
-            // Ambil total nilai dari penawaran ACC dalam bulan tersebut
-            $totalValue = Penawaran::where('status', 'ACC')
-                ->whereHas('proyek', function($query) use ($month) {
-                    $query->whereMonth('tanggal', $month->month)
-                          ->whereYear('tanggal', $month->year)
-                          ->where('status', '!=', 'gagal');
-                })
-                ->sum('total_penawaran');
-            
-            $monthlyValueData[] = [
-                'month' => $month->format('M Y'),
-                'value' => $totalValue ?? 0
-            ];
-        }
-
-        // Top 5 instansi by project count (tidak termasuk gagal)
-        $instansiData = Proyek::select('instansi', DB::raw('count(*) as total'))
-            ->whereNotNull('instansi')
-            ->where('instansi', '!=', '')
-            ->where('status', '!=', 'gagal')
-            ->groupBy('instansi')
-            ->orderBy('total', 'desc')
-            ->limit(5)
-            ->get();
-
-        return [
-            'status_distribution' => $statusData,
-            'monthly_projects' => $monthlyData,
-            'monthly_values' => $monthlyValueData,
-            'top_instansi' => $instansiData
-        ];
+        return DB::table('penagihan_dinas')
+            ->join('proyek', 'penagihan_dinas.proyek_id', '=', 'proyek.id_proyek')
+            ->select(
+                'proyek.instansi',
+                'proyek.nama_klien',
+                'proyek.kode_proyek',
+                DB::raw('SUM(penagihan_dinas.total_harga) as total_piutang'),
+                DB::raw('COUNT(penagihan_dinas.id) as jumlah_transaksi'),
+                DB::raw('MIN(penagihan_dinas.tanggal_jatuh_tempo) as jatuh_tempo_terdekat')
+            )
+            ->where('penagihan_dinas.status_pembayaran', '!=', 'lunas')
+            ->groupBy('proyek.id_proyek', 'proyek.instansi', 'proyek.nama_klien', 'proyek.kode_proyek')
+            ->orderBy('total_piutang', 'desc')
+            ->paginate(10);
     }
 }

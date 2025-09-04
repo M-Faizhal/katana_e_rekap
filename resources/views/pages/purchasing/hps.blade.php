@@ -1362,13 +1362,14 @@ async function deleteApprovalFile() {
     }
     
     try {
-        const response = await fetch('/purchasing/kalkulasi/delete-approval', {
+        const response = await fetch('/purchasing/kalkulasi/manage-approval', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify({
+                action: 'delete',
                 id_proyek: currentProyekId
             })
         });
