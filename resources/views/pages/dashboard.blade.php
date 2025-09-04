@@ -132,9 +132,9 @@
                     <p class="text-sm text-gray-600">Top performer marketing & purchasing</p>
                 </div>
             </div>
-            <button class="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium self-start sm:self-auto">
+            <a href="{{ route('laporan.omset') }}" class="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium self-start sm:self-auto">
                 Lihat Detail
-            </button>
+            </a>
         </div>
 
         <div>
