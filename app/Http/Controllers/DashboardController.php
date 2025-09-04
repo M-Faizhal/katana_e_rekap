@@ -122,19 +122,20 @@ class DashboardController extends Controller
             ->count();
 
         // Calculate total hutang (belum dibayar ke vendor)
-        // Based on penawaran where project status requires payment but no payment exists
+        // Modified to match the getVendorDebts() method
         $totalHutang = DB::table('penawaran')
+            ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
             ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
             ->leftJoin('pembayaran', 'penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-            ->whereIn('proyek.status', ['pembayaran', 'pengiriman'])
             ->whereNull('pembayaran.id_pembayaran')
-            ->sum('penawaran.total_nilai') ?? 0;
+            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
+            ->sum('penawaran_detail.subtotal') ?? 0;
 
         $vendorPending = DB::table('penawaran')
             ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
             ->leftJoin('pembayaran', 'penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-            ->whereIn('proyek.status', ['pembayaran', 'pengiriman'])
             ->whereNull('pembayaran.id_pembayaran')
+            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
             ->distinct('penawaran.id_penawaran')
             ->count();
 
@@ -258,7 +259,8 @@ class DashboardController extends Controller
      */
     private function getVendorDebts()
     {
-        return DB::table('penawaran')
+        // If no actual unpaid debts, show recent vendor transactions for dashboard display
+        $unpaidDebts = DB::table('penawaran')
             ->select(
                 'penawaran_detail.id_barang',
                 'barang.nama_barang',
@@ -266,7 +268,8 @@ class DashboardController extends Controller
                 'vendor.id_vendor',
                 DB::raw('SUM(penawaran_detail.subtotal) as total_hutang'),
                 DB::raw('MIN(penawaran.tanggal_penawaran) as oldest_date'),
-                DB::raw('COUNT(DISTINCT penawaran.id_penawaran) as total_penawaran')
+                DB::raw('COUNT(DISTINCT penawaran.id_penawaran) as total_penawaran'),
+                'proyek.status as proyek_status'
             )
             ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
             ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
@@ -274,17 +277,48 @@ class DashboardController extends Controller
             ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
             ->leftJoin('pembayaran', 'penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
             ->whereNull('pembayaran.id_pembayaran')
-            ->whereIn('proyek.status', ['pembayaran', 'pengiriman'])
-            ->groupBy('vendor.id_vendor', 'vendor.nama_vendor', 'penawaran_detail.id_barang', 'barang.nama_barang')
+            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
+            ->groupBy('vendor.id_vendor', 'vendor.nama_vendor', 'penawaran_detail.id_barang', 'barang.nama_barang', 'proyek.status')
             ->orderBy('total_hutang', 'desc')
             ->limit(4)
-            ->get()
-            ->map(function($item) {
-                $daysOverdue = Carbon::parse($item->oldest_date)->diffInDays(Carbon::now());
-                $item->days_overdue = $daysOverdue;
-                $item->status = $daysOverdue > 30 ? 'overdue' : ($daysOverdue > 14 ? 'warning' : 'normal');
-                return $item;
-            });
+            ->get();
+
+        // If no unpaid debts found, show recent vendor transactions for display purposes
+        if ($unpaidDebts->isEmpty()) {
+            return DB::table('vendor')
+                ->select(
+                    'barang.id_barang',
+                    'barang.nama_barang',
+                    'vendor.nama_vendor',
+                    'vendor.id_vendor',
+                    DB::raw('SUM(penawaran_detail.subtotal) as total_hutang'),
+                    DB::raw('MAX(penawaran.tanggal_penawaran) as oldest_date'),
+                    DB::raw('COUNT(DISTINCT penawaran.id_penawaran) as total_penawaran'),
+                    'proyek.status as proyek_status'
+                )
+                ->join('barang', 'vendor.id_vendor', '=', 'barang.id_vendor')
+                ->join('penawaran_detail', 'barang.id_barang', '=', 'penawaran_detail.id_barang')
+                ->join('penawaran', 'penawaran_detail.id_penawaran', '=', 'penawaran.id_penawaran')
+                ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+                ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
+                ->groupBy('vendor.id_vendor', 'vendor.nama_vendor', 'barang.id_barang', 'barang.nama_barang', 'proyek.status')
+                ->orderBy('total_hutang', 'desc')
+                ->limit(4)
+                ->get()
+                ->map(function($item) {
+                    // For display purposes, show as paid/completed
+                    $item->days_overdue = 0;
+                    $item->status = 'completed'; // Show as completed since no actual debt
+                    return $item;
+                });
+        }
+
+        return $unpaidDebts->map(function($item) {
+            $daysOverdue = Carbon::parse($item->oldest_date)->diffInDays(Carbon::now());
+            $item->days_overdue = $daysOverdue;
+            $item->status = $daysOverdue > 30 ? 'overdue' : ($daysOverdue > 14 ? 'warning' : 'normal');
+            return $item;
+        });
     }
 
     /**
