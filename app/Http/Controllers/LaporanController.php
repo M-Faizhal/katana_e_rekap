@@ -1152,24 +1152,37 @@ public function exportTSV(Request $request)
      */
     private function getPiutangDinasStatistics()
     {
-        // Calculate dinas debt from unpaid penagihan
-        $totalPiutang = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')->sum('total_harga');
-        
-        $piutangJatuhTempo = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
-            ->where('tanggal_jatuh_tempo', '<', Carbon::now())
-            ->sum('total_harga');
+        // Calculate dinas debt from unpaid amounts (considering bukti pembayaran)
+        $piutangDinasList = PenagihanDinas::with('buktiPembayaran')
+            ->where('status_pembayaran', '!=', 'lunas')
+            ->get();
+
+        $totalPiutang = 0;
+        $piutangJatuhTempo = 0;
+        $jumlahProyek = 0;
+
+        foreach ($piutangDinasList as $piutang) {
+            $totalBayar = $piutang->buktiPembayaran->sum('jumlah_bayar');
+            $sisaPembayaran = $piutang->total_harga - $totalBayar;
             
-        $jumlahDinas = PenagihanDinas::where('status_pembayaran', '!=', 'lunas')
-            ->distinct('proyek_id')
-            ->count();
+            if ($sisaPembayaran > 0) {
+                $totalPiutang += $sisaPembayaran;
+                $jumlahProyek++;
+                
+                // Check if overdue
+                if ($piutang->tanggal_jatuh_tempo < now()) {
+                    $piutangJatuhTempo += $sisaPembayaran;
+                }
+            }
+        }
             
-        $rataRataPiutang = $jumlahDinas > 0 ? $totalPiutang / $jumlahDinas : 0;
+        $rataRataPiutang = $jumlahProyek > 0 ? $totalPiutang / $jumlahProyek : 0;
 
         return [
-            'total_piutang' => $totalPiutang ?? 0,
-            'piutang_jatuh_tempo' => $piutangJatuhTempo ?? 0,
-            'jumlah_dinas' => $jumlahDinas ?? 0,
-            'rata_rata_piutang' => $rataRataPiutang ?? 0,
+            'total_piutang' => $totalPiutang,
+            'piutang_jatuh_tempo' => $piutangJatuhTempo,
+            'jumlah_proyek' => $jumlahProyek,
+            'rata_rata_piutang' => $rataRataPiutang,
         ];
     }
 
@@ -1178,20 +1191,66 @@ public function exportTSV(Request $request)
      */
     private function getPiutangDinasList(Request $request)
     {
-        return DB::table('penagihan_dinas')
-            ->join('proyek', 'penagihan_dinas.proyek_id', '=', 'proyek.id_proyek')
-            ->select(
-                'proyek.instansi',
-                'proyek.nama_klien',
-                'proyek.kode_proyek',
-                DB::raw('SUM(penagihan_dinas.total_harga) as total_piutang'),
-                DB::raw('COUNT(penagihan_dinas.id) as jumlah_transaksi'),
-                DB::raw('MIN(penagihan_dinas.tanggal_jatuh_tempo) as jatuh_tempo_terdekat')
-            )
-            ->where('penagihan_dinas.status_pembayaran', '!=', 'lunas')
-            ->groupBy('proyek.id_proyek', 'proyek.instansi', 'proyek.nama_klien', 'proyek.kode_proyek')
-            ->orderBy('total_piutang', 'desc')
-            ->paginate(10);
+        $query = PenagihanDinas::with(['proyek', 'buktiPembayaran'])
+            ->where('status_pembayaran', '!=', 'lunas');
+
+        // Apply filters if provided
+        if ($request->filled('status')) {
+            $status = $request->get('status');
+            switch ($status) {
+                case 'pending':
+                    $query->where('status_pembayaran', 'belum_bayar');
+                    break;
+                case 'partial':
+                    $query->where('status_pembayaran', 'dp');
+                    break;
+                case 'overdue':
+                    $query->where('tanggal_jatuh_tempo', '<', now());
+                    break;
+            }
+        }
+
+        if ($request->filled('instansi')) {
+            $query->whereHas('proyek', function($q) use ($request) {
+                $q->where('instansi', $request->get('instansi'));
+            });
+        }
+
+        if ($request->filled('nominal')) {
+            $nominal = $request->get('nominal');
+            switch ($nominal) {
+                case '0-10jt':
+                    $query->where('total_harga', '<', 10000000);
+                    break;
+                case '10-50jt':
+                    $query->whereBetween('total_harga', [10000000, 50000000]);
+                    break;
+                case '50-100jt':
+                    $query->whereBetween('total_harga', [50000000, 100000000]);
+                    break;
+                case '100jt+':
+                    $query->where('total_harga', '>', 100000000);
+                    break;
+            }
+        }
+
+        $result = $query->orderBy('tanggal_jatuh_tempo', 'asc')->paginate(10);
+        
+        // Transform data untuk menambahkan sisa_pembayaran dan hari_telat
+        $result->getCollection()->transform(function ($piutang) {
+            // Hitung sisa pembayaran
+            $totalBayar = $piutang->buktiPembayaran->sum('jumlah_bayar');
+            $piutang->sisa_pembayaran = $piutang->total_harga - $totalBayar;
+            
+            // Hitung keterlambatan
+            $piutang->hari_telat = $piutang->tanggal_jatuh_tempo < now() 
+                ? now()->diffInDays($piutang->tanggal_jatuh_tempo) 
+                : 0;
+            
+            return $piutang;
+        });
+        
+        return $result;
     }
 
     /**

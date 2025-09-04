@@ -210,10 +210,19 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            @if($piutang->status_pembayaran == 'pending') bg-yellow-100 text-yellow-800
-                            @elseif($piutang->status_pembayaran == 'partial') bg-blue-100 text-blue-800
+                            @if($piutang->status_pembayaran == 'belum_bayar') bg-yellow-100 text-yellow-800
+                            @elseif($piutang->status_pembayaran == 'dp') bg-blue-100 text-blue-800
+                            @elseif($piutang->status_pembayaran == 'lunas') bg-green-100 text-green-800
                             @else bg-gray-100 text-gray-800 @endif">
-                            {{ ucfirst($piutang->status_pembayaran) }}
+                            @if($piutang->status_pembayaran == 'belum_bayar') 
+                                Belum Bayar
+                            @elseif($piutang->status_pembayaran == 'dp') 
+                                DP Dibayar
+                            @elseif($piutang->status_pembayaran == 'lunas') 
+                                Lunas
+                            @else 
+                                {{ ucfirst($piutang->status_pembayaran) }}
+                            @endif
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
