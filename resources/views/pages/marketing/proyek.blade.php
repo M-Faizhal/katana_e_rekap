@@ -164,9 +164,13 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                 </select>
                 <select id="sortBy" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Urutkan</option>
-                    <option value="tanggal">Terbaru</option>
-                    <option value="kabupaten">Kabupaten</option>
+                    <option value="terbaru">Terbaru</option>
+                    <option value="terlama">Terlama</option>
                 </select>
+                <button onclick="resetFilters()" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg sm:rounded-xl transition-colors duration-200">
+                    <i class="fas fa-redo text-gray-600"></i>
+                    <span class="hidden sm:inline ml-1">Reset</span>
+                </button>
             </div>
         </div>
     </div>
@@ -654,65 +658,195 @@ function debounce(func, wait) {
 function filterAndSort() {
     let filtered = [...proyekData];
 
+    console.log('=== FILTER AND SORT DEBUG ===');
+    console.log('Starting filterAndSort with total data:', filtered.length);
+    console.log('Data sample:', filtered.slice(0, 2));
+
     // Apply search filter
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    console.log('Search term:', searchTerm);
     if (searchTerm) {
-        filtered = filtered.filter(proyek =>
-            proyek.instansi.toLowerCase().includes(searchTerm) ||
-            proyek.kabupaten.toLowerCase().includes(searchTerm) ||
-            proyek.nama_proyek.toLowerCase().includes(searchTerm)
-        );
+        console.log('Applying search filter for term:', searchTerm);
+        const beforeSearch = filtered.length;
+        filtered = filtered.filter(proyek => {
+            // Pastikan semua field ada dan bukan null/undefined
+            const instansi = proyek.instansi ? proyek.instansi.toLowerCase() : '';
+            const kabupaten = proyek.kabupaten ? proyek.kabupaten.toLowerCase() : '';
+            const namaProyek = proyek.nama_proyek ? proyek.nama_proyek.toLowerCase() : '';
+            const kode = proyek.kode ? proyek.kode.toLowerCase() : '';
+
+            const match = instansi.includes(searchTerm) ||
+                         kabupaten.includes(searchTerm) ||
+                         namaProyek.includes(searchTerm) ||
+                         kode.includes(searchTerm);
+
+            if (match) {
+                console.log('Match found in:', { instansi, kabupaten, namaProyek, kode });
+            }
+
+            return match;
+        });
+        console.log('After search filter:', filtered.length, 'items remaining (was', beforeSearch, ')');
     }
 
     // Apply status filter
     const selectedStatus = statusFilter ? statusFilter.value : '';
+    console.log('Selected status:', selectedStatus);
     if (selectedStatus) {
-        filtered = filtered.filter(proyek => proyek.status === selectedStatus);
+        console.log('Applying status filter for:', selectedStatus);
+        const beforeStatusFilter = filtered.length;
+        filtered = filtered.filter(proyek => {
+            const match = proyek.status === selectedStatus;
+            console.log('Status check:', proyek.status, '===', selectedStatus, '=', match);
+            return match;
+        });
+        console.log('After status filter:', filtered.length, 'items remaining (was', beforeStatusFilter, ')');
     }
 
     // Apply sorting
     const selectedSort = sortBy ? sortBy.value : '';
+    console.log('Selected sort:', selectedSort);
     if (selectedSort) {
+        console.log('Applying sort:', selectedSort);
+
         switch (selectedSort) {
-            case 'tanggal':
-                filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            case 'terbaru':
+                filtered.sort((a, b) => {
+                    const dateA = new Date(a.tanggal);
+                    const dateB = new Date(b.tanggal);
+                    return dateB - dateA;
+                });
                 break;
-            case 'kabupaten':
-                filtered.sort((a, b) => a.kabupaten.localeCompare(b.kabupaten));
+            case 'terlama':
+                filtered.sort((a, b) => {
+                    const dateA = new Date(a.tanggal);
+                    const dateB = new Date(b.tanggal);
+                    return dateA - dateB;
+                });
                 break;
         }
+
+        console.log('After sort - first 3 items:', filtered.slice(0, 3).map(p => ({ id: p.id, tanggal: p.tanggal, instansi: p.instansi })));
     }
+
+    console.log('Final filtered data:', filtered.length, 'items');
+    console.log('Sample final data:', filtered.slice(0, 2).map(p => ({ kode: p.kode, instansi: p.instansi, status: p.status })));
 
     currentData = filtered;
     displayResults();
     updatePaginationInfo();
+
+    console.log('=== END FILTER AND SORT DEBUG ===');
+}
+
+// Reset all filters
+function resetFilters() {
+    console.log('=== RESET FILTERS DEBUG ===');
+    console.log('Starting reset filters');
+
+    // Reset form elements
+    if (searchInput) {
+        console.log('Resetting search input from:', searchInput.value);
+        searchInput.value = '';
+    }
+    if (statusFilter) {
+        console.log('Resetting status filter from:', statusFilter.value);
+        statusFilter.value = '';
+    }
+    if (sortBy) {
+        console.log('Resetting sort by from:', sortBy.value);
+        sortBy.value = '';
+    }
+
+    // Reset data to original
+    console.log('Resetting currentData from', currentData.length, 'to', proyekData.length, 'items');
+    currentData = [...proyekData];
+
+    // Show all cards
+    const cards = document.querySelectorAll('.proyek-card');
+    console.log('Found', cards.length, 'cards to reset');
+    cards.forEach((card, index) => {
+        card.style.display = 'block';
+        console.log('Card', index + 1, 'set to visible');
+    });
+
+    // Hide no results message
+    const noResults = document.getElementById('noResults');
+    const proyekContainer = document.getElementById('proyekContainer');
+    if (noResults) {
+        noResults.classList.add('hidden');
+        console.log('No results message hidden');
+    }
+    if (proyekContainer) {
+        proyekContainer.classList.remove('hidden');
+        console.log('Proyek container shown');
+    }
+
+    // Update pagination info
+    updatePaginationInfo();
+
+    console.log('Reset complete - showing all', proyekData.length, 'items');
+    console.log('=== END RESET DEBUG ===');
 }
 
 // Display results
 function displayResults() {
+    console.log('=== DISPLAY RESULTS DEBUG ===');
+    const container = document.getElementById('proyekContainer');
+    const noResults = document.getElementById('noResults');
+
+    if (!container) {
+        console.error('Proyek container not found');
+        return;
+    }
+
+    // Get all cards
     const cards = document.querySelectorAll('.proyek-card');
+    console.log('Found', cards.length, 'total cards');
+    console.log('Current data length:', currentData.length);
+
+    // If there's no filtered data, show no results
+    if (currentData.length === 0) {
+        console.log('No data to show - displaying no results message');
+        cards.forEach(card => card.style.display = 'none');
+        if (noResults) noResults.classList.remove('hidden');
+        if (container) container.classList.add('hidden');
+        return;
+    }
+
+    // Show/hide cards based on filtered data
     let visibleCount = 0;
 
-    cards.forEach((card, index) => {
-        const originalProyek = proyekData[index];
-        const isVisible = currentData.some(proyek => proyek.id === originalProyek.id);
+    // First hide all cards
+    cards.forEach(card => card.style.display = 'none');
 
-        if (isVisible) {
-            card.style.display = 'block';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
+    // Show only matching cards
+    currentData.forEach((filteredProyek, filteredIndex) => {
+        // Find the corresponding card by matching project ID
+        cards.forEach((card, cardIndex) => {
+            const originalProyek = proyekData[cardIndex];
+            if (originalProyek && originalProyek.id === filteredProyek.id) {
+                card.style.display = 'block';
+                visibleCount++;
+                console.log('Showing card for project:', filteredProyek.kode, 'at index', cardIndex);
+            }
+        });
     });
 
-    // Show/hide no results message
+    console.log('Visible cards:', visibleCount);
+
+    // Show/hide appropriate messages
     if (visibleCount === 0) {
         if (noResults) noResults.classList.remove('hidden');
-        if (proyekContainer) proyekContainer.classList.add('hidden');
+        if (container) container.classList.add('hidden');
+        console.log('No cards visible - showing no results');
     } else {
         if (noResults) noResults.classList.add('hidden');
-        if (proyekContainer) proyekContainer.classList.remove('hidden');
+        if (container) container.classList.remove('hidden');
+        console.log('Cards visible - hiding no results');
     }
+
+    console.log('=== END DISPLAY RESULTS DEBUG ===');
 }
 
 // Update pagination info
@@ -1465,8 +1599,28 @@ function validateDropdownChange(selectElement, proyekId) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOM LOADED DEBUG ===');
     console.log('DOM loaded, initializing...');
     console.log('Proyek data loaded:', proyekData.length, 'items');
+
+    // Debug: Show first item structure
+    if (proyekData.length > 0) {
+        console.log('Sample data structure:', {
+            id: proyekData[0].id,
+            kode: proyekData[0].kode,
+            instansi: proyekData[0].instansi,
+            kabupaten: proyekData[0].kabupaten,
+            status: proyekData[0].status,
+            tanggal: proyekData[0].tanggal,
+            nama_proyek: proyekData[0].nama_proyek
+        });
+    }
+
+    // Check if input elements exist
+    console.log('Form elements check:');
+    console.log('searchInput:', searchInput ? 'found' : 'NOT FOUND');
+    console.log('statusFilter:', statusFilter ? 'found' : 'NOT FOUND');
+    console.log('sortBy:', sortBy ? 'found' : 'NOT FOUND');
 
     // Initialize filter and sort
     filterAndSort();
@@ -1477,6 +1631,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     console.log('Initialization complete');
+    console.log('=== END DOM LOADED DEBUG ===');
 });
 </script>
 
