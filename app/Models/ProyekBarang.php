@@ -18,6 +18,7 @@ class ProyekBarang extends Model
         'jumlah',
         'satuan',
         'spesifikasi',
+        'spesifikasi_files',
         'harga_satuan',
         'harga_total'
     ];
@@ -25,13 +26,40 @@ class ProyekBarang extends Model
     protected $casts = [
         'jumlah' => 'integer',
         'harga_satuan' => 'decimal:2',
-        'harga_total' => 'decimal:2'
+        'harga_total' => 'decimal:2',
+        'spesifikasi_files' => 'array'
     ];
 
     // Relationship
     public function proyek()
     {
         return $this->belongsTo(Proyek::class, 'id_proyek', 'id_proyek');
+    }
+
+    // Helper methods untuk file spesifikasi
+    public function getSpecificationFilesAttribute($value)
+    {
+        return $value ? (is_string($value) ? json_decode($value, true) : $value) : [];
+    }
+
+    public function hasSpecificationFiles()
+    {
+        $files = $this->spesifikasi_files;
+        return is_array($files) && count($files) > 0;
+    }
+
+    public function getSpecificationFileCount()
+    {
+        $files = $this->spesifikasi_files;
+        return is_array($files) ? count($files) : 0;
+    }
+
+    public function addSpecificationFile($fileData)
+    {
+        $files = $this->spesifikasi_files ?: [];
+        $files[] = $fileData;
+        $this->spesifikasi_files = $files;
+        return $this;
     }
 
     // Observer untuk auto-update harga_total proyek

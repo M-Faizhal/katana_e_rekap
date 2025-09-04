@@ -60,6 +60,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/proyek/next-kode', [ProyekController::class, 'getNextKodeProyek'])->name('marketing.proyek.next-kode');
         Route::get('/proyek/current-user', [ProyekController::class, 'getCurrentUser'])->name('marketing.proyek.current-user');
 
+        // File spesifikasi routes
+        Route::get('/proyek/file/{filename}', [ProyekController::class, 'downloadFile'])->name('marketing.proyek.file.download');
+        Route::get('/proyek/file/{filename}/preview', [ProyekController::class, 'previewFile'])->name('marketing.proyek.file.preview');
+
         // Wilayah Routes
         Route::get('/wilayah', [WilayahController::class, 'index'])->name('marketing.wilayah');
         Route::post('/wilayah', [WilayahController::class, 'store'])->name('marketing.wilayah.store');
@@ -79,7 +83,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/potensi/wilayah/select', [PotensiController::class, 'getWilayahForSelect'])->name('marketing.potensi.wilayah');
         Route::get('/potensi/kode/next', [PotensiController::class, 'getNextKodeProyek'])->name('marketing.potensi.nextKode');
         Route::get('/potensi/user/current', [PotensiController::class, 'getCurrentUser'])->name('marketing.potensi.currentUser');
-        
+
         // Penawaran Routes
         Route::get('/penawaran', [PenawaranController::class, 'index'])->name('marketing.penawaran');
         Route::get('/penawaran/{proyekId}', [PenawaranController::class, 'show'])->name('marketing.penawaran.detail');
@@ -115,7 +119,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/kalkulasi/penawaran/preview', [KalkulasiController::class, 'previewPenawaran'])->name('kalkulasi.penawaran.preview');
         Route::get('/kalkulasi/penawaran/{proyekId}/detail', [KalkulasiController::class, 'detailPenawaran'])->name('kalkulasi.penawaran.detail');
         Route::put('/kalkulasi/penawaran/{penawaranId}/status', [KalkulasiController::class, 'updatePenawaranStatus'])->name('kalkulasi.penawaran.status');
-        
+
         // Approval File Management (Combined Route)
         Route::post('/kalkulasi/manage-approval', [KalkulasiController::class, 'manageApprovalFile'])->name('kalkulasi.manage.approval');
 
@@ -153,7 +157,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/approval/{id_pembayaran}/reject', [ApprovalController::class, 'reject'])->name('keuangan.approval.reject');
         Route::get('/approval-approved', [ApprovalController::class, 'approved'])->name('keuangan.approval.approved');
         Route::get('/approval-rejected', [ApprovalController::class, 'rejected'])->name('keuangan.approval.rejected');
-        
+
         // API endpoint untuk status pembayaran proyek
         Route::get('/project-payment-status/{proyekId}', [ApprovalController::class, 'getProjectPaymentStatus'])->name('keuangan.project.payment.status');
 

@@ -74,7 +74,10 @@ class PenawaranController extends Controller
                                    ->whereNotNull('bukti_file_approval')
                                    ->first();
 
-        return view('pages.marketing.penawaran.detail', compact('proyek', 'penawaran', 'penawaranDetails', 'kalkulasiHps'));
+        // Ambil data proyek barang dengan file spesifikasi untuk referensi
+        $proyekBarangWithFiles = $proyek->proyekBarang()->whereNotNull('spesifikasi_files')->get();
+
+        return view('pages.marketing.penawaran.detail', compact('proyek', 'penawaran', 'penawaranDetails', 'kalkulasiHps', 'proyekBarangWithFiles'));
     }
 
     public function store(Request $request)
