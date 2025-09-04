@@ -1,4 +1,5 @@
 @extends('layouts.app')
+
 @section('title', 'Proyek - Cyber KATANA')
 
 @section('content')
@@ -614,6 +615,18 @@ select.status-dropdown {
 .notification-exit {
     animation: slideOutRight 0.3s ease-in;
 }
+
+/* Flexbox container for card reordering */
+#proyekContainer.reordering {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+}
+
+#proyekContainer.reordering .proyek-card {
+    width: 100% !important;
+    margin: 0 !important;
+}
 </style>
 
 <script>
@@ -785,6 +798,9 @@ function resetFilters() {
     // Update pagination info
     updatePaginationInfo();
 
+    // Reset card order
+    resetCardOrder();
+
     console.log('Reset complete - showing all', proyekData.length, 'items');
     console.log('=== END RESET DEBUG ===');
 }
@@ -814,23 +830,23 @@ function displayResults() {
         return;
     }
 
+    // Create a set of filtered project IDs for faster lookup
+    const filteredProjectIds = new Set(currentData.map(proyek => proyek.id));
+    console.log('Filtered project IDs:', Array.from(filteredProjectIds));
+
     // Show/hide cards based on filtered data
     let visibleCount = 0;
 
-    // First hide all cards
-    cards.forEach(card => card.style.display = 'none');
-
-    // Show only matching cards
-    currentData.forEach((filteredProyek, filteredIndex) => {
-        // Find the corresponding card by matching project ID
-        cards.forEach((card, cardIndex) => {
-            const originalProyek = proyekData[cardIndex];
-            if (originalProyek && originalProyek.id === filteredProyek.id) {
-                card.style.display = 'block';
-                visibleCount++;
-                console.log('Showing card for project:', filteredProyek.kode, 'at index', cardIndex);
-            }
-        });
+    // Process each card
+    cards.forEach((card, cardIndex) => {
+        const originalProyek = proyekData[cardIndex];
+        if (originalProyek && filteredProjectIds.has(originalProyek.id)) {
+            card.style.display = 'block';
+            visibleCount++;
+            console.log('Showing card for project:', originalProyek.kode, 'at index', cardIndex);
+        } else {
+            card.style.display = 'none';
+        }
     });
 
     console.log('Visible cards:', visibleCount);
@@ -846,7 +862,71 @@ function displayResults() {
         console.log('Cards visible - hiding no results');
     }
 
+    // If we have sorted data, we need to reorder the cards in the container
+    if (currentData.length > 0 && sortBy && sortBy.value) {
+        console.log('Reordering cards based on sort order');
+        reorderCards();
+    } else {
+        // Reset to original order if no sorting
+        resetCardOrder();
+    }
+
     console.log('=== END DISPLAY RESULTS DEBUG ===');
+}
+
+// Function to reset card order to original
+function resetCardOrder() {
+    console.log('=== RESET CARD ORDER ===');
+    const container = document.getElementById('proyekContainer');
+    if (!container) return;
+
+    // Remove reordering class
+    container.classList.remove('reordering');
+
+    const allCards = document.querySelectorAll('.proyek-card');
+    allCards.forEach((card, index) => {
+        card.style.order = '';
+        card.style.display = '';
+    });
+
+    console.log('Card order reset to original');
+    console.log('=== END RESET CARD ORDER ===');
+}
+
+// Function to reorder cards based on current sorted data
+function reorderCards() {
+    console.log('=== REORDER CARDS DEBUG ===');
+    const container = document.getElementById('proyekContainer');
+    if (!container) {
+        console.error('Container not found for reordering');
+        return;
+    }
+
+    // Add reordering class to container for flexbox styling
+    container.classList.add('reordering');
+
+    const allCards = document.querySelectorAll('.proyek-card');
+    console.log('Reordering', allCards.length, 'cards using CSS order property');
+
+    // Reset all cards to default order first
+    allCards.forEach(card => {
+        card.style.order = '999'; // Put all at end initially
+        card.style.display = 'none'; // Hide all first
+    });
+
+    // Set order for visible cards based on currentData
+    currentData.forEach((sortedProyek, sortedIndex) => {
+        // Find the card that corresponds to this project
+        const cardIndex = proyekData.findIndex(p => p.id === sortedProyek.id);
+        if (cardIndex !== -1 && allCards[cardIndex]) {
+            allCards[cardIndex].style.order = sortedIndex.toString();
+            allCards[cardIndex].style.display = 'block';
+            console.log('Set order', sortedIndex, 'for project:', sortedProyek.kode);
+        }
+    });
+
+    console.log('Cards reordered successfully using CSS order property');
+    console.log('=== END REORDER CARDS DEBUG ===');
 }
 
 // Update pagination info

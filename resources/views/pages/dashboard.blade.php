@@ -252,8 +252,8 @@
         <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
             @forelse($vendorDebts as $debt)
             @php
-                $statusColor = $debt->status == 'overdue' ? 'red' : ($debt->status == 'warning' ? 'orange' : ($debt->status == 'completed' ? 'green' : 'yellow'));
-                $statusText = $debt->status == 'overdue' ? 'Overdue' : ($debt->status == 'warning' ? $debt->days_overdue . ' hari lagi' : ($debt->status == 'completed' ? 'Lunas' : 'Normal'));
+                $statusColor = $debt->status == 'overdue' ? 'red' : ($debt->status == 'warning' ? 'orange' : ($debt->status == 'Lunas' ? 'green' : 'yellow'));
+                $statusText = $debt->status == 'overdue' ? 'Overdue' : ($debt->status == 'warning' ? $debt->days_overdue . ' hari lagi' : ($debt->status == 'Lunas' ? 'Lunas' : 'Normal'));
             @endphp
             <div class="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-{{ $statusColor }}-50 to-{{ $statusColor }}-100 rounded-xl border-l-4 border-{{ $statusColor }}-500">
                 <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
@@ -263,7 +263,7 @@
                     <div class="min-w-0 flex-1">
                         <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $debt->nama_vendor }}</p>
                         <p class="text-xs sm:text-sm text-gray-600">{{ $debt->nama_barang }}</p>
-                        <p class="text-xs text-{{ $statusColor }}-500 font-medium">{{ $debt->total_penawaran }} penawaran</p>
+                        <p class="text-xs text-{{ $statusColor }}-500 font-medium">{{ $debt->kode_proyek }}</p>
                     </div>
                 </div>
                 <div class="text-right flex-shrink-0 ml-2">
@@ -374,6 +374,109 @@
         </div>
     </div>
 </div>
+
+<!-- Usia Hutang Section -->
+<div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 mb-6 sm:mb-8">
+    <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
+        <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Usia Piutang Klien</h3>
+        <div class="flex items-center space-x-2">
+            <span class="px-2 sm:px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs sm:text-sm font-medium">{{ $debtAgeAnalysis->count() }} Invoice</span>
+            <a href="{{ route('laporan.piutang-dinas') }}" class="text-purple-600 hover:text-purple-700 text-xs sm:text-sm font-medium whitespace-nowrap">
+                Lihat Semua
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        @forelse($debtAgeAnalysis as $debt)
+        @php
+            // Set color classes based on age category
+            $colorClasses = [
+                'green' => ['bg' => 'green-50', 'border' => 'green-500', 'text' => 'green-600', 'icon' => 'green-500'],
+                'yellow' => ['bg' => 'yellow-50', 'border' => 'yellow-500', 'text' => 'yellow-600', 'icon' => 'yellow-500'],
+                'orange' => ['bg' => 'orange-50', 'border' => 'orange-500', 'text' => 'orange-600', 'icon' => 'orange-500'],
+                'red' => ['bg' => 'red-50', 'border' => 'red-500', 'text' => 'red-600', 'icon' => 'red-500']
+            ];
+
+            $colors = $colorClasses[$debt->color_class] ?? $colorClasses['red'];
+
+            // Determine icon based on age category
+            $ageIcon = $debt->days_overdue <= 30 ? 'fa-check-circle' :
+                      ($debt->days_overdue <= 60 ? 'fa-exclamation-triangle' :
+                      ($debt->days_overdue <= 90 ? 'fa-clock' : 'fa-ban'));
+        @endphp
+        <div class="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-{{ $colors['bg'] }} to-{{ $colors['bg'] }} rounded-xl border-l-4 border-{{ $colors['border'] }}">
+            <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-{{ $colors['icon'] }} rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                    <i class="fas {{ $ageIcon }} text-white text-sm sm:text-base"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $debt->instansi }}</p>
+                    <p class="text-xs sm:text-sm text-gray-600">{{ $debt->kode_proyek }}</p>
+                    <p class="text-xs text-{{ $colors['text'] }} font-medium">{{ $debt->nomor_invoice }}</p>
+                </div>
+            </div>
+            <div class="text-right flex-shrink-0 ml-2">
+                <p class="text-sm sm:text-lg font-bold text-{{ $colors['text'] }}">
+                    @if($debt->outstanding_amount >= 1000000000)
+                        Rp {{ number_format($debt->outstanding_amount / 1000000000, 1) }}M
+                    @elseif($debt->outstanding_amount >= 1000000)
+                        Rp {{ number_format($debt->outstanding_amount / 1000000, 1) }}jt
+                    @elseif($debt->outstanding_amount >= 1000)
+                        Rp {{ number_format($debt->outstanding_amount / 1000, 0) }}rb
+                    @else
+                        Rp {{ number_format($debt->outstanding_amount, 0) }}
+                    @endif
+                </p>
+                <div class="flex flex-col items-end space-y-1">
+                    <span class="px-2 py-1 bg-{{ $colors['bg'] }} text-{{ $colors['text'] }} rounded-full text-xs font-medium border border-{{ $colors['border'] }}">
+                        {{ $debt->age_category }}
+                    </span>
+                    <span class="text-xs text-gray-500 font-medium">{{ $debt->status_text }}</span>
+                </div>
+            </div>
+        </div>
+        @empty
+        <div class="col-span-1 md:col-span-2 text-center py-8 text-gray-500">
+            <i class="fas fa-clock text-3xl mb-2"></i>
+            <p>Tidak ada data usia hutang saat ini</p>
+        </div>
+        @endforelse
+    </div>
+
+    <!-- Legend for Age Categories -->
+    <div class="mt-4 pt-4 border-t border-gray-200">
+        <h4 class="text-sm font-medium text-gray-700 mb-3">Kategori Usia Hutang:</h4>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span class="text-gray-600">0-30 hari</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span class="text-gray-600">30-60 hari</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <span class="text-gray-600">60-90 hari</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                <span class="text-gray-600">90-120 hari</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span class="text-gray-600">120-150 hari</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-red-700 rounded-full"></div>
+                <span class="text-gray-600">>150 hari</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- Indonesia Map Section -->
 <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 mb-6 sm:mb-8">

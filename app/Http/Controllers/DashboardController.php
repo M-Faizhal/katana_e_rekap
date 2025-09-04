@@ -73,6 +73,9 @@ class DashboardController extends Controller
         // Get geographic statistics for map display
         $geographicStats = $this->getGeographicStats($geographicData);
 
+        // Get debt age analysis
+        $debtAgeAnalysis = $this->getDebtAgeAnalysis();
+
         return view('pages.dashboard', compact(
             'stats',
             'monthlyRevenue',
@@ -80,7 +83,8 @@ class DashboardController extends Controller
             'vendorDebts',
             'clientReceivables',
             'geographicData',
-            'geographicStats'
+            'geographicStats',
+            'debtAgeAnalysis'
         ));
     }
 
@@ -121,25 +125,31 @@ class DashboardController extends Controller
             ->whereYear('created_at', $currentYear)
             ->count();
 
-        // Calculate total hutang (belum dibayar ke vendor)
-        // Modified to match the getVendorDebts() method
-        $totalHutang = DB::table('penawaran')
+        // Calculate total hutang (belum dibayar ke vendor) - menggunakan logika yang sama dengan Laporan Hutang Vendor
+        $totalHutangData = DB::table('proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
             ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
-            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
-            ->leftJoin('pembayaran', 'penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-            ->whereNull('pembayaran.id_pembayaran')
-            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
-            ->sum('penawaran_detail.subtotal') ?? 0;
+            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
+            ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
+            ->leftJoin('kalkulasi_hps', function($join) {
+                $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
+                     ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
+            })
+            ->leftJoin('pembayaran', function($join) {
+                $join->on('penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
+                     ->on('vendor.id_vendor', '=', 'pembayaran.id_vendor')
+                     ->where('pembayaran.status_verifikasi', '=', 'Approved');
+            })
+            ->where('penawaran.status', 'ACC')
+            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->select(
+                DB::raw('SUM(COALESCE(kalkulasi_hps.total_harga_hpp, 0) - COALESCE(pembayaran.nominal_bayar, 0)) as total_hutang'),
+                DB::raw('COUNT(DISTINCT vendor.id_vendor) as vendor_pending')
+            )
+            ->first();
 
-        $vendorPending = DB::table('penawaran')
-            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
-            ->leftJoin('pembayaran', 'penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-            ->whereNull('pembayaran.id_pembayaran')
-            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
-            ->distinct('penawaran.id_penawaran')
-            ->count();
-
-        // Calculate total piutang (belum dibayar dari klien)
+        $totalHutang = $totalHutangData->total_hutang ?? 0;
+        $vendorPending = $totalHutangData->vendor_pending ?? 0;        // Calculate total piutang (belum dibayar dari klien)
         // Using penagihan_dinas table - outstanding invoices
         $totalPiutang = DB::table('penagihan_dinas')
             ->leftJoin('bukti_pembayaran', 'penagihan_dinas.id', '=', 'bukti_pembayaran.penagihan_dinas_id')
@@ -255,65 +265,72 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get vendor debts data
+     * Get vendor debts data - menggunakan logika yang sama dengan Laporan Hutang Vendor
      */
     private function getVendorDebts()
     {
-        // If no actual unpaid debts, show recent vendor transactions for dashboard display
-        $unpaidDebts = DB::table('penawaran')
-            ->select(
-                'penawaran_detail.id_barang',
-                'barang.nama_barang',
-                'vendor.nama_vendor',
-                'vendor.id_vendor',
-                DB::raw('SUM(penawaran_detail.subtotal) as total_hutang'),
-                DB::raw('MIN(penawaran.tanggal_penawaran) as oldest_date'),
-                DB::raw('COUNT(DISTINCT penawaran.id_penawaran) as total_penawaran'),
-                'proyek.status as proyek_status'
-            )
+        // Get vendor debts berdasarkan kalkulasi HPS yang belum lunas
+        $vendorDebts = DB::table('proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
             ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
             ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
             ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
-            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
-            ->leftJoin('pembayaran', 'penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-            ->whereNull('pembayaran.id_pembayaran')
-            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
-            ->groupBy('vendor.id_vendor', 'vendor.nama_vendor', 'penawaran_detail.id_barang', 'barang.nama_barang', 'proyek.status')
+            ->leftJoin('kalkulasi_hps', function($join) {
+                $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
+                     ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
+            })
+            ->leftJoin('pembayaran', function($join) {
+                $join->on('penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
+                     ->on('vendor.id_vendor', '=', 'pembayaran.id_vendor')
+                     ->where('pembayaran.status_verifikasi', '=', 'Approved');
+            })
+            ->where('penawaran.status', 'ACC')
+            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->select(
+                'vendor.nama_vendor',
+                'barang.nama_barang',
+                'proyek.kode_proyek',
+                DB::raw('COALESCE(kalkulasi_hps.total_harga_hpp, 0) as total_vendor'),
+                DB::raw('COALESCE(pembayaran.nominal_bayar, 0) as total_dibayar'),
+                DB::raw('COALESCE(kalkulasi_hps.total_harga_hpp, 0) - COALESCE(pembayaran.nominal_bayar, 0) as total_hutang'),
+                DB::raw('MAX(penawaran.tanggal_penawaran) as oldest_date')
+            )
+            ->groupBy('vendor.id_vendor', 'vendor.nama_vendor', 'barang.nama_barang', 'proyek.kode_proyek', 'kalkulasi_hps.total_harga_hpp', 'pembayaran.nominal_bayar')
+            ->havingRaw('(COALESCE(kalkulasi_hps.total_harga_hpp, 0) - COALESCE(pembayaran.nominal_bayar, 0)) > 0')
             ->orderBy('total_hutang', 'desc')
             ->limit(4)
             ->get();
 
-        // If no unpaid debts found, show recent vendor transactions for display purposes
-        if ($unpaidDebts->isEmpty()) {
+        // Jika tidak ada hutang vendor aktual, tampilkan data untuk display saja
+        if ($vendorDebts->isEmpty()) {
             return DB::table('vendor')
                 ->select(
-                    'barang.id_barang',
-                    'barang.nama_barang',
                     'vendor.nama_vendor',
-                    'vendor.id_vendor',
-                    DB::raw('SUM(penawaran_detail.subtotal) as total_hutang'),
-                    DB::raw('MAX(penawaran.tanggal_penawaran) as oldest_date'),
-                    DB::raw('COUNT(DISTINCT penawaran.id_penawaran) as total_penawaran'),
-                    'proyek.status as proyek_status'
+                    'barang.nama_barang',
+                    'proyek.kode_proyek',
+                    DB::raw('0 as total_vendor'),
+                    DB::raw('0 as total_dibayar'),
+                    DB::raw('0 as total_hutang'),
+                    DB::raw('MAX(penawaran.tanggal_penawaran) as oldest_date')
                 )
                 ->join('barang', 'vendor.id_vendor', '=', 'barang.id_vendor')
                 ->join('penawaran_detail', 'barang.id_barang', '=', 'penawaran_detail.id_barang')
                 ->join('penawaran', 'penawaran_detail.id_penawaran', '=', 'penawaran.id_penawaran')
                 ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
                 ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
-                ->groupBy('vendor.id_vendor', 'vendor.nama_vendor', 'barang.id_barang', 'barang.nama_barang', 'proyek.status')
-                ->orderBy('total_hutang', 'desc')
+                ->groupBy('vendor.nama_vendor', 'barang.nama_barang', 'proyek.kode_proyek')
+                ->orderBy('oldest_date', 'desc')
                 ->limit(4)
                 ->get()
                 ->map(function($item) {
-                    // For display purposes, show as paid/completed
+                    // Untuk tampilan, tandai sebagai lunas
                     $item->days_overdue = 0;
-                    $item->status = 'completed'; // Show as completed since no actual debt
+                    $item->status = 'Lunas';
                     return $item;
                 });
         }
 
-        return $unpaidDebts->map(function($item) {
+        return $vendorDebts->map(function($item) {
             $daysOverdue = Carbon::parse($item->oldest_date)->diffInDays(Carbon::now());
             $item->days_overdue = $daysOverdue;
             $item->status = $daysOverdue > 30 ? 'overdue' : ($daysOverdue > 14 ? 'warning' : 'normal');
@@ -610,6 +627,69 @@ class DashboardController extends Controller
             'top_cities' => $topCities,
             'others_sales' => round($othersSales, 1)
         ];
+    }
+
+    /**
+     * Get debt age analysis for clients based on invoice due dates
+     */
+    private function getDebtAgeAnalysis()
+    {
+        // Get all outstanding invoices with their age in days
+        $outstandingInvoices = DB::table('penagihan_dinas')
+            ->select(
+                'proyek.instansi',
+                'proyek.kode_proyek',
+                'penagihan_dinas.nomor_invoice',
+                'penagihan_dinas.total_harga',
+                'penagihan_dinas.tanggal_jatuh_tempo',
+                'penagihan_dinas.status_pembayaran',
+                DB::raw('COALESCE(SUM(bukti_pembayaran.jumlah_bayar), 0) as total_dibayar'),
+                DB::raw('DATEDIFF(CURDATE(), penagihan_dinas.tanggal_jatuh_tempo) as days_overdue')
+            )
+            ->join('proyek', 'penagihan_dinas.proyek_id', '=', 'proyek.id_proyek')
+            ->leftJoin('bukti_pembayaran', 'penagihan_dinas.id', '=', 'bukti_pembayaran.penagihan_dinas_id')
+            ->where('penagihan_dinas.status_pembayaran', '!=', 'lunas')
+            ->groupBy('penagihan_dinas.id', 'proyek.instansi', 'proyek.kode_proyek',
+                     'penagihan_dinas.nomor_invoice', 'penagihan_dinas.total_harga',
+                     'penagihan_dinas.tanggal_jatuh_tempo', 'penagihan_dinas.status_pembayaran')
+            ->having(DB::raw('(penagihan_dinas.total_harga - COALESCE(SUM(bukti_pembayaran.jumlah_bayar), 0))'), '>', 0)
+            ->orderBy('days_overdue', 'desc')
+            ->limit(8)
+            ->get();
+
+        return $outstandingInvoices->map(function($item) {
+            // Calculate outstanding amount
+            $item->outstanding_amount = $item->total_harga - $item->total_dibayar;
+
+            // Determine age category and color
+            if ($item->days_overdue <= 30) {
+                $item->age_category = '0-30 hari';
+                $item->color_class = 'green';
+                $item->status_text = 'Baik';
+            } elseif ($item->days_overdue <= 60) {
+                $item->age_category = '30-60 hari';
+                $item->color_class = 'yellow';
+                $item->status_text = 'Perhatian';
+            } elseif ($item->days_overdue <= 90) {
+                $item->age_category = '60-90 hari';
+                $item->color_class = 'orange';
+                $item->status_text = 'Waspada';
+            } elseif ($item->days_overdue <= 120) {
+                $item->age_category = '90-120 hari';
+                $item->color_class = 'red';
+                $item->status_text = 'Buruk';
+            } elseif ($item->days_overdue <= 150) {
+                $item->age_category = '120-150 hari';
+                $item->color_class = 'red';
+                $item->status_text = 'Sangat Buruk';
+            } else {
+                $item->age_category = '>150 hari';
+                $item->color_class = 'red';
+                $item->status_text = 'Kritis';
+            }
+
+            return $item;
+        });
     }
 
     /**
