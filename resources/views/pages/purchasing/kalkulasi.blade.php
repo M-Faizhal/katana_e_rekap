@@ -362,7 +362,7 @@
                                         Project Items
                                     @endif
                                 </div>
-                                <div class="text-sm text-gray-500">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
+                                <div class="text-sm text-gray-500">PRJ{{ str_pad($p->kode_proyek, 3, '0', STR_PAD_LEFT) }}</div>
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap">
