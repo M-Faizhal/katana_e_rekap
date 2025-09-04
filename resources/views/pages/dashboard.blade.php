@@ -239,21 +239,21 @@
 <!-- Hutang dan Piutang Section -->
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
     <!-- Left Card - Hutang Vendor -->
-    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
+    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer" onclick="window.location.href='{{ route('laporan.hutang-vendor') }}'">
         <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
             <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Hutang Vendor</h3>
             <div class="flex items-center space-x-2">
                 <span class="px-2 sm:px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs sm:text-sm font-medium">{{ $stats['vendor_pending'] }} Pending</span>
-                <button class="text-red-600 hover:text-red-700 text-xs sm:text-sm font-medium whitespace-nowrap">
+                <a href="{{ route('laporan.hutang-vendor') }}" class="text-red-600 hover:text-red-700 text-xs sm:text-sm font-medium whitespace-nowrap" onclick="event.stopPropagation();">
                     Lihat Semua
-                </button>
+                </a>
             </div>
         </div>
         <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
             @forelse($vendorDebts as $debt)
             @php
-                $statusColor = $debt->status == 'overdue' ? 'red' : ($debt->status == 'warning' ? 'orange' : 'yellow');
-                $statusText = $debt->status == 'overdue' ? 'Overdue' : ($debt->status == 'warning' ? $debt->days_overdue . ' hari lagi' : 'Normal');
+                $statusColor = $debt->status == 'overdue' ? 'red' : ($debt->status == 'warning' ? 'orange' : ($debt->status == 'completed' ? 'green' : 'yellow'));
+                $statusText = $debt->status == 'overdue' ? 'Overdue' : ($debt->status == 'warning' ? $debt->days_overdue . ' hari lagi' : ($debt->status == 'completed' ? 'Lunas' : 'Normal'));
             @endphp
             <div class="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-{{ $statusColor }}-50 to-{{ $statusColor }}-100 rounded-xl border-l-4 border-{{ $statusColor }}-500">
                 <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
@@ -267,7 +267,17 @@
                     </div>
                 </div>
                 <div class="text-right flex-shrink-0 ml-2">
-                    <p class="text-sm sm:text-lg font-bold text-{{ $statusColor }}-600">Rp {{ number_format($debt->total_hutang / 1000000, 1) }}M</p>
+                    <p class="text-sm sm:text-lg font-bold text-{{ $statusColor }}-600">
+                        @if($debt->total_hutang >= 1000000000)
+                            Rp {{ number_format($debt->total_hutang / 1000000000, 1) }}M
+                        @elseif($debt->total_hutang >= 1000000)
+                            Rp {{ number_format($debt->total_hutang / 1000000, 1) }}jt
+                        @elseif($debt->total_hutang >= 1000)
+                            Rp {{ number_format($debt->total_hutang / 1000, 0) }}rb
+                        @else
+                            Rp {{ number_format($debt->total_hutang, 0) }}
+                        @endif
+                    </p>
                     <span class="px-2 py-1 bg-{{ $statusColor }}-200 text-{{ $statusColor }}-700 rounded-full text-xs">{{ $statusText }}</span>
                 </div>
             </div>
@@ -281,20 +291,30 @@
         <div class="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
             <div class="flex justify-between items-center">
                 <span class="text-gray-600 font-medium text-sm sm:text-base">Total Hutang:</span>
-                <span class="text-lg sm:text-xl font-bold text-red-600">Rp {{ number_format($stats['total_hutang'] / 1000000, 1) }}M</span>
+                <span class="text-lg sm:text-xl font-bold text-red-600">
+                    @if($stats['total_hutang'] >= 1000000000)
+                        Rp {{ number_format($stats['total_hutang'] / 1000000000, 1) }}M
+                    @elseif($stats['total_hutang'] >= 1000000)
+                        Rp {{ number_format($stats['total_hutang'] / 1000000, 1) }}jt
+                    @elseif($stats['total_hutang'] >= 1000)
+                        Rp {{ number_format($stats['total_hutang'] / 1000, 0) }}rb
+                    @else
+                        Rp {{ number_format($stats['total_hutang'], 0) }}
+                    @endif
+                </span>
             </div>
         </div>
     </div>
 
     <!-- Right Card - Piutang Dinas -->
-    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
+    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer" onclick="window.location.href='{{ route('laporan.piutang-dinas') }}'">
         <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
             <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Piutang Dinas</h3>
             <div class="flex items-center space-x-2">
                 <span class="px-2 sm:px-3 py-1 bg-yellow-100 text-yellow-600 rounded-full text-xs sm:text-sm font-medium">{{ $stats['dinas_pending'] }} Pending</span>
-                <button class="text-yellow-600 hover:text-yellow-700 text-xs sm:text-sm font-medium whitespace-nowrap">
+                <a href="{{ route('laporan.piutang-dinas') }}" class="text-yellow-600 hover:text-yellow-700 text-xs sm:text-sm font-medium whitespace-nowrap" onclick="event.stopPropagation();">
                     Lihat Semua
-                </button>
+                </a>
             </div>
         </div>
         <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
@@ -315,7 +335,17 @@
                     </div>
                 </div>
                 <div class="text-right flex-shrink-0 ml-2">
-                    <p class="text-sm sm:text-lg font-bold text-{{ $progressColor }}-600">Rp {{ number_format($receivable->sisa_piutang / 1000000, 1) }}M</p>
+                    <p class="text-sm sm:text-lg font-bold text-{{ $progressColor }}-600">
+                        @if($receivable->sisa_piutang >= 1000000000)
+                            Rp {{ number_format($receivable->sisa_piutang / 1000000000, 1) }}M
+                        @elseif($receivable->sisa_piutang >= 1000000)
+                            Rp {{ number_format($receivable->sisa_piutang / 1000000, 1) }}jt
+                        @elseif($receivable->sisa_piutang >= 1000)
+                            Rp {{ number_format($receivable->sisa_piutang / 1000, 0) }}rb
+                        @else
+                            Rp {{ number_format($receivable->sisa_piutang, 0) }}
+                        @endif
+                    </p>
                     <span class="px-2 py-1 bg-{{ $progressColor }}-200 text-{{ $progressColor }}-700 rounded-full text-xs">{{ number_format($receivable->progress, 0) }}% dibayar</span>
                 </div>
             </div>
@@ -329,7 +359,17 @@
         <div class="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
             <div class="flex justify-between items-center">
                 <span class="text-gray-600 font-medium text-sm sm:text-base">Total Piutang:</span>
-                <span class="text-lg sm:text-xl font-bold text-yellow-600">Rp {{ number_format($stats['total_piutang'] / 1000000, 1) }}M</span>
+                <span class="text-lg sm:text-xl font-bold text-yellow-600">
+                    @if($stats['total_piutang'] >= 1000000000)
+                        Rp {{ number_format($stats['total_piutang'] / 1000000000, 1) }}M
+                    @elseif($stats['total_piutang'] >= 1000000)
+                        Rp {{ number_format($stats['total_piutang'] / 1000000, 1) }}jt
+                    @elseif($stats['total_piutang'] >= 1000)
+                        Rp {{ number_format($stats['total_piutang'] / 1000, 0) }}rb
+                    @else
+                        Rp {{ number_format($stats['total_piutang'], 0) }}
+                    @endif
+                </span>
             </div>
         </div>
     </div>
@@ -341,7 +381,6 @@
         <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Distribusi Geografis Penjualan</h3>
         <div class="flex space-x-2">
             <button class="px-3 sm:px-4 py-2 bg-red-800 text-white rounded-xl text-xs sm:text-sm font-medium hover:bg-red-900 transition-colors duration-200">Real-time</button>
-            <button class="px-3 sm:px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-200 transition-colors duration-200">Historical</button>
         </div>
     </div>
 
