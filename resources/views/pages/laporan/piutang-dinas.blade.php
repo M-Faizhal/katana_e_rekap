@@ -110,8 +110,8 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
                 <select id="status-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Semua Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="partial">Sebagian</option>
+                    <option value="pending">Belum Bayar/Belum Ditagih</option>
+                    <option value="partial">Sebagian (DP)</option>
                     <option value="overdue">Terlambat</option>
                 </select>
             </div>
@@ -146,6 +146,9 @@
             </button>
             <button onclick="resetFilters()" class="flex-1 sm:flex-none border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200">
                 <i class="fas fa-undo mr-2"></i>Reset Filter
+            </button>
+            <button onclick="showAllData()" class="flex-1 sm:flex-none bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all duration-200">
+                <i class="fas fa-list-alt mr-2"></i>Tampilkan Semua Data
             </button>
         </div>
     </div>
@@ -186,7 +189,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">{{ $piutang->proyek->kode_proyek ?? '-' }}</div>
-                        <div class="text-sm text-gray-500">{{ $piutang->proyek->nama_klien ?? '-' }}</div>
+                        <div class="text-sm text-gray-500">{{ $piutang->proyek->kab_kota ?? '-' }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $piutang->proyek->instansi ?? '-' }}
@@ -210,12 +213,14 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            @if($piutang->status_pembayaran == 'belum_bayar') bg-yellow-100 text-yellow-800
+                            @if($piutang->status_pembayaran == 'belum_bayar' || $piutang->status_pembayaran == 'belum_ditagih') bg-yellow-100 text-yellow-800
                             @elseif($piutang->status_pembayaran == 'dp') bg-blue-100 text-blue-800
                             @elseif($piutang->status_pembayaran == 'lunas') bg-green-100 text-green-800
                             @else bg-gray-100 text-gray-800 @endif">
                             @if($piutang->status_pembayaran == 'belum_bayar') 
                                 Belum Bayar
+                            @elseif($piutang->status_pembayaran == 'belum_ditagih') 
+                                Belum Ditagih
                             @elseif($piutang->status_pembayaran == 'dp') 
                                 DP Dibayar
                             @elseif($piutang->status_pembayaran == 'lunas') 
@@ -279,6 +284,12 @@ function applyFilters() {
 
 function resetFilters() {
     window.location.href = '{{ route("laporan.piutang-dinas") }}';
+}
+
+function showAllData() {
+    const params = new URLSearchParams();
+    params.append('show_all', 'true');
+    window.location.href = '{{ route("laporan.piutang-dinas") }}?' + params.toString();
 }
 </script>
 @endsection
