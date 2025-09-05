@@ -637,11 +637,20 @@
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
-                                        class="text-green-600 hover:text-green-900"
-                                        title="Lihat Detail Penawaran">
-                                    <i class="fas fa-eye"></i> Detail
-                                </button>
+                                <div class="flex gap-2">
+                                    <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
+                                            class="text-green-600 hover:text-green-900"
+                                            title="Lihat Detail Penawaran">
+                                        <i class="fas fa-eye"></i> Detail
+                                    </button>
+                                    @if($p->penawaranAktif && $p->penawaranAktif->status === 'ACC' && $p->status === 'Penawaran')
+                                        <a href="{{ route('purchasing.kalkulasi.hps.ajukan', $p->id_proyek) }}"
+                                           class="text-blue-600 hover:text-blue-900"
+                                           title="Edit Kalkulasi & Ajukan Pembayaran">
+                                            <i class="fas fa-calculator"></i> Ajukan Pembayaran
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                         @empty
@@ -735,10 +744,23 @@
                     </div>
 
                     <div class="pt-2 border-t border-gray-100">
-                        <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
-                                class="w-full bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
-                            <i class="fas fa-eye mr-1"></i> Lihat Detail
-                        </button>
+                        @if($p->penawaranAktif && $p->penawaranAktif->status === 'ACC' && $p->status === 'Penawaran')
+                            <div class="flex gap-2">
+                                <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
+                                        class="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
+                                    <i class="fas fa-eye mr-1"></i> Detail
+                                </button>
+                                <a href="{{ route('purchasing.kalkulasi.hps.ajukan', $p->id_proyek) }}"
+                                   class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors duration-200 text-center">
+                                    <i class="fas fa-calculator mr-1"></i> Ajukan Pembayaran
+                                </a>
+                            </div>
+                        @else
+                            <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
+                                    class="w-full bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
+                                <i class="fas fa-eye mr-1"></i> Lihat Detail
+                            </button>
+                        @endif
                     </div>
                 </div>
                 @empty
@@ -840,6 +862,12 @@ function createPenawaranAction(proyekId) {
 
 function viewPenawaranDetail(proyekId) {
     window.location.href = `/purchasing/kalkulasi/penawaran/${proyekId}/detail`;
+}
+
+// Function to navigate to payment submission page
+function ajukanPembayaran(proyekId) {
+    // Redirect to the "Ajukan Pembayaran" page
+    window.location.href = `/purchasing/kalkulasi/${proyekId}/hps-ajukan`;
 }
 
 

@@ -354,12 +354,13 @@
         <div class="flex gap-3">
             <button onclick="saveKalkulasiWithHistory()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 <i class="fas fa-save mr-2"></i>
-                Simpan Kalkulasi dengan Riwayat
+                Simpan Kalkulasi
             </button>
-            <button onclick="createPenawaran()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700" id="btn-create-penawaran">
-                <i class="fas fa-file-contract mr-2"></i>
-                Buat Penawaran
+            <button onclick="ajukanPembayaran()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                <i class="fas fa-paper-plane mr-2"></i>
+                Ajukan Menjadi Pembayaran
             </button>
+        
         </div>
         @else
         <div class="text-sm text-gray-500 italic">
@@ -919,27 +920,8 @@ function calculateTotals() {
     if (document.getElementById('total-ongkir')) {
         document.getElementById('total-ongkir').textContent = formatRupiah(summary.totalOngkir || 0);
     }
-    
-    // Check if penawaran button should be shown
-    checkPenawaranButtonVisibility();
 }
 
-function checkPenawaranButtonVisibility() {
-    const btnCreatePenawaran = document.getElementById('btn-create-penawaran');
-    if (!btnCreatePenawaran) return;
-    
-    // Show button if there's valid kalkulasi data
-    const hasValidData = kalkulasiData.length > 0 && 
-                        kalkulasiData.some(item => item.id_barang && item.id_vendor && item.hps > 0);
-    
-    if (hasValidData) {
-        btnCreatePenawaran.style.display = 'inline-block';
-        btnCreatePenawaran.disabled = false;
-    } else {
-        btnCreatePenawaran.style.display = 'none';
-        btnCreatePenawaran.disabled = true;
-    }
-}
 
 function removeItem(index) {
     if (!canEdit) {
@@ -1005,13 +987,15 @@ async function saveKalkulasi() {
 
     // --- Batasi nilai persentase agar tidak out of range ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi gross_income_percent dan nett_income_persentase maksimal 100
-        const grossIncomePercent = Math.min(parseFloat(item.gross_income_percent || 0), 100);
+        // Batasi gross_income_percent dan nett_income_percent maksimal 100
+        const grossIncomePercent = Math.min(parseFloat(item.gross_income_persentase || 0), 100);
         const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
         return {
             ...item,
+            gross_income_persentase: grossIncomePercent,
             gross_income_percent: grossIncomePercent,
-            nett_income_persentase: nettIncomePercent
+            nett_income_persentase: nettIncomePercent,
+            nett_income_percent: nettIncomePercent
         };
     });
 
@@ -1037,8 +1021,6 @@ async function saveKalkulasi() {
             if (document.getElementById('last-updated-footer')) {
                 document.getElementById('last-updated-footer').textContent = now;
             }
-            // Check if penawaran button should be shown
-            checkPenawaranButtonVisibility();
         } else {
             alert(data.message || 'Gagal menyimpan kalkulasi');
         }
@@ -1048,119 +1030,6 @@ async function saveKalkulasi() {
     }
 }
 
-// Create penawaran
-async function createPenawaran() {
-    if (!canEdit) {
-        alert('Anda tidak memiliki akses untuk membuat penawaran.');
-        return;
-    }
-    
-    if (!currentProyekId) {
-        showErrorMessage('ID Proyek tidak ditemukan');
-        return;
-    }
-    
-    if (kalkulasiData.length === 0) {
-        showErrorMessage('Tidak ada data kalkulasi untuk membuat penawaran');
-        return;
-    }
-    
-    // Validasi data kalkulasi
-    const invalidItems = [];
-    kalkulasiData.forEach((item, index) => {
-        if (!item.id_barang || !item.id_vendor) {
-            invalidItems.push(`Item ${index + 1}: Barang dan vendor harus dipilih`);
-        }
-        if (!item.qty || item.qty <= 0) {
-            invalidItems.push(`Item ${index + 1}: Quantity harus lebih dari 0`);
-        }
-        if (!item.harga_vendor || item.harga_vendor <= 0) {
-            invalidItems.push(`Item ${index + 1}: Harga vendor harus lebih dari 0`);
-        }
-        if (!item.hps || item.hps <= 0) {
-            invalidItems.push(`Item ${index + 1}: HPS harus dihitung dan lebih dari 0`);
-        }
-    });
-    
-    if (invalidItems.length > 0) {
-        showErrorMessage('Data tidak lengkap:\n' + invalidItems.join('\n'));
-        return;
-    }
-    
-    // Tampilkan preview sebelum konfirmasi
-    const previewResponse = await fetch('/purchasing/kalkulasi/penawaran/preview', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ id_proyek: currentProyekId })
-    });
-    
-    const previewData = await previewResponse.json();
-    
-    if (!previewData.success) {
-        showErrorMessage('Gagal membuat preview: ' + previewData.message);
-        return;
-    }
-    
-    // Buat preview summary yang lebih detail
-    const previewSummary = previewData.preview;
-    const confirmMessage = `Apakah Anda yakin ingin membuat penawaran dari kalkulasi ini?
-
-PREVIEW PENAWARAN:
-Klien: ${previewSummary.proyek.nama_klien}
-Instansi: ${previewSummary.proyek.instansi}
-Total Items: ${previewSummary.total_items}
-Total Penawaran: ${formatRupiah(previewSummary.total_penawaran)}
-
-DETAIL ITEMS:
-${previewSummary.details.map((detail, index) => 
-    `${index + 1}. ${detail.nama_barang}\n   ${detail.qty} ${detail.satuan} × ${formatRupiah(detail.harga_satuan)} = ${formatRupiah(detail.subtotal)}`
-).join('\n')}
-
-Status proyek akan berubah menjadi "Penawaran".`;
-    
-    if (!confirm(confirmMessage)) {
-        return;
-    }
-    
-    try {
-        // Validasi ulang data sebelum dikirim
-        const validatedData = kalkulasiData.map(item => ({
-            ...item,
-            qty: parseInt(item.qty) || 1,
-            harga_vendor: parseFloat(item.harga_vendor) || 0,
-            hps: parseFloat(item.hps) || 0
-        }));
-        
-        const response = await fetch('/purchasing/kalkulasi/penawaran', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ 
-                id_proyek: currentProyekId,
-                debug_data: validatedData // Kirim data untuk debugging
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showSuccessMessage('Penawaran berhasil dibuat dengan nomor: ' + data.data.no_penawaran);
-            setTimeout(() => {
-                window.location.href = '/purchasing/kalkulasi';
-            }, 2000);
-        } else {
-            showErrorMessage(data.message || 'Gagal membuat penawaran');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showErrorMessage('Terjadi kesalahan saat membuat penawaran');
-    }
-}
 
 // Utility functions
 function formatRupiah(amount) {
@@ -1401,6 +1270,50 @@ function updateCurrentFileDisplayEmpty() {
     `;
 }
 
+// Ajukan ke pembayaran
+async function ajukanPembayaran() {
+    if (!canEdit) {
+        alert('Anda tidak memiliki akses untuk mengajukan pembayaran.');
+        return;
+    }
+    
+    if (!currentProyekId) {
+        alert('ID Proyek tidak ditemukan');
+        return;
+    }
+
+    if (!confirm('Apakah Anda yakin ingin mengajukan proyek ini ke pembayaran? Status proyek akan berubah menjadi "Pembayaran".')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('{{ route("kalkulasi.ajukan.pembayaran") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                id_proyek: currentProyekId
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('Proyek berhasil diajukan ke pembayaran!');
+            // Redirect ke halaman kalkulasi
+            window.location.href = '{{ route("purchasing.kalkulasi") }}';
+        } else {
+            alert('Gagal mengajukan ke pembayaran: ' + result.message);
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat mengajukan ke pembayaran');
+    }
+}
+
 // Lihat riwayat HPS
 async function lihatRiwayatHps() {
     if (!currentProyekId) {
@@ -1410,89 +1323,6 @@ async function lihatRiwayatHps() {
 
     // Redirect ke halaman riwayat detail
     window.location.href = `{{ route("kalkulasi.riwayat.detail", ":id") }}`.replace(':id', currentProyekId);
-}
-
-// Tampilkan modal riwayat
-function tampilkanModalRiwayat(riwayatData) {
-    let modalHtml = `
-        <div id="modal-riwayat" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
-                <div class="flex justify-between items-center p-4 border-b">
-                    <h3 class="text-lg font-semibold">Riwayat Kalkulasi HPS</h3>
-                    <button onclick="tutupModalRiwayat()" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="p-4 overflow-y-auto max-h-[70vh]">
-    `;
-
-    if (riwayatData.length === 0) {
-        modalHtml += `
-            <div class="text-center text-gray-500 py-8">
-                <i class="fas fa-history text-4xl mb-4"></i>
-                <p>Belum ada riwayat kalkulasi HPS</p>
-            </div>
-        `;
-    } else {
-        modalHtml += `
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-3 py-2 text-left">Tanggal</th>
-                            <th class="px-3 py-2 text-left">Barang</th>
-                            <th class="px-3 py-2 text-left">Vendor</th>
-                            <th class="px-3 py-2 text-left">Qty</th>
-                            <th class="px-3 py-2 text-left">Harga Vendor</th>
-                            <th class="px-3 py-2 text-left">HPS</th>
-                            <th class="px-3 py-2 text-left">Action</th>
-                            <th class="px-3 py-2 text-left">User</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-
-        riwayatData.forEach(item => {
-            modalHtml += `
-                <tr class="border-b">
-                    <td class="px-3 py-2">${item.created_at}</td>
-                    <td class="px-3 py-2">${item.nama_barang || '-'}</td>
-                    <td class="px-3 py-2">${item.nama_vendor || '-'}</td>
-                    <td class="px-3 py-2">${item.qty}</td>
-                    <td class="px-3 py-2">Rp ${new Intl.NumberFormat('id-ID').format(item.harga_vendor)}</td>
-                    <td class="px-3 py-2">Rp ${new Intl.NumberFormat('id-ID').format(item.hps)}</td>
-                    <td class="px-3 py-2">
-                        <span class="px-2 py-1 text-xs rounded ${item.action_type === 'edit' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
-                            ${item.action_type}
-                        </span>
-                    </td>
-                    <td class="px-3 py-2">${item.created_by}</td>
-                </tr>
-            `;
-        });
-
-        modalHtml += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-    }
-
-    modalHtml += `
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
-
-// Tutup modal riwayat
-function tutupModalRiwayat() {
-    const modal = document.getElementById('modal-riwayat');
-    if (modal) {
-        modal.remove();
-    }
 }
 
 // Modifikasi fungsi saveKalkulasi untuk menggunakan endpoint dengan riwayat
@@ -1518,30 +1348,41 @@ async function saveKalkulasiWithHistory() {
 
     // --- Batasi nilai persentase agar tidak out of range ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi gross_income_percent dan nett_income_persentase maksimal 100
-        const grossIncomePercent = Math.min(parseFloat(item.gross_income_percent || 0), 100);
+        // Batasi gross_income_percent dan nett_income_percent maksimal 100
+        const grossIncomePercent = Math.min(parseFloat(item.gross_income_persentase || 0), 100);
         const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
         return {
             ...item,
+            gross_income_persentase: grossIncomePercent,
             gross_income_percent: grossIncomePercent,
-            nett_income_persentase: nettIncomePercent
+            nett_income_persentase: nettIncomePercent,
+            nett_income_percent: nettIncomePercent
         };
     });
 
     try {
+        const requestData = {
+            id_proyek: currentProyekId,
+            kalkulasi: sanitizedKalkulasi
+        };
+        
+        // Debug: console log untuk melihat data yang dikirim
+        console.log('Sending kalkulasi data:', requestData);
+        console.log('First kalkulasi item:', requestData.kalkulasi[0]);
+        
         const response = await fetch('{{ route("kalkulasi.save.history") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({
-                id_proyek: currentProyekId,
-                kalkulasi: sanitizedKalkulasi
-            })
+            body: JSON.stringify(requestData)
         });
 
         const result = await response.json();
+        
+        // Debug: console log untuk melihat response
+        console.log('Server response:', result);
 
         if (result.success) {
             showSuccessMessage('Kalkulasi berhasil disimpan dan riwayat telah diperbarui!');

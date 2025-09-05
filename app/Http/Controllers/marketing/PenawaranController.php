@@ -139,15 +139,8 @@ class PenawaranController extends Controller
 
             $penawaran->save();
 
-            // Update status proyek menjadi 'pembayaran' jika surat penawaran di-upload
+            // Update status penawaran menjadi 'ACC' (approved) jika surat penawaran di-upload
             if ($suratPenawaranUploaded) {
-                $proyek = Proyek::find($request->id_proyek);
-                if ($proyek) {
-                    $proyek->status = 'pembayaran';
-                    $proyek->save();
-                }
-
-                // Update status penawaran menjadi 'ACC' (approved)
                 $penawaran->status = 'ACC';
                 $penawaran->save();
             }
@@ -157,7 +150,7 @@ class PenawaranController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $suratPenawaranUploaded ?
-                    'Penawaran berhasil disimpan dan status proyek diubah ke pembayaran!' :
+                    'Penawaran berhasil disimpan dan status penawaran diubah menjadi ACC!' :
                     'Penawaran berhasil disimpan!',
                 'data' => $penawaran,
                 'status_changed' => $suratPenawaranUploaded
@@ -231,15 +224,8 @@ class PenawaranController extends Controller
 
             $penawaran->save();
 
-            // Update status proyek menjadi 'pembayaran' jika surat penawaran di-upload
+            // Update status penawaran menjadi 'ACC' (approved) jika surat penawaran di-upload
             if ($suratPenawaranUploaded) {
-                $proyek = Proyek::find($penawaran->id_proyek);
-                if ($proyek) {
-                    $proyek->status = 'pembayaran';
-                    $proyek->save();
-                }
-
-                // Update status penawaran menjadi 'ACC' (approved)
                 $penawaran->status = 'ACC';
                 $penawaran->save();
             }
@@ -249,7 +235,7 @@ class PenawaranController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $suratPenawaranUploaded ?
-                    'Penawaran berhasil diupdate dan status proyek diubah ke pembayaran!' :
+                    'Penawaran berhasil diupdate dan status penawaran diubah menjadi ACC!' :
                     'Penawaran berhasil diupdate!',
                 'data' => $penawaran,
                 'status_changed' => $suratPenawaranUploaded

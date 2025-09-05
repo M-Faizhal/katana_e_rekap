@@ -130,6 +130,26 @@ class KalkulasiHps extends Model
     }
 
     /**
+     * Relationship dengan RiwayatHps
+     */
+    public function riwayatHps()
+    {
+        return $this->hasMany(RiwayatHps::class, 'id_proyek', 'id_proyek');
+    }
+
+    /**
+     * Get riwayat for this specific item
+     */
+    public function getRiwayatForItem()
+    {
+        return RiwayatHps::where('id_proyek', $this->id_proyek)
+                        ->where('id_barang', $this->id_barang)
+                        ->where('id_vendor', $this->id_vendor)
+                        ->latest()
+                        ->get();
+    }
+
+    /**
      * DEPRECATED: Calculate all derived values based on input fields
      *
      * NOTE: This method is no longer used to avoid duplicate calculations.
@@ -279,4 +299,16 @@ class KalkulasiHps extends Model
     | - Backend (PHP): Data validation, persistence, business logic
     |
     */
+
+    // Relasi dengan RiwayatHps
+    public function riwayat()
+    {
+        return $this->hasMany(RiwayatHps::class, 'id_proyek', 'id_proyek');
+    }
+
+    // Method untuk membuat riwayat sebelum update
+    public function createRiwayat($actionType = 'edit', $actionDescription = '', $changes = null)
+    {
+        return RiwayatHps::createFromKalkulasi($this->id_proyek, $actionType, $actionDescription, $changes);
+    }
 }
