@@ -8,10 +8,16 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
             <div class="flex-1 min-w-0">
-                <h1 class="text-xl font-semibold text-gray-900 truncate">Detail Penawaran</h1>
+                <h1 class="text-xl font-semibold text-gray-900 truncate">Detail Penawaran - Kalkulasi HPS</h1>
                 <div class="text-sm text-gray-600 mt-1 flex flex-wrap items-center gap-2">
                     <span class="font-medium">No. Penawaran:</span> 
                     <span class="text-blue-600 font-semibold">{{ $penawaran->no_penawaran ?? '-' }}</span>
+                    <span class="hidden sm:inline">|</span>
+                    <span class="font-medium">Proyek:</span> <span class="truncate">{{ $proyek->kode_proyek ?? '-' }}</span>
+                    <span class="hidden sm:inline">|</span>
+                    <span class="font-medium">ID:</span> <span>{{ $proyek->id_proyek ?? '-' }}</span>
+                    <span class="hidden sm:inline">|</span>
+                    <span class="font-medium">Instansi:</span> <span class="truncate">{{ $proyek->instansi ?? '-' }}</span>
                     <span class="hidden sm:inline">|</span>
                     <span class="font-medium">Status:</span> 
                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
@@ -20,12 +26,18 @@
                         @else bg-yellow-100 text-yellow-800 @endif">
                         {{ $penawaran->status }}
                     </span>
+                    <span class="hidden sm:inline">|</span>
+                    <span class="font-medium">Total:</span> <span class="truncate text-green-600">{{ 'Rp ' . number_format($penawaran->total_penawaran ?? 0, 0, ',', '.') }}</span>
                 </div>
             </div>
             <div class="flex gap-2">
                 <a href="{{ route('purchasing.kalkulasi') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Kembali
+                </a>
+                <a href="{{ route('kalkulasi.riwayat.detail', ['id' => $proyek->id_proyek]) }}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">
+                    <i class="fas fa-history mr-2"></i>
+                    Riwayat
                 </a>
                 <a href="{{ route('purchasing.kalkulasi.hps.summary', ['id' => $proyek->id_proyek]) }}" target="_blank" rel="noopener" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
                     <i class="fas fa-table mr-2"></i>
@@ -35,54 +47,75 @@
         </div>
     </div>
 
-    <!-- Informasi Proyek -->
+   
+    <!-- Permintaan Klien Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div class="p-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-800">
-                <i class="fas fa-project-diagram text-blue-600 mr-2"></i>
-                Informasi Proyek
-            </h2>
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-user-tie text-blue-600 mr-2"></i>
+                    Permintaan Klien
+                    <span class="text-sm font-normal text-gray-500 ml-2">(Dari Admin Marketing - Read Only)</span>
+                </h2>
+                <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm flex items-center gap-2">
+                    <i class="fas fa-lock"></i>
+                    Data Terkunci
+                </div>
+            </div>
         </div>
-        <div class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                    <label class="text-sm font-medium text-gray-500">ID Proyek</label>
-                    <p class="text-gray-900 font-medium">PRJ{{ str_pad($proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}</p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Kota/Kab</label>
-                    <p class="text-gray-900 font-medium">{{ $proyek->kab_kota }}</p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Instansi</label>
-                    <p class="text-gray-900 font-medium">{{ $proyek->instansi }}</p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Marketing</label>
-                    <p class="text-gray-900 font-medium">{{ $proyek->adminMarketing->nama ?? 'N/A' }}</p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Purchasing</label>
-                    <p class="text-gray-900 font-medium">{{ $proyek->adminPurchasing->nama ?? 'N/A' }}</p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Total Proyek</label>
-                    <p class="text-green-600 font-bold">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</p>
-                </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-blue-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">No</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Nama Barang</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Qty</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Satuan</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Harga Satuan</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Harga Total</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-blue-200">
+                    @if($proyek->proyekBarang && $proyek->proyekBarang->count() > 0)
+                        @foreach($proyek->proyekBarang as $index => $item)
+                        <tr class="hover:bg-blue-50">
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ $index + 1 }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ $item->nama_barang }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ number_format($item->jumlah, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ $item->satuan }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ 'Rp ' . number_format($item->harga_satuan, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800 font-semibold">{{ 'Rp ' . number_format($item->harga_total, 0, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">Tidak ada data permintaan klien</td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bg-blue-100 px-4 py-3 border-t border-blue-200">
+            <div class="flex justify-between items-center">
+                <span class="text-sm font-medium text-blue-700">Total Permintaan Klien:</span>
+                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
             </div>
         </div>
     </div>
 
-    <!-- Informasi Penawaran -->
+    <!-- File Penawaran Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div class="p-4 border-b border-gray-200">
             <h2 class="text-lg font-semibold text-gray-800">
                 <i class="fas fa-file-contract text-green-600 mr-2"></i>
-                Informasi Penawaran
+                File Penawaran
+                <span class="text-sm font-normal text-gray-500 ml-2">(Dokumen yang telah dibuat)</span>
             </h2>
         </div>
         <div class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div>
                     <label class="text-sm font-medium text-gray-500">Nomor Penawaran</label>
                     <p class="text-blue-600 font-bold">{{ $penawaran->no_penawaran }}</p>
@@ -102,39 +135,84 @@
             </div>
             
             @if($penawaran->surat_penawaran || $penawaran->surat_pesanan)
-            <div class="mt-4 pt-4 border-t border-gray-200">
-                <label class="text-sm font-medium text-gray-500 block mb-2">Dokumen</label>
-                <div class="flex flex-wrap gap-2">
+            <div class="border-t border-gray-200 pt-4">
+                <label class="text-sm font-medium text-gray-500 block mb-3">Dokumen Penawaran</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     @if($penawaran->surat_penawaran)
-                    <a href="{{ asset('storage/penawaran/' . $penawaran->surat_penawaran) }}" 
-                       target="_blank"
-                       class="inline-flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors">
-                        @php
-                            $extension = strtolower(pathinfo($penawaran->surat_penawaran, PATHINFO_EXTENSION));
-                            $icon = in_array($extension, ['pdf']) ? 'fas fa-file-pdf' : 
-                                   (in_array($extension, ['doc', 'docx']) ? 'fas fa-file-word' : 
-                                   (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) ? 'fas fa-file-image' : 'fas fa-file'));
-                        @endphp
-                        <i class="{{ $icon }} mr-2"></i>
-                        Surat Penawaran
-                        <i class="fas fa-eye ml-2 text-xs"></i>
-                    </a>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                @php
+                                    $extension = strtolower(pathinfo($penawaran->surat_penawaran, PATHINFO_EXTENSION));
+                                    $icon = in_array($extension, ['pdf']) ? 'fas fa-file-pdf text-red-500' : 
+                                           (in_array($extension, ['doc', 'docx']) ? 'fas fa-file-word text-blue-600' : 
+                                           (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) ? 'fas fa-file-image text-green-500' : 'fas fa-file text-gray-500'));
+                                @endphp
+                                <i class="{{ $icon }} text-xl"></i>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">Surat Penawaran</div>
+                                    <div class="text-xs text-gray-500">{{ basename($penawaran->surat_penawaran) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="{{ asset('storage/penawaran/' . $penawaran->surat_penawaran) }}" 
+                               target="_blank"
+                               class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors">
+                                <i class="fas fa-eye mr-2"></i>
+                                Lihat
+                            </a>
+                            <a href="{{ asset('storage/penawaran/' . $penawaran->surat_penawaran) }}" 
+                               download
+                               class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
+                                <i class="fas fa-download mr-2"></i>
+                                Download
+                            </a>
+                        </div>
+                    </div>
                     @endif
+                    
                     @if($penawaran->surat_pesanan)
-                    <a href="{{ asset('storage/penawaran/' . $penawaran->surat_pesanan) }}" 
-                       target="_blank"
-                       class="inline-flex items-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
-                        @php
-                            $extension = strtolower(pathinfo($penawaran->surat_pesanan, PATHINFO_EXTENSION));
-                            $icon = in_array($extension, ['pdf']) ? 'fas fa-file-pdf' : 
-                                   (in_array($extension, ['doc', 'docx']) ? 'fas fa-file-word' : 
-                                   (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) ? 'fas fa-file-image' : 'fas fa-file'));
-                        @endphp
-                        <i class="{{ $icon }} mr-2"></i>
-                        Surat Pesanan
-                        <i class="fas fa-eye ml-2 text-xs"></i>
-                    </a>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                @php
+                                    $extension = strtolower(pathinfo($penawaran->surat_pesanan, PATHINFO_EXTENSION));
+                                    $icon = in_array($extension, ['pdf']) ? 'fas fa-file-pdf text-red-500' : 
+                                           (in_array($extension, ['doc', 'docx']) ? 'fas fa-file-word text-blue-600' : 
+                                           (in_array($extension, ['jpg', 'jpeg', 'png', 'gif']) ? 'fas fa-file-image text-green-500' : 'fas fa-file text-gray-500'));
+                                @endphp
+                                <i class="{{ $icon }} text-xl"></i>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">Surat Pesanan</div>
+                                    <div class="text-xs text-gray-500">{{ basename($penawaran->surat_pesanan) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="{{ asset('storage/penawaran/' . $penawaran->surat_pesanan) }}" 
+                               target="_blank"
+                               class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm hover:bg-blue-200 transition-colors">
+                                <i class="fas fa-eye mr-2"></i>
+                                Lihat
+                            </a>
+                            <a href="{{ asset('storage/penawaran/' . $penawaran->surat_pesanan) }}" 
+                               download
+                               class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
+                                <i class="fas fa-download mr-2"></i>
+                                Download
+                            </a>
+                        </div>
+                    </div>
                     @endif
+                </div>
+            </div>
+            @else
+            <div class="border-t border-gray-200 pt-4">
+                <div class="text-center text-gray-500 py-6">
+                    <i class="fas fa-file-alt text-4xl text-gray-300 mb-3"></i>
+                    <p class="text-lg font-medium mb-2">Belum Ada File Penawaran</p>
+                    <p class="text-sm">File surat penawaran belum diupload untuk penawaran ini.</p>
                 </div>
             </div>
             @endif
@@ -146,8 +224,9 @@
         <div class="p-4 border-b border-gray-200">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-semibold text-gray-800">
-                    <i class="fas fa-list text-purple-600 mr-2"></i>
+                    <i class="fas fa-boxes text-green-600 mr-2"></i>
                     Detail Item Penawaran
+                    <span class="text-sm font-normal text-green-600 ml-2">(Daftar barang yang ditawarkan)</span>
                 </h2>
                 <div class="text-sm text-gray-600">
                     Total: {{ $penawaran->details->count() }} item(s)
@@ -157,45 +236,45 @@
         
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead class="bg-gray-50">
+                <thead class="bg-green-50">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Barang</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spesifikasi</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Satuan</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga Satuan</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">No</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Nama Barang</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Spesifikasi</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Qty</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Satuan</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Harga Satuan</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">Subtotal</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-green-200">
                     @forelse($penawaran->details as $index => $detail)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
+                    <tr class="hover:bg-green-50">
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-green-800">{{ $index + 1 }}</td>
                         <td class="px-4 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ $detail->nama_barang }}</div>
+                            <div class="text-sm font-medium text-green-900">{{ $detail->nama_barang }}</div>
                             @if($detail->barang)
-                            <div class="text-xs text-gray-500">Kode: {{ $detail->barang->id_barang }}</div>
+                            <div class="text-xs text-green-600">Kode: {{ $detail->barang->id_barang }}</div>
                             @endif
                         </td>
                         <td class="px-4 py-4">
-                            <div class="text-sm text-gray-900 max-w-xs">
+                            <div class="text-sm text-green-900 max-w-xs">
                                 {{ Str::limit($detail->spesifikasi, 100) }}
                             </div>
                             @if(strlen($detail->spesifikasi) > 100)
-                            <button onclick="showFullSpec('{{ $detail->id_detail }}')" class="text-xs text-blue-600 hover:text-blue-800 mt-1">
+                            <button onclick="showFullSpec('{{ $detail->id_detail }}')" class="text-xs text-green-600 hover:text-green-800 mt-1">
                                 Lihat Selengkapnya
                             </button>
                             @endif
                         </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-green-900 text-center">
                             {{ number_format($detail->qty, 0, ',', '.') }}
                         </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ $detail->satuan }}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-green-900">{{ $detail->satuan }}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-green-900 text-right">
                             {{ 'Rp ' . number_format($detail->harga_satuan, 0, ',', '.') }}
                         </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-900 text-right">
                             {{ 'Rp ' . number_format($detail->subtotal, 0, ',', '.') }}
                         </td>
                     </tr>
@@ -209,12 +288,12 @@
                     @endforelse
                 </tbody>
                 @if($penawaran->details->count() > 0)
-                <tfoot class="bg-gray-50">
+                <tfoot class="bg-green-100">
                     <tr>
-                        <td colspan="6" class="px-4 py-4 text-right text-sm font-medium text-gray-900">
+                        <td colspan="6" class="px-4 py-4 text-right text-sm font-medium text-green-900">
                             <strong>Total Penawaran:</strong>
                         </td>
-                        <td class="px-4 py-4 text-right text-lg font-bold text-green-600">
+                        <td class="px-4 py-4 text-right text-lg font-bold text-green-700">
                             {{ 'Rp ' . number_format($penawaran->details->sum('subtotal'), 0, ',', '.') }}
                         </td>
                     </tr>
@@ -223,6 +302,120 @@
             </table>
         </div>
     </div>
+
+    <!-- Summary Section -->
+    @if($kalkulasiData->count() > 0)
+    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Ringkasan Total Kalkulasi HPS</h3>
+        
+        @php
+            // Calculate summary data (same as in hps-ajukan)
+            $totalHppModal = $kalkulasiData->sum('harga_vendor');
+            $totalHps = $kalkulasiData->sum('hps');
+            $totalDiskon = $kalkulasiData->sum('total_diskon');
+            $totalVolume = $kalkulasiData->sum('jumlah_volume');
+            $totalNett = $kalkulasiData->sum('nett_income');
+            $totalItems = $kalkulasiData->count();
+            
+            $totalDpp = $kalkulasiData->sum('nilai_dpp');
+            $totalAsumsiCair = $kalkulasiData->sum('nilai_asumsi_cair');
+            $totalAsumsiOngkir = $kalkulasiData->sum('ongkir');
+            
+            // Calculate average nett percentage (same logic as riwayat)
+            // Formula: (Total Nett Income / Total Asumsi Cair) * 100
+            $avgNettPersen = 0;
+            if ($totalAsumsiCair > 0) {
+                $avgNettPersen = ($totalNett / $totalAsumsiCair) * 100;
+            }
+            
+            // Indirect costs
+            $totalOmzetDinas = $kalkulasiData->sum('omzet_dinas');
+            $totalBendera = $kalkulasiData->sum('bendera');
+            $totalBankCost = $kalkulasiData->sum('bank_cost');
+            $totalBiayaOps = $kalkulasiData->sum('biaya_ops');
+            $totalTidakLangsung = $totalOmzetDinas + $totalBendera + $totalBankCost + $totalBiayaOps;
+        @endphp
+        
+        <!-- Main Summary Row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center mb-4">
+            <div class="bg-white rounded-lg p-3 border">
+                <div class="text-sm text-gray-600">Total HPP (Modal)</div>
+                <div class="text-lg font-bold text-yellow-700">{{ 'Rp ' . number_format($totalHppModal, 0, ',', '.') }}</div>
+                <div class="text-xs text-gray-500">Harga beli dari vendor</div>
+            </div>
+            <div class="bg-white rounded-lg p-3 border">
+                <div class="text-sm text-gray-600">Total HPS</div>
+                <div class="text-lg font-bold text-blue-700">{{ 'Rp ' . number_format($totalHps, 0, ',', '.') }}</div>
+                <div class="text-xs text-gray-500">Harga penawaran ke klien</div>
+            </div>
+            <div class="bg-white rounded-lg p-3 border">
+                <div class="text-sm text-gray-600">Total Nett</div>
+                <div class="text-lg font-bold text-green-700">{{ 'Rp ' . number_format($totalNett, 0, ',', '.') }}</div>
+                <div class="text-xs text-gray-500">Pendapatan bersih</div>
+            </div>
+            <div class="bg-white rounded-lg p-3 border">
+                <div class="text-sm text-gray-600">Rata-rata % Nett</div>
+                <div class="text-lg font-bold text-red-700">{{ number_format($avgNettPersen, 2) }}%</div>
+                <div class="text-xs text-gray-500">Margin bersih</div>
+            </div>
+        </div>
+        
+        <!-- Additional Summary Details -->
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 text-center">
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Items</div>
+                <div class="text-sm font-semibold">{{ number_format($totalItems, 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Diskon</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalDiskon, 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Volume</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalVolume, 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total DPP</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalDpp, 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Asumsi Cair</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalAsumsiCair, 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Ongkir</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalAsumsiOngkir, 0, ',', '.') }}</div>
+            </div>
+        </div>
+        
+        <!-- Biaya Tidak Langsung Summary -->
+        <div class="mt-4 bg-white rounded-lg p-4 border">
+            <h4 class="text-md font-semibold text-gray-800 mb-3">Biaya Tidak Langsung</h4>
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 text-center text-sm">
+                <div class="bg-gray-50 rounded p-2">
+                    <div class="text-gray-600">Omzet Dinas</div>
+                    <div class="font-medium">{{ 'Rp ' . number_format($totalOmzetDinas, 0, ',', '.') }}</div>
+                </div>
+                <div class="bg-gray-50 rounded p-2">
+                    <div class="text-gray-600">Bendera</div>
+                    <div class="font-medium">{{ 'Rp ' . number_format($totalBendera, 0, ',', '.') }}</div>
+                </div>
+                <div class="bg-gray-50 rounded p-2">
+                    <div class="text-gray-600">Bank Cost</div>
+                    <div class="font-medium">{{ 'Rp ' . number_format($totalBankCost, 0, ',', '.') }}</div>
+                </div>
+                <div class="bg-gray-50 rounded p-2">
+                    <div class="text-gray-600">Biaya Ops</div>
+                    <div class="font-medium">{{ 'Rp ' . number_format($totalBiayaOps, 0, ',', '.') }}</div>
+                </div>
+                <div class="bg-orange-100 rounded p-2">
+                    <div class="text-orange-700 font-medium">Sub Total</div>
+                    <div class="font-bold text-orange-800">{{ 'Rp ' . number_format($totalTidakLangsung, 0, ',', '.') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Data Kalkulasi HPS (Lengkap) -->
     @if($kalkulasiData->count() > 0)

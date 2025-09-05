@@ -130,7 +130,8 @@ Route::middleware('auth')->group(function () {
 
         // New: HPS Items Summary Page
         Route::get('/kalkulasi/{id}/hps/summary', [KalkulasiController::class, 'hpsSummary'])->name('purchasing.kalkulasi.hps.summary');
-
+        
+  
         // Pembayaran Routes
         Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('purchasing.pembayaran');
         Route::get('/pembayaran/create/{id_proyek}/{id_vendor?}', [PembayaranController::class, 'create'])->name('purchasing.pembayaran.create');
