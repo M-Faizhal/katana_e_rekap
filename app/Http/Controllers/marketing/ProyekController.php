@@ -32,12 +32,17 @@ class ProyekController extends Controller
             $latestPenawaran = Penawaran::with('details')->where('id_proyek', $proyek->id_proyek)
                                     ->orderBy('id_penawaran', 'desc')
                                     ->first();
-            // Prioritas daftar barang: proyekBarang -> penawaran detail -> fallback proyek langsung
+
+            // Hitung total nilai dari proyek_barang saja
+            $totalNilaiProyekBarang = 0;
             $daftarBarang = [];
 
             // Prioritas 1: Dari proyek_barang (multiple barang per permintaan klien)
             if ($proyek->proyekBarang && $proyek->proyekBarang->count() > 0) {
                 foreach ($proyek->proyekBarang as $barang) {
+                    $hargaTotal = $barang->harga_total ?? 0;
+                    $totalNilaiProyekBarang += $hargaTotal;
+
                     $daftarBarang[] = [
                         'nama' => $barang->nama_barang,
                         'nama_barang' => $barang->nama_barang, // Tambahkan untuk compatibility
@@ -47,7 +52,7 @@ class ProyekController extends Controller
                         'spesifikasi' => $barang->spesifikasi,
                         'spesifikasi_files' => $barang->spesifikasi_files ?? [],
                         'harga_satuan' => $barang->harga_satuan ?? 0,
-                        'harga_total' => $barang->harga_total ?? 0
+                        'harga_total' => $hargaTotal
                     ];
                 }
             }
@@ -94,7 +99,7 @@ class ProyekController extends Controller
                 'id_admin_marketing' => $proyek->id_admin_marketing,
                 'id_admin_purchasing' => $proyek->id_admin_purchasing,
                 'status' => strtolower($proyek->status),
-                'total_nilai' => $latestPenawaran ? $latestPenawaran->total_penawaran : ($proyek->harga_total ?? 0),
+                'total_nilai' => $totalNilaiProyekBarang, // Gunakan hanya dari proyek_barang
                 'catatan' => $proyek->catatan,
                 'potensi' => $proyek->potensi ?? 'tidak',
                 'tahun_potensi' => $proyek->tahun_potensi ?? Carbon::now()->year,
