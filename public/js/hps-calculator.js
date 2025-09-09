@@ -374,8 +374,8 @@ class HPSCalculator {
             harga_akhir: 0,
             total_harga: 0,
             jumlah_volume: 0,
-            harga_yang_diharapkan: 0,
-            persen_kenaikan: 0,
+            harga_yang_diharapkan: 0, // ← INPUT: Harga yang diharapkan (default 0, bisa diedit)
+            persen_kenaikan: 0,       // ← CALCULATED: Persentase kenaikan (bisa minus)
             proyeksi_kenaikan: 0,
             ppn_dinas: 0,
             pph_dinas: 0,
