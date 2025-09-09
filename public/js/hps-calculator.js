@@ -91,7 +91,6 @@ class HPSCalculator {
         // Get basic values
         const qty = parseFloat(calculated.qty) || 1;
         const hargaVendor = parseFloat(calculated.harga_vendor) || 0;
-        const persenKenaikan = parseFloat(calculated.persen_kenaikan) || 0;
         const hargaPaguDinasPerPcs = parseFloat(calculated.harga_pagu_dinas_per_pcs) || 0;
         const nilaiSp = parseFloat(calculated.nilai_sp) || 0;
         const ongkir = parseFloat(calculated.ongkir) || 0;
@@ -123,7 +122,29 @@ class HPSCalculator {
         const jumlahVolume = calculated.harga_diskon * qty;
         calculated.jumlah_volume = jumlahVolume;
         
-        // 13. Persen Kenaikan (inputan admin) (already set)
+        // 12.5. HARGA YANG DIHARAPKAN (inputan admin) - no calculation needed
+        const hargaYangDiharapkan = parseFloat(calculated.harga_yang_diharapkan) || 0;
+        calculated.harga_yang_diharapkan = hargaYangDiharapkan;
+        
+        // 13. Persen Kenaikan - CALCULATED based on formula
+        // Formula: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100
+        // Where:
+        // - Harga Yang Diharapkan × QTY = Target revenue yang diinginkan
+        // - Total Harga hpp = Modal/cost barang
+        // - Nilai PPH + Nilai PPN = Pajak yang harus dibayar
+        // - Result = Persentase kenaikan yang dibutuhkan untuk mencapai target
+        const totalHargaHpp = totalHarga; // Total harga is the hpp
+        const nilaiPpn = totalHarga * 0.11; // PPN 11%
+        const nilaiPph = totalHarga * 0.015; // PPH 1.5%
+        const targetRevenue = hargaYangDiharapkan * qty;
+        const totalCost = totalHargaHpp + nilaiPph + nilaiPpn;
+        
+        let persenKenaikan = 0;
+        if (totalHargaHpp > 0) {
+            persenKenaikan = ((targetRevenue - totalCost) / totalHargaHpp) * 100;
+        }
+        calculated.persen_kenaikan = persenKenaikan;
+        calculated.kenaikan_percent = persenKenaikan; // For compatibility
         
         // 14. PROYEKSI KENAIKAN = persen kenaikan * total harga
         const proyeksiKenaikan = (persenKenaikan / 100) * totalHarga;
@@ -353,6 +374,7 @@ class HPSCalculator {
             harga_akhir: 0,
             total_harga: 0,
             jumlah_volume: 0,
+            harga_yang_diharapkan: 0,
             persen_kenaikan: 0,
             proyeksi_kenaikan: 0,
             ppn_dinas: 0,

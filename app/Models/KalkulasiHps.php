@@ -20,6 +20,7 @@ class KalkulasiHps extends Model
         'harga_akhir',
         'total_harga_hpp',
         'jumlah_volume',
+        'harga_yang_diharapkan',
         'kenaikan_percent',
         'proyeksi_kenaikan',
         'pph',
@@ -76,6 +77,7 @@ class KalkulasiHps extends Model
         'harga_akhir' => 'decimal:2',
         'total_harga_hpp' => 'decimal:2',
         'jumlah_volume' => 'decimal:2',
+        'harga_yang_diharapkan' => 'decimal:2',
         'kenaikan_percent' => 'decimal:2',
         'proyeksi_kenaikan' => 'decimal:2',
         'pph' => 'decimal:2',
@@ -211,7 +213,7 @@ class KalkulasiHps extends Model
     {
         $numericFields = [
             'qty', 'harga_vendor', 'diskon_amount', 'total_diskon', 'harga_akhir',
-            'total_harga_hpp', 'jumlah_volume', 'kenaikan_percent', 'proyeksi_kenaikan',
+            'total_harga_hpp', 'jumlah_volume', 'harga_yang_diharapkan', 'kenaikan_percent', 'proyeksi_kenaikan',
             'pph', 'ppn', 'ongkir', 'hps', 'nilai_tkdn_percent', 'nilai_pagu_anggaran',
             'nilai_penawaran_hps', 'nilai_pesanan', 'nilai_selisih', 'nilai_dpp',
             'ppn_percent', 'pph_badan_percent', 'nilai_ppn', 'nilai_pph_badan',

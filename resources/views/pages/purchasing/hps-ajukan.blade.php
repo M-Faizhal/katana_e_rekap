@@ -152,7 +152,8 @@
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-gray-100" title="Calculated: Nilai Diskon × Qty">Total Diskon <br><small class="text-gray-600">(AUTO)</small></th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Total Harga</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Jumlah Volume</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Kenaikan</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-yellow-100" title="Input: Harga yang diharapkan">Harga Yang Diharapkan <br><small class="text-blue-600">(INPUT)</small></th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-gray-100" title="Calculated: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100">% Kenaikan <br><small class="text-gray-600">(AUTO)</small></th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Proyeksi Kenaikan</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPN</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPH</th>
@@ -611,8 +612,11 @@ function createKalkulasiTableRow(item, index) {
             <td class="px-2 py-3 bg-yellow-50 text-xs">
                 <span>${formatRupiah(item.jumlah_volume || 0)}</span>
             </td>
-            <td class="px-2 py-3">
-                <input type="number" value="${item.persen_kenaikan || 0}" onchange="updateValue(${index}, 'persen_kenaikan', this.value)" class="no-spin text-right w-16" step="0.1" ${!canEdit ? 'readonly' : ''}>
+            <td class="px-2 py-3 bg-yellow-100">
+                <input type="number" value="${item.harga_yang_diharapkan || 0}" onchange="updateValue(${index}, 'harga_yang_diharapkan', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="Input harga harapan" title="INPUT: Masukkan harga yang diharapkan" ${!canEdit ? 'readonly' : ''}>
+            </td>
+            <td class="px-2 py-3 bg-gray-50 text-xs">
+                <span class="text-gray-600" title="CALCULATED: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100">${formatPercent(item.persen_kenaikan || 0)}</span>
             </td>
             <td class="px-2 py-3 bg-blue-50 text-xs">
                 <span>${formatRupiah(item.proyeksi_kenaikan || 0)}</span>

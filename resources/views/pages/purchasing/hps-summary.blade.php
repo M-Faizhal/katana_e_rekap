@@ -41,6 +41,7 @@
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Qty</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Satuan</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Jumlah volume yang dikerjakan</th>
+                        <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Harga Yang Diharapkan</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Total HPS</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Keterangan</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">TKDN</th>
@@ -61,6 +62,7 @@
                             <td class="px-3 py-2">{{ number_format($item->qty ?? ($item->barang ? ($item->barang->pivot->jumlah ?? 1) : 1), 0, ',', '.') }}</td>
                             <td class="px-3 py-2">{{ $item->barang->satuan ?? 'pcs' }}</td>
                             <td class="px-3 py-2">{{ 'Rp ' . number_format($item->total_harga_hpp ?? $item->jumlah_volume ?? 0, 0, ',', '.') }}</td>
+                            <td class="px-3 py-2">{{ 'Rp ' . number_format($item->harga_yang_diharapkan ?? 0, 0, ',', '.') }}</td>
                             <td class="px-3 py-2 font-semibold">{{ 'Rp ' . number_format($item->hps ?? 0, 0, ',', '.') }}</td>
                             <td class="px-3 py-2">{{ $item->keterangan_1 ?? '-' }}</td>
                             <td class="px-3 py-2">{{ $item->keterangan_2 ?? '-' }}</td>
@@ -71,14 +73,14 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="15" class="px-3 py-6 text-center text-gray-500">Belum ada data HPS untuk proyek ini.</td>
+                            <td colspan="16" class="px-3 py-6 text-center text-gray-500">Belum ada data HPS untuk proyek ini.</td>
                         </tr>
                     @endforelse
                 </tbody>
                 @if($kalkulasiData->count())
                 <tfoot class="bg-gray-50">
                     <tr>
-                        <td colspan="10" class="px-3 py-3 text-right font-semibold">Total</td>
+                        <td colspan="11" class="px-3 py-3 text-right font-semibold">Total</td>
                         <td class="px-3 py-3 font-semibold">{{ 'Rp ' . number_format($kalkulasiData->sum('hps'), 0, ',', '.') }}</td>
                         <td class="px-3 py-3"></td>
                         <td class="px-3 py-3"></td>
