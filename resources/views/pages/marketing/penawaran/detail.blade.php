@@ -416,8 +416,9 @@
                     </label>
                     <input type="file" name="surat_penawaran"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                           accept=".pdf,.doc,.docx">
-                    <p class="text-xs text-gray-500 mt-1">File: PDF, DOC, DOCX (Max: 5MB)</p>
+                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                           @if(!$penawaran->surat_penawaran) required @endif>
+                    <p class="text-xs text-gray-500 mt-1">File: PDF, DOC, DOCX, JPG, PNG (Max: 5MB) - Wajib diisi</p>
                     @if($penawaran->surat_penawaran)
                     <div class="mt-2 flex items-center text-sm text-green-600">
                         <i class="fas fa-check-circle mr-1"></i>
@@ -460,10 +461,31 @@
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium">
+                <button type="submit"
+                        class="w-full py-3 rounded-lg transition-colors duration-200 font-medium
+                               @if(strtolower($proyek->status) === 'menunggu')
+                                   bg-gray-400 text-gray-600 cursor-not-allowed
+                               @else
+                                   bg-red-600 text-white hover:bg-red-700
+                               @endif"
+                        @if(strtolower($proyek->status) === 'menunggu') disabled @endif>
                     <i class="fas fa-save mr-2"></i>
-                    Simpan Penawaran
+                    @if(strtolower($proyek->status) === 'menunggu')
+                        Tidak Dapat Disimpan (Status Menunggu)
+                    @else
+                        Simpan Penawaran
+                    @endif
                 </button>
+
+                @if(strtolower($proyek->status) === 'menunggu')
+                <div class="mt-2 text-center">
+                    <p class="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Penawaran tidak dapat disimpan karena status proyek masih "Menunggu".
+                        Ubah status proyek terlebih dahulu untuk melanjutkan.
+                    </p>
+                </div>
+                @endif
             </form>
         </div>
         @else
@@ -575,6 +597,46 @@
 // Form submission
 document.getElementById('uploadForm').addEventListener('submit', function(e) {
     e.preventDefault();
+
+    // Check if project status is "menunggu" - prevent submission
+    const projectStatus = '{{ strtolower($proyek->status) }}';
+    if (projectStatus === 'menunggu') {
+        alert('Tidak dapat menyimpan penawaran. Status proyek masih "Menunggu".');
+        return false;
+    }
+
+    // Check if surat_penawaran file is uploaded (if not already exists)
+    const fileInput = this.querySelector('input[name="surat_penawaran"]');
+    const hasExistingFile = {{ $penawaran->surat_penawaran ? 'true' : 'false' }};
+
+    if (!hasExistingFile && (!fileInput.files || fileInput.files.length === 0)) {
+        alert('Surat Penawaran wajib diupload!');
+        fileInput.focus();
+        return false;
+    }
+
+    // Validate file size (5MB = 5 * 1024 * 1024 bytes)
+    if (fileInput.files && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+
+        if (file.size > maxSize) {
+            alert('Ukuran file terlalu besar! Maksimal 5MB.');
+            fileInput.focus();
+            return false;
+        }
+
+        // Validate file type
+        const allowedTypes = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+        const fileName = file.name.toLowerCase();
+        const fileExtension = fileName.split('.').pop();
+
+        if (!allowedTypes.includes(fileExtension)) {
+            alert('Tipe file tidak diizinkan! Hanya PDF, DOC, DOCX, JPG, PNG yang diperbolehkan.');
+            fileInput.focus();
+            return false;
+        }
+    }
 
     const formData = new FormData(this);
     const submitButton = this.querySelector('button[type="submit"]');
@@ -729,6 +791,51 @@ document.addEventListener('DOMContentLoaded', function() {
             closeImagePreview();
         }
     });
+
+    // Add file input validation and preview
+    const fileInput = document.querySelector('input[name="surat_penawaran"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Validate file size
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                if (file.size > maxSize) {
+                    alert('Ukuran file terlalu besar! Maksimal 5MB.');
+                    this.value = '';
+                    return;
+                }
+
+                // Validate file type
+                const allowedTypes = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+                const fileName = file.name.toLowerCase();
+                const fileExtension = fileName.split('.').pop();
+
+                if (!allowedTypes.includes(fileExtension)) {
+                    alert('Tipe file tidak diizinkan! Hanya PDF, DOC, DOCX, JPG, PNG yang diperbolehkan.');
+                    this.value = '';
+                    return;
+                }
+
+                // Show file info
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'mt-2 text-sm text-green-600 bg-green-50 p-2 rounded';
+                fileInfo.innerHTML = `
+                    <i class="fas fa-check-circle mr-1"></i>
+                    File dipilih: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                `;
+
+                // Remove existing file info
+                const existingInfo = this.parentNode.querySelector('.file-info');
+                if (existingInfo) {
+                    existingInfo.remove();
+                }
+
+                fileInfo.classList.add('file-info');
+                this.parentNode.appendChild(fileInfo);
+            }
+        });
+    }
 });
 
 // Functions for specification file handling
