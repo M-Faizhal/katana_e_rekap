@@ -92,8 +92,8 @@ COPY docker/scripts/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 # Health check to monitor application status
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
+HEALTHCHECK --interval=30s --timeout=15s --start-period=90s --retries=3 \
+    CMD curl -f http://localhost/health -H "Accept: application/json" --max-time 10 --connect-timeout 5 || exit 1
 
 # Expose port 80
 EXPOSE 80

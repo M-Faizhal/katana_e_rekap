@@ -18,7 +18,14 @@ use App\Http\Controllers\marketing\PenawaranController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 
-
+// Health check endpoint for Docker
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'timestamp' => now(),
+        'app' => config('app.name')
+    ], 200);
+});
 
 // Auth routes
 Route::middleware('guest')->group(function () {
