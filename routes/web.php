@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\superadmin\PengelolaanAkun;
 use App\Http\Controllers\superadmin\VerifikasiProyekController;
@@ -20,11 +21,25 @@ use App\Http\Controllers\DashboardController;
 
 // Health check endpoint for Docker
 Route::get('/health', function () {
-    return response()->json([
-        'status' => 'healthy',
-        'timestamp' => now(),
-        'app' => config('app.name')
-    ], 200);
+    try {
+        // Test database connection
+        DB::connection()->getPdo();
+        
+        return response()->json([
+            'status' => 'healthy',
+            'timestamp' => now(),
+            'app' => config('app.name'),
+            'database' => 'connected'
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'unhealthy',
+            'timestamp' => now(),
+            'app' => config('app.name'),
+            'database' => 'disconnected',
+            'error' => $e->getMessage()
+        ], 503);
+    }
 });
 
 // Auth routes
