@@ -185,10 +185,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
-                            <select name="id_admin_marketing" id="adminMarketingSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
-                                <option value="">Pilih admin marketing</option>
-                            </select>
-                            <small class="text-gray-500 text-xs mt-1">Pilih admin marketing yang bertanggung jawab untuk proyek ini</small>
+                            <input type="text" name="admin_marketing" id="adminMarketingInput" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama admin marketing" required>
+                            <small class="text-gray-500 text-xs mt-1">Masukkan nama admin marketing yang bertanggung jawab untuk proyek ini</small>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
@@ -1110,7 +1108,7 @@ async function validateTambahForm() {
         { name: 'kabupaten_kota', label: 'Kabupaten/Kota' },
         { name: 'nama_instansi', label: 'Nama Instansi' },
         { name: 'jenis_pengadaan', label: 'Jenis Pengadaan' },
-        { name: 'id_admin_marketing', label: 'Admin Marketing' },
+        { name: 'admin_marketing', label: 'Admin Marketing' },
         { name: 'admin_purchasing', label: 'Admin Purchasing' }
     ];
 
@@ -1123,10 +1121,10 @@ async function validateTambahForm() {
         }
     }
 
-    // Validasi admin marketing sudah dipilih
-    const adminMarketingId = document.querySelector('[name="id_admin_marketing"]')?.value;
-    if (!adminMarketingId) {
-        await showErrorAlert('Admin Marketing harus dipilih!', 'Data Tidak Lengkap');
+    // Validasi admin marketing sudah diisi
+    const adminMarketing = document.querySelector('[name="admin_marketing"]')?.value?.trim();
+    if (!adminMarketing) {
+        await showErrorAlert('Admin Marketing harus diisi!', 'Data Tidak Lengkap');
         return false;
     }
 
@@ -1183,6 +1181,7 @@ function collectTambahFormData() {
     data.kab_kota = formData.get('kabupaten_kota');
     data.instansi = formData.get('nama_instansi');
     data.jenis_pengadaan = formData.get('jenis_pengadaan');
+    data.admin_marketing = formData.get('admin_marketing'); // Changed from id_admin_marketing to admin_marketing
     data.id_admin_purchasing = formData.get('admin_purchasing');
     data.catatan = formData.get('catatan') || '';
     data.potensi = formData.get('potensi') || 'tidak';
@@ -1234,10 +1233,6 @@ function collectTambahFormData() {
         data.spesifikasi = 'Spesifikasi standar';
     }
 
-    // Ambil ID admin marketing dari form
-    const adminMarketingId = formData.get('id_admin_marketing');
-    data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : null;
-
     console.log('Data yang akan dikirim:', data);
     console.log('Jumlah barang:', daftarBarang.length);
 
@@ -1279,16 +1274,10 @@ function resetTambahModal() {
         potensiValue.value = '';
     }
 
-    // Reset admin marketing dropdown to current user
-    const adminMarketingSelect = document.getElementById('adminMarketingSelect');
-    if (adminMarketingSelect) {
-        // Find and select the current user option
-        const currentUserOption = adminMarketingSelect.querySelector('option[selected]');
-        if (currentUserOption) {
-            adminMarketingSelect.value = currentUserOption.value;
-        } else {
-            adminMarketingSelect.selectedIndex = 0;
-        }
+    // Reset admin marketing input to empty
+    const adminMarketingInput = document.getElementById('adminMarketingInput');
+    if (adminMarketingInput) {
+        adminMarketingInput.value = '';
     }
 
     // Reset admin purchasing dropdown
@@ -1373,10 +1362,7 @@ async function loadAdminPurchasingOptions() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Load admin marketing options
-    loadAdminMarketingOptions();
-
-    // Load admin purchasing options
+    // Load admin purchasing options (still needed for dropdown)
     loadAdminPurchasingOptions();
 
     // Load preview kode proyek
@@ -1385,6 +1371,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add keypress event listener for harga satuan inputs to only allow numbers
     document.addEventListener('keypress', function(e) {
         if (e.target.classList.contains('harga-satuan-input')) {
+            // Allow numbers, comma, and control keys
+            if (!/[\d,]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End', 'ArrowLeft', 'ArrowRight', 'Clear', 'Copy', 'Paste'].includes(e.key)) {
+                e.preventDefault();
+            }
+        }
+    });
+
+    console.log('Tambah modal initialized');
+});
             // Allow: backspace, delete, tab, escape, enter
             if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
                 // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X

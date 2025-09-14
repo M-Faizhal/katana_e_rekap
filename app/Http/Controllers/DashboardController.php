@@ -219,11 +219,11 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get revenue leaderboard combining marketing and purchasing admins
+     * Get revenue leaderboard for marketing admins only
      */
     private function getRevenuePerPerson()
     {
-        // Get marketing admins
+        // Get marketing admins only
         $marketingAdmins = DB::table('users')
             ->select(
                 'users.nama',
@@ -237,31 +237,11 @@ class DashboardController extends Controller
             ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
             ->whereYear('proyek.created_at', Carbon::now()->year)
             ->groupBy('users.id_user', 'users.nama')
-            ->get();
-
-        // Get purchasing admins
-        $purchasingAdmins = DB::table('users')
-            ->select(
-                'users.nama',
-                'users.id_user',
-                DB::raw('SUM(kalkulasi_hps.nett_income) as total_revenue'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
-                DB::raw("'Purchasing' as role")
-            )
-            ->join('proyek', 'proyek.id_admin_purchasing', '=', 'users.id_user')
-            ->join('kalkulasi_hps', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu'])
-            ->whereYear('proyek.created_at', Carbon::now()->year)
-            ->groupBy('users.id_user', 'users.nama')
-            ->get();
-
-        // Combine and sort by revenue
-        $combinedData = collect($marketingAdmins)->merge($purchasingAdmins)
-            ->sortByDesc('total_revenue')
+            ->orderBy('total_revenue', 'desc')
             ->take(10)
-            ->values();
+            ->get();
 
-        return $combinedData;
+        return $marketingAdmins;
     }
 
     /**

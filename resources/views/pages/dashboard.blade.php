@@ -128,8 +128,8 @@
                     <i class="fas fa-trophy text-yellow-600"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Omset Per Orang</h3>
-                    <p class="text-sm text-gray-600">Top performer marketing & purchasing</p>
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Omset Per Marketing</h3>
+                    <p class="text-sm text-gray-600">Top performer admin marketing</p>
                 </div>
             </div>
             <a href="{{ route('laporan.omset') }}" class="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium self-start sm:self-auto">
@@ -142,8 +142,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin Marketing</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omset</th>
                     </tr>
@@ -152,7 +151,6 @@
                     @forelse($revenuePerPerson as $index => $person)
                     @php
                         $rankColor = $index == 0 ? 'yellow' : ($index == 1 ? 'gray' : ($index == 2 ? 'orange' : 'blue'));
-                        $roleColor = $person->role == 'Marketing' ? 'red' : 'blue';
                         $rankIcon = $index == 0 ? 'fa-crown' : ($index == 1 ? 'fa-medal' : ($index == 2 ? 'fa-award' : 'fa-user-tie'));
                     @endphp
                     <tr class="hover:bg-gray-50 transition-colors duration-150">
@@ -169,16 +167,14 @@
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 bg-{{ $roleColor }}-100 rounded-xl flex items-center justify-center mr-3">
-                                    <i class="fas fa-user-tie text-{{ $roleColor }}-600 text-sm"></i>
+                                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center mr-3">
+                                    <i class="fas fa-user-tie text-red-600 text-sm"></i>
                                 </div>
-                                <div class="text-sm font-medium text-gray-900">{{ $person->nama }}</div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $person->nama }}</div>
+                                    <div class="text-xs text-red-600 font-medium">Marketing</div>
+                                </div>
                             </div>
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 bg-{{ $roleColor }}-100 text-{{ $roleColor }}-700 rounded-full text-xs font-medium">
-                                {{ $person->role }}
-                            </span>
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $person->total_projects }} proyek
@@ -215,9 +211,9 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                        <td colspan="4" class="px-4 py-8 text-center text-gray-500">
                             <i class="fas fa-users text-3xl mb-2"></i>
-                            <p>Belum ada data omset</p>
+                            <p>Belum ada data omset marketing</p>
                         </td>
                     </tr>
                     @endforelse
@@ -228,7 +224,7 @@
         @if($revenuePerPerson->count() > 0)
         <div class="mt-4 pt-4 border-t border-gray-200">
             <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-600">Total Admin: {{ $revenuePerPerson->count() }}</span>
+                <span class="text-gray-600">Total Marketing: {{ $revenuePerPerson->count() }}</span>
                 <span class="text-gray-600">Total Omset: Rp {{ $formatAmount($revenuePerPerson->sum('total_revenue')) }}</span>
             </div>
         </div>
