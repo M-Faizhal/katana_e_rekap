@@ -31,7 +31,7 @@ services:
     labels:
       - "coolify.managed=true"
       - "traefik.enable=true"
-      - "traefik.http.routers.katana.rule=Host(`${DOMAIN:-katana.localhost}`)"
+      - "traefik.http.routers.katana.rule=Host(`${SERVICE_FQDN_APP:-cyberkamiltrianiaga.ptkatana.com}`)"
       - "traefik.http.routers.katana.entrypoints=websecure"
       - "traefik.http.routers.katana.tls.certresolver=letsencrypt"
       - "traefik.http.services.katana.loadbalancer.server.port=80"
