@@ -54,7 +54,7 @@
           <div class="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-white text-white text-3xl shadow-lg mb-4">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo KATANA" class="w-16 h-16 object-contain">
           </div>
-          <h2 class="text-2xl font-bold text-gray-800">KATANA E-Rekap</h2>
+          <h2 class="text-2xl font-bold text-gray-800">CYBER KATANA</h2>
         </div>
 
         <!-- Welcome Text -->

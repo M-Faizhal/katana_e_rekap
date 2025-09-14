@@ -1,10 +1,10 @@
-# KATANA E-Rekap Dashboard
+# CYBER KATANA Dashboard
 
 Dashboard untuk PT. Kamil Trio Niaga (KATANA) - Sistem manajemen bisnis terintegrasi.
 
 ## Deskripsi
 
-Dashboard KATANA E-Rekap adalah aplikasi web modern yang dibangun dengan Laravel dan Tailwind CSS untuk mengelola berbagai aspek bisnis PT. Kamil Trio Niaga. Dashboard ini menyediakan antarmuka yang intuitif dan responsif untuk monitoring dan pengelolaan operasional perusahaan.
+Dashboard CYBER KATANA adalah aplikasi web modern yang dibangun dengan Laravel dan Tailwind CSS untuk mengelola berbagai aspek bisnis PT. Kamil Trio Niaga. Dashboard ini menyediakan antarmuka yang intuitif dan responsif untuk monitoring dan pengelolaan operasional perusahaan.
 
 ## Fitur Utama
 
@@ -235,7 +235,7 @@ Untuk pertanyaan atau dukungan teknis, hubungi:
 
 ---
 
-**KATANA E-Rekap Dashboard** - Memudahkan pengelolaan bisnis dengan teknologi modern.
+**CYBER KATANA Dashboard** - Memudahkan pengelolaan bisnis dengan teknologi modern.
 
 ## About Laravel
 

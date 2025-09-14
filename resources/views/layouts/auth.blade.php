@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'KATANA E-Rekap') }} • Masuk</title>
+    <title>{{ config('app.name', 'CYBER KATANA') }} • Masuk</title>
 
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -17,7 +17,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Masuk ke {{ config('app.name', 'KATANA E-Rekap') }} - Sistem Rekapitulasi Digital">
+    <meta name="description" content="Masuk ke {{ config('app.name', 'CYBER KATANA') }} - Sistem Rekapitulasi Digital">
     <meta name="keywords" content="katana, e-rekap, login, pt kamil trio niaga">
     <meta name="author" content="PT. Kamil Trio Niaga">
 
