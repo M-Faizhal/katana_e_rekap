@@ -11,7 +11,7 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
       - APP_KEY=${APP_KEY:-base64:YOUR_APP_KEY_HERE}
-      - APP_URL=https://cyberkamiltrianiaga.ptkatana.com
+      - APP_URL=https://cyber.ptkatana.com
       - DB_CONNECTION=mysql
       - DB_HOST=db
       - DB_PORT=3306
@@ -32,7 +32,7 @@ services:
     labels:
       - "coolify.managed=true"
       - "traefik.enable=true"
-      - "traefik.http.routers.katana.rule=Host(`https://cyberkamiltrianiaga.ptkatana.com`)"
+      - "traefik.http.routers.katana.rule=Host(`https://cyber.ptkatana.com`)"
       - "traefik.http.routers.katana.entrypoints=websecure"
       - "traefik.http.routers.katana.tls.certresolver=letsencrypt"
       - "traefik.http.services.katana.loadbalancer.server.port=80"
