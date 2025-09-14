@@ -22,6 +22,7 @@ services:
       - SESSION_DRIVER=file
       - QUEUE_CONNECTION=sync
       - MAIL_MAILER=log
+      - FORCE_HTTPS=true
     volumes:
       - storage_data:/var/www/html/storage
     depends_on:
