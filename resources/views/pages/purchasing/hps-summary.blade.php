@@ -93,6 +93,100 @@
             </table>
         </div>
     </div>
+            <!-- Biaya Tidak Langsung Section -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-2">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Biaya Tidak Langsung</h3>
+                
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 text-center">
+                <!-- Dinas -->
+                <div class="bg-white rounded-lg p-3 border">
+                    <div class="text-sm text-gray-600">Dinas</div>
+                    <div class="text-lg font-bold text-blue-600" id="omzet-dinas">
+                        {{ 'Rp ' . number_format($kalkulasiData->sum('omzet_dinas'), 0, ',', '.') }}
+                        ({{ number_format($kalkulasiData->avg('omzet_dinas_percent'), 1, ',', '.') }}%)
+                    </div>
+                    <div class="text-xs text-gray-500">Biaya dinas</div>
+                </div>
+
+                <!-- Bendera -->
+                <div class="bg-white rounded-lg p-3 border">
+                    <div class="text-sm text-gray-600">Bendera</div>
+                    <div class="text-lg font-bold text-green-600" id="bendera">
+                        {{ 'Rp ' . number_format($kalkulasiData->sum('bendera'), 0, ',', '.') }}
+                        ({{ number_format($kalkulasiData->avg('bendera_percent'), 1, ',', '.') }}%)
+                    </div>
+                    <div class="text-xs text-gray-500">Biaya bendera</div>
+                </div>
+
+                <!-- Bank Cost -->
+                <div class="bg-white rounded-lg p-3 border">
+                    <div class="text-sm text-gray-600">Bank Cost</div>
+                    <div class="text-lg font-bold text-orange-600" id="bank-cost">
+                        {{ 'Rp ' . number_format($kalkulasiData->sum('bank_cost'), 0, ',', '.') }}
+                        ({{ number_format($kalkulasiData->avg('bank_cost_percent'), 1, ',', '.') }}%)
+                    </div>
+                    <div class="text-xs text-gray-500">Biaya administrasi bank</div>
+                </div>
+
+                <!-- Biaya Operasional -->
+                <div class="bg-white rounded-lg p-3 border">
+                    <div class="text-sm text-gray-600">Biaya Operasional</div>
+                    <div class="text-lg font-bold text-purple-600" id="biaya-operasional">
+                        {{ 'Rp ' . number_format($kalkulasiData->sum('biaya_ops'), 0, ',', '.') }}
+                        ({{ number_format($kalkulasiData->avg('biaya_ops_percent'), 1, ',', '.') }}%)
+                    </div>
+                    <div class="text-xs text-gray-500">Biaya operasional</div>
+                </div>
+
+
+            <!-- Subtotal Biaya Tidak Langsung -->
+            <div class="bg-white rounded-lg p-3 border-2 border-red-300">
+                <div class="text-sm text-gray-600 font-semibold">Subtotal Biaya Tidak Langsung</div>
+                <div class="text-lg font-bold text-red-700" id="subtotal-tidak-langsung">
+                    @php
+                        $subtotalTidakLangsung = $kalkulasiData->sum('omzet_dinas') + 
+                                                $kalkulasiData->sum('bendera') + 
+                                                $kalkulasiData->sum('bank_cost') + 
+                                                $kalkulasiData->sum('gross_biaya_ops');
+                    @endphp
+                    {{ 'Rp ' . number_format($subtotalTidakLangsung, 0, ',', '.') }}
+                </div>
+                <div class="text-xs text-gray-500">Total keseluruhan</div>
+            </div>
+        </div>
+        
+    </div>
+    <div class="bg-gray-50 rounded-lg p-4 mb-2">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Rincian Proyek</h3>
+        <!-- Additional Summary Details -->
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 text-center">
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Items</div>
+                <div class="text-sm font-semibold" id="total-items">{{ $kalkulasiData->count() }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Diskon</div>
+                <div class="text-sm font-semibold" id="total-diskon">{{ 'Rp ' . number_format($kalkulasiData->sum('total_diskon'), 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Volume</div>
+                <div class="text-sm font-semibold" id="total-volume">{{ 'Rp ' . number_format($kalkulasiData->sum('jumlah_volume'), 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total DPP</div>
+                <div class="text-sm font-semibold" id="total-dpp">{{ 'Rp ' . number_format($kalkulasiData->sum('nilai_dpp'), 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Asumsi Cair</div>
+                <div class="text-sm font-semibold" id="total-asumsi-cair">{{ 'Rp ' . number_format($kalkulasiData->sum('nilai_asumsi_cair'), 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-white rounded-lg p-2 border">
+                <div class="text-xs text-gray-600">Total Ongkir</div>
+                <div class="text-sm font-semibold" id="total-ongkir">{{ 'Rp ' . number_format($kalkulasiData->sum('ongkir'), 0, ',', '.') }}</div>
+            </div>
+        </div>
+        </h3>
+        </div>
     <!-- Summary Cards Section -->
     <div class="bg-gray-50 rounded-lg p-4 mb-6">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Ringkasan Total Kalkulasi HPS</h3>
@@ -131,75 +225,10 @@
             </div>
         </div>
         
-        <!-- Additional Summary Details -->
-        <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 text-center">
-            <div class="bg-white rounded-lg p-2 border">
-                <div class="text-xs text-gray-600">Total Items</div>
-                <div class="text-sm font-semibold" id="total-items">{{ $kalkulasiData->count() }}</div>
-            </div>
-            <div class="bg-white rounded-lg p-2 border">
-                <div class="text-xs text-gray-600">Total Diskon</div>
-                <div class="text-sm font-semibold" id="total-diskon">{{ 'Rp ' . number_format($kalkulasiData->sum('total_diskon'), 0, ',', '.') }}</div>
-            </div>
-            <div class="bg-white rounded-lg p-2 border">
-                <div class="text-xs text-gray-600">Total Volume</div>
-                <div class="text-sm font-semibold" id="total-volume">{{ 'Rp ' . number_format($kalkulasiData->sum('jumlah_volume'), 0, ',', '.') }}</div>
-            </div>
-            <div class="bg-white rounded-lg p-2 border">
-                <div class="text-xs text-gray-600">Total DPP</div>
-                <div class="text-sm font-semibold" id="total-dpp">{{ 'Rp ' . number_format($kalkulasiData->sum('nilai_dpp'), 0, ',', '.') }}</div>
-            </div>
-            <div class="bg-white rounded-lg p-2 border">
-                <div class="text-xs text-gray-600">Total Asumsi Cair</div>
-                <div class="text-sm font-semibold" id="total-asumsi-cair">{{ 'Rp ' . number_format($kalkulasiData->sum('nilai_asumsi_cair'), 0, ',', '.') }}</div>
-            </div>
-            <div class="bg-white rounded-lg p-2 border">
-                <div class="text-xs text-gray-600">Total Ongkir</div>
-                <div class="text-sm font-semibold" id="total-ongkir">{{ 'Rp ' . number_format($kalkulasiData->sum('ongkir'), 0, ',', '.') }}</div>
-            </div>
-        </div>
+        
     </div>
 
-    <!-- Biaya Tidak Langsung Section -->
-    <div class="bg-gray-50 rounded-lg p-4 mb-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Biaya Tidak Langsung</h3>
-        
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 text-center">
-            <div class="bg-white rounded-lg p-3 border">
-                <div class="text-sm text-gray-600">Omzet Dinas</div>
-                <div class="text-lg font-bold text-blue-600" id="omzet-dinas">{{ 'Rp ' . number_format($kalkulasiData->sum('omzet_dinas'), 0, ',', '.') }}</div>
-                <div class="text-xs text-gray-500">Biaya omzet dinas</div>
-            </div>
-            <div class="bg-white rounded-lg p-3 border">
-                <div class="text-sm text-gray-600">Bendera</div>
-                <div class="text-lg font-bold text-green-600" id="bendera">{{ 'Rp ' . number_format($kalkulasiData->sum('bendera'), 0, ',', '.') }}</div>
-                <div class="text-xs text-gray-500">Biaya bendera</div>
-            </div>
-            <div class="bg-white rounded-lg p-3 border">
-                <div class="text-sm text-gray-600">Bank Cost</div>
-                <div class="text-lg font-bold text-orange-600" id="bank-cost">{{ 'Rp ' . number_format($kalkulasiData->sum('bank_cost'), 0, ',', '.') }}</div>
-                <div class="text-xs text-gray-500">Biaya administrasi bank</div>
-            </div>
-            <div class="bg-white rounded-lg p-3 border">
-                <div class="text-sm text-gray-600">Biaya Operasional</div>
-                <div class="text-lg font-bold text-purple-600" id="biaya-operasional">{{ 'Rp ' . number_format($kalkulasiData->sum('gross_biaya_ops'), 0, ',', '.') }}</div>
-                <div class="text-xs text-gray-500">Biaya operasional</div>
-            </div>
-            <div class="bg-white rounded-lg p-3 border-2 border-red-300">
-                <div class="text-sm text-gray-600 font-semibold">Subtotal Biaya Tidak Langsung</div>
-                <div class="text-lg font-bold text-red-700" id="subtotal-tidak-langsung">
-                    @php
-                        $subtotalTidakLangsung = $kalkulasiData->sum('omzet_dinas') + 
-                                               $kalkulasiData->sum('bendera') + 
-                                               $kalkulasiData->sum('bank_cost') + 
-                                               $kalkulasiData->sum('biaya_operasional');
-                    @endphp
-                    {{ 'Rp ' . number_format($subtotalTidakLangsung, 0, ',', '.') }}
-                </div>
-                <div class="text-xs text-gray-500">Total keseluruhan</div>
-            </div>
-        </div>
-    </div>
+   
 
 
 </div>
