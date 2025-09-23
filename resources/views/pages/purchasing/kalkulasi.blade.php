@@ -316,6 +316,108 @@
                 </div>
                 @endforelse
             </div>
+
+            <!-- Pagination for Tab Menunggu -->
+            @if($proyekMenunggu->hasPages())
+            <div class="px-3 sm:px-4 py-3 border-t border-gray-200 bg-gray-50">
+                <!-- Mobile Pagination -->
+                <div class="flex sm:hidden items-center justify-between">
+                    <div class="text-xs text-gray-600">
+                        {{ $proyekMenunggu->firstItem() ?? 0 }}-{{ $proyekMenunggu->lastItem() ?? 0 }} dari {{ $proyekMenunggu->total() }}
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        @if ($proyekMenunggu->onFirstPage())
+                            <span class="px-2 py-1 text-xs text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                        @else
+                            <a href="{{ $proyekMenunggu->appends(request()->except('menunggu'))->previousPageUrl() }}" 
+                               class="px-2 py-1 text-xs text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        @endif
+
+                        <span class="px-2 py-1 text-xs text-white bg-red-600 rounded font-medium current-page">
+                            {{ $proyekMenunggu->currentPage() }}
+                        </span>
+
+                        @if ($proyekMenunggu->hasMorePages())
+                            <a href="{{ $proyekMenunggu->appends(request()->except('menunggu'))->nextPageUrl() }}" 
+                               class="px-2 py-1 text-xs text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <span class="px-2 py-1 text-xs text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Desktop Pagination -->
+                <div class="hidden sm:flex items-center justify-between">
+                    <div class="text-sm text-gray-700 pagination-info">
+                        Menampilkan {{ $proyekMenunggu->firstItem() ?? 0 }} - {{ $proyekMenunggu->lastItem() ?? 0 }} dari {{ $proyekMenunggu->total() }} proyek
+                    </div>
+                    <div class="flex items-center space-x-1 pagination-nav">
+                        {{-- Previous Page Link --}}
+                        @if ($proyekMenunggu->onFirstPage())
+                            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                        @else
+                            <a href="{{ $proyekMenunggu->appends(request()->except('menunggu'))->previousPageUrl() }}" 
+                               class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @php
+                            $start = max(1, $proyekMenunggu->currentPage() - 2);
+                            $end = min($proyekMenunggu->lastPage(), $proyekMenunggu->currentPage() + 2);
+                        @endphp
+
+                        {{-- First page --}}
+                        @if($start > 1)
+                            <a href="{{ $proyekMenunggu->appends(request()->except('menunggu'))->url(1) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">1</a>
+                            @if($start > 2)
+                                <span class="px-3 py-1 text-sm text-gray-400">...</span>
+                            @endif
+                        @endif
+
+                        {{-- Page numbers --}}
+                        @for ($page = $start; $page <= $end; $page++)
+                            @if ($page == $proyekMenunggu->currentPage())
+                                <span class="px-3 py-1 text-sm text-white bg-red-600 rounded font-medium current-page">{{ $page }}</span>
+                            @else
+                                <a href="{{ $proyekMenunggu->appends(request()->except('menunggu'))->url($page) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">{{ $page }}</a>
+                            @endif
+                        @endfor
+
+                        {{-- Last page --}}
+                        @if($end < $proyekMenunggu->lastPage())
+                            @if($end < $proyekMenunggu->lastPage() - 1)
+                                <span class="px-3 py-1 text-sm text-gray-400">...</span>
+                            @endif
+                            <a href="{{ $proyekMenunggu->appends(request()->except('menunggu'))->url($proyekMenunggu->lastPage()) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">{{ $proyekMenunggu->lastPage() }}</a>
+                        @endif
+
+                        {{-- Next Page Link --}}
+                        @if ($proyekMenunggu->hasMorePages())
+                            <a href="{{ $proyekMenunggu->appends(request()->except('menunggu'))->nextPageUrl() }}" 
+                               class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
@@ -532,6 +634,108 @@
                 </div>
                 @endforelse
             </div>
+
+            <!-- Pagination for Tab Proses -->
+            @if($proyekProses->hasPages())
+            <div class="px-3 sm:px-4 py-3 border-t border-gray-200 bg-gray-50">
+                <!-- Mobile Pagination -->
+                <div class="flex sm:hidden items-center justify-between">
+                    <div class="text-xs text-gray-600">
+                        {{ $proyekProses->firstItem() ?? 0 }}-{{ $proyekProses->lastItem() ?? 0 }} dari {{ $proyekProses->total() }}
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        @if ($proyekProses->onFirstPage())
+                            <span class="px-2 py-1 text-xs text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                        @else
+                            <a href="{{ $proyekProses->appends(request()->except('proses'))->previousPageUrl() }}" 
+                               class="px-2 py-1 text-xs text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        @endif
+
+                        <span class="px-2 py-1 text-xs text-white bg-red-600 rounded font-medium current-page">
+                            {{ $proyekProses->currentPage() }}
+                        </span>
+
+                        @if ($proyekProses->hasMorePages())
+                            <a href="{{ $proyekProses->appends(request()->except('proses'))->nextPageUrl() }}" 
+                               class="px-2 py-1 text-xs text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <span class="px-2 py-1 text-xs text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Desktop Pagination -->
+                <div class="hidden sm:flex items-center justify-between">
+                    <div class="text-sm text-gray-700 pagination-info">
+                        Menampilkan {{ $proyekProses->firstItem() ?? 0 }} - {{ $proyekProses->lastItem() ?? 0 }} dari {{ $proyekProses->total() }} proyek
+                    </div>
+                    <div class="flex items-center space-x-1 pagination-nav">
+                        {{-- Previous Page Link --}}
+                        @if ($proyekProses->onFirstPage())
+                            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                        @else
+                            <a href="{{ $proyekProses->appends(request()->except('proses'))->previousPageUrl() }}" 
+                               class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @php
+                            $start = max(1, $proyekProses->currentPage() - 2);
+                            $end = min($proyekProses->lastPage(), $proyekProses->currentPage() + 2);
+                        @endphp
+
+                        {{-- First page --}}
+                        @if($start > 1)
+                            <a href="{{ $proyekProses->appends(request()->except('proses'))->url(1) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">1</a>
+                            @if($start > 2)
+                                <span class="px-3 py-1 text-sm text-gray-400">...</span>
+                            @endif
+                        @endif
+
+                        {{-- Page numbers --}}
+                        @for ($page = $start; $page <= $end; $page++)
+                            @if ($page == $proyekProses->currentPage())
+                                <span class="px-3 py-1 text-sm text-white bg-red-600 rounded font-medium current-page">{{ $page }}</span>
+                            @else
+                                <a href="{{ $proyekProses->appends(request()->except('proses'))->url($page) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">{{ $page }}</a>
+                            @endif
+                        @endfor
+
+                        {{-- Last page --}}
+                        @if($end < $proyekProses->lastPage())
+                            @if($end < $proyekProses->lastPage() - 1)
+                                <span class="px-3 py-1 text-sm text-gray-400">...</span>
+                            @endif
+                            <a href="{{ $proyekProses->appends(request()->except('proses'))->url($proyekProses->lastPage()) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">{{ $proyekProses->lastPage() }}</a>
+                        @endif
+
+                        {{-- Next Page Link --}}
+                        @if ($proyekProses->hasMorePages())
+                            <a href="{{ $proyekProses->appends(request()->except('proses'))->nextPageUrl() }}" 
+                               class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
@@ -770,6 +974,108 @@
                 </div>
                 @endforelse
             </div>
+
+            <!-- Pagination for Tab Berhasil -->
+            @if($proyekBerhasil->hasPages())
+            <div class="px-3 sm:px-4 py-3 border-t border-gray-200 bg-gray-50">
+                <!-- Mobile Pagination -->
+                <div class="flex sm:hidden items-center justify-between">
+                    <div class="text-xs text-gray-600">
+                        {{ $proyekBerhasil->firstItem() ?? 0 }}-{{ $proyekBerhasil->lastItem() ?? 0 }} dari {{ $proyekBerhasil->total() }}
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        @if ($proyekBerhasil->onFirstPage())
+                            <span class="px-2 py-1 text-xs text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                        @else
+                            <a href="{{ $proyekBerhasil->appends(request()->except('berhasil'))->previousPageUrl() }}" 
+                               class="px-2 py-1 text-xs text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        @endif
+
+                        <span class="px-2 py-1 text-xs text-white bg-red-600 rounded font-medium current-page">
+                            {{ $proyekBerhasil->currentPage() }}
+                        </span>
+
+                        @if ($proyekBerhasil->hasMorePages())
+                            <a href="{{ $proyekBerhasil->appends(request()->except('berhasil'))->nextPageUrl() }}" 
+                               class="px-2 py-1 text-xs text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <span class="px-2 py-1 text-xs text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Desktop Pagination -->
+                <div class="hidden sm:flex items-center justify-between">
+                    <div class="text-sm text-gray-700 pagination-info">
+                        Menampilkan {{ $proyekBerhasil->firstItem() ?? 0 }} - {{ $proyekBerhasil->lastItem() ?? 0 }} dari {{ $proyekBerhasil->total() }} proyek
+                    </div>
+                    <div class="flex items-center space-x-1 pagination-nav">
+                        {{-- Previous Page Link --}}
+                        @if ($proyekBerhasil->onFirstPage())
+                            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                        @else
+                            <a href="{{ $proyekBerhasil->appends(request()->except('berhasil'))->previousPageUrl() }}" 
+                               class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @php
+                            $start = max(1, $proyekBerhasil->currentPage() - 2);
+                            $end = min($proyekBerhasil->lastPage(), $proyekBerhasil->currentPage() + 2);
+                        @endphp
+
+                        {{-- First page --}}
+                        @if($start > 1)
+                            <a href="{{ $proyekBerhasil->appends(request()->except('berhasil'))->url(1) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">1</a>
+                            @if($start > 2)
+                                <span class="px-3 py-1 text-sm text-gray-400">...</span>
+                            @endif
+                        @endif
+
+                        {{-- Page numbers --}}
+                        @for ($page = $start; $page <= $end; $page++)
+                            @if ($page == $proyekBerhasil->currentPage())
+                                <span class="px-3 py-1 text-sm text-white bg-red-600 rounded font-medium current-page">{{ $page }}</span>
+                            @else
+                                <a href="{{ $proyekBerhasil->appends(request()->except('berhasil'))->url($page) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">{{ $page }}</a>
+                            @endif
+                        @endfor
+
+                        {{-- Last page --}}
+                        @if($end < $proyekBerhasil->lastPage())
+                            @if($end < $proyekBerhasil->lastPage() - 1)
+                                <span class="px-3 py-1 text-sm text-gray-400">...</span>
+                            @endif
+                            <a href="{{ $proyekBerhasil->appends(request()->except('berhasil'))->url($proyekBerhasil->lastPage()) }}" class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">{{ $proyekBerhasil->lastPage() }}</a>
+                        @endif
+
+                        {{-- Next Page Link --}}
+                        @if ($proyekBerhasil->hasMorePages())
+                            <a href="{{ $proyekBerhasil->appends(request()->except('berhasil'))->nextPageUrl() }}" 
+                               class="px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <span class="px-3 py-1 text-sm text-gray-400 bg-gray-200 rounded cursor-not-allowed disabled">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
@@ -809,6 +1115,62 @@
         display: none;
     }
 }
+
+/* Pagination Styles */
+.pagination-info {
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+.pagination-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.pagination-nav a,
+.pagination-nav span {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.pagination-nav a {
+    color: #4b5563;
+    background-color: white;
+    border: 1px solid #d1d5db;
+    text-decoration: none;
+}
+
+.pagination-nav a:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.pagination-nav .current-page {
+    color: white;
+    background-color: #dc2626;
+    font-weight: 500;
+}
+
+.pagination-nav .disabled {
+    color: #9ca3af;
+    background-color: #e5e7eb;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .pagination-info {
+        font-size: 0.75rem;
+    }
+    
+    .pagination-nav a,
+    .pagination-nav span {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
 </style>
 @endpush
 
@@ -819,6 +1181,9 @@ let currentProyekId = null;
 
 // Tab Management
 function showTab(tabName) {
+    // Store current tab in URL hash for persistence
+    window.history.replaceState(null, null, '#' + tabName);
+    
     // Hide all tab contents
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
@@ -844,6 +1209,9 @@ function showTab(tabName) {
         buttonElement.classList.add('border-red-600', 'text-red-600', 'bg-red-50');
         buttonElement.classList.remove('border-transparent', 'text-gray-500');
     }
+
+    // Store selected tab in localStorage for session persistence
+    localStorage.setItem('selectedKalkulasiTab', tabName);
 }
 
 // Open HPS Page (instead of modal) with permission check
@@ -883,8 +1251,36 @@ function formatRupiah(amount) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Default to "menunggu" tab
-    showTab('menunggu');
+    // Check for URL hash first
+    let initialTab = 'menunggu'; // default tab
+    
+    if (window.location.hash) {
+        const hashTab = window.location.hash.substring(1);
+        if (['menunggu', 'proses', 'berhasil'].includes(hashTab)) {
+            initialTab = hashTab;
+        }
+    } else {
+        // Check for stored tab preference if no hash
+        const storedTab = localStorage.getItem('selectedKalkulasiTab');
+        if (storedTab && ['menunggu', 'proses', 'berhasil'].includes(storedTab)) {
+            initialTab = storedTab;
+        }
+    }
+    
+    // Show the determined initial tab
+    showTab(initialTab);
+    
+    // Handle pagination link clicks to preserve tab state
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a[href*="page="], a[href*="menunggu="], a[href*="proses="], a[href*="berhasil="]');
+        if (link) {
+            // Add current tab to pagination URL
+            const currentTab = localStorage.getItem('selectedKalkulasiTab') || 'menunggu';
+            if (!link.href.includes('#')) {
+                link.href += '#' + currentTab;
+            }
+        }
+    });
 });
 </script>
 @endpush
