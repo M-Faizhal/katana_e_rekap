@@ -166,8 +166,8 @@
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">DPP</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Asumsi Cair</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Ongkir</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Omzet Dinas</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Omzet Dinas</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Dinas</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Dinas</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Bendera</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Gross Bendera</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Bank Cost</th>
