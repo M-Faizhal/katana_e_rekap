@@ -393,7 +393,7 @@
             <h4 class="text-md font-semibold text-gray-800 mb-3">Biaya Tidak Langsung</h4>
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 text-center text-sm">
                 <div class="bg-gray-50 rounded p-2">
-                    <div class="text-gray-600">Omzet Dinas</div>
+                    <div class="text-gray-600">Dinas</div>
                     <div class="font-medium">{{ 'Rp ' . number_format($totalOmzetDinas, 0, ',', '.') }}</div>
                 </div>
                 <div class="bg-gray-50 rounded p-2">
@@ -554,7 +554,7 @@
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">DPP</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Asumsi Cair</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Ongkir</th>
-                        <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Omzet Dinas</th>
+                        <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Dinas</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Bendera</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Bank Cost</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Biaya Ops</th>

@@ -199,8 +199,8 @@
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                         <div class="bg-white rounded border p-2 text-center">
                                             <div class="font-semibold text-blue-600">{{ 'Rp ' . number_format($riwayatSummaryData[$datetime]['totalOmzetDinas']) }}</div>
-                                            <div class="text-xs text-gray-600">Omzet Dinas</div>
-                                            <div class="text-xs text-gray-500">Biaya omzet dinas</div>
+                                            <div class="text-xs text-gray-600">Dinas</div>
+                                            <div class="text-xs text-gray-500">Biaya dinas</div>
                                         </div>
                                         <div class="bg-white rounded border p-2 text-center">
                                             <div class="font-semibold text-green-600">{{ 'Rp ' . number_format($riwayatSummaryData[$datetime]['totalBendera']) }}</div>
