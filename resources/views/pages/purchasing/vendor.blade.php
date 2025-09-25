@@ -121,7 +121,7 @@
         <table class="w-full">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">ID Vendor</th>
+                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">No</th>
                     <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">Nama Vendor</th>
                     <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">Jenis</th>
                     <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">Email</th>
@@ -130,9 +130,9 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200" id="vendorTableBody">
-                @foreach($vendors as $vendor)
+                @foreach($vendors as $index => $vendor)
                 <tr>
-                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm text-gray-900">{{ $vendor->id_vendor }}</td>
+                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm text-gray-900">{{ ($vendors->currentPage() - 1) * $vendors->perPage() + $index + 1 }}</td>
                     <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             <div class="w-8 h-8 lg:w-10 lg:h-10 bg-red-100 rounded-xl flex items-center justify-center mr-3">
@@ -173,20 +173,20 @@
     <!-- Mobile Card View -->
     <div class="block md:hidden">
         <div class="p-4 space-y-4" id="vendorMobileList">
-            @foreach($vendors as $vendor)
+            @foreach($vendors as $index => $vendor)
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm vendor-card">
                 <div class="p-4">
                     <div class="flex items-start space-x-3">
                         <div class="flex-shrink-0">
                             <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-building text-red-600"></i>
+                                <span class="text-red-600 font-bold">{{ ($vendors->currentPage() - 1) * $vendors->perPage() + $index + 1 }}</span>
                             </div>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-base font-semibold text-gray-900 truncate">{{ $vendor->nama_vendor }}</h3>
                             </div>
-                            <p class="text-sm text-gray-500 mt-1">{{ $vendor->id_vendor }} • {{ Str::limit($vendor->alamat, 20) }}</p>
+                            <p class="text-sm text-gray-500 mt-1">{{ $vendor->jenis_perusahaan }} • {{ Str::limit($vendor->alamat, 20) }}</p>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-700">{{ $vendor->email }}</p>
                                 <p class="text-sm text-gray-700">{{ $vendor->kontak }}</p>
@@ -218,38 +218,109 @@
     </div>
 
     <!-- Pagination -->
-    <div class="p-4 sm:p-6">
+    @if($vendors->hasPages())
+    <div class="p-4 sm:p-6 border-t border-gray-200">
         <!-- Mobile Pagination -->
-        <div class="flex md:hidden items-center justify-between pt-4 border-t border-gray-200">
+        <div class="flex md:hidden items-center justify-between">
             <div class="text-sm text-gray-600">
-                Halaman 1 dari 1
+                Halaman {{ $vendors->currentPage() }} dari {{ $vendors->lastPage() }}
             </div>
             <div class="flex space-x-2">
-                <button class="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                @if($vendors->onFirstPage())
+                    <span class="flex items-center justify-center w-10 h-10 text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                @else
+                    <a href="{{ $vendors->appends(request()->query())->previousPageUrl() }}" 
+                       class="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                @endif
+                
+                @if($vendors->hasMorePages())
+                    <a href="{{ $vendors->appends(request()->query())->nextPageUrl() }}" 
+                       class="flex items-center justify-center w-10 h-10 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                @else
+                    <span class="flex items-center justify-center w-10 h-10 text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                @endif
             </div>
         </div>
 
         <!-- Desktop Pagination -->
-        <div class="hidden md:flex items-center justify-between pt-6 border-t border-gray-200">
+        <div class="hidden md:flex items-center justify-between">
             <div class="text-sm text-gray-600">
-                Menampilkan {{ $vendors->count() > 0 ? '1-' . $vendors->count() : '0' }} dari {{ $vendors->count() }} vendor
+                Menampilkan {{ $vendors->firstItem() ?? 0 }} - {{ $vendors->lastItem() ?? 0 }} dari {{ $vendors->total() }} vendor
             </div>
-            <div class="flex space-x-2">
-                <button class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
-                    Previous
-                </button>
-                <button class="px-3 py-1 text-sm bg-red-600 text-white rounded-lg">1</button>
-                <button class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-                    Next
-                </button>
+            
+            <div class="flex items-center space-x-1">
+                {{-- Previous Page Link --}}
+                @if($vendors->onFirstPage())
+                    <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
+                        <i class="fas fa-chevron-left mr-1"></i>Previous
+                    </span>
+                @else
+                    <a href="{{ $vendors->appends(request()->query())->previousPageUrl() }}" 
+                       class="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        <i class="fas fa-chevron-left mr-1"></i>Previous
+                    </a>
+                @endif
+
+                {{-- Pagination Elements --}}
+                @php
+                    $start = max(1, $vendors->currentPage() - 2);
+                    $end = min($vendors->lastPage(), $vendors->currentPage() + 2);
+                @endphp
+                
+                @if($start > 1)
+                    <a href="{{ $vendors->appends(request()->query())->url(1) }}" 
+                       class="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        1
+                    </a>
+                    @if($start > 2)
+                        <span class="px-3 py-2 text-sm text-gray-400">...</span>
+                    @endif
+                @endif
+                
+                @for($i = $start; $i <= $end; $i++)
+                    @if($i == $vendors->currentPage())
+                        <span class="px-3 py-2 text-sm bg-red-600 text-white rounded-lg font-medium">{{ $i }}</span>
+                    @else
+                        <a href="{{ $vendors->appends(request()->query())->url($i) }}" 
+                           class="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            {{ $i }}
+                        </a>
+                    @endif
+                @endfor
+                
+                @if($end < $vendors->lastPage())
+                    @if($end < $vendors->lastPage() - 1)
+                        <span class="px-3 py-2 text-sm text-gray-400">...</span>
+                    @endif
+                    <a href="{{ $vendors->appends(request()->query())->url($vendors->lastPage()) }}" 
+                       class="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        {{ $vendors->lastPage() }}
+                    </a>
+                @endif
+
+                {{-- Next Page Link --}}
+                @if($vendors->hasMorePages())
+                    <a href="{{ $vendors->appends(request()->query())->nextPageUrl() }}" 
+                       class="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                        Next<i class="fas fa-chevron-right ml-1"></i>
+                    </a>
+                @else
+                    <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
+                        Next<i class="fas fa-chevron-right ml-1"></i>
+                    </span>
+                @endif
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Floating Action Button -->
@@ -272,7 +343,6 @@
 let vendorProducts = [];
 let editVendorProducts = [];
 let productIdCounter = 1;
-let allVendors = @json($vendors);
 let userRole = @json(auth()->user()->role ?? 'guest');
 
 // Modal functions
@@ -375,12 +445,22 @@ function hapusVendor(id) {
         return;
     }
     
-    const vendor = allVendors.find(v => v.id_vendor == id);
-    if (vendor) {
-        document.getElementById('hapusVendorId').value = id;
-        document.getElementById('hapusVendorNama').textContent = vendor.nama_vendor;
-        showModal('modalHapusVendor');
-    }
+    // Fetch vendor data to get the name
+    fetch(`/purchasing/vendor/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('hapusVendorId').value = id;
+                document.getElementById('hapusVendorNama').textContent = data.vendor.nama_vendor;
+                showModal('modalHapusVendor');
+            } else {
+                showToast('Gagal memuat data vendor', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Terjadi kesalahan saat memuat data vendor', 'error');
+        });
 }
 
 // Modal utility functions
@@ -748,43 +828,34 @@ function closeSuccessModal() {
 
 // Search and filter functions
 function filterVendors() {
-    const searchTerm = document.getElementById('searchVendor').value.toLowerCase();
+    const searchTerm = document.getElementById('searchVendor').value;
     const jenisFilter = document.getElementById('filterJenis').value;
     
-    const tableRows = document.querySelectorAll('#vendorTableBody tr');
-    const mobileCards = document.querySelectorAll('#vendorMobileList .vendor-card');
+    // Create URL with search parameters
+    const url = new URL(window.location.href);
+    url.searchParams.delete('page'); // Reset to first page when filtering
     
-    // Filter table rows
-    tableRows.forEach(row => {
-        const namaVendor = row.cells[1]?.textContent.toLowerCase() || '';
-        const jenis = row.cells[2]?.textContent || '';
-        const email = row.cells[3]?.textContent.toLowerCase() || '';
-        
-        const matchesSearch = namaVendor.includes(searchTerm) || email.includes(searchTerm);
-        const matchesJenis = !jenisFilter || jenis === jenisFilter;
-        
-        if (matchesSearch && matchesJenis) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
+    if (searchTerm && searchTerm.trim() !== '') {
+        url.searchParams.set('search', searchTerm.trim());
+    } else {
+        url.searchParams.delete('search');
+    }
     
-    // Filter mobile cards
-    mobileCards.forEach(card => {
-        const namaVendor = card.querySelector('h3')?.textContent.toLowerCase() || '';
-        const jenis = card.querySelector('.bg-blue-100')?.textContent || '';
-        const email = card.querySelector('.text-gray-700')?.textContent.toLowerCase() || '';
-        
-        const matchesSearch = namaVendor.includes(searchTerm) || email.includes(searchTerm);
-        const matchesJenis = !jenisFilter || jenis === jenisFilter;
-        
-        if (matchesSearch && matchesJenis) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
-        }
-    });
+    if (jenisFilter && jenisFilter !== '') {
+        url.searchParams.set('jenis', jenisFilter);
+    } else {
+        url.searchParams.delete('jenis');
+    }
+    
+    // Redirect to new URL with filters
+    window.location.href = url.toString();
+}
+
+// Debounce search input to avoid too many requests
+let searchTimeout;
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(filterVendors, 500); // Wait 500ms after user stops typing
 }
 
 // Product management functions
@@ -1331,14 +1402,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (searchInput) {
         searchInput.addEventListener('input', function() {
-            filterVendors();
+            debounceSearch();
         });
+        
+        // Set initial value from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParam = urlParams.get('search');
+        if (searchParam) {
+            searchInput.value = searchParam;
+        }
     }
     
     if (filterSelect) {
         filterSelect.addEventListener('change', function() {
             filterVendors();
         });
+        
+        // Set initial value from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const jenisParam = urlParams.get('jenis');
+        if (jenisParam) {
+            filterSelect.value = jenisParam;
+        }
     }
     
     // Initialize product search and filter functionality

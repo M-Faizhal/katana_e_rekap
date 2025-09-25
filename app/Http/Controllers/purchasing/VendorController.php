@@ -16,15 +16,37 @@ class VendorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $vendors = Vendor::with('barang')->get();
+        // Get all vendors for statistics (before pagination)
+        $allVendors = Vendor::all();
         
-        // Calculate statistics
-        $totalVendors = $vendors->count();
-        $vendorPrinciple = $vendors->where('jenis_perusahaan', 'Principle')->count();
-        $vendorDistributor = $vendors->where('jenis_perusahaan', 'Distributor')->count();
-        $vendorRetail = $vendors->where('jenis_perusahaan', 'Retail')->count();
+        // Calculate statistics from all vendors
+        $totalVendors = $allVendors->count();
+        $vendorPrinciple = $allVendors->where('jenis_perusahaan', 'Principle')->count();
+        $vendorDistributor = $allVendors->where('jenis_perusahaan', 'Distributor')->count();
+        $vendorRetail = $allVendors->where('jenis_perusahaan', 'Retail')->count();
+        
+        // Query with pagination
+        $vendorsQuery = Vendor::with('barang')->orderBy('nama_vendor', 'asc');
+        
+        // Apply search filter if exists
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $vendorsQuery->where(function($query) use ($search) {
+                $query->where('nama_vendor', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('kontak', 'like', "%{$search}%");
+            });
+        }
+        
+        // Apply jenis filter if exists
+        if ($request->has('jenis') && $request->jenis != '') {
+            $vendorsQuery->where('jenis_perusahaan', $request->jenis);
+        }
+        
+        // Paginate results - 10 vendors per page
+        $vendors = $vendorsQuery->paginate(10);
         
         return view('pages.purchasing.vendor', compact(
             'vendors', 
