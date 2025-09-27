@@ -6,84 +6,68 @@ use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class ProdukController extends Controller
 {
     /**
-     * Display a listing of products
+     * Display a listing of products (Optimized Version)
      */
     public function index_produk_purchasing(Request $request)
     {
-        $query = Barang::with('vendor');
-        
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('nama_barang', 'LIKE', "%{$search}%")
-                  ->orWhere('brand', 'LIKE', "%{$search}%")
-                  ->orWhere('spesifikasi', 'LIKE', "%{$search}%")
-                  ->orWhereHas('vendor', function($vendorQuery) use ($search) {
-                      $vendorQuery->where('nama_vendor', 'LIKE', "%{$search}%");
-                  });
-            });
-        }
-        
-        // Filter by category
-        if ($request->has('kategori') && $request->kategori) {
-            $query->where('kategori', $request->kategori);
-        }
-        
-        // Filter by vendor
-        if ($request->has('vendor') && $request->vendor) {
-            $query->where('id_vendor', $request->vendor);
-        }
-        
-        // Filter by price range
-        if ($request->has('min_harga') && $request->min_harga) {
-            $query->where('harga_vendor', '>=', $request->min_harga);
-        }
-        
-        if ($request->has('max_harga') && $request->max_harga) {
-            $query->where('harga_vendor', '<=', $request->max_harga);
-        }
-        
-        // Sort by
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-        
-        // Paginate results
-        $produk = $query->paginate(12)->withQueryString();
-        
-        // Get vendors for filter dropdown
-        $vendors = Vendor::orderBy('nama_vendor')->get();
-        
-        // Calculate statistics
-        $totalProduk = Barang::count();
-        $produkElektronik = Barang::where('kategori', 'Elektronik')->count();
-        $produkMeubel = Barang::where('kategori', 'Meubel')->count();
-        $produkMesin = Barang::where('kategori', 'Mesin')->count();
-        
-        // Get all categories for filter
-        $categories = ['Elektronik', 'Meubel', 'Mesin', 'Lain-lain'];
-        
-        return view('pages.purchasing.produk', compact(
-            'produk', 
-            'vendors', 
-            'categories',
-            'totalProduk', 
-            'produkElektronik', 
-            'produkMeubel', 
-            'produkMesin'
-        ));
+        return $this->getProductList($request, 'pages.purchasing.produk');
     }
+    
     public function index_produk(Request $request)
     {
+        return $this->getProductList($request, 'pages.produk');
+    }
+    
+    /**
+     * Shared method to handle product listing with optimization
+     */
+    private function getProductList(Request $request, string $viewPath)
+    {
+        // Single query with eager loading
         $query = Barang::with('vendor');
         
+        // Apply filters
+        $this->applyFilters($query, $request);
+        
+        // Sort
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+        
+        // Paginate
+        $produk = $query->paginate(12)->withQueryString();
+        
+        // Get cached vendors (cache for 1 hour since vendors don't change often)
+        $vendors = Cache::remember('vendors_list', 3600, function() {
+            return Vendor::orderBy('nama_vendor')->get();
+        });
+        
+        // Get statistics with single query
+        $statistics = $this->getProductStatistics();
+        
+        // Static categories
+        $categories = ['Elektronik', 'Meubel', 'Mesin', 'Lain-lain'];
+        
+        return view($viewPath, array_merge([
+            'produk' => $produk,
+            'vendors' => $vendors,
+            'categories' => $categories,
+        ], $statistics));
+    }
+    
+    /**
+     * Apply search and filter conditions
+     */
+    private function applyFilters($query, Request $request)
+    {
         // Search functionality
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('nama_barang', 'LIKE', "%{$search}%")
@@ -95,55 +79,52 @@ class ProdukController extends Controller
             });
         }
         
-        // Filter by category
-        if ($request->has('kategori') && $request->kategori) {
+        // Category filter
+        if ($request->filled('kategori')) {
             $query->where('kategori', $request->kategori);
         }
         
-        // Filter by vendor
-        if ($request->has('vendor') && $request->vendor) {
+        // Vendor filter
+        if ($request->filled('vendor')) {
             $query->where('id_vendor', $request->vendor);
         }
         
-        // Filter by price range
-        if ($request->has('min_harga') && $request->min_harga) {
+        // Price range filters
+        if ($request->filled('min_harga')) {
             $query->where('harga_vendor', '>=', $request->min_harga);
         }
         
-        if ($request->has('max_harga') && $request->max_harga) {
+        if ($request->filled('max_harga')) {
             $query->where('harga_vendor', '<=', $request->max_harga);
         }
-        
-        // Sort by
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-        
-        // Paginate results
-        $produk = $query->paginate(12)->withQueryString();
-        
-        // Get vendors for filter dropdown
-        $vendors = Vendor::orderBy('nama_vendor')->get();
-        
-        // Calculate statistics
-        $totalProduk = Barang::count();
-        $produkElektronik = Barang::where('kategori', 'Elektronik')->count();
-        $produkMeubel = Barang::where('kategori', 'Meubel')->count();
-        $produkMesin = Barang::where('kategori', 'Mesin')->count();
-        
-        // Get all categories for filter
-        $categories = ['Elektronik', 'Meubel', 'Mesin', 'Lain-lain'];
-        
-        return view('pages.produk', compact(
-            'produk', 
-            'vendors', 
-            'categories',
-            'totalProduk', 
-            'produkElektronik', 
-            'produkMeubel', 
-            'produkMesin'
-        ));
     }
+    
+    /**
+     * Get product statistics with single optimized query
+     */
+    private function getProductStatistics()
+    {
+        // Cache statistics for 30 minutes since they don't change frequently
+        return Cache::remember('product_statistics', 1800, function() {
+            // Single query to get all statistics
+            $stats = DB::table('barang')
+                ->selectRaw('
+                    COUNT(*) as totalProduk,
+                    COUNT(CASE WHEN kategori = "Elektronik" THEN 1 END) as produkElektronik,
+                    COUNT(CASE WHEN kategori = "Meubel" THEN 1 END) as produkMeubel,
+                    COUNT(CASE WHEN kategori = "Mesin" THEN 1 END) as produkMesin
+                ')
+                ->first();
+                
+            return [
+                'totalProduk' => $stats->totalProduk,
+                'produkElektronik' => $stats->produkElektronik,
+                'produkMeubel' => $stats->produkMeubel,
+                'produkMesin' => $stats->produkMesin,
+            ];
+        });
+    }
+    
     /**
      * Display the specified product
      */
@@ -155,5 +136,16 @@ class ProdukController extends Controller
             'success' => true,
             'produk' => $produk
         ]);
+    }
+    
+    /**
+     * Clear product cache (call this when products are updated)
+     */
+    public function clearCache()
+    {
+        Cache::forget('vendors_list');
+        Cache::forget('product_statistics');
+        
+        return response()->json(['message' => 'Cache cleared successfully']);
     }
 }
