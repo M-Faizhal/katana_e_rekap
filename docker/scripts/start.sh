@@ -32,6 +32,21 @@ php artisan view:cache
 echo "Creating storage symlink..."
 php artisan storage:link
 
+# Build assets if needed (for redeploy scenarios)
+if [ -f "package.json" ] && [ -f "vite.config.js" ]; then
+    echo "Checking and building assets if needed..."
+    if [ ! -d "public/build" ] || [ -z "$(ls -A public/build 2>/dev/null)" ]; then
+        echo "Assets not found, installing dependencies and building..."
+        npm ci --silent
+        npm audit fix --silent || true
+        npm run build
+        # Clean up after build
+        npm ci --only=production --silent
+    else
+        echo "Assets already exist, skipping build..."
+    fi
+fi
+
 # Set proper permissions
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache

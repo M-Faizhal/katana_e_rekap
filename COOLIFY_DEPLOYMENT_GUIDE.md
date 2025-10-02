@@ -4,6 +4,23 @@
 
 Coolify adalah platform self-hosted untuk deployment yang mudah digunakan. Berikut adalah panduan untuk deploy aplikasi KATANA menggunakan Coolify.
 
+### 🚀 AUTOMATIC REDEPLOY FEATURE
+
+**PENTING**: Dockerfile telah dioptimasi untuk automatic redeploy! Tidak perlu lagi manual `npm install`, `npm audit fix`, atau `npm run build` di production server.
+
+**Fitur Baru:**
+- ✅ Automatic asset building saat deployment
+- ✅ Automatic npm audit fix
+- ✅ Optimized Docker layer caching
+- ✅ Health check endpoint
+- ✅ Auto-rebuild assets jika diperlukan saat container start
+
+**Script Redeploy Manual (jika diperlukan):**
+```bash
+# Jika perlu redeploy manual di container
+docker exec -it <container-name> /usr/local/bin/redeploy.sh
+```
+
 ### 1. Persiapan Server dan Coolify
 
 #### a. Install Coolify di VPS

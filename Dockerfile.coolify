@@ -44,16 +44,11 @@ RUN a2enmod rewrite headers
 # Copy Apache configuration
 COPY docker/apache/vhost.conf /etc/apache2/sites-available/000-default.conf
 
-# Copy package.json and package-lock.json first (for better caching)
-COPY package*.json ./
+# Copy dependency files first for better caching
+COPY composer.json composer.lock package*.json ./
 
-# Install Node.js dependencies
-RUN if [ -f "package.json" ]; then \
-        echo "Installing Node.js dependencies..." && \
-        npm ci --only=production --silent; \
-    else \
-        echo "No package.json found, skipping Node.js dependencies"; \
-    fi
+# Install PHP dependencies first
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
 # Copy existing application directory contents
 COPY . /var/www/html
@@ -61,15 +56,31 @@ COPY . /var/www/html
 # Copy existing application directory permissions
 COPY --chown=www-data:www-data . /var/www/html
 
-# Install PHP dependencies
+# Complete PHP dependencies installation with scripts
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Build assets if build script exists
-RUN if [ -f "package.json" ] && npm run --silent | grep -q "build"; then \
-        echo "Building assets..." && \
+# Install Node.js dependencies (including devDependencies for build)
+RUN if [ -f "package.json" ]; then \
+        echo "Installing Node.js dependencies..." && \
+        npm ci --silent && \
+        echo "Running npm audit fix..." && \
+        npm audit fix --silent || true; \
+    else \
+        echo "No package.json found, skipping Node.js dependencies"; \
+    fi
+
+# Build assets
+RUN if [ -f "package.json" ] && [ -f "vite.config.js" ]; then \
+        echo "Building assets with Vite..." && \
         npm run build; \
     else \
-        echo "No build script found or package.json missing, skipping asset build"; \
+        echo "No build configuration found, skipping asset build"; \
+    fi
+
+# Clean up node_modules to reduce image size (keep only production dependencies)
+RUN if [ -f "package.json" ]; then \
+        echo "Cleaning up development dependencies..." && \
+        npm ci --only=production --silent; \
     fi
 
 # Set proper permissions
@@ -89,7 +100,9 @@ RUN chmod -R 775 /var/www/html/storage
 
 # Create startup script
 COPY docker/scripts/start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
+COPY docker/scripts/redeploy.sh /usr/local/bin/redeploy.sh
+COPY docker/scripts/deploy-webhook.sh /usr/local/bin/deploy-webhook.sh
+RUN chmod +x /usr/local/bin/start.sh /usr/local/bin/redeploy.sh /usr/local/bin/deploy-webhook.sh
 
 # Health check to monitor application status
 # Use a simpler approach that checks both Apache and Laravel
