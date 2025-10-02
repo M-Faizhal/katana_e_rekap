@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Create deployment marker with timestamp
-echo "$(date '+%Y-%m-%d_%H:%M:%S')_$(hostname)" > /var/www/html/.deployment
-
 # Wait for database to be ready
 echo "Waiting for database..."
 while ! nc -z $DB_HOST $DB_PORT; do
@@ -39,8 +36,5 @@ php artisan storage:link
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Create log directories for supervisor
-mkdir -p /var/log/supervisor
-
 echo "Starting Apache..."
-exec apache2-foreground
+apache2-foreground

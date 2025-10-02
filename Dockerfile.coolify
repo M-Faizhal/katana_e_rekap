@@ -22,8 +22,6 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
     netcat-openbsd \
-    supervisor \
-    cron \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip
 
@@ -49,28 +47,15 @@ COPY docker/apache/vhost.conf /etc/apache2/sites-available/000-default.conf
 # Copy package.json and package-lock.json first (for better caching)
 COPY package*.json ./
 
-# Install Node.js dependencies (including devDependencies for build process)
+# Install Node.js dependencies
 RUN if [ -f "package.json" ]; then \
         echo "Installing Node.js dependencies..." && \
-        npm ci --silent; \
+        npm ci --only=production --silent; \
     else \
         echo "No package.json found, skipping Node.js dependencies"; \
     fi
 
-# Copy source files needed for build
-COPY resources/ ./resources/
-COPY vite.config.js ./
-
-# Build assets
-RUN if [ -f "package.json" ]; then \
-        echo "Building assets with Vite..." && \
-        npm run build && \
-        echo "Assets built successfully"; \
-    else \
-        echo "No package.json found, skipping asset build"; \
-    fi
-
-# Copy remaining application files
+# Copy existing application directory contents
 COPY . /var/www/html
 
 # Copy existing application directory permissions
@@ -79,9 +64,12 @@ COPY --chown=www-data:www-data . /var/www/html
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Remove devDependencies after build to reduce image size
-RUN if [ -f "package.json" ]; then \
-        npm prune --production; \
+# Build assets if build script exists
+RUN if [ -f "package.json" ] && npm run --silent | grep -q "build"; then \
+        echo "Building assets..." && \
+        npm run build; \
+    else \
+        echo "No build script found or package.json missing, skipping asset build"; \
     fi
 
 # Set proper permissions
@@ -93,8 +81,7 @@ RUN mkdir -p /var/www/html/storage/logs \
     /var/www/html/storage/framework/cache \
     /var/www/html/storage/framework/sessions \
     /var/www/html/storage/framework/views \
-    /var/www/html/storage/app/public \
-    /var/log/supervisor
+    /var/www/html/storage/app/public
 
 # Set permissions for storage
 RUN chown -R www-data:www-data /var/www/html/storage
@@ -104,24 +91,14 @@ RUN chmod -R 775 /var/www/html/storage
 COPY docker/scripts/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-# Create supervisor configuration
-COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Create deployment check script
-COPY docker/scripts/deployment-check.sh /usr/local/bin/deployment-check.sh
-RUN chmod +x /usr/local/bin/deployment-check.sh
-
-# Create deploy hook script
-COPY docker/scripts/deploy-hook.sh /usr/local/bin/deploy-hook.sh
-RUN chmod +x /usr/local/bin/deploy-hook.sh
-
 # Health check to monitor application status
-# Enhanced health check with auto-restart capability
-HEALTHCHECK --interval=30s --timeout=20s --start-period=120s --retries=5 \
-    CMD /usr/local/bin/deployment-check.sh || exit 1
+# Use a simpler approach that checks both Apache and Laravel
+HEALTHCHECK --interval=30s --timeout=20s --start-period=120s --retries=3 \
+    CMD curl -f http://localhost/health --max-time 15 --connect-timeout 5 -H "Accept: application/json" || \
+        curl -f http://localhost/ --max-time 15 --connect-timeout 5 || exit 1
 
 # Expose port 80
 EXPOSE 80
 
-# Use startup script with supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Use startup script
+CMD ["/usr/local/bin/start.sh"]
