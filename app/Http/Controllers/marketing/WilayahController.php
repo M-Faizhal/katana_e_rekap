@@ -91,7 +91,8 @@ class WilayahController extends Controller
             'jabatan' => 'required|string|max:255',
             'no_telp' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
-            'admin_marketing_text' => 'nullable|string|max:255',
+            'alamat' => 'nullable|string',
+            'admin_marketing_text' => 'required|string|max:255',
             'deskripsi' => 'nullable|string'
         ]);
 
@@ -106,6 +107,7 @@ class WilayahController extends Controller
                 'jabatan' => $request->jabatan,
                 'no_telp' => $request->no_telp,
                 'email' => $request->email,
+                'alamat' => $request->alamat,
                 'admin_marketing_text' => $request->admin_marketing_text,
                 'deskripsi' => $request->deskripsi,
                 'is_active' => true
@@ -152,7 +154,8 @@ class WilayahController extends Controller
                 'jabatan' => 'required|string|max:255',
                 'no_telp' => 'nullable|string|max:20',
                 'email' => 'nullable|email|max:255',
-                'admin_marketing_text' => 'nullable|string|max:255',
+                'alamat' => 'nullable|string',
+                'admin_marketing_text' => 'required|string|max:255',
                 'deskripsi' => 'nullable|string'
             ]);
 
@@ -191,6 +194,7 @@ class WilayahController extends Controller
                 'jabatan' => $request->jabatan,
                 'no_telp' => $request->no_telp,
                 'email' => $request->email,
+                'alamat' => $request->alamat,
                 'admin_marketing_text' => $request->admin_marketing_text,
                 'deskripsi' => $request->deskripsi
             ]);

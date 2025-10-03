@@ -86,36 +86,39 @@
             <div class="flex flex-col lg:flex-row gap-4">
                 <div class="flex-1">
                     <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" placeholder="Cari wilayah, instansi, atau admin marketing..."
-                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <i class="fas fa-user-tie absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <select id="filterPIC" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white" onchange="filterWilayah()">
+                            <option value="">Semua PIC</option>
+                            @php
+                                $allPIC = collect($wilayahData)->map(function($wilayah) {
+                                    return collect($wilayah['instansi_list'])->pluck('admin_marketing')->filter(function($admin) {
+                                        return !empty($admin) && $admin !== '-';
+                                    });
+                                })->flatten()->unique()->sort()->values();
+                            @endphp
+                            @foreach($allPIC as $pic)
+                                <option value="{{ $pic }}">{{ $pic }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                     </div>
-                </div>
-                <div class="flex gap-3">
-                    <select class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                        <option>Semua Wilayah</option>
-                        <option>Jakarta</option>
-                        <option>Bogor</option>
-                        <option>Depok</option>
-                        <option>Tangerang</option>
-                        <option>Bekasi</option>
-                    </select>
-                    <select class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                        <option>Urutkan</option>
-                        <option>Nama Wilayah</option>
-                        <option>Jumlah Instansi</option>
-                        <option>Terbaru</option>
-                    </select>
                 </div>
             </div>
         </div>
 
         <!-- List Layout -->
         <div class="p-6">
-            <div class="space-y-6">
+            <div id="wilayahContainer" class="space-y-6">
                 @forelse($wilayahData as $wilayah)
                 <!-- Wilayah Card: {{ $wilayah['wilayah'] }} -->
-                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200">
+                <div class="wilayah-card bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200"
+                     data-wilayah="{{ $wilayah['wilayah'] }}"
+                     data-provinsi="{{ $wilayah['provinsi'] }}"
+                     data-instansi="{{ implode(',', array_column($wilayah['instansi_list'], 'instansi')) }}"
+                     data-admin="{{ implode(',', array_filter(array_column($wilayah['instansi_list'], 'admin_marketing'))) }}"
+                     data-jumlah-instansi="{{ $wilayah['jumlah_instansi'] }}"
+                     data-total-proyek="{{ $wilayah['total_proyek'] }}"
+                     data-updated="{{ $wilayah['updated_at'] }}">
                     <!-- Wilayah Header -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-4">
@@ -137,6 +140,27 @@
                             </span>
                         </div>
                     </div>
+
+                    <!-- PIC Wilayah -->
+                    @php
+                        // Ambil PIC dari instansi pertama atau admin marketing yang ada
+                        $picWilayah = collect($wilayah['instansi_list'])->map(function($inst) {
+                            return $inst['admin_marketing'] ?? null;
+                        })->filter()->unique()->first();
+                    @endphp
+                    @if($picWilayah && $picWilayah != '-')
+                    <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user-tie text-yellow-600 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-yellow-600 font-medium">PIC Wilayah</p>
+                                <p class="text-sm font-semibold text-gray-800">{{ $picWilayah }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- Instansi Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -214,6 +238,16 @@
                     <p class="text-gray-500">Tambahkan wilayah untuk melihat data instansi dan pejabat</p>
                 </div>
                 @endforelse
+            </div>
+
+            <!-- No Results from Filter -->
+            <div id="noResults" class="text-center py-12 hidden">
+                <i class="fas fa-search text-gray-400 text-4xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-600 mb-2">Tidak ada hasil yang ditemukan</h3>
+                <p class="text-gray-500">Coba gunakan kata kunci pencarian yang berbeda</p>
+                <button onclick="resetFilter()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    <i class="fas fa-redo mr-2"></i>Reset Filter
+                </button>
             </div>
 
             <!-- Pagination -->
@@ -627,5 +661,41 @@
                 }
             });
         });
+
+        // Filter and Search Functions
+        function filterWilayah() {
+            const filterPIC = document.getElementById('filterPIC').value.toLowerCase();
+            const cards = document.querySelectorAll('.wilayah-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const admin = card.getAttribute('data-admin').toLowerCase();
+
+                // Check PIC filter (hanya berdasarkan PIC)
+                const picMatch = filterPIC === '' || admin.includes(filterPIC);
+
+                // Show/hide card
+                if (picMatch) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide no results message
+            const noResults = document.getElementById('noResults');
+            const container = document.getElementById('wilayahContainer');
+            if (visibleCount === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+        }
+
+        function resetFilter() {
+            document.getElementById('filterPIC').value = '';
+            filterWilayah();
+        }
     </script>
     @endsection

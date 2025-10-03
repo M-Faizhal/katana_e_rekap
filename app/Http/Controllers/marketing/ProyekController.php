@@ -157,7 +157,7 @@ class ProyekController extends Controller
             'instansi' => 'required|string|max:255',
             'jenis_pengadaan' => 'required|string|max:255',
             'deadline' => 'nullable|date',
-            'admin_marketing_name' => 'required|string|max:255',
+            'id_admin_marketing' => 'required|exists:users,id_user',
             'id_admin_purchasing' => 'required|exists:users,id_user',
             'catatan' => 'nullable|string',
             'potensi' => 'nullable|in:ya,tidak',
@@ -182,28 +182,6 @@ class ProyekController extends Controller
             }
         }
 
-        // Find or create admin marketing user
-        $adminMarketingId = null;
-        if ($request->admin_marketing_name) {
-            $adminMarketing = User::where('nama', 'LIKE', '%' . $request->admin_marketing_name . '%')
-                                  ->whereIn('role', ['admin_marketing', 'superadmin'])
-                                  ->first();
-
-            if (!$adminMarketing) {
-                // Create new admin marketing user
-                $adminMarketing = User::create([
-                    'nama' => $request->admin_marketing_name,
-                    'email' => strtolower(str_replace(' ', '.', $request->admin_marketing_name)) . '@katana.com',
-                    'password' => bcrypt('password123'), // Default password
-                    'role' => 'admin_marketing'
-                ]);
-            }
-            $adminMarketingId = $adminMarketing->id_user;
-        }
-
-        // Find or create admin purchasing user
-        $adminPurchasingId = $request->id_admin_purchasing;
-
         // Ambil nama proyek dari barang pertama
         $namaProyek = $daftarBarang ? $daftarBarang[0]['nama_barang'] : $request->nama_barang;
 
@@ -213,8 +191,8 @@ class ProyekController extends Controller
             'instansi' => $request->instansi,
             'jenis_pengadaan' => $request->jenis_pengadaan,
             'deadline' => $request->deadline,
-            'id_admin_marketing' => $adminMarketingId,
-            'id_admin_purchasing' => $adminPurchasingId,
+            'id_admin_marketing' => $request->id_admin_marketing,
+            'id_admin_purchasing' => $request->id_admin_purchasing,
             'catatan' => $request->catatan,
             'potensi' => $request->potensi ?? 'tidak',
             'tahun_potensi' => $request->tahun_potensi,
@@ -302,10 +280,8 @@ class ProyekController extends Controller
             'instansi' => 'required|string|max:255',
             'jenis_pengadaan' => 'required|string|max:255',
             'deadline' => 'nullable|date',
-            'id_admin_marketing' => 'nullable|exists:users,id_user',
-            'id_admin_purchasing' => 'nullable|exists:users,id_user',
-            'admin_marketing_name' => 'nullable|string|max:255',
-            'admin_purchasing_name' => 'nullable|string|max:255',
+            'id_admin_marketing' => 'required|exists:users,id_user',
+            'id_admin_purchasing' => 'required|exists:users,id_user',
             'catatan' => 'nullable|string',
             'potensi' => 'nullable|in:ya,tidak',
             'tahun_potensi' => 'nullable|integer|min:2020|max:2030',

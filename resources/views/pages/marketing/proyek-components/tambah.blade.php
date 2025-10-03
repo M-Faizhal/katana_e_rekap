@@ -185,17 +185,16 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
-                            <input type="text" name="admin_marketing_name" id="adminMarketingInput" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                   placeholder="Masukkan nama admin marketing" required>
-                            <input type="hidden" name="id_admin_marketing" id="adminMarketingId">
-                            <small class="text-gray-500 text-xs mt-1">Masukkan nama admin marketing yang bertanggung jawab untuk proyek ini</small>
+                            <select name="id_admin_marketing" id="adminMarketingSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                                <option value="">Pilih admin marketing</option>
+                            </select>
+                            <small class="text-gray-500 text-xs mt-1">Pilih admin marketing yang bertanggung jawab untuk proyek ini</small>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
-                            <select name="id_admin_purchasing" id="adminPurchasingSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                            <select name="admin_purchasing" id="adminPurchasingSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih admin purchasing</option>
                             </select>
-                            <small class="text-gray-500 text-xs mt-1">Pilih admin purchasing untuk proyek ini</small>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Potensi</label>
@@ -1111,8 +1110,8 @@ async function validateTambahForm() {
         { name: 'kabupaten_kota', label: 'Kabupaten/Kota' },
         { name: 'nama_instansi', label: 'Nama Instansi' },
         { name: 'jenis_pengadaan', label: 'Jenis Pengadaan' },
-        { name: 'admin_marketing_name', label: 'Admin Marketing' },
-        { name: 'id_admin_purchasing', label: 'Admin Purchasing' }
+        { name: 'id_admin_marketing', label: 'Admin Marketing' },
+        { name: 'admin_purchasing', label: 'Admin Purchasing' }
     ];
 
     for (let field of requiredFields) {
@@ -1124,10 +1123,10 @@ async function validateTambahForm() {
         }
     }
 
-    // Validasi admin marketing sudah diisi
-    const adminMarketingName = document.querySelector('[name="admin_marketing_name"]')?.value;
-    if (!adminMarketingName || !adminMarketingName.trim()) {
-        await showErrorAlert('Admin Marketing harus diisi!', 'Data Tidak Lengkap');
+    // Validasi admin marketing sudah dipilih
+    const adminMarketingId = document.querySelector('[name="id_admin_marketing"]')?.value;
+    if (!adminMarketingId) {
+        await showErrorAlert('Admin Marketing harus dipilih!', 'Data Tidak Lengkap');
         return false;
     }
 
@@ -1184,8 +1183,7 @@ function collectTambahFormData() {
     data.kab_kota = formData.get('kabupaten_kota');
     data.instansi = formData.get('nama_instansi');
     data.jenis_pengadaan = formData.get('jenis_pengadaan');
-    data.admin_marketing_name = formData.get('admin_marketing_name');
-    data.id_admin_purchasing = formData.get('id_admin_purchasing');
+    data.id_admin_purchasing = formData.get('admin_purchasing');
     data.catatan = formData.get('catatan') || '';
     data.potensi = formData.get('potensi') || 'tidak';
     data.tahun_potensi = parseInt(formData.get('tahun_potensi')) || new Date().getFullYear();
@@ -1236,13 +1234,9 @@ function collectTambahFormData() {
         data.spesifikasi = 'Spesifikasi standar';
     }
 
-    // Ambil nama admin marketing dan purchasing dari form
-    const adminMarketingName = formData.get('admin_marketing_name');
-    const adminPurchasingId = formData.get('id_admin_purchasing');
-
-    // Set admin names (akan diproses di backend untuk mencari/membuat user)
-    data.admin_marketing_name = adminMarketingName ? adminMarketingName.trim() : null;
-    data.id_admin_purchasing = adminPurchasingId ? adminPurchasingId : null;
+    // Ambil ID admin marketing dari form
+    const adminMarketingId = formData.get('id_admin_marketing');
+    data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : null;
 
     console.log('Data yang akan dikirim:', data);
     console.log('Jumlah barang:', daftarBarang.length);
@@ -1285,24 +1279,22 @@ function resetTambahModal() {
         potensiValue.value = '';
     }
 
-    // Reset admin marketing input
-    const adminMarketingInput = document.getElementById('adminMarketingInput');
-    const adminMarketingId = document.getElementById('adminMarketingId');
-    if (adminMarketingInput) {
-        adminMarketingInput.value = '';
-    }
-    if (adminMarketingId) {
-        adminMarketingId.value = '';
+    // Reset admin marketing dropdown to current user
+    const adminMarketingSelect = document.getElementById('adminMarketingSelect');
+    if (adminMarketingSelect) {
+        // Find and select the current user option
+        const currentUserOption = adminMarketingSelect.querySelector('option[selected]');
+        if (currentUserOption) {
+            adminMarketingSelect.value = currentUserOption.value;
+        } else {
+            adminMarketingSelect.selectedIndex = 0;
+        }
     }
 
-    // Reset admin purchasing input
-    const adminPurchasingInput = document.getElementById('adminPurchasingInput');
-    const adminPurchasingId = document.getElementById('adminPurchasingId');
-    if (adminPurchasingInput) {
-        adminPurchasingInput.value = '';
-    }
-    if (adminPurchasingId) {
-        adminPurchasingId.value = '';
+    // Reset admin purchasing dropdown
+    const adminPurchasingSelect = document.getElementById('adminPurchasingSelect');
+    if (adminPurchasingSelect) {
+        adminPurchasingSelect.selectedIndex = 0;
     }
 
     // Reset items to 1
@@ -1317,13 +1309,78 @@ function resetTambahModal() {
     hitungTotalKeseluruhan();
 }
 
+// Function to load admin marketing options
+async function loadAdminMarketingOptions() {
+    try {
+        const response = await fetch('/marketing/proyek/users');
+        const data = await response.json();
+
+        if (data.success) {
+            const select = document.getElementById('adminMarketingSelect');
+            if (select) {
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Pilih admin marketing</option>';
+
+                // Add options for marketing and admin roles
+                data.data.forEach(user => {
+                    if (user.role === 'admin_marketing' || user.role === 'superadmin') {
+                        const option = document.createElement('option');
+                        option.value = user.id_user;
+                        option.textContent = user.nama;
+
+                        // Set current user as default selected
+                        if (user.is_current_user) {
+                            option.selected = true;
+                        }
+
+                        select.appendChild(option);
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading admin marketing options:', error);
+    }
+}
+
+// Function to load admin purchasing options
+async function loadAdminPurchasingOptions() {
+    try {
+        const response = await fetch('/marketing/proyek/users');
+        const data = await response.json();
+
+        if (data.success) {
+            const select = document.getElementById('adminPurchasingSelect');
+            if (select) {
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Pilih admin purchasing</option>';
+
+                // Add options for purchasing and admin roles
+                data.data.forEach(user => {
+                    if (user.role === 'admin_purchasing' || user.role === 'superadmin') {
+                        const option = document.createElement('option');
+                        option.value = user.id_user;
+                        option.textContent = user.nama;
+                        select.appendChild(option);
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading admin purchasing options:', error);
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Load preview kode proyek
-    loadPreviewKodeProyek();
+    // Load admin marketing options
+    loadAdminMarketingOptions();
 
     // Load admin purchasing options
     loadAdminPurchasingOptions();
+
+    // Load preview kode proyek
+    loadPreviewKodeProyek();
 
     // Add keypress event listener for harga satuan inputs to only allow numbers
     document.addEventListener('keypress', function(e) {
@@ -1511,34 +1568,6 @@ function showInfoAlert(message, title = null) {
 
 function showConfirmAlert(message, title = null) {
     return showCustomAlert(message, 'confirm', title, true);
-}
-
-// Function to load admin purchasing options
-async function loadAdminPurchasingOptions() {
-    try {
-        const response = await fetch('/marketing/proyek/users');
-        const data = await response.json();
-
-        const selectElement = document.querySelector('select[name="id_admin_purchasing"]');
-        if (selectElement && data.success) {
-            // Clear existing options except the first one
-            selectElement.innerHTML = '<option value="">Pilih Admin Purchasing</option>';
-
-            // Filter and add purchasing users
-            const purchasingUsers = data.data.filter(user =>
-                user.role === 'admin_purchasing' || user.role === 'superadmin'
-            );
-
-            purchasingUsers.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user.id_user;
-                option.textContent = user.nama;
-                selectElement.appendChild(option);
-            });
-        }
-    } catch (error) {
-        console.error('Error loading admin purchasing options:', error);
-    }
 }
 
 </script>
