@@ -274,7 +274,28 @@ class ProyekController extends Controller
         // Debug: Log data yang diterima untuk update
         Log::info('Data update proyek yang diterima:', $request->all());
 
-        $request->validate([
+        // Parse daftar_barang jika berupa JSON string (sama seperti di store())
+        $daftarBarang = null;
+        if ($request->has('daftar_barang') && is_string($request->daftar_barang)) {
+            try {
+                $daftarBarang = json_decode($request->daftar_barang, true);
+                Log::info('Parsed daftar_barang for update:', $daftarBarang);
+
+                // Replace the string with parsed array in request
+                $request->merge(['daftar_barang' => $daftarBarang]);
+            } catch (Exception $e) {
+                Log::error('Error parsing daftar_barang JSON for update:', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format data barang tidak valid'
+                ], 400);
+            }
+        } else {
+            $daftarBarang = $request->daftar_barang;
+        }
+
+        try {
+            $request->validate([
             'tanggal' => 'required|date',
             'kab_kota' => 'required|string|max:255',
             'instansi' => 'required|string|max:255',
@@ -285,20 +306,35 @@ class ProyekController extends Controller
             'catatan' => 'nullable|string',
             'potensi' => 'nullable|in:ya,tidak',
             'tahun_potensi' => 'nullable|integer|min:2020|max:2030',
-            // Support single atau multiple barang (sama seperti store)
+            // Support single atau multiple barang
             'nama_barang' => 'required_without:daftar_barang|string|max:255',
             'jumlah' => 'required_without:daftar_barang|integer|min:1',
             'satuan' => 'required_without:daftar_barang|string|max:50',
             'spesifikasi' => 'required_without:daftar_barang|string',
-            'harga_satuan' => 'nullable|numeric|min:0',
-            // Array barang untuk multiple items
-            'daftar_barang' => 'nullable|array',
-            'daftar_barang.*.nama_barang' => 'required|string|max:255',
-            'daftar_barang.*.jumlah' => 'required|integer|min:1',
-            'daftar_barang.*.satuan' => 'required|string|max:50',
-            'daftar_barang.*.spesifikasi' => 'required|string',
-            'daftar_barang.*.harga_satuan' => 'nullable|numeric|min:0'
+            'harga_satuan' => 'nullable|numeric|min:0'
         ]);
+
+        // Validasi daftar_barang secara manual jika sudah di-parse
+        if ($daftarBarang && is_array($daftarBarang)) {
+            foreach ($daftarBarang as $index => $barang) {
+                if (empty($barang['nama_barang']) || empty($barang['jumlah']) || empty($barang['satuan'])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Data barang ke-" . ($index + 1) . " tidak lengkap"
+                    ], 400);
+                }
+            }
+        }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Handle validation errors
+            Log::error('Validation error updating proyek:', ['errors' => $e->errors()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid: ' . implode(', ', array_map(fn($errors) => implode(', ', $errors), $e->errors()))
+            ], 422);
+        }
 
         try {
             DB::beginTransaction();
@@ -322,10 +358,10 @@ class ProyekController extends Controller
             Log::info('Barang lama proyek dihapus untuk proyek ID: ' . $proyek->id_proyek);
 
             // Jika ada daftar barang multiple, simpan ke tabel proyek_barang
-            if ($request->daftar_barang && is_array($request->daftar_barang)) {
-                Log::info('Mengupdate multiple barang:', ['jumlah' => count($request->daftar_barang), 'data' => $request->daftar_barang]);
+            if ($daftarBarang && is_array($daftarBarang)) {
+                Log::info('Mengupdate multiple barang:', ['jumlah' => count($daftarBarang), 'data' => $daftarBarang]);
 
-                foreach ($request->daftar_barang as $index => $barang) {
+                foreach ($daftarBarang as $index => $barang) {
                     $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
 
                     // Handle file upload untuk item ini
@@ -383,6 +419,7 @@ class ProyekController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Error updating proyek: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return response()->json([
                 'success' => false,

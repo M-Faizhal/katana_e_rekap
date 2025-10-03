@@ -40,11 +40,11 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kabupaten/Kota</label>
-                            <input type="text" id="editKabupatenKota" name="kabupaten_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota">
+                            <input type="text" id="editKabupatenKota" name="kab_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nama Instansi</label>
-                            <input type="text" id="editNamaInstansi" name="nama_instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi">
+                            <input type="text" id="editNamaInstansi" name="instansi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama instansi">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Pengadaan</label>
@@ -63,7 +63,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
-                            <select id="editAdminPurchasing" name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                            <select id="editAdminPurchasing" name="id_admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                                 <option value="">Pilih admin purchasing</option>
                             </select>
                         </div>
@@ -824,17 +824,36 @@ function initializeEditFormSubmission() {
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
         submitButton.disabled = true;
 
-        // Create FormData instead of JSON for file upload support
-        const form = document.getElementById('formEditProyek');
-        const formDataObj = new FormData(form);
+        // Create FormData manually from collected data (TIDAK dari form element)
+        const formDataObj = new FormData();
 
         // Add method override for PUT
         formDataObj.append('_method', 'PUT');
 
-        // Add barang data manually to ensure proper structure
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            formDataObj.append('_token', csrfToken);
+        }
+
+        // Add basic data
+        formDataObj.append('tanggal', formData.tanggal);
+        formDataObj.append('kab_kota', formData.kab_kota);
+        formDataObj.append('instansi', formData.instansi);
+        formDataObj.append('jenis_pengadaan', formData.jenis_pengadaan);
+        formDataObj.append('catatan', formData.catatan || '');
+        formDataObj.append('potensi', formData.potensi);
+        formDataObj.append('tahun_potensi', formData.tahun_potensi);
+        formDataObj.append('id_admin_marketing', formData.id_admin_marketing);
+        formDataObj.append('id_admin_purchasing', formData.id_admin_purchasing);
+
+        // Add barang data as JSON string
         if (formData.daftar_barang && formData.daftar_barang.length > 0) {
             formDataObj.append('daftar_barang', JSON.stringify(formData.daftar_barang));
+            console.log('Appended daftar_barang:', formData.daftar_barang);
         }
+
+        console.log('FormData ready to send');
 
         // Kirim data ke server
         fetch(`/marketing/proyek/${proyekId}`, {
@@ -845,7 +864,26 @@ function initializeEditFormSubmission() {
             },
             body: formDataObj
         })
-        .then(response => response.json())
+        .then(async response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Non-JSON response:', text.substring(0, 500));
+                throw new Error('Server mengembalikan response yang tidak valid. Silakan cek console untuk detail.');
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return data;
+        })
         .then(data => {
             if (data.success) {
                 closeModal('modalEditProyek');
