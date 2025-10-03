@@ -304,33 +304,25 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
     <div class="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50">
         <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
             <div class="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
-                <span id="paginationInfo">Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">{{ count($proyekData) }}</span> dari <span class="font-medium">{{ $totalProyek }}</span> proyek</span>
+                <span id="paginationInfo">Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">10</span> dari <span class="font-medium">{{ $totalProyek }}</span> proyek</span>
             </div>
             <div class="flex items-center justify-center sm:justify-end">
                 <!-- Mobile Pagination (Simple) -->
-                <div class="flex items-center space-x-1 sm:hidden">
-                    <button class="px-2 py-2 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <div id="paginationMobile" class="flex items-center space-x-1 sm:hidden">
+                    <button onclick="goToPage(currentPage - 1)" id="prevPageMobile" class="px-2 py-2 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <span class="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
+                    <span id="currentPageMobile" class="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
                         1 / 1
                     </span>
-                    <button class="px-2 py-2 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <button onclick="goToPage(currentPage + 1)" id="nextPageMobile" class="px-2 py-2 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
 
                 <!-- Tablet & Desktop Pagination (Full) -->
-                <div class="hidden sm:flex items-center space-x-1 md:space-x-2">
-                    <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        <i class="fas fa-chevron-left mr-0 md:mr-1"></i>
-                        <span class="hidden md:inline">Previous</span>
-                    </button>
-                    <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg">1</button>
-                    <button class="px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        <span class="hidden md:inline">Next</span>
-                        <i class="fas fa-chevron-right ml-0 md:ml-1"></i>
-                    </button>
+                <div id="paginationDesktop" class="hidden sm:flex items-center space-x-1 md:space-x-2">
+                    <!-- Pagination buttons will be generated dynamically -->
                 </div>
             </div>
         </div>
@@ -635,6 +627,11 @@ const proyekData = @json($proyekData);
 let filteredData = [...proyekData];
 let currentData = [...proyekData];
 
+// Pagination variables
+let currentPage = 1;
+const itemsPerPage = 10;
+let totalPages = 1;
+
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
@@ -746,8 +743,10 @@ function filterAndSort() {
     console.log('Sample final data:', filtered.slice(0, 2).map(p => ({ kode: p.kode, instansi: p.instansi, status: p.status })));
 
     currentData = filtered;
+    currentPage = 1; // Reset to first page when filtering
     displayResults();
     updatePaginationInfo();
+    renderPagination();
 
     console.log('=== END FILTER AND SORT DEBUG ===');
 }
@@ -774,14 +773,7 @@ function resetFilters() {
     // Reset data to original
     console.log('Resetting currentData from', currentData.length, 'to', proyekData.length, 'items');
     currentData = [...proyekData];
-
-    // Show all cards
-    const cards = document.querySelectorAll('.proyek-card');
-    console.log('Found', cards.length, 'cards to reset');
-    cards.forEach((card, index) => {
-        card.style.display = 'block';
-        console.log('Card', index + 1, 'set to visible');
-    });
+    currentPage = 1; // Reset to first page
 
     // Hide no results message
     const noResults = document.getElementById('noResults');
@@ -792,16 +784,16 @@ function resetFilters() {
     }
     if (proyekContainer) {
         proyekContainer.classList.remove('hidden');
+        proyekContainer.classList.remove('reordering');
         console.log('Proyek container shown');
     }
 
-    // Update pagination info
+    // Update pagination info and render - this will handle showing/hiding cards
+    displayResults();
     updatePaginationInfo();
+    renderPagination();
 
-    // Reset card order
-    resetCardOrder();
-
-    console.log('Reset complete - showing all', proyekData.length, 'items');
+    console.log('Reset complete - showing first page of', proyekData.length, 'items');
     console.log('=== END RESET DEBUG ===');
 }
 
@@ -815,6 +807,10 @@ function displayResults() {
         console.error('Proyek container not found');
         return;
     }
+
+    // Calculate total pages
+    totalPages = Math.ceil(currentData.length / itemsPerPage);
+    console.log('Total pages:', totalPages, 'Current page:', currentPage);
 
     // Get all cards
     const cards = document.querySelectorAll('.proyek-card');
@@ -830,17 +826,25 @@ function displayResults() {
         return;
     }
 
-    // Create a set of filtered project IDs for faster lookup
-    const filteredProjectIds = new Set(currentData.map(proyek => proyek.id));
-    console.log('Filtered project IDs:', Array.from(filteredProjectIds));
+    // Calculate start and end index for current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentPageData = currentData.slice(startIndex, endIndex);
 
-    // Show/hide cards based on filtered data
+    console.log('Displaying items from', startIndex, 'to', endIndex);
+    console.log('Items on current page:', currentPageData.length);
+
+    // Create a set of current page project IDs
+    const currentPageIds = new Set(currentPageData.map(proyek => proyek.id));
+    console.log('Current page project IDs:', Array.from(currentPageIds));
+
+    // Show/hide cards based on current page data
     let visibleCount = 0;
 
     // Process each card
     cards.forEach((card, cardIndex) => {
         const originalProyek = proyekData[cardIndex];
-        if (originalProyek && filteredProjectIds.has(originalProyek.id)) {
+        if (originalProyek && currentPageIds.has(originalProyek.id)) {
             card.style.display = 'block';
             visibleCount++;
             console.log('Showing card for project:', originalProyek.kode, 'at index', cardIndex);
@@ -867,8 +871,12 @@ function displayResults() {
         console.log('Reordering cards based on sort order');
         reorderCards();
     } else {
-        // Reset to original order if no sorting
-        resetCardOrder();
+        // Reset to original order if no sorting, but keep pagination
+        console.log('No sorting - keeping original order with pagination');
+        const container = document.getElementById('proyekContainer');
+        if (container) {
+            container.classList.remove('reordering');
+        }
     }
 
     console.log('=== END DISPLAY RESULTS DEBUG ===');
@@ -908,14 +916,21 @@ function reorderCards() {
     const allCards = document.querySelectorAll('.proyek-card');
     console.log('Reordering', allCards.length, 'cards using CSS order property');
 
+    // Calculate start and end index for current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentPageData = currentData.slice(startIndex, endIndex);
+
+    console.log('Reordering only current page data:', currentPageData.length, 'items');
+
     // Reset all cards to default order first
     allCards.forEach(card => {
         card.style.order = '999';
         card.style.display = 'none';
     });
 
-    // Set order for visible cards based on currentData
-    currentData.forEach((sortedProyek, sortedIndex) => {
+    // Set order for visible cards based on current page data only
+    currentPageData.forEach((sortedProyek, sortedIndex) => {
         // Find the card that corresponds to this project
         const cardIndex = proyekData.findIndex(p => p.id === sortedProyek.id);
         if (cardIndex !== -1 && allCards[cardIndex]) {
@@ -925,7 +940,7 @@ function reorderCards() {
         }
     });
 
-    console.log('Cards reordered successfully using CSS order property');
+    console.log('Cards reordered successfully - showing', currentPageData.length, 'items');
     console.log('=== END REORDER CARDS DEBUG ===');
 }
 
@@ -934,12 +949,129 @@ function updatePaginationInfo() {
     if (paginationInfo) {
         const totalVisible = currentData.length;
         const totalAll = proyekData.length;
+        const startItem = totalVisible === 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
+        const endItem = Math.min(currentPage * itemsPerPage, totalVisible);
 
         if (totalVisible === 0) {
             paginationInfo.innerHTML = 'Tidak ada proyek yang ditampilkan';
         } else {
-            paginationInfo.innerHTML = 'Menampilkan <span class="font-medium">' + totalVisible + '</span> dari <span class="font-medium">' + totalAll + '</span> proyek';
+            paginationInfo.innerHTML = 'Menampilkan <span class="font-medium">' + startItem + '</span> sampai <span class="font-medium">' + endItem + '</span> dari <span class="font-medium">' + totalVisible + '</span> proyek';
         }
+    }
+}
+
+// Render pagination buttons
+function renderPagination() {
+    const paginationDesktop = document.getElementById('paginationDesktop');
+    const paginationMobile = document.getElementById('currentPageMobile');
+    const prevBtnMobile = document.getElementById('prevPageMobile');
+    const nextBtnMobile = document.getElementById('nextPageMobile');
+
+    if (!paginationDesktop) return;
+
+    // Clear existing buttons
+    paginationDesktop.innerHTML = '';
+
+    // Update mobile pagination
+    if (paginationMobile) {
+        paginationMobile.textContent = currentPage + ' / ' + Math.max(1, totalPages);
+    }
+
+    // Enable/disable mobile buttons
+    if (prevBtnMobile) {
+        prevBtnMobile.disabled = currentPage === 1;
+    }
+    if (nextBtnMobile) {
+        nextBtnMobile.disabled = currentPage >= totalPages;
+    }
+
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.onclick = () => goToPage(currentPage - 1);
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed';
+    prevBtn.innerHTML = '<i class="fas fa-chevron-left mr-0 md:mr-1"></i><span class="hidden md:inline">Previous</span>';
+    paginationDesktop.appendChild(prevBtn);
+
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    // Adjust startPage if we're near the end
+    if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // First page button (if not in range)
+    if (startPage > 1) {
+        const firstBtn = createPageButton(1);
+        paginationDesktop.appendChild(firstBtn);
+
+        if (startPage > 2) {
+            const dots = document.createElement('span');
+            dots.className = 'px-2 py-2 text-gray-500';
+            dots.textContent = '...';
+            paginationDesktop.appendChild(dots);
+        }
+    }
+
+    // Page number buttons
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = createPageButton(i);
+        paginationDesktop.appendChild(pageBtn);
+    }
+
+    // Last page button (if not in range)
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const dots = document.createElement('span');
+            dots.className = 'px-2 py-2 text-gray-500';
+            dots.textContent = '...';
+            paginationDesktop.appendChild(dots);
+        }
+
+        const lastBtn = createPageButton(totalPages);
+        paginationDesktop.appendChild(lastBtn);
+    }
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.onclick = () => goToPage(currentPage + 1);
+    nextBtn.disabled = currentPage >= totalPages;
+    nextBtn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed';
+    nextBtn.innerHTML = '<span class="hidden md:inline">Next</span><i class="fas fa-chevron-right ml-0 md:ml-1"></i>';
+    paginationDesktop.appendChild(nextBtn);
+}
+
+// Create page button
+function createPageButton(pageNum) {
+    const btn = document.createElement('button');
+    btn.onclick = () => goToPage(pageNum);
+    btn.textContent = pageNum;
+
+    if (pageNum === currentPage) {
+        btn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg';
+    } else {
+        btn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50';
+    }
+
+    return btn;
+}
+
+// Go to specific page
+function goToPage(page) {
+    if (page < 1 || page > totalPages) return;
+
+    currentPage = page;
+    displayResults();
+    updatePaginationInfo();
+    renderPagination();
+
+    // Scroll to top of proyek container
+    const container = document.getElementById('proyekContainer');
+    if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
@@ -1800,8 +1932,15 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('statusFilter:', statusFilter ? 'found' : 'NOT FOUND');
     console.log('sortBy:', sortBy ? 'found' : 'NOT FOUND');
 
-    // Initialize filter and sort
-    filterAndSort();
+    // Initialize pagination
+    currentData = [...proyekData];
+    totalPages = Math.ceil(currentData.length / itemsPerPage);
+    console.log('Initial pagination - Total pages:', totalPages, 'Items per page:', itemsPerPage);
+
+    // Initialize display
+    displayResults();
+    updatePaginationInfo();
+    renderPagination();
 
     // Add event listeners for modal close buttons
     document.querySelectorAll('[onclick*="closeModal"]').forEach(button => {
