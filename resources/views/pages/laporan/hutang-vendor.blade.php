@@ -41,7 +41,7 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:items-center">
             <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
@@ -50,18 +50,6 @@
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Hutang</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">Rp {{ $stats['total_hutang_formatted'] ?? '0' }}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-clock text-yellow-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Pembayaran Tertunda</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">Rp {{ $stats['hutang_jatuh_tempo_formatted'] ?? '0' }}</p>
             </div>
         </div>
     </div>
@@ -163,7 +151,7 @@
             </div>
             <div>
                 <h2 class="text-lg sm:text-xl font-bold text-gray-800">Daftar Hutang Vendor</h2>
-                <p class="text-sm sm:text-base text-gray-600 mt-1">Pembayaran ke vendor yang masih pending atau ditolak</p>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Pembayaran ke vendor yang masih pending atau belum lunas</p>
             </div>
         </div>
     </div>
@@ -174,27 +162,36 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Vendor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Modal</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sudah Dibayar</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sisa Bayar</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($hutangVendor as $hutang)
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{{ $hutang->nama_vendor }}</div>
-                        @if($hutang->kontak_vendor)
-                            <div class="text-sm text-gray-500">{{ $hutang->kontak_vendor }}</div>
-                        @endif
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                    <i class="fas fa-building text-purple-600"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ $hutang->vendor->nama_vendor }}</div>
+                                <div class="text-sm text-gray-500">{{ $hutang->vendor->jenis_perusahaan ?? 'Vendor' }}</div>
+                                @if($hutang->vendor->email)
+                                    <div class="text-xs text-gray-400">{{ $hutang->vendor->email }}</div>
+                                @endif
+                            </div>
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{{ $hutang->kode_proyek }}</div>
-                        <div class="text-sm text-gray-500">{{ $hutang->nama_klien }}</div>
-                        @if($hutang->instansi)
-                            <div class="text-xs text-gray-400">{{ $hutang->instansi }}</div>
+                        <div class="text-sm text-gray-900 font-medium">{{ $hutang->proyek->kode_proyek }}</div>
+                        <div class="text-sm text-gray-500">{{ $hutang->proyek->nama_klien }}</div>
+                        @if($hutang->proyek->instansi)
+                            <div class="text-xs text-gray-400">{{ $hutang->proyek->instansi }}</div>
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -231,6 +228,11 @@
                         @endphp
                         @if($hutang->total_vendor > 0)
                             <div class="text-xs text-gray-500">{{ number_format($hutang->persen_bayar, 1) }}%</div>
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                <div class="@if($hutang->status_lunas) bg-green-600 @else bg-blue-600 @endif h-1.5 rounded-full transition-all duration-300" 
+                                     style="width: {{ min($hutang->persen_bayar, 100) }}%"></div>
+                            </div>
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -238,7 +240,7 @@
                             <span class="text-orange-600">-</span>
                         @else
                             @php
-                                $nominal = $hutang->nominal_pembayaran;
+                                $nominal = $hutang->sisa_bayar;
                                 if ($nominal >= 1000000000) {
                                     echo '<span class="text-red-600">Rp ' . number_format($nominal / 1000000000, 1, ',', '.') . ' M</span>';
                                 } elseif ($nominal >= 1000000) {
@@ -254,41 +256,25 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         @if($hutang->warning_hps)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
                                 HPS Belum Diisi
                             </span>
-                        @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                @if($hutang->status_pembayaran == 'Pending') bg-yellow-100 text-yellow-800
-                                @elseif($hutang->status_pembayaran == 'Ditolak') bg-red-100 text-red-800
-                                @elseif($hutang->status_pembayaran == 'Approved') bg-green-100 text-green-800
-                                @else bg-gray-100 text-gray-800 @endif">
-                                @if($hutang->status_pembayaran == 'Pending')
-                                    Pending
-                                @elseif($hutang->status_pembayaran == 'Ditolak')
-                                    Ditolak
-                                @elseif($hutang->status_pembayaran == 'Approved')
-                                    Disetujui
-                                @else
-                                    {{ $hutang->status_pembayaran }}
-                                @endif
+                        @elseif($hutang->status_lunas)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                LUNAS
                             </span>
-                        @endif
-                        @if($hutang->hari_telat > 0)
-                            <div class="text-xs text-red-600 mt-1">Terlambat {{ $hutang->hari_telat }} hari</div>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ $hutang->catatan ?? 'Pembayaran ke vendor' }}
-                        @if($hutang->jatuh_tempo && !$hutang->warning_hps)
-                            <div class="text-xs text-gray-500 mt-1">
-                                Jatuh tempo: {{ \Carbon\Carbon::parse($hutang->jatuh_tempo)->format('d/m/Y') }}
-                            </div>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                BELUM LUNAS
+                            </span>
                         @endif
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
                         <div class="flex flex-col items-center justify-center py-8">
                             <i class="fas fa-credit-card text-4xl text-gray-300 mb-4"></i>
                             <p class="text-lg font-medium mb-2">Tidak ada hutang vendor</p>
