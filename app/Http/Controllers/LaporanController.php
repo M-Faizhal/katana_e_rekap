@@ -47,6 +47,15 @@ class LaporanController extends Controller
      */
     public function index(Request $request)
     {
+        // Check if this is an AJAX request for chart data
+        if ($request->ajax() && $request->has('chart_year')) {
+            $chartData = $this->getChartData($request);
+            return response()->json([
+                'success' => true,
+                'chartData' => $chartData
+            ]);
+        }
+
         // Get basic statistics
         $stats = $this->getStatistics();
 
@@ -59,7 +68,10 @@ class LaporanController extends Controller
         // Get chart data
         $chartData = $this->getChartData($request);
 
-        return view('pages.laporan.proyek', compact('stats', 'projects', 'filterOptions', 'chartData'));
+        // Get year range from project data
+        $yearRange = $this->getYearRange();
+
+        return view('pages.laporan.proyek', compact('stats', 'projects', 'filterOptions', 'chartData', 'yearRange'));
     }
 
     /**
@@ -148,12 +160,10 @@ class LaporanController extends Controller
      */
     private function getStatistics()
     {
-        // Hitung total nilai HANYA dari penawaran yang status ACC dan proyek tidak gagal
-        $totalNilai = Penawaran::where('status', 'ACC')
-            ->whereHas('proyek', function($query) {
-                $query->where('status', '!=', 'Gagal');
-            })
-            ->sum('total_penawaran');
+        // Hitung total nilai dari harga_total proyek yang status tidak 'Gagal'
+        $totalNilai = Proyek::where('status', '!=', 'Gagal')
+            ->whereNotNull('harga_total')
+            ->sum('harga_total');
 
         $stats = [
             'total_proyek' => Proyek::where('status', '!=', 'Gagal')->count(),
@@ -180,7 +190,9 @@ class LaporanController extends Controller
         ]); // Show all projects
 
         // Apply filters
-        if ($request->filled('periode')) {
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('tanggal', [$request->start_date, $request->end_date]);
+        } elseif ($request->filled('periode')) {
             $this->applyPeriodeFilter($query, $request->periode, $request);
         }
 
@@ -917,30 +929,35 @@ public function exportTSV(Request $request)
      */
     private function getChartData(Request $request)
     {
-        $year = $request->get('year', Carbon::now()->year);
+        // Get year from chart_year parameter or default to current year
+        $year = $request->get('chart_year', $request->get('year', Carbon::now()->year));
         
-        // Get monthly project data for last 6 months
+        // Get monthly project data for the entire year (12 months, excluding 'Gagal' status)
         $monthlyProjects = DB::table('proyek')
             ->select(
                 DB::raw('MONTH(tanggal) as month_num'),
                 DB::raw('MONTHNAME(tanggal) as month_name'),
                 DB::raw('COUNT(*) as count')
             )
+            ->where('status', '!=', 'Gagal') // Exclude failed projects
             ->whereYear('tanggal', $year)
-            ->where('tanggal', '>=', Carbon::now()->subMonths(6)->startOfMonth())
             ->groupBy('month_num', 'month_name')
             ->orderBy('month_num')
             ->get();
 
-        // Transform monthly projects to expected format
-        $monthlyProjectsFormatted = $monthlyProjects->map(function($item) {
-            return [
-                'month' => substr($item->month_name, 0, 3), // Jan, Feb, etc
-                'count' => $item->count
+        // Create complete 12-month data array
+        $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $monthlyProjectsFormatted = [];
+        
+        for ($i = 1; $i <= 12; $i++) {
+            $monthData = $monthlyProjects->firstWhere('month_num', $i);
+            $monthlyProjectsFormatted[] = [
+                'month' => $monthNames[$i - 1],
+                'count' => $monthData ? $monthData->count : 0
             ];
-        });
+        }
 
-        // Get status distribution
+        // Get status distribution for the selected year
         $statusDistribution = DB::table('proyek')
             ->select('status', DB::raw('COUNT(*) as count'))
             ->whereYear('tanggal', $year)
@@ -956,28 +973,29 @@ public function exportTSV(Request $request)
             ];
         });
 
-        // Get monthly values from ACC proposals for last 6 months
-        $monthlyValues = DB::table('penawaran')
-            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+        // Get monthly values from proyek.harga_total for the entire year (excluding 'Gagal' status)
+        $monthlyValues = DB::table('proyek')
             ->select(
-                DB::raw('MONTH(proyek.tanggal) as month_num'),
-                DB::raw('MONTHNAME(proyek.tanggal) as month_name'),
-                DB::raw('SUM(penawaran.total_penawaran) as total_value')
+                DB::raw('MONTH(tanggal) as month_num'),
+                DB::raw('MONTHNAME(tanggal) as month_name'),
+                DB::raw('SUM(COALESCE(harga_total, 0)) as total_value')
             )
-            ->where('penawaran.status', 'ACC')
-            ->whereYear('proyek.tanggal', $year)
-            ->where('proyek.tanggal', '>=', Carbon::now()->subMonths(6)->startOfMonth())
+            ->where('status', '!=', 'Gagal') // Exclude failed projects
+            ->whereYear('tanggal', $year)
             ->groupBy('month_num', 'month_name')
             ->orderBy('month_num')
             ->get();
 
-        // Transform monthly values to expected format
-        $monthlyValuesFormatted = $monthlyValues->map(function($item) {
-            return [
-                'month' => substr($item->month_name, 0, 3), // Jan, Feb, etc
-                'value' => $item->total_value ?? 0
+        // Create complete 12-month values data array
+        $monthlyValuesFormatted = [];
+        
+        for ($i = 1; $i <= 12; $i++) {
+            $monthData = $monthlyValues->firstWhere('month_num', $i);
+            $monthlyValuesFormatted[] = [
+                'month' => $monthNames[$i - 1],
+                'value' => $monthData ? $monthData->total_value : 0
             ];
-        });
+        }
 
         return [
             'status_distribution' => $statusDistributionFormatted,
@@ -1515,5 +1533,33 @@ public function exportTSV(Request $request)
         }
 
         return $data;
+    }
+
+    /**
+     * Get dynamic year range from project data
+     */
+    private function getYearRange()
+    {
+        $yearRange = DB::table('proyek')
+            ->selectRaw('MIN(YEAR(tanggal)) as min_year, MAX(YEAR(tanggal)) as max_year')
+            ->where('status', '!=', 'Gagal') // Exclude failed projects
+            ->first();
+
+        // Set defaults if no projects exist
+        $currentYear = Carbon::now()->year;
+        $minYear = $yearRange->min_year ?? $currentYear;
+        $maxYear = $yearRange->max_year ?? $currentYear;
+
+        // Ensure min year is not less than 2020 (reasonable minimum)
+        $minYear = max($minYear, 2020);
+        
+        // Allow max year to extend to next year for future projects
+        $maxYear = max($maxYear, $currentYear);
+
+        return [
+            'min_year' => $minYear,
+            'max_year' => $maxYear,
+            'current_year' => $currentYear
+        ];
     }
 }

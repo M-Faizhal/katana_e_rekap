@@ -125,13 +125,30 @@
     <!-- Monthly Projects Chart -->
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
         <div class="p-4 sm:p-6 border-b border-gray-200">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-chart-bar text-green-600 text-lg"></i>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-green-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Proyek Per Bulan</h3>
+                        <p class="text-sm text-gray-600">Distribusi bulanan per tahun</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800">Proyek Per Bulan</h3>
-                    <p class="text-sm text-gray-600">6 bulan terakhir</p>
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">Tahun:</label>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="changeYear('monthly', -1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </button>
+                        <input type="number" id="monthlyChartYear" value="{{ date('Y') }}" min="{{ $yearRange['min_year'] }}" max="{{ $yearRange['max_year'] }}" 
+                               class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                               onchange="updateMonthlyChart()" onkeyup="handleYearInput(this, 'monthly')"
+                               title="Range: {{ $yearRange['min_year'] }} - {{ $yearRange['max_year'] }}">
+                        <button onclick="changeYear('monthly', 1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -144,13 +161,30 @@
 <!-- Monthly Value Chart -->
 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
     <div class="p-4 sm:p-6 border-b border-gray-200">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                <i class="fas fa-chart-line text-purple-600 text-lg"></i>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-chart-line text-purple-600 text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Nilai Proyek Per Bulan</h3>
+                    <p class="text-sm text-gray-600">Total nilai proyek per tahun</p>
+                </div>
             </div>
-            <div>
-                <h3 class="text-lg font-bold text-gray-800">Nilai Proyek Per Bulan</h3>
-                <p class="text-sm text-gray-600">Total nilai proyek 6 bulan terakhir</p>
+            <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700">Tahun:</label>
+                <div class="flex items-center space-x-1">
+                    <button onclick="changeYear('value', -1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:ring-2 focus:ring-purple-500">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <input type="number" id="valueChartYear" value="{{ date('Y') }}" min="{{ $yearRange['min_year'] }}" max="{{ $yearRange['max_year'] }}" 
+                           class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                           onchange="updateValueChart()" onkeyup="handleYearInput(this, 'value')"
+                           title="Range: {{ $yearRange['min_year'] }} - {{ $yearRange['max_year'] }}">
+                    <button onclick="changeYear('value', 1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:ring-2 focus:ring-purple-500">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -173,18 +207,20 @@
         </div>
     </div>
     <div class="p-4 sm:p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <!-- Periode Filter -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Periode Filter dengan Date Range -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Periode Laporan</label>
-                <select id="periode-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                    <option value="">Semua Periode</option>
-                    <option value="bulan-ini" {{ request('periode') == 'bulan-ini' ? 'selected' : '' }}>Bulan Ini</option>
-                    <option value="3-bulan" {{ request('periode') == '3-bulan' ? 'selected' : '' }}>3 Bulan Terakhir</option>
-                    <option value="6-bulan" {{ request('periode') == '6-bulan' ? 'selected' : '' }}>6 Bulan Terakhir</option>
-                    <option value="tahun-ini" {{ request('periode') == 'tahun-ini' ? 'selected' : '' }}>Tahun Ini</option>
-                    <option value="custom" {{ request('periode') == 'custom' ? 'selected' : '' }}>Custom</option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
+                <input type="date" id="start-date" value="{{ request('start_date') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                       placeholder="Pilih tanggal mulai">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
+                <input type="date" id="end-date" value="{{ request('end_date') }}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                       placeholder="Pilih tanggal akhir">
             </div>
 
             <!-- Status Filter -->
@@ -192,11 +228,12 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Status Proyek</label>
                 <select id="status-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Status</option>
-                    @foreach($filterOptions['statuses'] as $status)
-                        <option value="{{ $status['value'] }}" {{ request('status') == $status['value'] ? 'selected' : '' }}>
-                            {{ $status['label'] }}
-                        </option>
-                    @endforeach
+                    <option value="Menunggu" {{ request('status') == 'Menunggu' ? 'selected' : '' }}>Menunggu</option>
+                    <option value="Penawaran" {{ request('status') == 'Penawaran' ? 'selected' : '' }}>Penawaran</option>
+                    <option value="Pembayaran" {{ request('status') == 'Pembayaran' ? 'selected' : '' }}>Pembayaran</option>
+                    <option value="Pengiriman" {{ request('status') == 'Pengiriman' ? 'selected' : '' }}>Pengiriman</option>
+                    <option value="Selesai" {{ request('status') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                    <option value="Gagal" {{ request('status') == 'Gagal' ? 'selected' : '' }}>Gagal</option>
                 </select>
             </div>
 
@@ -215,16 +252,26 @@
             </div>
         </div>
 
-        <!-- Custom Date Range (Hidden by default) -->
-        <div id="custom-date-range" class="grid-cols-1 md:grid-cols-2 gap-4 mb-6 {{ request('periode') == 'custom' ? 'grid' : 'hidden' }}">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
-                <input type="date" id="start-date" value="{{ request('start_date') }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
-                <input type="date" id="end-date" value="{{ request('end_date') }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-            </div>
+        <!-- Quick Filter Buttons -->
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button onclick="setQuickFilter('today')" class="px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                <i class="fas fa-calendar-day mr-2"></i>Hari Ini
+            </button>
+            <button onclick="setQuickFilter('week')" class="px-4 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                <i class="fas fa-calendar-week mr-2"></i>7 Hari Terakhir
+            </button>
+            <button onclick="setQuickFilter('month')" class="px-4 py-2 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors">
+                <i class="fas fa-calendar-alt mr-2"></i>30 Hari Terakhir
+            </button>
+            <button onclick="setQuickFilter('quarter')" class="px-4 py-2 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors">
+                <i class="fas fa-calendar mr-2"></i>3 Bulan Terakhir
+            </button>
+            <button onclick="setQuickFilter('year')" class="px-4 py-2 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors">
+                <i class="fas fa-calendar-check mr-2"></i>Tahun Ini
+            </button>
+            <button onclick="setQuickFilter('all')" class="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                <i class="fas fa-infinity mr-2"></i>Semua Data
+            </button>
         </div>
 
         <!-- Action Buttons -->
@@ -234,9 +281,6 @@
             </button>
             <button onclick="resetFilters()" class="flex-1 sm:flex-none border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200">
                 <i class="fas fa-undo mr-2"></i>Reset Filter
-            </button>
-            <button onclick="exportReport()" class="flex-1 sm:flex-none bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all duration-200">
-                <i class="fas fa-download mr-2"></i>Export Excel
             </button>
         </div>
     </div>
@@ -285,13 +329,11 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            @if($project->status == 'selesai') bg-green-100 text-green-800
-                            @elseif($project->status == 'pengiriman') bg-blue-100 text-blue-800
-                            @elseif($project->status == 'pembayaran') bg-yellow-100 text-yellow-800
-                            @elseif($project->status == 'penawaran') bg-purple-100 text-purple-800
-                            @elseif($project->status == 'purchasing') bg-indigo-100 text-indigo-800
-                            @elseif($project->status == 'verifikasi') bg-orange-100 text-orange-800
-                            @elseif($project->status == 'menunggu') bg-red-100 text-red-800
+                            @if($project->status == 'Selesai') bg-green-100 text-green-800
+                            @elseif($project->status == 'Pengiriman') bg-blue-100 text-blue-800
+                            @elseif($project->status == 'Pembayaran') bg-yellow-100 text-yellow-800
+                            @elseif($project->status == 'Penawaran') bg-purple-100 text-purple-800
+                            @elseif($project->status == 'Menunggu') bg-red-100 text-red-800
                             @else bg-gray-100 text-gray-800 @endif">
                             {{ ucfirst($project->status) }}
                         </span>
@@ -354,7 +396,6 @@ function formatCurrency(amount) {
 
 // Filter functionality
 function applyFilters() {
-    const periode = document.getElementById('periode-filter').value;
     const status = document.getElementById('status-filter').value;
     const nilai = document.getElementById('nilai-filter').value;
     const startDate = document.getElementById('start-date').value;
@@ -362,7 +403,6 @@ function applyFilters() {
 
     // Build URL with query parameters
     const params = new URLSearchParams();
-    if (periode) params.append('periode', periode);
     if (status) params.append('status', status);
     if (nilai) params.append('nilai', nilai);
     if (startDate) params.append('start_date', startDate);
@@ -372,28 +412,52 @@ function applyFilters() {
     window.location.href = '{{ route("laporan.proyek") }}?' + params.toString();
 }
 
+// Quick filter functions
+function setQuickFilter(period) {
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    const today = new Date();
+    let startDate, endDate;
+
+    switch(period) {
+        case 'today':
+            startDate = new Date(today);
+            endDate = new Date(today);
+            break;
+        case 'week':
+            startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            endDate = new Date(today);
+            break;
+        case 'month':
+            startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            endDate = new Date(today);
+            break;
+        case 'quarter':
+            startDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+            endDate = new Date(today);
+            break;
+        case 'year':
+            startDate = new Date(today.getFullYear(), 0, 1);
+            endDate = new Date(today);
+            break;
+        case 'all':
+            startDateInput.value = '';
+            endDateInput.value = '';
+            applyFilters();
+            return;
+    }
+
+    // Format dates for input[type="date"]
+    startDateInput.value = startDate.toISOString().split('T')[0];
+    endDateInput.value = endDate.toISOString().split('T')[0];
+    
+    // Auto apply filter
+    applyFilters();
+}
+
 function resetFilters() {
     // Redirect to laporan page without any filters
     window.location.href = '{{ route("laporan.proyek") }}';
-}
-
-function exportReport() {
-    // Get current URL parameters for export
-    const urlParams = new URLSearchParams(window.location.search);
-
-    // Build export URL with same filters
-    const exportUrl = '{{ route("laporan.export") }}?' + urlParams.toString();
-
-    // Show export notification
-    showNotification('Export sedang diproses...', 'info');
-
-    // Trigger download
-    window.location.href = exportUrl;
-
-    // Show success notification after a delay
-    setTimeout(() => {
-        showNotification('Export berhasil! File sedang diunduh...', 'success');
-    }, 1000);
 }
 
 function viewProjectDetail(projectId) {
@@ -460,12 +524,18 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
 
-    const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+    const bgColor = type === 'success' ? 'bg-green-500' : 
+                   type === 'error' ? 'bg-red-500' : 
+                   type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+    const iconName = type === 'success' ? 'check' : 
+                    type === 'error' ? 'exclamation-triangle' : 
+                    type === 'warning' ? 'exclamation-circle' : 'info-circle';
+    
     notification.classList.add(bgColor, 'text-white');
 
     notification.innerHTML = `
         <div class="flex items-center">
-            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+            <i class="fas fa-${iconName} mr-2"></i>
             <span>${message}</span>
         </div>
     `;
@@ -486,18 +556,172 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Handle periode filter change
-document.getElementById('periode-filter').addEventListener('change', function() {
-    const customDateRange = document.getElementById('custom-date-range');
-    if (this.value === 'custom') {
-        customDateRange.style.display = 'grid';
-        customDateRange.classList.add('grid');
-        customDateRange.classList.remove('hidden');
-    } else {
-        customDateRange.style.display = 'none';
-        customDateRange.classList.remove('grid');
-        customDateRange.classList.add('hidden');
+// Update monthly chart based on selected year
+async function updateMonthlyChart() {
+    const selectedYear = document.getElementById('monthlyChartYear').value;
+    
+    try {
+        // Show loading indicator
+        const canvas = document.getElementById('monthlyChart');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Memuat data...', canvas.width / 2, canvas.height / 2);
+        
+        // Fetch new data for selected year
+        const response = await fetch(`{{ route('laporan.proyek') }}?ajax=1&chart_year=${selectedYear}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.chartData) {
+            // Update chart data
+            monthlyChart.data.labels = data.chartData.monthly_projects.map(item => item.month);
+            monthlyChart.data.datasets[0].data = data.chartData.monthly_projects.map(item => item.count);
+            monthlyChart.update();
+        } else {
+            throw new Error('Invalid response data');
+        }
+    } catch (error) {
+        console.error('Error updating monthly chart:', error);
+        showNotification('Gagal memuat data chart: ' + error.message, 'error');
+        
+        // Restore chart
+        monthlyChart.update();
     }
+}
+
+// Update value chart based on selected year
+async function updateValueChart() {
+    const selectedYear = document.getElementById('valueChartYear').value;
+    
+    try {
+        // Show loading indicator
+        const canvas = document.getElementById('valueChart');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Memuat data...', canvas.width / 2, canvas.height / 2);
+        
+        // Fetch new data for selected year
+        const response = await fetch(`{{ route('laporan.proyek') }}?ajax=1&chart_year=${selectedYear}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.chartData) {
+            // Update chart data
+            valueChart.data.labels = data.chartData.monthly_values.map(item => item.month);
+            valueChart.data.datasets[0].data = data.chartData.monthly_values.map(item => item.value);
+            valueChart.update();
+        } else {
+            throw new Error('Invalid response data');
+        }
+    } catch (error) {
+        console.error('Error updating value chart:', error);
+        showNotification('Gagal memuat data chart: ' + error.message, 'error');
+        
+        // Restore chart
+        valueChart.update();
+    }
+}
+
+// Sync year filters for both charts
+function syncChartYears() {
+    const monthlyYear = document.getElementById('monthlyChartYear').value;
+    const valueYear = document.getElementById('valueChartYear').value;
+    
+    // Sync both dropdowns to use same year
+    if (monthlyYear !== valueYear) {
+        document.getElementById('valueChartYear').value = monthlyYear;
+        updateValueChart();
+    }
+}
+
+// Dynamic year range from PHP
+const yearRange = @json($yearRange);
+
+// Handle year input changes with validation
+function handleYearInput(input, chartType) {
+    const year = parseInt(input.value);
+    
+    // Validate year range using dynamic data
+    if (year < yearRange.min_year) {
+        input.value = yearRange.min_year;
+        showNotification(`Tahun minimum adalah ${yearRange.min_year}`, 'warning');
+    } else if (year > yearRange.max_year) {
+        input.value = yearRange.max_year;
+        showNotification(`Tahun maksimum adalah ${yearRange.max_year}`, 'warning');
+    }
+    
+    // Auto update chart after short delay to avoid rapid API calls
+    clearTimeout(window.yearInputTimeout);
+    window.yearInputTimeout = setTimeout(() => {
+        if (chartType === 'monthly') {
+            document.getElementById('valueChartYear').value = input.value;
+            updateMonthlyChart();
+            updateValueChart();
+        } else {
+            document.getElementById('monthlyChartYear').value = input.value;
+            updateValueChart();
+            updateMonthlyChart();
+        }
+    }, 800);
+}
+
+// Change year with +/- buttons
+function changeYear(chartType, direction) {
+    const input = document.getElementById(chartType === 'monthly' ? 'monthlyChartYear' : 'valueChartYear');
+    const otherInput = document.getElementById(chartType === 'monthly' ? 'valueChartYear' : 'monthlyChartYear');
+    const currentYear = parseInt(input.value);
+    const newYear = currentYear + direction;
+    
+    if (newYear >= yearRange.min_year && newYear <= yearRange.max_year) {
+        input.value = newYear;
+        otherInput.value = newYear;
+        
+        // Update both charts
+        updateMonthlyChart();
+        updateValueChart();
+    } else {
+        const limitText = newYear < yearRange.min_year ? `minimum (${yearRange.min_year})` : `maksimum (${yearRange.max_year})`;
+        showNotification(`Tahun ${limitText} tercapai`, 'warning');
+    }
+}
+
+// Add event listener to sync years
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('monthlyChartYear').addEventListener('change', function() {
+        document.getElementById('valueChartYear').value = this.value;
+        updateValueChart();
+    });
+    
+    document.getElementById('valueChartYear').addEventListener('change', function() {
+        document.getElementById('monthlyChartYear').value = this.value;
+        updateMonthlyChart();
+    });
 });
 </script>
 
@@ -508,6 +732,9 @@ document.getElementById('periode-filter').addEventListener('change', function() 
 // Chart data from PHP
 const chartData = @json($chartData);
 console.log('Chart Data:', chartData);
+
+// Global chart variables for updates
+let monthlyChart, valueChart;
 
 // Status Distribution Chart (Doughnut)
 const statusCtx = document.getElementById('statusChart').getContext('2d');
@@ -546,7 +773,7 @@ const statusChart = new Chart(statusCtx, {
 
 // Monthly Projects Chart (Bar)
 const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-const monthlyChart = new Chart(monthlyCtx, {
+monthlyChart = new Chart(monthlyCtx, {
     type: 'bar',
     data: {
         labels: chartData.monthly_projects.map(item => item.month),
@@ -581,7 +808,7 @@ const monthlyChart = new Chart(monthlyCtx, {
 
 // Monthly Value Chart (Line)
 const valueCtx = document.getElementById('valueChart').getContext('2d');
-const valueChart = new Chart(valueCtx, {
+valueChart = new Chart(valueCtx, {
     type: 'line',
     data: {
         labels: chartData.monthly_values.map(item => item.month),
