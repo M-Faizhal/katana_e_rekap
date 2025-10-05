@@ -156,9 +156,11 @@
                         <i class="fas fa-chevron-left text-xs"></i>
                     </button>
                     <input type="text" id="omsetChartYear" value="{{ request('year') == 'all' ? 'all' : request('year', date('Y')) }}" 
-                           min="{{ $yearRange['min'] ?? 2020 }}" max="{{ $yearRange['max'] ?? date('Y') }}"
+                           min="{{ $yearRange['min_year'] ?? 2020 }}" 
+                           max="{{ $yearRange['max_year'] ?? date('Y') }}"
                            class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500" 
-                           onchange="updateOmsetChart()" readonly>
+                           onchange="updateOmsetChart()" readonly
+                           title="Range: {{ $yearRange['min_year'] ?? 2020 }} - {{ $yearRange['max_year'] ?? date('Y') }}">
                     <button onclick="changeOmsetYear(1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
                         <i class="fas fa-chevron-right text-xs"></i>
                     </button>
@@ -255,8 +257,12 @@ try {
 let omsetChart;
 const currentYear = {{ date('Y') }};
 const currentMonth = {{ date('n') }};
-const minYear = {{ $yearRange['min'] ?? 2020 }};
-const maxYear = {{ $yearRange['max'] ?? date('Y') }};
+const minYear = {{ isset($yearRange) && isset($yearRange['min_year']) ? $yearRange['min_year'] : 2020 }};
+const maxYear = {{ isset($yearRange) && isset($yearRange['max_year']) ? $yearRange['max_year'] : date('Y') }};
+
+// Debug year range
+console.log('Year range received:', {!! json_encode($yearRange ?? []) !!});
+console.log('Min year:', minYear, 'Max year:', maxYear);
 
 // Function to format Rupiah in Indonesian format
 function formatRupiahShort(amount) {

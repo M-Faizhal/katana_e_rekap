@@ -91,6 +91,9 @@ class LaporanController extends Controller
 
         // Get year range from project data
         $yearRange = $this->getYearRange();
+        
+        // Debug log
+        Log::info('Year range data:', $yearRange);
 
         return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'adminMarketing', 'adminPurchasing', 'yearRange'));
     }
@@ -1587,8 +1590,8 @@ public function exportTSV(Request $request)
         $maxYear = max($maxYear, $currentYear);
 
         return [
-            'min' => $minYear,
-            'max' => $maxYear,
+            'min_year' => $minYear,
+            'max_year' => $maxYear,
             'current_year' => $currentYear
         ];
     }
