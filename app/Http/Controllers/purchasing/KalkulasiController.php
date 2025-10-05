@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Services\HpsAutoFillService;
 
 class KalkulasiController extends Controller
 {
@@ -700,6 +701,9 @@ class KalkulasiController extends Controller
 
                 return $data;
             });
+
+            // Auto-fill data berdasarkan permintaan klien menggunakan service
+            $kalkulasiData = HpsAutoFillService::autoFillFromClientRequests($kalkulasiData, $proyek);
 
             // Get current approval file if exists
             $currentApprovalFile = null;

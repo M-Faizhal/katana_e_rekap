@@ -47,6 +47,15 @@ class LaporanController extends Controller
      */
     public function index(Request $request)
     {
+        // Check if this is an AJAX request for chart data
+        if ($request->ajax() && $request->has('chart_year')) {
+            $chartData = $this->getChartData($request);
+            return response()->json([
+                'success' => true,
+                'chartData' => $chartData
+            ]);
+        }
+
         // Get basic statistics
         $stats = $this->getStatistics();
 
@@ -59,7 +68,10 @@ class LaporanController extends Controller
         // Get chart data
         $chartData = $this->getChartData($request);
 
-        return view('pages.laporan.proyek', compact('stats', 'projects', 'filterOptions', 'chartData'));
+        // Get year range from project data
+        $yearRange = $this->getYearRange();
+
+        return view('pages.laporan.proyek', compact('stats', 'projects', 'filterOptions', 'chartData', 'yearRange'));
     }
 
     /**
@@ -67,36 +79,23 @@ class LaporanController extends Controller
      */
     public function omset(Request $request)
     {
-        // Check if this is an AJAX request for filtered data
-        if ($request->ajax()) {
-            return $this->getOmsetFilteredData($request);
-        }
+        // Get omset statistics with year filter
+        $stats = $this->getOmsetStatistics($request);
 
-        // Get omset statistics
-        $stats = $this->getOmsetStatistics();
-
-        // Add formatted versions for display
-        $stats['omset_bulan_ini_formatted'] = $this->formatRupiah($stats['omset_bulan_ini']);
-        $stats['omset_tahun_ini_formatted'] = $this->formatRupiah($stats['omset_tahun_ini']);
-        $stats['rata_rata_bulanan_formatted'] = $this->formatRupiah($stats['rata_rata_bulanan']);
-
-        // Get monthly omset data (tahun berjalan)
+        // Get monthly omset data with year filter
         $monthlyOmset = $this->getMonthlyOmset($request);
 
-        // Get admin omset data instead of vendor
+        // Get admin omset data with year filter
         $adminMarketing = $this->getAdminMarketingOmset($request);
         $adminPurchasing = $this->getAdminPurchasingOmset($request);
 
-        // Debug log with more detail
-        Log::info('Omset page data:', [
-            'monthlyOmsetCount' => count($monthlyOmset),
-            'adminMarketingCount' => count($adminMarketing),
-            'adminPurchasingCount' => count($adminPurchasing),
-            'year' => $request->get('year', Carbon::now()->year),
-            'month' => $request->get('month')
-        ]);
+        // Get year range from project data
+        $yearRange = $this->getYearRange();
+        
+        // Debug log
+        Log::info('Year range data:', $yearRange);
 
-        return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'adminMarketing', 'adminPurchasing'));
+        return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'adminMarketing', 'adminPurchasing', 'yearRange'));
     }
 
     /**
@@ -118,7 +117,9 @@ class LaporanController extends Controller
         // Get unique vendors for filter dropdown
         $allVendors = collect();
         if ($hutangVendor->count() > 0) {
-            $allVendors = $hutangVendor->unique('nama_vendor');
+            $allVendors = $hutangVendor->map(function($item) {
+                return $item->vendor;
+            })->unique('id_vendor');
         }
 
         return view('pages.laporan.hutang-vendor', compact('stats', 'hutangVendor', 'allVendors'));
@@ -148,12 +149,10 @@ class LaporanController extends Controller
      */
     private function getStatistics()
     {
-        // Hitung total nilai HANYA dari penawaran yang status ACC dan proyek tidak gagal
-        $totalNilai = Penawaran::where('status', 'ACC')
-            ->whereHas('proyek', function($query) {
-                $query->where('status', '!=', 'Gagal');
-            })
-            ->sum('total_penawaran');
+        // Hitung total nilai dari harga_total proyek yang status tidak 'Gagal'
+        $totalNilai = Proyek::where('status', '!=', 'Gagal')
+            ->whereNotNull('harga_total')
+            ->sum('harga_total');
 
         $stats = [
             'total_proyek' => Proyek::where('status', '!=', 'Gagal')->count(),
@@ -180,7 +179,9 @@ class LaporanController extends Controller
         ]); // Show all projects
 
         // Apply filters
-        if ($request->filled('periode')) {
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('tanggal', [$request->start_date, $request->end_date]);
+        } elseif ($request->filled('periode')) {
             $this->applyPeriodeFilter($query, $request->periode, $request);
         }
 
@@ -611,69 +612,111 @@ public function exportTSV(Request $request)
     /**
      * Get omset statistics
      */
-    private function getOmsetStatistics()
+    private function getOmsetStatistics(Request $request = null)
     {
         $currentMonth = Carbon::now();
-        $lastMonth = Carbon::now()->subMonth();
+        $currentYear = Carbon::now()->year;
         
-        // Calculate omset from nett_income pada kalkulasi HPS
-        // Ubah untuk tidak hanya bergantung pada status 'Selesai'
-        $currentMonthOmset = KalkulasiHps::whereHas('proyek', function($query) use ($currentMonth) {
-                $query->whereNotIn('status', ['Gagal', 'Menunggu']) // Exclude gagal and menunggu
-                      ->whereMonth('created_at', $currentMonth->month)
-                      ->whereYear('created_at', $currentMonth->year);
-            })
-            ->sum('nett_income');
+        // Get year filter parameter
+        $selectedYear = $request ? $request->get('year') : null;
+        
+        if ($selectedYear && $selectedYear !== 'all') {
+            // For specific year
+            $year = (int) $selectedYear;
+            
+            // Total Omset = Omset kumulatif dari awal sampai tahun terpilih
+            $totalOmset = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', '<=', $year)
+                ->sum('harga_total');
+                
+            // Omset Tahun = Omset hanya di tahun terpilih saja
+            $omsetTahunIni = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', $year)
+                ->sum('harga_total');
+            
+            // Omset bulan ini (jika tahun terpilih adalah tahun sekarang)
+            if ($year == $currentYear) {
+                $omsetBulanIni = Proyek::where('status', 'Selesai')
+                    ->whereNotNull('harga_total')
+                    ->whereYear('tanggal', $year)
+                    ->whereMonth('tanggal', $currentMonth->month)
+                    ->sum('harga_total');
+            } else {
+                // Jika bukan tahun sekarang, ambil bulan terakhir dari tahun itu
+                $omsetBulanIni = Proyek::where('status', 'Selesai')
+                    ->whereNotNull('harga_total')
+                    ->whereYear('tanggal', $year)
+                    ->whereMonth('tanggal', 12) // Desember
+                    ->sum('harga_total');
+            }
+        } else {
+            // For "Semua Tahun" option, show cumulative data
+            
+            // Total Omset - semua proyek selesai dari awal sampai akhir
+            $totalOmset = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->sum('harga_total');
 
-        $lastMonthOmset = KalkulasiHps::whereHas('proyek', function($query) use ($lastMonth) {
-                $query->whereNotIn('status', ['Gagal', 'Menunggu'])
-                      ->whereMonth('created_at', $lastMonth->month)
-                      ->whereYear('created_at', $lastMonth->year);
-            })
-            ->sum('nett_income');
+            // Omset Tahun Ini - proyek selesai tahun ini
+            $omsetTahunIni = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', $currentYear)
+                ->sum('harga_total');
 
-        $yearlyOmset = KalkulasiHps::whereHas('proyek', function($query) use ($currentMonth) {
-                $query->whereNotIn('status', ['Gagal', 'Menunggu'])
-                      ->whereYear('created_at', $currentMonth->year);
-            })
-            ->sum('nett_income');
-
-        $avgMonthlyOmset = $yearlyOmset / 12;
+            // Omset Bulan Ini - proyek selesai bulan ini
+            $omsetBulanIni = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', $currentYear)
+                ->whereMonth('tanggal', $currentMonth->month)
+                ->sum('harga_total');
+        }
 
         return [
-            'omset_bulan_ini' => $currentMonthOmset ?? 0,
-            'omset_bulan_lalu' => $lastMonthOmset ?? 0,
-            'omset_tahun_ini' => $yearlyOmset ?? 0,
-            'rata_rata_bulanan' => $avgMonthlyOmset ?? 0,
-            'pertumbuhan' => $lastMonthOmset > 0 ? (($currentMonthOmset - $lastMonthOmset) / $lastMonthOmset) * 100 : 0
+            'total_omset' => $totalOmset ?? 0,
+            'omset_tahun_ini' => $omsetTahunIni ?? 0,
+            'omset_bulan_ini' => $omsetBulanIni ?? 0,
         ];
     }
 
     /**
-     * Get monthly omset data (with filters)
+     * Get monthly omset data (with year filter)
      */
     private function getMonthlyOmset(Request $request)
     {
-        $year = $request->get('year', Carbon::now()->year);
-        $month = $request->get('month');
+        $selectedYear = $request->get('year');
         
-        $query = DB::table('kalkulasi_hps')
-            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-            ->whereNotIn('proyek.status', ['Gagal', 'Menunggu']) // Include more statuses
-            ->whereYear('proyek.created_at', $year);
+        if ($selectedYear && $selectedYear === 'all') {
+            // For "Semua Tahun", show yearly data instead of monthly
+            return DB::table('proyek')
+                ->where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->select(
+                    DB::raw('YEAR(tanggal) as year'),
+                    DB::raw('SUM(harga_total) as total_omset'),
+                    DB::raw('COUNT(id_proyek) as jumlah_proyek')
+                )
+                ->groupBy('year')
+                ->orderBy('year')
+                ->get();
+        } else {
+            // For specific year or default (current year), show monthly data
+            $year = $selectedYear ? (int) $selectedYear : Carbon::now()->year;
             
-        if ($month) {
-            $query->whereMonth('proyek.created_at', $month);
+            return DB::table('proyek')
+                ->where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', $year)
+                ->select(
+                    DB::raw('MONTH(tanggal) as month'),
+                    DB::raw('SUM(harga_total) as total_omset'),
+                    DB::raw('COUNT(id_proyek) as jumlah_proyek')
+                )
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
         }
-        
-        return $query->select(
-                DB::raw('MONTH(proyek.created_at) as month'),
-                DB::raw('SUM(COALESCE(kalkulasi_hps.nett_income, 0)) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
-            )
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
     }
 
     /**
@@ -706,25 +749,27 @@ public function exportTSV(Request $request)
      */
     private function getAdminMarketingOmset(Request $request)
     {
-        $year = $request->get('year', Carbon::now()->year);
-        $month = $request->get('month');
-        
-        // Ubah query untuk tidak hanya bergantung pada status 'Selesai'
+        // Base query
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
-            ->leftJoin('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-            ->whereYear('proyek.created_at', $year)
-            ->where('proyek.status', '!=', 'Gagal'); // Exclude gagal projects
+            ->where('proyek.status', 'Selesai')
+            ->whereNotNull('proyek.harga_total');
             
-        if ($month) {
-            $query->whereMonth('proyek.created_at', $month);
+        // Apply year filter
+        $selectedYear = $request ? $request->get('year') : null;
+        
+        if ($selectedYear && $selectedYear !== 'all') {
+            // For specific year
+            $year = (int) $selectedYear;
+            $query->whereYear('proyek.tanggal', $year);
         }
+        // For "all" years, no additional filter needed
         
         $result = $query->select(
                 'users.nama as name',
-                DB::raw('COALESCE(SUM(kalkulasi_hps.nett_income), 0) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                DB::raw('COALESCE(AVG(kalkulasi_hps.nett_income), 0) as rata_rata_omset_per_proyek')
+                DB::raw('SUM(proyek.harga_total) as total_omset'),
+                DB::raw('COUNT(proyek.id_proyek) as jumlah_proyek'),
+                DB::raw('AVG(proyek.harga_total) as rata_rata_omset_per_proyek')
             )
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_omset', 'desc')
@@ -756,25 +801,27 @@ public function exportTSV(Request $request)
      */
     private function getAdminPurchasingOmset(Request $request)
     {
-        $year = $request->get('year', Carbon::now()->year);
-        $month = $request->get('month');
-        
-        // Ubah query untuk tidak hanya bergantung pada status 'Selesai'
+        // Base query
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_purchasing')
-            ->leftJoin('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-            ->whereYear('proyek.created_at', $year)
-            ->where('proyek.status', '!=', 'Gagal'); // Exclude gagal projects
+            ->where('proyek.status', 'Selesai')
+            ->whereNotNull('proyek.harga_total');
             
-        if ($month) {
-            $query->whereMonth('proyek.created_at', $month);
+        // Apply year filter
+        $selectedYear = $request ? $request->get('year') : null;
+        
+        if ($selectedYear && $selectedYear !== 'all') {
+            // For specific year
+            $year = (int) $selectedYear;
+            $query->whereYear('proyek.tanggal', $year);
         }
+        // For "all" years, no additional filter needed
         
         $result = $query->select(
                 'users.nama as name',
-                DB::raw('COALESCE(SUM(kalkulasi_hps.nett_income), 0) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                DB::raw('COALESCE(AVG(kalkulasi_hps.nett_income), 0) as rata_rata_omset_per_proyek')
+                DB::raw('SUM(proyek.harga_total) as total_omset'),
+                DB::raw('COUNT(proyek.id_proyek) as jumlah_proyek'),
+                DB::raw('AVG(proyek.harga_total) as rata_rata_omset_per_proyek')
             )
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_omset', 'desc')
@@ -917,30 +964,35 @@ public function exportTSV(Request $request)
      */
     private function getChartData(Request $request)
     {
-        $year = $request->get('year', Carbon::now()->year);
+        // Get year from chart_year parameter or default to current year
+        $year = $request->get('chart_year', $request->get('year', Carbon::now()->year));
         
-        // Get monthly project data for last 6 months
+        // Get monthly project data for the entire year (12 months, excluding 'Gagal' status)
         $monthlyProjects = DB::table('proyek')
             ->select(
                 DB::raw('MONTH(tanggal) as month_num'),
                 DB::raw('MONTHNAME(tanggal) as month_name'),
                 DB::raw('COUNT(*) as count')
             )
+            ->where('status', '!=', 'Gagal') // Exclude failed projects
             ->whereYear('tanggal', $year)
-            ->where('tanggal', '>=', Carbon::now()->subMonths(6)->startOfMonth())
             ->groupBy('month_num', 'month_name')
             ->orderBy('month_num')
             ->get();
 
-        // Transform monthly projects to expected format
-        $monthlyProjectsFormatted = $monthlyProjects->map(function($item) {
-            return [
-                'month' => substr($item->month_name, 0, 3), // Jan, Feb, etc
-                'count' => $item->count
+        // Create complete 12-month data array
+        $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $monthlyProjectsFormatted = [];
+        
+        for ($i = 1; $i <= 12; $i++) {
+            $monthData = $monthlyProjects->firstWhere('month_num', $i);
+            $monthlyProjectsFormatted[] = [
+                'month' => $monthNames[$i - 1],
+                'count' => $monthData ? $monthData->count : 0
             ];
-        });
+        }
 
-        // Get status distribution
+        // Get status distribution for the selected year
         $statusDistribution = DB::table('proyek')
             ->select('status', DB::raw('COUNT(*) as count'))
             ->whereYear('tanggal', $year)
@@ -956,28 +1008,29 @@ public function exportTSV(Request $request)
             ];
         });
 
-        // Get monthly values from ACC proposals for last 6 months
-        $monthlyValues = DB::table('penawaran')
-            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+        // Get monthly values from proyek.harga_total for the entire year (excluding 'Gagal' status)
+        $monthlyValues = DB::table('proyek')
             ->select(
-                DB::raw('MONTH(proyek.tanggal) as month_num'),
-                DB::raw('MONTHNAME(proyek.tanggal) as month_name'),
-                DB::raw('SUM(penawaran.total_penawaran) as total_value')
+                DB::raw('MONTH(tanggal) as month_num'),
+                DB::raw('MONTHNAME(tanggal) as month_name'),
+                DB::raw('SUM(COALESCE(harga_total, 0)) as total_value')
             )
-            ->where('penawaran.status', 'ACC')
-            ->whereYear('proyek.tanggal', $year)
-            ->where('proyek.tanggal', '>=', Carbon::now()->subMonths(6)->startOfMonth())
+            ->where('status', '!=', 'Gagal') // Exclude failed projects
+            ->whereYear('tanggal', $year)
             ->groupBy('month_num', 'month_name')
             ->orderBy('month_num')
             ->get();
 
-        // Transform monthly values to expected format
-        $monthlyValuesFormatted = $monthlyValues->map(function($item) {
-            return [
-                'month' => substr($item->month_name, 0, 3), // Jan, Feb, etc
-                'value' => $item->total_value ?? 0
+        // Create complete 12-month values data array
+        $monthlyValuesFormatted = [];
+        
+        for ($i = 1; $i <= 12; $i++) {
+            $monthData = $monthlyValues->firstWhere('month_num', $i);
+            $monthlyValuesFormatted[] = [
+                'month' => $monthNames[$i - 1],
+                'value' => $monthData ? $monthData->total_value : 0
             ];
-        });
+        }
 
         return [
             'status_distribution' => $statusDistributionFormatted,
@@ -1011,55 +1064,95 @@ public function exportTSV(Request $request)
      */
     private function getHutangVendorStatistics()
     {
-        // Calculate vendor debt from unpaid amounts (total vendor - total paid)
-        $stats = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-            ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
-            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
-            ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
-            ->leftJoin('kalkulasi_hps', function($join) {
-                $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-                     ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
-            })
-            ->leftJoin('pembayaran', function($join) {
-                $join->on('penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-                     ->on('vendor.id_vendor', '=', 'pembayaran.id_vendor')
-                     ->where('pembayaran.status_verifikasi', '=', 'Approved');
-            })
-            ->where('penawaran.status', 'ACC')
-            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->select(
-                DB::raw('SUM(COALESCE(kalkulasi_hps.total_harga_hpp, 0) - COALESCE(pembayaran.nominal_bayar, 0)) as total_hutang'),
-                DB::raw('COUNT(DISTINCT vendor.id_vendor) as jumlah_vendor')
-            )
-            ->first();
-            
-        $totalHutang = $stats->total_hutang ?? 0;
-        $jumlahVendor = $stats->jumlah_vendor ?? 0;
+        // Hitung total record hutang vendor (vendor per proyek)
+        // Menggunakan logika yang sama dengan getHutangVendorList untuk konsistensi
         
+        $totalHutang = 0;
+        $jumlahHutangVendor = 0;
+        
+        // Ambil proyek yang perlu bayar dengan cara yang sama seperti getHutangVendorList
+        $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->whereHas('penawaranAktif', function ($query) {
+                $query->where('status', 'ACC');
+            })
+            ->get()
+            ->map(function ($proyek) {
+                // Ambil vendor yang terlibat dalam proyek ini
+                $vendors = $proyek->penawaranAktif->penawaranDetail
+                    ->pluck('barang.vendor')
+                    ->unique('id_vendor')
+                    ->filter(); // Remove null values
+
+                $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
+                    $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->sum('total_harga_hpp');
+
+                    $totalDibayarApproved = $proyek->pembayaran
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->where('status_verifikasi', 'Approved')
+                        ->sum('nominal_bayar');
+
+                    $sisaBayar = $totalVendor - $totalDibayarApproved;
+
+                    // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
+                    $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+
+                    return (object) [
+                        'vendor' => $vendor,
+                        'total_vendor' => $totalVendor,
+                        'total_dibayar_approved' => $totalDibayarApproved,
+                        'sisa_bayar' => $sisaBayar,
+                        'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
+                        'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
+                        'warning_hps' => $warning_hps,
+                        'proyek' => $proyek
+                    ];
+                })
+                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
+                ->filter(function ($vendorData) {
+                    return $vendorData->sisa_bayar > 0 || $vendorData->warning_hps;
+                });
+
+                return $proyek;
+            })
+            ->filter(function ($proyek) {
+                return $proyek->vendors_data->count() > 0; // Hanya proyek yang ada vendor belum lunas
+            });
+
+        // Hitung total hutang dan jumlah record
+        foreach ($proyekPerluBayar as $proyek) {
+            foreach ($proyek->vendors_data as $vendorData) {
+                $totalHutang += $vendorData->sisa_bayar;
+                $jumlahHutangVendor++;
+            }
+        }
+            
         // For overdue payments, we need pending payments past due date
         $hutangJatuhTempo = Pembayaran::where('status_verifikasi', '!=', 'Approved')
             ->where('tanggal_bayar', '<', Carbon::now())
             ->sum('nominal_bayar');
             
-        $rataRataHutang = $jumlahVendor > 0 ? $totalHutang / $jumlahVendor : 0;
+        $rataRataHutang = $jumlahHutangVendor > 0 ? $totalHutang / $jumlahHutangVendor : 0;
 
         return [
             'total_hutang' => $totalHutang ?? 0,
             'hutang_jatuh_tempo' => $hutangJatuhTempo ?? 0,
-            'jumlah_vendor' => $jumlahVendor ?? 0,
+            'jumlah_vendor' => $jumlahHutangVendor ?? 0,
             'rata_rata_hutang' => $rataRataHutang ?? 0,
         ];
     }
 
     /**
-     * Get hutang vendor list
+     * Get hutang vendor list (menggunakan logika yang sama dengan PembayaranController)
      */
     private function getHutangVendorList(Request $request)
     {
-        // Query proyek yang perlu pembayaran dengan vendor
+        // Query langsung dengan join untuk menghindari N+1 queries
+        // Hanya ambil data yang diperlukan untuk tampilan tabel
         $query = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
             ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
             ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
             ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
@@ -1067,84 +1160,102 @@ public function exportTSV(Request $request)
                 $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
                      ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
             })
-            ->leftJoin('pembayaran', function($join) {
-                $join->on('penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-                     ->on('vendor.id_vendor', '=', 'pembayaran.id_vendor')
-                     ->where('pembayaran.status_verifikasi', '=', 'Approved');
+            ->leftJoin(DB::raw('(SELECT 
+                p.id_vendor, 
+                pn.id_proyek, 
+                COALESCE(SUM(CASE WHEN p.status_verifikasi = "Approved" THEN p.nominal_bayar ELSE 0 END), 0) as total_dibayar_approved
+                FROM pembayaran p 
+                JOIN penawaran pn ON p.id_penawaran = pn.id_penawaran 
+                GROUP BY p.id_vendor, pn.id_proyek
+            ) as pb'), function($join) {
+                $join->on('vendor.id_vendor', '=', 'pb.id_vendor')
+                     ->on('proyek.id_proyek', '=', 'pb.id_proyek');
             })
-            ->select(
-                'vendor.nama_vendor',
-                'vendor.kontak as kontak_vendor',
+            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->where('penawaran.status', 'ACC')
+            ->select([
+                'proyek.id_proyek',
                 'proyek.kode_proyek',
                 'proyek.nama_klien',
                 'proyek.instansi',
+                'vendor.id_vendor',
+                'vendor.nama_vendor',
+                'vendor.jenis_perusahaan',
+                'vendor.email',
                 DB::raw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) as total_vendor'),
-                DB::raw('COALESCE(SUM(pembayaran.nominal_bayar), 0) as total_dibayar_approved'),
+                DB::raw('COALESCE(MAX(pb.total_dibayar_approved), 0) as total_dibayar_approved'),
                 DB::raw('CASE 
-                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0 
-                    THEN "Data kalkulasi HPS belum diisi" 
+                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0 THEN "Data kalkulasi HPS belum diisi"
                     ELSE NULL 
-                END as warning_hps'),
-                DB::raw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(SUM(pembayaran.nominal_bayar), 0) as nominal_pembayaran'),
-                DB::raw('CASE 
-                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) > 0 
-                    THEN (COALESCE(SUM(pembayaran.nominal_bayar), 0) / SUM(kalkulasi_hps.total_harga_hpp)) * 100 
-                    ELSE 0 
-                END as persen_bayar'),
-                DB::raw('CASE
-                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0 THEN "HPS Belum Diisi"
-                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(SUM(pembayaran.nominal_bayar), 0) > 0 THEN "Belum Lunas"
-                    ELSE "Lunas"
-                END as status_pembayaran'),
-                DB::raw('0 as hari_telat'), // We can calculate this based on project deadline if needed
-                DB::raw('"Pembayaran ke vendor" as catatan'),
-                DB::raw('NULL as jatuh_tempo')
-            )
-            ->where('penawaran.status', 'ACC')
-            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->groupBy(
-                'vendor.id_vendor', 
-                'vendor.nama_vendor', 
-                'vendor.kontak',
-                'proyek.id_proyek', 
-                'proyek.kode_proyek', 
-                'proyek.nama_klien', 
-                'proyek.instansi'
-            )
-            ->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(SUM(pembayaran.nominal_bayar), 0)) > 0 OR COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0');
+                END as warning_hps')
+            ])
+            ->groupBy([
+                'proyek.id_proyek', 'proyek.kode_proyek', 'proyek.nama_klien', 'proyek.instansi',
+                'vendor.id_vendor', 'vendor.nama_vendor', 'vendor.jenis_perusahaan', 'vendor.email'
+            ])
+            ->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(MAX(pb.total_dibayar_approved), 0) > 0) OR warning_hps IS NOT NULL')
+            ->orderBy('vendor.nama_vendor')
+            ->orderBy('proyek.kode_proyek');
 
         // Apply filters
-        if ($request->filled('status')) {
-            $status = $request->get('status');
-            if ($status == 'hps_kosong') {
-                $query->havingRaw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0');
-            }
-        }
-
         if ($request->filled('vendor')) {
-            $query->where('vendor.nama_vendor', 'like', '%' . $request->get('vendor') . '%');
+            $query->where('vendor.nama_vendor', 'like', '%' . $request->vendor . '%');
         }
 
         if ($request->filled('nominal')) {
-            $nominal = $request->get('nominal');
-            switch ($nominal) {
-                case '0-10jt':
-                    $query->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(SUM(pembayaran.nominal_bayar), 0)) < 10000000');
-                    break;
-                case '10-50jt':
-                    $query->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(SUM(pembayaran.nominal_bayar), 0)) BETWEEN 10000000 AND 50000000');
-                    break;
-                case '50-100jt':
-                    $query->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(SUM(pembayaran.nominal_bayar), 0)) BETWEEN 50000000 AND 100000000');
-                    break;
-                case '100jt+':
-                    $query->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(SUM(pembayaran.nominal_bayar), 0)) > 100000000');
-                    break;
+            $nominal = $request->nominal;
+            if ($nominal === '0-10jt') {
+                $query->havingRaw('total_vendor < 10000000');
+            } elseif ($nominal === '10-50jt') {
+                $query->havingRaw('total_vendor >= 10000000 AND total_vendor < 50000000');
+            } elseif ($nominal === '50-100jt') {
+                $query->havingRaw('total_vendor >= 50000000 AND total_vendor < 100000000');
+            } elseif ($nominal === '100jt+') {
+                $query->havingRaw('total_vendor >= 100000000');
             }
         }
 
-        return $query->orderBy('nominal_pembayaran', 'desc')
-                    ->paginate(10);
+        // Get results and transform to objects for blade compatibility
+        $results = $query->get()->map(function($item) {
+            $sisaBayar = $item->total_vendor - $item->total_dibayar_approved;
+            $persenBayar = $item->total_vendor > 0 ? ($item->total_dibayar_approved / $item->total_vendor) * 100 : 0;
+            $statusLunas = $item->total_vendor > 0 ? $sisaBayar <= 0 : false;
+            
+            return (object) [
+                'vendor' => (object) [
+                    'id_vendor' => $item->id_vendor,
+                    'nama_vendor' => $item->nama_vendor,
+                    'jenis_perusahaan' => $item->jenis_perusahaan,
+                    'email' => $item->email,
+                ],
+                'proyek' => (object) [
+                    'id_proyek' => $item->id_proyek,
+                    'kode_proyek' => $item->kode_proyek,
+                    'nama_klien' => $item->nama_klien,
+                    'instansi' => $item->instansi,
+                ],
+                'total_vendor' => $item->total_vendor,
+                'total_dibayar_approved' => $item->total_dibayar_approved,
+                'sisa_bayar' => $sisaBayar,
+                'warning_hps' => $item->warning_hps,
+                'persen_bayar' => $persenBayar,
+                'status_lunas' => $statusLunas,
+            ];
+        });
+
+        // Manual pagination
+        $perPage = 10;
+        $currentPage = request()->get('page', 1);
+        $total = $results->count();
+        $items = $results->forPage($currentPage, $perPage);
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'pageName' => 'page']
+        );
     }
 
     /**
@@ -1226,6 +1337,26 @@ public function exportTSV(Request $request)
 
         $proyekAcc = $proyekAcc->get();
 
+        // Debug: Log data proyek yang ditemukan
+        Log::info('Debug Piutang Dinas:', [
+            'total_proyek_acc' => $proyekAcc->count(),
+            'proyekAcc' => $proyekAcc->map(function($p) {
+                return [
+                    'kode_proyek' => $p->kode_proyek,
+                    'penawaran_count' => $p->semuaPenawaran->count(),
+                    'penagihan_count' => $p->penagihanDinas->count(),
+                    'penawaran_ids' => $p->semuaPenawaran->pluck('id_penawaran')->toArray(),
+                    'penagihan' => $p->penagihanDinas->map(function($pn) {
+                        return [
+                            'penawaran_id' => $pn->penawaran_id,
+                            'status' => $pn->status_pembayaran,
+                            'nomor_invoice' => $pn->nomor_invoice
+                        ];
+                    })->toArray()
+                ];
+            })->toArray()
+        ]);
+
         // Transform ke format yang dibutuhkan untuk ditampilkan
         $piutangList = collect();
 
@@ -1239,6 +1370,14 @@ public function exportTSV(Request $request)
                 $tanggalJatuhTempo = null;
                 $nomorInvoice = '';
                 
+                // Debug log untuk setiap iterasi
+                Log::info('Processing penawaran:', [
+                    'proyek' => $proyek->kode_proyek,
+                    'penawaran_id' => $penawaran->id_penawaran,
+                    'has_penagihan' => $penagihan ? true : false,
+                    'penagihan_status' => $penagihan ? $penagihan->status_pembayaran : null
+                ]);
+                
                 if (!$penagihan) {
                     // Belum ada penagihan sama sekali
                     $shouldInclude = true;
@@ -1246,6 +1385,12 @@ public function exportTSV(Request $request)
                     $status = 'belum_ditagih';
                     $tanggalJatuhTempo = now()->addDays(30); // Default 30 hari dari sekarang
                     $nomorInvoice = 'Belum Ditagih';
+                    
+                    Log::info('Case: Belum ada penagihan', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'should_include' => $shouldInclude
+                    ]);
                 } else if ($penagihan->status_pembayaran != 'lunas') {
                     // Ada penagihan tapi belum lunas
                     $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
@@ -1257,6 +1402,16 @@ public function exportTSV(Request $request)
                         $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
                         $nomorInvoice = $penagihan->nomor_invoice;
                     }
+                    
+                    Log::info('Case: Ada penagihan belum lunas', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'status_pembayaran' => $penagihan->status_pembayaran,
+                        'total_harga' => $penagihan->total_harga,
+                        'total_bayar' => $totalBayar,
+                        'sisa_pembayaran' => $sisaPembayaran,
+                        'should_include' => $shouldInclude
+                    ]);
                 } else if ($request->has('show_all') && $request->get('show_all') === 'true') {
                     // Tampilkan yang lunas juga jika show_all = true
                     $shouldInclude = true;
@@ -1265,6 +1420,19 @@ public function exportTSV(Request $request)
                     $status = $penagihan->status_pembayaran;
                     $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
                     $nomorInvoice = $penagihan->nomor_invoice;
+                    
+                    Log::info('Case: Show all (lunas)', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'should_include' => $shouldInclude
+                    ]);
+                } else {
+                    Log::info('Case: Tidak diinclude (lunas)', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'status_pembayaran' => $penagihan->status_pembayaran,
+                        'should_include' => false
+                    ]);
                 }
 
                 if ($shouldInclude) {
@@ -1308,7 +1476,6 @@ public function exportTSV(Request $request)
                         'hari_telat' => $tanggalJatuhTempo && $tanggalJatuhTempo < now() 
                             ? now()->diffInDays($tanggalJatuhTempo) 
                             : 0,
-                        'buktiPembayaran' => $penagihan ? $penagihan->buktiPembayaran : collect()
                     ];
 
                     $piutangList->push($piutangItem);
@@ -1316,17 +1483,18 @@ public function exportTSV(Request $request)
             }
         }
 
-        // Sort by tanggal_jatuh_tempo
-        $piutangList = $piutangList->sortBy('tanggal_jatuh_tempo');
+        // Sort by tanggal jatuh tempo (yang paling urgent di atas)
+        $piutangList = $piutangList->sortBy(function($item) {
+            return $item->tanggal_jatuh_tempo ?? now()->addYears(10);
+        });
 
-        // Manual pagination
-        $perPage = 10;
+        // Convert to paginated collection
         $currentPage = $request->get('page', 1);
+        $perPage = 10;
         $total = $piutangList->count();
         $items = $piutangList->forPage($currentPage, $perPage)->values();
 
-        // Create paginator
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
             $items,
             $total,
             $perPage,
@@ -1338,9 +1506,9 @@ public function exportTSV(Request $request)
         );
 
         // Append query parameters
-        $paginator->appends($request->query());
+        $paginated->appends($request->query());
 
-        return $paginator;
+        return $paginated;
     }
 
     /**
@@ -1516,4 +1684,33 @@ public function exportTSV(Request $request)
 
         return $data;
     }
+
+    /**
+     * Get dynamic year range from project data
+     */
+    private function getYearRange()
+    {
+        $yearRange = DB::table('proyek')
+            ->selectRaw('MIN(YEAR(tanggal)) as min_year, MAX(YEAR(tanggal)) as max_year')
+            ->where('status', '!=', 'Gagal') // Exclude failed projects
+            ->first();
+
+        // Set defaults if no projects exist
+        $currentYear = Carbon::now()->year;
+        $minYear = $yearRange->min_year ?? $currentYear;
+        $maxYear = $yearRange->max_year ?? $currentYear;
+
+        // Ensure min year is not less than 2020 (reasonable minimum)
+        $minYear = max($minYear, 2020);
+        
+        // Allow max year to extend to next year for future projects
+        $maxYear = max($maxYear, $currentYear);
+
+        return [
+            'min_year' => $minYear,
+            'max_year' => $maxYear,
+            'current_year' => $currentYear
+        ];
+    }
+
 }

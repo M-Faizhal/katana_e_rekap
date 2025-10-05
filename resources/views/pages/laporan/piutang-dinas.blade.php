@@ -287,9 +287,14 @@ function resetFilters() {
 }
 
 function showAllData() {
+function showAllData() {
     const params = new URLSearchParams();
     params.append('show_all', 'true');
     window.location.href = '{{ route("laporan.piutang-dinas") }}?' + params.toString();
+}
+
+function resetFilters() {
+    window.location.href = '{{ route("laporan.piutang-dinas") }}';
 }
 </script>
 @endsection

@@ -199,22 +199,22 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center mb-4">
             <div class="bg-white rounded-lg p-3 border">
                 <div class="text-sm text-gray-600">Total HPP (Modal)</div>
-                <div class="text-lg font-bold text-yellow-700" id="grand-total-hpp">Rp 0</div>
+                <div class="text-lg font-bold text-yellow-700" id="grand-total-hpp">-</div>
                 <div class="text-xs text-gray-500">Harga beli dari vendor</div>
             </div>
             <div class="bg-white rounded-lg p-3 border">
                 <div class="text-sm text-gray-600">Total HPS</div>
-                <div class="text-lg font-bold text-blue-700" id="grand-total-hps">Rp 0</div>
+                <div class="text-lg font-bold text-blue-700" id="grand-total-hps">-</div>
                 <div class="text-xs text-gray-500">Harga penawaran ke klien</div>
             </div>
             <div class="bg-white rounded-lg p-3 border">
                 <div class="text-sm text-gray-600">Total Nett</div>
-                <div class="text-lg font-bold text-green-700" id="grand-total-nett">Rp 0</div>
+                <div class="text-lg font-bold text-green-700" id="grand-total-nett">-</div>
                 <div class="text-xs text-gray-500">Pendapatan bersih</div>
             </div>
             <div class="bg-white rounded-lg p-3 border">
                 <div class="text-sm text-gray-600">Rata-rata % Nett</div>
-                <div class="text-lg font-bold text-red-700" id="grand-avg-nett">0%</div>
+                <div class="text-lg font-bold text-red-700" id="grand-avg-nett">-</div>
                 <div class="text-xs text-gray-500">Margin bersih</div>
             </div>
         </div>
@@ -223,27 +223,27 @@
         <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 text-center">
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Items</div>
-                <div class="text-sm font-semibold" id="total-items">0</div>
+                <div class="text-sm font-semibold" id="total-items">-</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Diskon</div>
-                <div class="text-sm font-semibold" id="total-diskon">Rp 0</div>
+                <div class="text-sm font-semibold" id="total-diskon">-</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Volume</div>
-                <div class="text-sm font-semibold" id="total-volume">Rp 0</div>
+                <div class="text-sm font-semibold" id="total-volume">-</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total DPP</div>
-                <div class="text-sm font-semibold" id="total-dpp">Rp 0</div>
+                <div class="text-sm font-semibold" id="total-dpp">-</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Asumsi Cair</div>
-                <div class="text-sm font-semibold" id="total-asumsi-cair">Rp 0</div>
+                <div class="text-sm font-semibold" id="total-asumsi-cair">-</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Ongkir</div>
-                <div class="text-sm font-semibold" id="total-ongkir">Rp 0</div>
+                <div class="text-sm font-semibold" id="total-ongkir">-</div>
             </div>
         </div>
     </div>
@@ -505,7 +505,66 @@ kalkulasiData = kalkulasiData.map(item => ({
 document.addEventListener('DOMContentLoaded', function() {
     initializeHPS();
     preventNumberInputScroll();
+    setupNumberFormatting();
 });
+
+// Setup number formatting for input fields
+function setupNumberFormatting() {
+    // Add event listeners for number formatting
+    document.addEventListener('input', function(e) {
+        // Only format text inputs that are used for numbers
+        if (e.target.type === 'text' && 
+            (e.target.placeholder.includes('.') || 
+             ['qty', 'harga_vendor', 'harga_diskon', 'harga_yang_diharapkan', 'harga_pagu_dinas_per_pcs', 'nilai_sp', 'ongkir'].some(field => 
+                e.target.getAttribute('onchange') && e.target.getAttribute('onchange').includes(field)
+             ))) {
+            
+            // Get cursor position
+            const cursorPos = e.target.selectionStart;
+            const oldValue = e.target.value;
+            
+            // Format the value
+            const numericValue = parseFormattedNumber(e.target.value);
+            if (numericValue > 0) {
+                const formattedValue = formatNumber(numericValue);
+                
+                // Only update if different to avoid cursor jumping
+                if (formattedValue !== oldValue) {
+                    e.target.value = formattedValue;
+                    
+                    // Restore cursor position (approximately)
+                    const newCursorPos = Math.min(cursorPos + (formattedValue.length - oldValue.length), formattedValue.length);
+                    e.target.setSelectionRange(newCursorPos, newCursorPos);
+                }
+            }
+        }
+    });
+    
+    // Prevent invalid characters in number inputs
+    document.addEventListener('keypress', function(e) {
+        if (e.target.type === 'text' && 
+            (e.target.placeholder.includes('.') || 
+             ['qty', 'harga_vendor', 'harga_diskon', 'harga_yang_diharapkan', 'harga_pagu_dinas_per_pcs', 'nilai_sp', 'ongkir'].some(field => 
+                e.target.getAttribute('onchange') && e.target.getAttribute('onchange').includes(field)
+             ))) {
+            
+            // Allow: backspace, delete, tab, escape, enter
+            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true)) {
+                return;
+            }
+            
+            // Ensure that it is a number or dot and stop the keypress
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && e.keyCode !== 190 && e.keyCode !== 110) {
+                e.preventDefault();
+            }
+        }
+    });
+}
 
 // Prevent mouse wheel scroll on number inputs
 function preventNumberInputScroll() {
@@ -606,106 +665,106 @@ function createKalkulasiTableRow(item, index) {
                 <span>${item.satuan || '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.qty || ''}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16" placeholder="1" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.qty > 0 ? formatNumber(item.qty) : ''}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16" placeholder="Jumlah" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.harga_vendor || ''}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.harga_vendor > 0 ? formatNumber(item.harga_vendor) : ''}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20" placeholder="10.000" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-yellow-100">
-                <input type="number" value="${item.harga_diskon || ''}" onchange="updateValue(${index}, 'harga_diskon', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="0" title="INPUT: Masukkan harga akhir setelah diskon" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.harga_diskon > 0 ? formatNumber(item.harga_diskon) : ''}" onchange="updateValue(${index}, 'harga_diskon', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="9.500" title="INPUT: Masukkan harga akhir setelah diskon" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span class="text-gray-600" title="CALCULATED: Harga Vendor - Harga Diskon">${formatRupiah(item.nilai_diskon || 0)}</span>
+                <span class="text-gray-600" title="CALCULATED: Harga Vendor - Harga Diskon">${(item.nilai_diskon && item.nilai_diskon > 0) ? formatRupiah(item.nilai_diskon) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span class="text-gray-600" title="CALCULATED: Nilai Diskon × Qty">${formatRupiah(item.total_diskon || 0)}</span>
+                <span class="text-gray-600" title="CALCULATED: Nilai Diskon × Qty">${(item.total_diskon && item.total_diskon > 0) ? formatRupiah(item.total_diskon) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-yellow-50 text-xs">
-                <span>${formatRupiah(item.total_harga || 0)}</span>
+                <span>${(item.total_harga && item.total_harga > 0) ? formatRupiah(item.total_harga) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-yellow-50 text-xs">
-                <span>${formatRupiah(item.jumlah_volume || 0)}</span>
+                <span>${(item.jumlah_volume && item.jumlah_volume > 0) ? formatRupiah(item.jumlah_volume) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-yellow-100">
-                <input type="number" value="${item.harga_yang_diharapkan || ''}" onchange="updateValue(${index}, 'harga_yang_diharapkan', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="0" title="INPUT: Masukkan harga yang diharapkan" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.harga_yang_diharapkan > 0 ? formatNumber(item.harga_yang_diharapkan) : ''}" onchange="updateValue(${index}, 'harga_yang_diharapkan', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="12.000" title="INPUT: Masukkan harga yang diharapkan" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span class="${(item.persen_kenaikan || 0) >= 0 ? 'text-green-700' : 'text-red-700'} font-medium" title="CALCULATED: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100">${formatPercent(item.persen_kenaikan || 0)}</span>
+                <span class="${(item.persen_kenaikan || 0) >= 0 ? 'text-green-700' : 'text-red-700'} font-medium" title="CALCULATED: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100">${item.persen_kenaikan ? formatPercent(item.persen_kenaikan) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-blue-50 text-xs">
-                <span>${formatRupiah(item.proyeksi_kenaikan || 0)}</span>
+                <span>${(item.proyeksi_kenaikan && item.proyeksi_kenaikan > 0) ? formatRupiah(item.proyeksi_kenaikan) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-blue-50 text-xs">
-                <span>${formatRupiah(item.ppn_dinas || 0)}</span>
+                <span>${(item.ppn_dinas && item.ppn_dinas > 0) ? formatRupiah(item.ppn_dinas) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-blue-50 text-xs">
-                <span>${formatRupiah(item.pph_dinas || 0)}</span>
+                <span>${(item.pph_dinas && item.pph_dinas > 0) ? formatRupiah(item.pph_dinas) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-purple-50 text-xs">
-                <span class="font-semibold">${formatRupiah(item.hps || 0)}</span>
+                <span class="font-semibold">${(item.hps && item.hps > 0) ? formatRupiah(item.hps) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-purple-50 text-xs">
-                <span>${formatRupiah(item.harga_per_pcs || 0)}</span>
+                <span>${(item.harga_per_pcs && item.harga_per_pcs > 0) ? formatRupiah(item.harga_per_pcs) : '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.harga_pagu_dinas_per_pcs || ''}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.harga_pagu_dinas_per_pcs > 0 ? formatNumber(item.harga_pagu_dinas_per_pcs) : ''}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20" placeholder="11.000" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span>${formatRupiah(item.pagu_total || 0)}</span>
+                <span>${(item.pagu_total && item.pagu_total > 0) ? formatRupiah(item.pagu_total) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span class="${(item.selisih_pagu_hps || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${formatRupiah(item.selisih_pagu_hps || 0)}</span>
+                <span class="${(item.selisih_pagu_hps || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${item.selisih_pagu_hps ? formatRupiah(item.selisih_pagu_hps) : '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.nilai_sp || ''}" onchange="updateValue(${index}, 'nilai_sp', this.value)" class="no-spin text-right w-20" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.nilai_sp > 0 ? formatNumber(item.nilai_sp) : ''}" onchange="updateValue(${index}, 'nilai_sp', this.value)" class="no-spin text-right w-20" placeholder="5.000" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-orange-50 text-xs">
-                <span>${formatRupiah(item.dpp || 0)}</span>
+                <span>${(item.dpp && item.dpp > 0) ? formatRupiah(item.dpp) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-orange-50 text-xs">
-                <span>${formatRupiah(item.asumsi_nilai_cair || 0)}</span>
+                <span>${(item.asumsi_nilai_cair && item.asumsi_nilai_cair > 0) ? formatRupiah(item.asumsi_nilai_cair) : '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.ongkir || ''}" onchange="updateValue(${index}, 'ongkir', this.value)" class="no-spin text-right w-16" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.ongkir > 0 ? formatNumber(item.ongkir) : ''}" onchange="updateValue(${index}, 'ongkir', this.value)" class="no-spin text-right w-16" placeholder="50.000" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.omzet_dinas_percent || ''}" onchange="updateValue(${index}, 'omzet_dinas_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.omzet_dinas_percent || ''}" onchange="updateValue(${index}, 'omzet_dinas_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
-                <span>${formatRupiah(item.omzet_nilai_dinas || 0)}</span>
+                <span>${(item.omzet_nilai_dinas && item.omzet_nilai_dinas > 0) ? formatRupiah(item.omzet_nilai_dinas) : '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.bendera_percent || ''}" onchange="updateValue(${index}, 'bendera_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.bendera_percent || ''}" onchange="updateValue(${index}, 'bendera_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
-                <span>${formatRupiah(item.gross_nilai_bendera || 0)}</span>
+                <span>${(item.gross_nilai_bendera && item.gross_nilai_bendera > 0) ? formatRupiah(item.gross_nilai_bendera) : '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.bank_cost_percent || ''}" onchange="updateValue(${index}, 'bank_cost_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.bank_cost_percent || ''}" onchange="updateValue(${index}, 'bank_cost_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
-                <span>${formatRupiah(item.gross_nilai_bank_cost || 0)}</span>
+                <span>${(item.gross_nilai_bank_cost && item.gross_nilai_bank_cost > 0) ? formatRupiah(item.gross_nilai_bank_cost) : '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.biaya_ops_percent || ''}" onchange="updateValue(${index}, 'biaya_ops_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.biaya_ops_percent || ''}" onchange="updateValue(${index}, 'biaya_ops_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
             </td>
             <td class="px-2 py-3 bg-red-50 text-xs">
-                <span>${formatRupiah(item.gross_nilai_biaya_ops || 0)}</span>
+                <span>${(item.gross_nilai_biaya_ops && item.gross_nilai_biaya_ops > 0) ? formatRupiah(item.gross_nilai_biaya_ops) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-red-100 text-xs">
-                <span class="font-semibold">${formatRupiah(item.sub_total_biaya_tidak_langsung || 0)}</span>
+                <span class="font-semibold">${(item.sub_total_biaya_tidak_langsung && item.sub_total_biaya_tidak_langsung > 0) ? formatRupiah(item.sub_total_biaya_tidak_langsung) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-green-50 text-xs">
-                <span>${formatRupiah(item.gross_income || 0)}</span>
+                <span>${(item.gross_income && item.gross_income > 0) ? formatRupiah(item.gross_income) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-green-50 text-xs">
-                <span>${formatPercent(item.gross_income_persentase || 0)}</span>
+                <span>${item.gross_income_persentase ? formatPercent(item.gross_income_persentase) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-green-100 text-xs">
-                <span class="font-bold">${formatRupiah(item.nilai_nett_income || 0)}</span>
+                <span class="font-bold">${(item.nilai_nett_income && item.nilai_nett_income > 0) ? formatRupiah(item.nilai_nett_income) : '-'}</span>
             </td>
             <td class="px-2 py-3 bg-green-100 text-xs">
-                <span class="font-bold ${(item.nett_income_persentase || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${formatPercent(item.nett_income_persentase || 0)}</span>
+                <span class="font-bold ${(item.nett_income_persentase || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${item.nett_income_persentase ? formatPercent(item.nett_income_persentase) : '-'}</span>
             </td>
             <td class="px-2 py-3">
                 <input type="text" value="${item.keterangan_1 || ''}" onchange="updateValue(${index}, 'keterangan_1', this.value)" class="w-20 text-xs" placeholder="Keterangan" ${!canEdit ? 'readonly' : ''}>
@@ -887,8 +946,40 @@ function updateVendor(index, vendorId) {
 }
 
 function updateValue(index, field, value) {
-    // Handle empty values - convert empty string to 0 for calculations but keep UI clean
-    const numericValue = value === '' || value === null || value === undefined ? 0 : parseFloat(value) || 0;
+    // Handle empty values
+    if (value === '' || value === null || value === undefined) {
+        // For text fields, allow empty strings
+        if (['keterangan_1', 'keterangan_2', 'catatan'].includes(field)) {
+            kalkulasiData[index][field] = '';
+            return;
+        }
+        
+        kalkulasiData[index][field] = 0;
+        
+        // Handle percentage sync for empty values
+        if (['omzet_dinas_percent', 'bendera_percent', 'bank_cost_percent', 'biaya_ops_percent'].includes(field)) {
+            syncPercentageToAllItems(field, 0);
+        } else {
+            calculateRow(index);
+            populateKalkulasiTable();
+            calculateTotals();
+        }
+        return;
+    }
+    
+    // Handle text fields that should not be converted to numbers
+    if (['keterangan_1', 'keterangan_2', 'catatan'].includes(field)) {
+        kalkulasiData[index][field] = value;
+        return; // No calculation needed for text fields
+    }
+    
+    // Convert formatted number (with dots) to actual number for money fields
+    let numericValue;
+    if (['qty', 'harga_vendor', 'harga_diskon', 'harga_yang_diharapkan', 'harga_pagu_dinas_per_pcs', 'nilai_sp', 'ongkir'].includes(field)) {
+        numericValue = parseFormattedNumber(value);
+    } else {
+        numericValue = parseFloat(value) || 0;
+    }
     
     // Validasi khusus untuk harga_diskon
     if (field === 'harga_diskon') {
@@ -901,11 +992,57 @@ function updateValue(index, field, value) {
         } else {
             kalkulasiData[index][field] = numericValue;
         }
-    } else {
+        calculateRow(index);
+        populateKalkulasiTable();
+        calculateTotals();
+    }
+    // Handle percentage fields that should sync across all items
+    else if (['omzet_dinas_percent', 'bendera_percent', 'bank_cost_percent', 'biaya_ops_percent'].includes(field)) {
+        syncPercentageToAllItems(field, numericValue);
+    }
+    else {
         kalkulasiData[index][field] = numericValue;
+        calculateRow(index);
+        populateKalkulasiTable();
+        calculateTotals();
+    }
+}
+
+// Function to parse formatted number (remove dots and convert to number)
+function parseFormattedNumber(value) {
+    if (typeof value === 'number') return value;
+    if (typeof value !== 'string') return 0;
+    
+    // Remove dots and convert to number
+    const cleanValue = value.replace(/\./g, '').replace(/,/g, '.');
+    const numericValue = parseFloat(cleanValue) || 0;
+    
+    return numericValue;
+}
+
+// Function to format number with thousand separators for input
+function formatNumber(number) {
+    if (number === null || number === undefined || isNaN(number)) return '';
+    if (number === 0) return '';
+    
+    // Convert to integer if it's a whole number, otherwise keep decimals
+    const isWholeNumber = number % 1 === 0;
+    const formattedNumber = isWholeNumber ? 
+        Math.round(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') :
+        number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    return formattedNumber;
+}
+
+// Function to sync percentage values to all items
+function syncPercentageToAllItems(field, value) {
+    // Update all items with the same percentage value
+    for (let i = 0; i < kalkulasiData.length; i++) {
+        kalkulasiData[i][field] = value;
+        calculateRow(i);
     }
     
-    calculateRow(index);
+    // Update the table display
     populateKalkulasiTable();
     calculateTotals();
 }
@@ -918,30 +1055,30 @@ function calculateTotals() {
     kalkulasiData = window.hpsCalculator.calculateAll();
     const summary = window.hpsCalculator.getSummary();
     
-    // Main summary totals
-    document.getElementById('grand-total-hpp').textContent = formatRupiah(summary.totalHpp);
-    document.getElementById('grand-total-hps').textContent = formatRupiah(summary.totalHps);
-    document.getElementById('grand-total-nett').textContent = formatRupiah(summary.totalNett);
-    document.getElementById('grand-avg-nett').textContent = formatPercent(summary.rataRataNet);
+    // Main summary totals - format with proper zero handling
+    document.getElementById('grand-total-hpp').textContent = summary.totalHpp > 0 ? formatRupiah(summary.totalHpp) : '-';
+    document.getElementById('grand-total-hps').textContent = summary.totalHps > 0 ? formatRupiah(summary.totalHps) : '-';
+    document.getElementById('grand-total-nett').textContent = summary.totalNett > 0 ? formatRupiah(summary.totalNett) : '-';
+    document.getElementById('grand-avg-nett').textContent = summary.rataRataNet ? formatPercent(summary.rataRataNet) : '-';
     
-    // Additional summary details
+    // Additional summary details - format with proper zero handling
     if (document.getElementById('total-items')) {
-        document.getElementById('total-items').textContent = summary.totalItems || 0;
+        document.getElementById('total-items').textContent = (summary.totalItems && summary.totalItems > 0) ? summary.totalItems : '-';
     }
     if (document.getElementById('total-diskon')) {
-        document.getElementById('total-diskon').textContent = formatRupiah(summary.totalDiskon || 0);
+        document.getElementById('total-diskon').textContent = (summary.totalDiskon && summary.totalDiskon > 0) ? formatRupiah(summary.totalDiskon) : '-';
     }
     if (document.getElementById('total-volume')) {
-        document.getElementById('total-volume').textContent = formatRupiah(summary.totalVolume || 0);
+        document.getElementById('total-volume').textContent = (summary.totalVolume && summary.totalVolume > 0) ? formatRupiah(summary.totalVolume) : '-';
     }
     if (document.getElementById('total-dpp')) {
-        document.getElementById('total-dpp').textContent = formatRupiah(summary.totalDpp || 0);
+        document.getElementById('total-dpp').textContent = (summary.totalDpp && summary.totalDpp > 0) ? formatRupiah(summary.totalDpp) : '-';
     }
     if (document.getElementById('total-asumsi-cair')) {
-        document.getElementById('total-asumsi-cair').textContent = formatRupiah(summary.totalAsumsiCair || 0);
+        document.getElementById('total-asumsi-cair').textContent = (summary.totalAsumsiCair && summary.totalAsumsiCair > 0) ? formatRupiah(summary.totalAsumsiCair) : '-';
     }
     if (document.getElementById('total-ongkir')) {
-        document.getElementById('total-ongkir').textContent = formatRupiah(summary.totalOngkir || 0);
+        document.getElementById('total-ongkir').textContent = (summary.totalOngkir && summary.totalOngkir > 0) ? formatRupiah(summary.totalOngkir) : '-';
     }
 }
 
@@ -1008,17 +1145,26 @@ async function saveKalkulasi() {
         return;
     }
 
-    // --- Batasi nilai persentase agar tidak out of range ---
+    // --- Batasi nilai persentase agar tidak out of range database ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi gross_income_percent dan nett_income_percent maksimal 100
-        const grossIncomePercent = Math.min(parseFloat(item.gross_income_persentase || 0), 100);
-        const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
+        // Batasi persentase dalam range yang aman untuk database (-999.99 sampai 999.99)
+        const safePercentRange = (value) => {
+            const numValue = parseFloat(value || 0);
+            return Math.max(-999.99, Math.min(999.99, numValue));
+        };
+        
+        const grossIncomePercent = safePercentRange(item.gross_income_persentase);
+        const nettIncomePercent = safePercentRange(item.nett_income_persentase);
+        const persenKenaikan = safePercentRange(item.persen_kenaikan);
+        
         return {
             ...item,
             gross_income_persentase: grossIncomePercent,
             gross_income_percent: grossIncomePercent,
             nett_income_persentase: nettIncomePercent,
-            nett_income_percent: nettIncomePercent
+            nett_income_percent: nettIncomePercent,
+            persen_kenaikan: persenKenaikan,
+            kenaikan_percent: persenKenaikan
         };
     });
 
@@ -1056,20 +1202,21 @@ async function saveKalkulasi() {
 
 // Utility functions
 function formatRupiah(amount) {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(amount || 0);
+    if (amount === null || amount === undefined || isNaN(amount)) return '-';
+    if (amount === 0) return '-';
+    
+    // Format dengan Rupiah dan pemisah ribuan menggunakan titik
+    return 'Rp ' + Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
 function formatPercent(value) {
+    if (value === null || value === undefined || isNaN(value)) return '-';
+    if (value === 0) return '-';
     return new Intl.NumberFormat('id-ID', {
         style: 'percent',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    }).format((value || 0) / 100);
+    }).format(value / 100);
 }
 
 // Helper functions for notifications
@@ -1364,22 +1511,31 @@ async function saveKalkulasiWithHistory() {
     }
 
     const hasEmptyFields = kalkulasiData.some(item => !item.id_barang || !item.id_vendor);
-    if (hasEmptyFields) {
+       if (hasEmptyFields) {
         alert('Mohon lengkapi semua field barang dan vendor');
         return;
     }
 
-    // --- Batasi nilai persentase agar tidak out of range ---
+    // --- Batasi nilai persentase agar tidak out of range database ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi gross_income_percent dan nett_income_percent maksimal 100
-        const grossIncomePercent = Math.min(parseFloat(item.gross_income_persentase || 0), 100);
-        const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
+        // Batasi persentase dalam range yang aman untuk database (-999.99 sampai 999.99)
+        const safePercentRange = (value) => {
+            const numValue = parseFloat(value || 0);
+            return Math.max(-999.99, Math.min(999.99, numValue));
+        };
+        
+        const grossIncomePercent = safePercentRange(item.gross_income_persentase);
+        const nettIncomePercent = safePercentRange(item.nett_income_persentase);
+        const persenKenaikan = safePercentRange(item.persen_kenaikan);
+        
         return {
             ...item,
             gross_income_persentase: grossIncomePercent,
             gross_income_percent: grossIncomePercent,
             nett_income_persentase: nettIncomePercent,
-            nett_income_percent: nettIncomePercent
+            nett_income_percent: nettIncomePercent,
+            persen_kenaikan: persenKenaikan,
+            kenaikan_percent: persenKenaikan
         };
     });
 

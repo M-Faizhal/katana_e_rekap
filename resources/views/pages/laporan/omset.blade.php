@@ -41,15 +41,32 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-calendar-alt text-green-600 text-sm sm:text-lg lg:text-xl"></i>
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-chart-line text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
             <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Omset Bulan Ini</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">Rp {{ $stats['omset_bulan_ini_formatted'] ?? '0' }}</p>
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">
+                    @if(request('year') && request('year') != 'all')
+                        Total Omset Sampai Tahun {{ request('year') }}
+                    @else
+                        Total Omset Sampai Saat Ini
+                    @endif
+                </h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">
+                    @php
+                        $totalOmset = $stats['total_omset'] ?? 0;
+                        if ($totalOmset >= 1000000000) {
+                            echo 'Rp ' . number_format($totalOmset / 1000000000, 1) . ' Miliar';
+                        } elseif ($totalOmset >= 1000000) {
+                            echo 'Rp ' . number_format($totalOmset / 1000000, 1) . ' Juta';
+                        } else {
+                            echo 'Rp ' . number_format($totalOmset, 0, ',', '.');
+                        }
+                    @endphp
+                </p>
             </div>
         </div>
     </div>
@@ -60,72 +77,56 @@
                 <i class="fas fa-calendar text-blue-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
             <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Omset Tahun Ini</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ $stats['omset_tahun_ini_formatted'] ?? '0' }}</p>
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">
+                    @if(request('year') && request('year') != 'all')
+                        Omset Tahun {{ request('year') }}
+                    @else
+                        Omset Tahun Ini
+                    @endif
+                </h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">
+                    @php
+                        $omsetTahunIni = $stats['omset_tahun_ini'] ?? 0;
+                        if ($omsetTahunIni >= 1000000000) {
+                            echo 'Rp ' . number_format($omsetTahunIni / 1000000000, 1) . ' Miliar';
+                        } elseif ($omsetTahunIni >= 1000000) {
+                            echo 'Rp ' . number_format($omsetTahunIni / 1000000, 1) . ' Juta';
+                        } else {
+                            echo 'Rp ' . number_format($omsetTahunIni, 0, ',', '.');
+                        }
+                    @endphp
+                </p>
             </div>
         </div>
     </div>
 
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-chart-bar text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-calendar-alt text-green-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
             <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Rata-rata Bulanan</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">Rp {{ $stats['rata_rata_bulanan_formatted'] ?? '0' }}</p>
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">
+                    @if(request('year') && request('year') != 'all' && request('year') != date('Y'))
+                        Omset Desember {{ request('year') }}
+                    @else
+                        Omset Bulan Ini
+                    @endif
+                </h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">
+                    @php
+                        $omsetBulanIni = $stats['omset_bulan_ini'] ?? 0;
+                        if ($omsetBulanIni >= 1000000000) {
+                            echo 'Rp ' . number_format($omsetBulanIni / 1000000000, 1) . ' Miliar';
+                        } elseif ($omsetBulanIni >= 1000000) {
+                            echo 'Rp ' . number_format($omsetBulanIni / 1000000, 1) . ' Juta';
+                        } else {
+                            echo 'Rp ' . number_format($omsetBulanIni, 0, ',', '.');
+                        }
+                    @endphp
+                </p>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Filter Section -->
-<div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6">
-    <div class="p-4 sm:p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Filter Laporan</h3>
-        <form id="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tahun</label>
-                <select id="yearFilter" name="year" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                    @for($year = 2022; $year <= date('Y') + 1; $year++)
-                        <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
-                    @endfor
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
-                <select id="monthFilter" name="month" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                    <option value="">Semua Bulan</option>
-                    @for($month = 1; $month <= 12; $month++)
-                        <option value="{{ $month }}">
-                            {{ \Carbon\Carbon::createFromDate(null, $month, 1)->format('F') }}
-                        </option>
-                    @endfor
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Periode</label>
-                <select id="periodFilter" name="period" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                    <option value="monthly">Bulanan</option>
-                    <option value="quarterly">Kuartalan</option>
-                    <option value="yearly">Tahunan</option>
-                </select>
-            </div>
-        </form>
-        
-        <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row gap-3 mt-4">
-            <button type="submit" form="filterForm" class="flex-1 sm:flex-none bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all duration-200">
-                <i class="fas fa-search mr-2"></i>Terapkan Filter
-            </button>
-            <button onclick="resetFilters()" class="flex-1 sm:flex-none border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200">
-                <i class="fas fa-undo mr-2"></i>Reset Filter
-            </button>
-            <button onclick="exportOmsetReport()" class="flex-1 sm:flex-none bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200">
-                <i class="fas fa-download mr-2"></i>Export Excel
-            </button>
-        </div>
-        </form>
     </div>
 </div>
 
@@ -138,17 +139,40 @@
                     <i class="fas fa-chart-line text-green-600 text-lg"></i>
                 </div>
                 <div>
-                    <h2 class="text-lg sm:text-xl font-bold text-gray-800">Grafik Omset</h2>
-                    <p class="text-sm sm:text-base text-gray-600 mt-1" id="chartSubtitle">Tren omset per bulan tahun {{ date('Y') }}</p>
+                    <h3 class="text-lg font-bold text-gray-800">Omset Per Bulan</h3>
+                    <p class="text-sm text-gray-600" id="chartSubtitle">
+                        @if(request('year') == 'all')
+                            Distribusi omset tahunan
+                        @else
+                            Distribusi omset bulanan {{ request('year', date('Y')) }}
+                        @endif
+                    </p>
                 </div>
             </div>
-            <div class="text-sm text-gray-500">
-                <i class="fas fa-info-circle mr-1"></i>
-                <span id="chartInfo">Data untuk {{ date('Y') }}</span>
+            <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700">Tahun:</label>
+                <div class="flex items-center space-x-1">
+                    <button onclick="changeOmsetYear(-1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <input type="text" id="omsetChartYear" value="{{ request('year') == 'all' ? 'all' : request('year', date('Y')) }}" 
+                           min="{{ $yearRange['min_year'] ?? 2020 }}" 
+                           max="{{ $yearRange['max_year'] ?? date('Y') }}"
+                           class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                           onchange="updateOmsetChart()" readonly
+                           title="Range: {{ $yearRange['min_year'] ?? 2020 }} - {{ $yearRange['max_year'] ?? date('Y') }}">
+                    <button onclick="changeOmsetYear(1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+                <button onclick="showAllYears()" class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-chart-line mr-1"></i>
+                    Lihat Semua Tahun
+                </button>
             </div>
         </div>
     </div>
-    <div class="p-6">
+    <div class="p-4 sm:p-6">
         <div class="h-80">
             <canvas id="omsetChart"></canvas>
         </div>
@@ -233,6 +257,12 @@ try {
 let omsetChart;
 const currentYear = {{ date('Y') }};
 const currentMonth = {{ date('n') }};
+const minYear = {{ isset($yearRange) && isset($yearRange['min_year']) ? $yearRange['min_year'] : 2020 }};
+const maxYear = {{ isset($yearRange) && isset($yearRange['max_year']) ? $yearRange['max_year'] : date('Y') }};
+
+// Debug year range
+console.log('Year range received:', {!! json_encode($yearRange ?? []) !!});
+console.log('Min year:', minYear, 'Max year:', maxYear);
 
 // Function to format Rupiah in Indonesian format
 function formatRupiahShort(amount) {
@@ -249,161 +279,120 @@ function formatRupiahShort(amount) {
     }
 }
 
-// Function to load chart data
-function loadChartData(year = currentYear, month = null, period = 'monthly') {
-    // Show loading indicator
-    const submitButton = document.querySelector('#filterForm button[type="submit"]');
-    const originalText = submitButton.innerHTML;
-    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memuat...';
-    submitButton.disabled = true;
-
-    const params = new URLSearchParams({
-        year: year,
-        period: period
-    });
-    
-    if (month) {
-        params.append('month', month);
+// Format currency function
+function formatCurrency(amount) {
+    const num = parseInt(amount) || 0;
+    if (num >= 1000000000) {
+        return 'Rp ' + (num / 1000000000).toFixed(1) + ' Miliar';
+    } else if (num >= 1000000) {
+        return 'Rp ' + (num / 1000000).toFixed(1) + ' Juta';
+    } else {
+        return 'Rp ' + num.toLocaleString('id-ID');
     }
-
-    console.log('Loading data with params:', {year, month, period}); // Debug log
-
-    fetch(`{{ route('laporan.omset') }}?${params.toString()}`, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-        console.log('Response status:', response.status); // Debug log
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Received data:', data); // Debug log
-        updateChart(data.monthlyOmset || [], period, year, month);
-        updateAdminTables(data.adminMarketing || [], data.adminPurchasing || []);
-        
-        // Reset button
-        submitButton.innerHTML = originalText;
-        submitButton.disabled = false;
-    })
-    .catch(error => {
-        console.error('Error loading data:', error);
-        alert('Terjadi kesalahan saat memuat data: ' + error.message);
-        
-        // Reset button
-        submitButton.innerHTML = originalText;
-        submitButton.disabled = false;
-    });
 }
 
-// Function to update chart
-function updateChart(monthlyData, period, year, month) {
-    const ctx = document.getElementById('omsetChart').getContext('2d');
+// Update omset chart based on selected year
+function updateOmsetChart() {
+    const selectedYear = document.getElementById('omsetChartYear').value;
+    console.log('updateOmsetChart called with selectedYear:', selectedYear);
     
-    // Destroy existing chart
-    if (omsetChart) {
-        omsetChart.destroy();
+    try {
+        showNotification(`Memuat data omset tahun ${selectedYear === 'all' ? 'semua' : selectedYear}...`, 'info');
+        
+        // Simple page redirect with year filter
+        const params = new URLSearchParams();
+        if (selectedYear !== 'all') {
+            params.append('year', selectedYear);
+        } else {
+            params.append('year', 'all');
+        }
+        
+        const newUrl = '{{ route("laporan.omset") }}?' + params.toString();
+        console.log('Redirecting to:', newUrl);
+        window.location.href = newUrl;
+        
+    } catch (error) {
+        console.error('Error updating omset chart:', error);
+        showNotification('Gagal memuat data omset: ' + error.message, 'error');
     }
+}
 
-    let labels, data;
-    let chartTitle = '';
-
-    if (period === 'monthly') {
-        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Des'];
-        data = new Array(12).fill(0);
-        if (monthlyData && monthlyData.length > 0) {
-            monthlyData.forEach(item => {
-                if (item.month && item.month >= 1 && item.month <= 12) {
-                    data[item.month - 1] = parseFloat(item.total_omset) || 0;
-                }
-            });
+// Change year with +/- buttons
+function changeOmsetYear(direction) {
+    const input = document.getElementById('omsetChartYear');
+    let currentValue = input.value;
+    
+    // Skip if current value is 'all'
+    if (currentValue === 'all') {
+        if (direction === 1) {
+            // From 'all', go to current year + 1 if direction is +1
+            input.value = Math.min(currentYear + 1, maxYear);
+        } else {
+            // From 'all', go to current year - 1 if direction is -1
+            input.value = Math.max(currentYear - 1, minYear);
         }
-        chartTitle = month ? `Omset ${labels[month-1]} ${year}` : `Omset Bulanan ${year}`;
-    } else if (period === 'quarterly') {
-        labels = ['Q1', 'Q2', 'Q3', 'Q4'];
-        data = new Array(4).fill(0);
-        if (monthlyData && monthlyData.length > 0) {
-            monthlyData.forEach(item => {
-                if (item.month && item.month >= 1 && item.month <= 12) {
-                    const quarter = Math.ceil(item.month / 3) - 1;
-                    data[quarter] += parseFloat(item.total_omset) || 0;
-                }
-            });
-        }
-        chartTitle = `Omset Kuartalan ${year}`;
-    } else if (period === 'yearly') {
-        labels = [];
-        data = [];
-        if (monthlyData && monthlyData.length > 0) {
-            const yearlyData = {};
-            monthlyData.forEach(item => {
-                const itemYear = item.year || year;
-                if (!yearlyData[itemYear]) {
-                    yearlyData[itemYear] = 0;
-                }
-                yearlyData[itemYear] += parseFloat(item.total_omset) || 0;
-            });
-            
-            Object.keys(yearlyData).sort().forEach(yr => {
-                labels.push(yr);
-                data.push(yearlyData[yr]);
-            });
-        }
-        chartTitle = `Omset Tahunan`;
+        updateOmsetChart();
+        return;
     }
+    
+    let currentYearValue = parseInt(currentValue);
+    const newYear = currentYearValue + direction;
+    
+    if (newYear >= minYear && newYear <= maxYear) {
+        input.value = newYear;
+        updateOmsetChart();
+    } else {
+        const limitText = newYear < minYear ? `minimum (${minYear})` : `maksimum (${maxYear})`;
+        showNotification(`Tahun ${limitText} tercapai`, 'warning');
+    }
+}
 
-    // Update chart subtitle
-    document.getElementById('chartSubtitle').textContent = chartTitle;
-    document.getElementById('chartInfo').textContent = `Data untuk ${year}${month ? ` - ${labels[month-1] || month}` : ''}`;
+// Show all years data
+function showAllYears() {
+    const input = document.getElementById('omsetChartYear');
+    console.log('Before setting all - current value:', input.value);
+    input.value = 'all';
+    console.log('After setting all - new value:', input.value);
+    updateOmsetChart();
+}
 
-    omsetChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Omset (Rp)',
-                data: data,
-                borderColor: 'rgb(34, 197, 94)',
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                tension: 0.1,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'Rp ' + formatRupiahShort(value);
-                        }
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.parsed.y;
-                            return 'Omset: Rp ' + value.toLocaleString('id-ID');
-                        }
-                    }
-                }
+// Simple notification function
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+
+    const bgColor = type === 'success' ? 'bg-green-500' : 
+                   type === 'error' ? 'bg-red-500' : 
+                   type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+    const iconName = type === 'success' ? 'check' : 
+                    type === 'error' ? 'exclamation-triangle' : 
+                    type === 'warning' ? 'exclamation-circle' : 'info-circle';
+    
+    notification.classList.add(bgColor, 'text-white');
+
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-${iconName} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                document.body.removeChild(notification);
             }
-        }
-    });
-}
-
-// Function to update stats cards
-function updateStats(stats) {
-    // Update the stats cards with new data if needed
-    // This would require updating the backend to return dynamic stats
+        }, 300);
+    }, 3000);
 }
 
 // Function to update admin tables
@@ -481,114 +470,129 @@ function updateAdminTables(marketingData, purchasingData) {
     }
 }
 
-// Form filter event handler
-document.getElementById('filterForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const year = document.getElementById('yearFilter').value;
-    const month = document.getElementById('monthFilter').value;
-    const period = document.getElementById('periodFilter').value;
-    
-    loadChartData(year, month || null, period);
-});
-
-// Initialize page
+// Initialize chart on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Load initial data
-    const monthlyData = @json($monthlyOmset ?? []);
-    const adminMarketing = @json($adminMarketing ?? []);
-    const adminPurchasing = @json($adminPurchasing ?? []);
+    // Data from PHP
+    const monthlyOmset = @json($monthlyOmset);
+    const adminMarketing = @json($adminMarketing);
+    const adminPurchasing = @json($adminPurchasing);
     
-    // Debug logs
-    console.log('Initial monthly data:', monthlyData);
-    console.log('Initial admin marketing:', adminMarketing);
-    console.log('Initial admin purchasing:', adminPurchasing);
-    
-    // Initialize chart with current data
-    updateChart(monthlyData, 'monthly', currentYear, null);
-    updateAdminTables(adminMarketing, adminPurchasing);
-    
-    console.log('Omset chart loaded for year ' + currentYear);
-});
-
-// Export function
-function exportOmsetReport() {
-    // Get current filter values
-    const year = document.getElementById('yearFilter').value;
-    const month = document.getElementById('monthFilter').value;
-    const period = document.getElementById('periodFilter').value;
-
-    // Build export URL with same filters
-    const params = new URLSearchParams({
-        year: year,
-        period: period
+    console.log('Initial data loaded:', { 
+        monthlyCount: monthlyOmset ? monthlyOmset.length : 0,
+        marketingCount: adminMarketing ? adminMarketing.length : 0,
+        purchasingCount: adminPurchasing ? adminPurchasing.length : 0,
+        yearRange: { min: minYear, max: maxYear }
     });
     
-    if (month) {
-        params.append('month', month);
-    }
-
-    const exportUrl = '{{ route("laporan.export-omset") }}?' + params.toString();
-
-    // Show export notification
-    showNotification('Export sedang diproses...', 'info');
-
-    // Trigger download
-    window.location.href = exportUrl;
-
-    // Show success notification after a delay
-    setTimeout(() => {
-        showNotification('Export berhasil! File sedang diunduh...', 'success');
-    }, 1000);
-}
-
-// Apply filters function (deprecated - using form submit instead)
-// function applyFilters() {
-//     const year = document.getElementById('yearFilter').value;
-//     const month = document.getElementById('monthFilter').value;
-//     const period = document.getElementById('periodFilter').value;
-//     
-//     loadChartData(year, month || null, period);
-// }
-
-// Reset filters function
-function resetFilters() {
-    document.getElementById('yearFilter').value = currentYear;
-    document.getElementById('monthFilter').value = '';
-    document.getElementById('periodFilter').value = 'monthly';
+    // Initialize chart
+    initializeOmsetChart(monthlyOmset);
     
-    loadChartData(currentYear, null, 'monthly');
-}
+    // Initialize admin tables
+    updateAdminTables(adminMarketing, adminPurchasing);
+});
 
-// Simple notification function
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
-        type === 'success' ? 'bg-green-500' : 
-        type === 'error' ? 'bg-red-500' : 
-        'bg-blue-500'
-    } text-white`;
+// Initialize omset chart
+function initializeOmsetChart(monthlyData) {
+    const ctx = document.getElementById('omsetChart').getContext('2d');
+    const currentYear = {{ date('Y') }};
+    const requestYear = '{{ request("year") }}';
     
-    notification.innerHTML = `
-        <div class="flex items-center">
-            <i class="fas ${
-                type === 'success' ? 'fa-check-circle' : 
-                type === 'error' ? 'fa-exclamation-circle' : 
-                'fa-info-circle'
-            } mr-2"></i>
-            <span>${message}</span>
-        </div>
-    `;
+    console.log('initializeOmsetChart called with:');
+    console.log('- requestYear:', requestYear);
+    console.log('- monthlyData:', monthlyData);
     
-    document.body.appendChild(notification);
+    // Prepare data for chart
+    let labels, data;
     
-    // Remove after 3 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
+    if (requestYear === 'all') {
+        console.log('Using YEARLY mode');
+        // Show yearly data
+        labels = [];
+        data = [];
+        
+        if (monthlyData && monthlyData.length > 0) {
+            monthlyData.forEach(item => {
+                if (item.year) {
+                    labels.push('Tahun ' + item.year.toString());
+                    data.push(parseFloat(item.total_omset) || 0);
+                }
+            });
         }
-    }, 3000);
+        console.log('Yearly labels:', labels);
+        console.log('Yearly data:', data);
+    } else {
+        console.log('Using MONTHLY mode for year:', requestYear || 'current');
+        // Show monthly data for selected year
+        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        data = new Array(12).fill(0);
+        
+        if (monthlyData && monthlyData.length > 0) {
+            monthlyData.forEach(item => {
+                if (item.month && item.month >= 1 && item.month <= 12) {
+                    data[item.month - 1] = parseFloat(item.total_omset) || 0;
+                }
+            });
+        }
+        console.log('Monthly labels:', labels);
+        console.log('Monthly data:', data);
+    }
+    
+    // Destroy existing chart if it exists
+    if (omsetChart) {
+        omsetChart.destroy();
+    }
+    
+    omsetChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Omset (Rp)',
+                data: data,
+                borderColor: 'rgb(34, 197, 94)',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'rgb(34, 197, 94)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return formatRupiahShort(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.parsed.y;
+                            if (value >= 1000000000) {
+                                return 'Omset: Rp ' + (value / 1000000000).toFixed(1) + ' Miliar';
+                            } else if (value >= 1000000) {
+                                return 'Omset: Rp ' + (value / 1000000).toFixed(1) + ' Juta';
+                            } else {
+                                return 'Omset: Rp ' + value.toLocaleString('id-ID');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 </script>
 @endsection
