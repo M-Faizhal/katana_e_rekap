@@ -57,7 +57,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-yellow-100 text-sm">Dalam Proses</p>
-                    <p class="text-2xl font-bold">{{ count($pengirimanBerjalan) }}</p>
+                    <p class="text-2xl font-bold">{{ $pengirimanBerjalan->total() ?? 0 }}</p>
                 </div>
                 <i class="fas fa-truck text-2xl text-yellow-200"></i>
             </div>
@@ -67,7 +67,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-green-100 text-sm">Sampai/Selesai</p>
-                    <p class="text-2xl font-bold">{{ count($pengirimanSelesai) }}</p>
+                    <p class="text-2xl font-bold">{{ $pengirimanSelesai->total() ?? 0 }}</p>
                 </div>
                 <i class="fas fa-check-circle text-2xl text-green-200"></i>
             </div>
@@ -77,7 +77,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-purple-100 text-sm">Total Kirim</p>
-                    <p class="text-2xl font-bold">{{ count($pengirimanBerjalan) + count($pengirimanSelesai) }}</p>
+                    <p class="text-2xl font-bold">{{ ($pengirimanBerjalan->total() ?? 0) + ($pengirimanSelesai->total() ?? 0) }}</p>
                 </div>
                 <i class="fas fa-chart-line text-2xl text-purple-200"></i>
             </div>
@@ -109,7 +109,7 @@
             <p class="text-sm text-gray-600">Vendor yang sudah memiliki pembayaran dengan status "Approved" dan siap untuk pengiriman</p>
         </div>
         
-        @if(count($proyekReady) > 0)
+        @if($proyekReadyPaginated->count() > 0)
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -122,74 +122,84 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($proyekReady as $proyek)
-                            @foreach($proyek->vendors_ready as $vendorData)
-                                @if($vendorData['ready_to_ship'])
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <div>
-                                            <div class="font-medium">{{ $proyek->nama_barang }}</div>
-                                            <div class="text-gray-500">{{ $proyek->instansi }}</div>
-                                            <div class="text-xs text-gray-400">{{ $proyek->penawaranAktif->no_penawaran ?? 'N/A' }}</div>
+                        @foreach($proyekReadyPaginated as $vendorProyek)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div>
+                                    <div class="font-medium">{{ $vendorProyek->proyek->nama_barang }}</div>
+                                    <div class="text-gray-500">{{ $vendorProyek->proyek->instansi }}</div>
+                                    <div class="text-xs text-gray-400">{{ $vendorProyek->proyek->penawaranAktif->no_penawaran ?? 'N/A' }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div>
+                                    <div class="font-medium">{{ $vendorProyek->vendor['nama_vendor'] }}</div>
+                                    <div class="text-gray-500 text-xs">{{ $vendorProyek->vendor['jenis_perusahaan'] }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div>
+                                    <div class="text-blue-700 text-md">
+                                        Dibayar: Rp {{ number_format($vendorProyek->total_dibayar_approved, 0, ',', '.') }}
+                                    </div>
+                                    @php
+                                        $sisaBayar = $vendorProyek->total_vendor - $vendorProyek->total_dibayar_approved;
+                                        $persenBayar = $vendorProyek->total_vendor > 0 ? ($vendorProyek->total_dibayar_approved / $vendorProyek->total_vendor) * 100 : 0;
+                                    @endphp
+                                    @if($sisaBayar > 0)
+                                        <div class="text-orange-600 text-xs">
+                                            Sisa: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <div>
-                                            <div class="font-medium">{{ $vendorData['vendor']['nama_vendor'] }}</div>
-                                            <div class="text-gray-500 text-xs">{{ $vendorData['vendor']['jenis_perusahaan'] }}</div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <div>
-                                            <div class="text-blue-700 text-md">
-                                                Dibayar: Rp {{ number_format($vendorData['total_dibayar_approved'], 0, ',', '.') }}
-                                            </div>
-                                            @php
-                                                $sisaBayar = $vendorData['total_vendor'] - $vendorData['total_dibayar_approved'];
-                                                $persenBayar = $vendorData['total_vendor'] > 0 ? ($vendorData['total_dibayar_approved'] / $vendorData['total_vendor']) * 100 : 0;
-                                            @endphp
-                                            @if($sisaBayar > 0)
-                                                <div class="text-orange-600 text-xs">
-                                                    Sisa: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                                <i class="fas fa-check-circle mr-1"></i>Siap Kirim
-                                            </span>
-                                        
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        @php
-                                            $canAccess = ($currentUser->role === 'admin_purchasing' && $proyek->id_admin_purchasing == $currentUser->id_user) || $currentUser->role === 'superadmin';
-                                        @endphp
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>Siap Kirim
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                @php
+                                    $canAccess = ($currentUser->role === 'admin_purchasing' && $vendorProyek->proyek->id_admin_purchasing == $currentUser->id_user) || $currentUser->role === 'superadmin';
+                                @endphp
 
-                                        @if($canAccess)
-                                            <button onclick="buatPengiriman({{ $proyek->penawaranAktif->id_penawaran }}, {{ $vendorData['vendor']['id_vendor'] }})" 
-                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-                                                <i class="fas fa-plus mr-1"></i> Buat Pengiriman
-                                            </button>
+                                @if($canAccess)
+                                    <button onclick="buatPengiriman({{ $vendorProyek->proyek->penawaranAktif->id_penawaran }}, {{ $vendorProyek->vendor['id_vendor'] }})" 
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                        <i class="fas fa-plus mr-1"></i> Buat Pengiriman
+                                    </button>
+                                @else
+                                    <button disabled
+                                            class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm cursor-not-allowed">
+                                        <i class="fas fa-lock mr-1"></i> 
+                                        @if($currentUser->role !== 'admin_purchasing' && $currentUser->role !== 'superadmin')
+                                            Tidak Ada Akses
                                         @else
-                                            <button disabled
-                                                    class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm cursor-not-allowed">
-                                                <i class="fas fa-lock mr-1"></i> 
-                                                @if($currentUser->role !== 'admin_purchasing' && $currentUser->role !== 'superadmin')
-                                                    Tidak Ada Akses
-                                                @else
-                                                    Bukan Proyek Anda
-                                                @endif
-                                            </button>
+                                            Bukan Proyek Anda
                                         @endif
-                                    </td>
-                                </tr>
+                                    </button>
                                 @endif
-                            @endforeach
+                            </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination untuk Ready Kirim -->
+            @if($proyekReadyPaginated->hasPages())
+            <div class="mt-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $proyekReadyPaginated->firstItem() ?? 0 }} - {{ $proyekReadyPaginated->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $proyekReadyPaginated->total() }}</span> vendor siap kirim
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $proyekReadyPaginated->links() }}
+                    </div>
+                </div>
+            </div>
+            @endif
         @else
             <div class="text-center py-8">
                 <i class="fas fa-box text-4xl text-gray-300 mb-4"></i>
@@ -206,7 +216,7 @@
             <p class="text-sm text-gray-600">Pengiriman yang sedang berlangsung</p>
         </div>
         
-        @if(count($pengirimanBerjalan) > 0)
+        @if($pengirimanBerjalan->count() > 0)
             <div class="grid gap-4">
                 @foreach($pengirimanBerjalan as $pengiriman)
                 <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -304,6 +314,21 @@
                 </div>
                 @endforeach
             </div>
+            
+            <!-- Pagination untuk Dalam Proses -->
+            @if($pengirimanBerjalan->hasPages())
+            <div class="mt-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $pengirimanBerjalan->firstItem() ?? 0 }} - {{ $pengirimanBerjalan->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $pengirimanBerjalan->total() }}</span> pengiriman dalam proses
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $pengirimanBerjalan->appends(['tab' => 'proses'])->links() }}
+                    </div>
+                </div>
+            </div>
+            @endif
         @else
             <div class="text-center py-8">
                 <i class="fas fa-truck text-4xl text-gray-300 mb-4"></i>
@@ -408,6 +433,21 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination untuk Selesai -->
+            @if($pengirimanSelesai->hasPages())
+            <div class="mt-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $pengirimanSelesai->firstItem() ?? 0 }} - {{ $pengirimanSelesai->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $pengirimanSelesai->total() }}</span> pengiriman selesai
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $pengirimanSelesai->appends(['tab' => 'selesai'])->links() }}
+                    </div>
+                </div>
+            </div>
+            @endif
         @else
             <div class="text-center py-8">
                 <i class="fas fa-check-circle text-4xl text-gray-300 mb-4"></i>

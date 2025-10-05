@@ -187,6 +187,21 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination untuk Belum Bayar -->
+            @if($proyekBelumBayar->hasPages())
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $proyekBelumBayar->firstItem() ?? 0 }} - {{ $proyekBelumBayar->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $proyekBelumBayar->total() }}</span> proyek
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $proyekBelumBayar->appends(['tab' => 'belum-bayar'])->links() }}
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
@@ -313,6 +328,21 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination untuk DP -->
+            @if($proyekDp->hasPages())
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $proyekDp->firstItem() ?? 0 }} - {{ $proyekDp->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $proyekDp->total() }}</span> pembayaran DP
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $proyekDp->appends(['tab' => 'dp'])->links() }}
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
@@ -433,6 +463,21 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Pagination untuk Lunas -->
+            @if($proyekLunas->hasPages())
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">Menampilkan {{ $proyekLunas->firstItem() ?? 0 }} - {{ $proyekLunas->lastItem() ?? 0 }}</span> 
+                        dari <span class="font-semibold text-gray-800">{{ $proyekLunas->total() }}</span> pembayaran lunas
+                    </div>
+                    <div class="flex justify-center">
+                        {{ $proyekLunas->appends(['tab' => 'lunas'])->links() }}
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
@@ -444,13 +489,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanes = document.querySelectorAll('.tab-pane');
     
+    // Get active tab from URL parameter or default to 'belum-bayar'
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab') || 'belum-bayar';
+    
     // Set initial active tab
-    setActiveTab('belum-bayar');
+    setActiveTab(activeTab);
     
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
             setActiveTab(tabId);
+            
+            // Update URL with tab parameter
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('tab', tabId);
+            // Remove pagination parameters when switching tabs
+            newUrl.searchParams.delete('belum_bayar_page');
+            newUrl.searchParams.delete('dp_page');
+            newUrl.searchParams.delete('lunas_page');
+            window.history.pushState({}, '', newUrl);
         });
     });
     

@@ -28,7 +28,7 @@ class PenagihanDinasController extends Controller
         ->get();
 
         // Group berdasarkan status pembayaran
-        $proyekBelumBayar = collect();
+        $proyekBelumBayarCollection = collect();
         
         foreach ($proyekAcc as $proyek) {
             $penawaranAcc = $proyek->semuaPenawaran;
@@ -43,17 +43,35 @@ class PenagihanDinasController extends Controller
             }
             
             if ($hasUnpaidPenawaran) {
-                $proyekBelumBayar->push($proyek);
+                $proyekBelumBayarCollection->push($proyek);
             }
         }
 
+        // Pagination untuk proyek belum bayar
+        $currentPage = request()->get('belum_bayar_page', 1);
+        $perPage = 10;
+        $currentPageItems = $proyekBelumBayarCollection->slice(($currentPage - 1) * $perPage, $perPage);
+        $proyekBelumBayar = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentPageItems,
+            $proyekBelumBayarCollection->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'pageName' => 'belum_bayar_page',
+            ]
+        );
+        $proyekBelumBayar->appends(request()->query());
+
+        // Pagination untuk DP
         $proyekDp = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
             ->where('status_pembayaran', 'dp')
-            ->get();
+            ->paginate(10, ['*'], 'dp_page');
 
+        // Pagination untuk Lunas
         $proyekLunas = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
             ->where('status_pembayaran', 'lunas')
-            ->get();
+            ->paginate(10, ['*'], 'lunas_page');
 
         return view('pages.keuangan.penagihan', compact(
             'proyekBelumBayar', 

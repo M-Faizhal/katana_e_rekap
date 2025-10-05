@@ -37,7 +37,7 @@ class ApprovalController extends Controller
         $pendingPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
             ->where('status_verifikasi', 'Pending')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
         // Statistics
         $totalPending = Pembayaran::where('status_verifikasi', 'Pending')->count();
@@ -62,7 +62,7 @@ class ApprovalController extends Controller
         $approvedPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
             ->where('status_verifikasi', 'Approved')
             ->orderBy('updated_at', 'desc')
-            ->paginate(15);
+            ->paginate(10);
 
         return view('pages.keuangan.approval-components.approved', compact('approvedPayments'));
     }
@@ -75,7 +75,7 @@ class ApprovalController extends Controller
         $rejectedPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
             ->where('status_verifikasi', 'Ditolak')
             ->orderBy('updated_at', 'desc')
-            ->paginate(15);
+            ->paginate(10);
 
         return view('pages.keuangan.approval-components.rejected', compact('rejectedPayments'));
     }

@@ -97,13 +97,32 @@ class PengirimanController extends Controller
             })
             ->values();
 
-        // Ambil pengiriman yang sedang berjalan (per vendor)
+        // Convert proyekReady collection to paginated result
+        $currentPageReady = request()->get('ready_page', 1);
+        $perPageReady = 10;
+        $readyItems = collect($proyekReady)->flatMap(function($proyek) {
+            return collect($proyek->vendors_ready)->filter(function($vendor) {
+                return $vendor['ready_to_ship'];
+            })->map(function($vendor) use ($proyek) {
+                return (object) array_merge($vendor, ['proyek' => $proyek]);
+            });
+        });
+        $currentPageReadyItems = $readyItems->slice(($currentPageReady - 1) * $perPageReady, $perPageReady);
+        $proyekReadyPaginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentPageReadyItems,
+            $readyItems->count(),
+            $perPageReady,
+            $currentPageReady,
+            ['path' => request()->url(), 'pageName' => 'ready_page']
+        );
+
+        // Ambil pengiriman yang sedang berjalan (per vendor) dengan pagination
         $pengirimanBerjalan = Pengiriman::with(['penawaran.proyek', 'vendor'])
             ->whereIn('status_verifikasi', ['Pending', 'Dalam_Proses'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10, ['*'], 'proses_page');
 
-        // Ambil pengiriman yang sudah selesai (per vendor) 
+        // Ambil pengiriman yang sudah selesai (per vendor) dengan pagination
         // Kriteria selesai: 
         // 1. Status Verified (untuk proyek yang sudah Selesai)
         // 2. Atau dokumen lengkap (foto_sampai + tanda_terima) tapi proyek belum Selesai
@@ -124,7 +143,7 @@ class PengirimanController extends Controller
                       ->where('status_verifikasi', '!=', 'Verified');
             })
             ->orderBy('updated_at', 'desc')
-            ->get();
+            ->paginate(10, ['*'], 'selesai_page');
 
         // Debug log untuk memastikan struktur data benar
         Log::info('Proyek Ready Data Structure:', [
@@ -140,6 +159,7 @@ class PengirimanController extends Controller
 
         return view('pages.purchasing.pengiriman', compact(
             'proyekReady',
+            'proyekReadyPaginated',
             'pengirimanBerjalan', 
             'pengirimanSelesai'
         ));
