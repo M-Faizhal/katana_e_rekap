@@ -508,19 +508,31 @@ class HPSCalculator {
 
     // Format currency
     formatRupiah(amount) {
-        if (isNaN(amount) || amount === null || amount === undefined) return 'Rp 0';
-        return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(amount));
+        if (amount === null || amount === undefined || isNaN(amount)) return '-';
+        if (amount === 0) return '-';
+        
+        // Format dengan Rupiah dan pemisah ribuan menggunakan titik
+        return 'Rp ' + Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
     // Format number
     formatNumber(number) {
-        if (isNaN(number) || number === null || number === undefined) return '0';
-        return new Intl.NumberFormat('id-ID').format(number);
+        if (number === null || number === undefined || isNaN(number)) return '';
+        if (number === 0) return '';
+        
+        // Convert to integer if it's a whole number, otherwise keep decimals
+        const isWholeNumber = number % 1 === 0;
+        const formattedNumber = isWholeNumber ? 
+            Math.round(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') :
+            number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        return formattedNumber;
     }
 
     // Format percentage
     formatPercent(percent) {
-        if (isNaN(percent) || percent === null || percent === undefined) return '0%';
+        if (percent === null || percent === undefined || isNaN(percent)) return '-';
+        if (percent === 0) return '-';
         return parseFloat(percent).toFixed(2) + '%';
     }
 
