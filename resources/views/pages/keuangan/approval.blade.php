@@ -242,6 +242,21 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination untuk Pending Payments -->
+        @if($pendingPayments->hasPages())
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="text-sm text-gray-600">
+                    <span class="font-medium">Menampilkan {{ $pendingPayments->firstItem() ?? 0 }} - {{ $pendingPayments->lastItem() ?? 0 }}</span> 
+                    dari <span class="font-semibold text-gray-800">{{ $pendingPayments->total() }}</span> pembayaran pending
+                </div>
+                <div class="flex justify-center">
+                    {{ $pendingPayments->links() }}
+                </div>
+            </div>
+        </div>
+        @endif
         @else
         <div class="text-center py-12">
             <div class="mx-auto h-12 w-12 text-gray-400">

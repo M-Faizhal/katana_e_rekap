@@ -182,6 +182,21 @@
             </table>
         </div>
     </div>
+    
+    <!-- Pagination -->
+    @if($proyekVerifikasi->hasPages())
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="text-sm text-gray-600">
+                <span class="font-medium">Menampilkan {{ $proyekVerifikasi->firstItem() ?? 0 }} - {{ $proyekVerifikasi->lastItem() ?? 0 }}</span> 
+                dari <span class="font-semibold text-gray-800">{{ $proyekVerifikasi->total() }}</span> proyek
+            </div>
+            <div class="flex justify-center">
+                {{ $proyekVerifikasi->links() }}
+            </div>
+        </div>
+    </div>
+    @endif
     @endif
 
     <!-- Info Panel -->

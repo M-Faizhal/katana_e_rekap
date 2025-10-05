@@ -50,7 +50,7 @@ class VerifikasiProyekController extends Controller
         // Status proyek belum selesai atau gagal
         ->whereNotIn('status', ['Selesai', 'Gagal'])
         ->orderBy('updated_at', 'desc')
-        ->get();
+        ->paginate(10);
 
         return view('pages.superadmin.verifikasi-proyek', compact('proyekVerifikasi'));
     }
@@ -196,8 +196,8 @@ class VerifikasiProyekController extends Controller
         ])
         ->whereIn('status', ['Selesai', 'Gagal'])
         ->orderBy('updated_at', 'desc')
-        ->get()
-        ->map(function($proyek) {
+        ->paginate(10)
+        ->through(function($proyek) {
             // Calculate total penawaran
             $totalPenawaran = 0;
             if ($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty()) {

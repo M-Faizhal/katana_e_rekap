@@ -137,21 +137,55 @@
             </table>
         </div>
     </div>
+    
+    <!-- Pagination -->
+    @if($historyVerifikasi->hasPages())
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="text-sm text-gray-600">
+                <span class="font-medium">Menampilkan {{ $historyVerifikasi->firstItem() ?? 0 }} - {{ $historyVerifikasi->lastItem() ?? 0 }}</span> 
+                dari <span class="font-semibold text-gray-800">{{ $historyVerifikasi->total() }}</span> history verifikasi
+            </div>
+            <div class="flex justify-center">
+                {{ $historyVerifikasi->links() }}
+            </div>
+        </div>
+    </div>
+    @endif
     @endif
 
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @php
+            // Calculate statistics from current page data
             $totalSelesai = $historyVerifikasi->where('status', 'Selesai')->count();
             $totalGagal = $historyVerifikasi->where('status', 'Gagal')->count();
             $totalValue = $historyVerifikasi->where('status', 'Selesai')->sum('total_penawaran');
+            
+            // For total counts, we need to show actual database totals, not just current page
+            $totalSelesaiAll = \App\Models\Proyek::where('status', 'Selesai')->count();
+            $totalGagalAll = \App\Models\Proyek::where('status', 'Gagal')->count();
+            $totalValueAll = \App\Models\Proyek::with(['semuaPenawaran.penawaranDetail'])
+                ->where('status', 'Selesai')
+                ->get()
+                ->sum(function($proyek) {
+                    $total = 0;
+                    if ($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty()) {
+                        foreach ($proyek->semuaPenawaran->where('status', 'ACC') as $penawaran) {
+                            if ($penawaran->penawaranDetail) {
+                                $total += $penawaran->penawaranDetail->sum('subtotal');
+                            }
+                        }
+                    }
+                    return $total;
+                });
         @endphp
         
         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
             <div class="flex items-center">
                 <i class="fas fa-check-circle text-green-500 mr-3 text-2xl"></i>
                 <div>
-                    <h4 class="text-green-800 font-bold text-xl">{{ $totalSelesai }}</h4>
+                    <h4 class="text-green-800 font-bold text-xl">{{ $totalSelesaiAll }}</h4>
                     <p class="text-green-700 text-sm">Proyek Selesai</p>
                 </div>
             </div>
@@ -161,7 +195,7 @@
             <div class="flex items-center">
                 <i class="fas fa-times-circle text-red-500 mr-3 text-2xl"></i>
                 <div>
-                    <h4 class="text-red-800 font-bold text-xl">{{ $totalGagal }}</h4>
+                    <h4 class="text-red-800 font-bold text-xl">{{ $totalGagalAll }}</h4>
                     <p class="text-red-700 text-sm">Proyek Gagal</p>
                 </div>
             </div>
@@ -171,7 +205,7 @@
             <div class="flex items-center">
                 <i class="fas fa-money-bill-wave text-blue-500 mr-3 text-2xl"></i>
                 <div>
-                    <h4 class="text-blue-800 font-bold text-lg">Rp {{ number_format($totalValue, 0, ',', '.') }}</h4>
+                    <h4 class="text-blue-800 font-bold text-lg">Rp {{ number_format($totalValueAll, 0, ',', '.') }}</h4>
                     <p class="text-blue-700 text-sm">Total Nilai Selesai</p>
                 </div>
             </div>

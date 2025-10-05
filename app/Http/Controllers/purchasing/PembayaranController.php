@@ -76,7 +76,7 @@ class PembayaranController extends Controller
             
         // Convert collection to paginated result
         $currentPage = request()->get('page', 1);
-        $perPage = 5;
+        $perPage = 10;
         $currentPageItems = $proyekPerluBayar->slice(($currentPage - 1) * $perPage, $perPage);
         $proyekPerluBayar = new \Illuminate\Pagination\LengthAwarePaginator(
             $currentPageItems,
@@ -125,7 +125,7 @@ class PembayaranController extends Controller
             $semuaProyekQuery->orderBy('created_at', $sortOrder);
         }
 
-        $semuaProyek = $semuaProyekQuery->paginate(5, ['*'], 'proyek_page');
+        $semuaProyek = $semuaProyekQuery->paginate(10, ['*'], 'proyek_page');
 
         // Hitung statistik untuk setiap proyek (per vendor)
         $semuaProyek->getCollection()->transform(function ($proyek) {
@@ -188,7 +188,7 @@ class PembayaranController extends Controller
 
             // Re-paginate setelah filter
             $currentPage = request()->get('proyek_page', 1);
-            $perPage = 5;
+            $perPage = 10;
             $currentPageItems = $semuaProyek->slice(($currentPage - 1) * $perPage, $perPage);
             $semuaProyek = new \Illuminate\Pagination\LengthAwarePaginator(
                 $currentPageItems,
@@ -227,7 +227,7 @@ class PembayaranController extends Controller
         }
 
         $semuaPembayaran = $semuaPembayaranQuery->orderBy('created_at', 'desc')
-            ->paginate(5, ['*'], 'pembayaran_page');
+            ->paginate(10, ['*'], 'pembayaran_page');
 
         return view('pages.purchasing.pembayaran', compact(
             'proyekPerluBayar', 
