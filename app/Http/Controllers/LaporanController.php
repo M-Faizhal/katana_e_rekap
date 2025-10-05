@@ -1337,6 +1337,26 @@ public function exportTSV(Request $request)
 
         $proyekAcc = $proyekAcc->get();
 
+        // Debug: Log data proyek yang ditemukan
+        Log::info('Debug Piutang Dinas:', [
+            'total_proyek_acc' => $proyekAcc->count(),
+            'proyekAcc' => $proyekAcc->map(function($p) {
+                return [
+                    'kode_proyek' => $p->kode_proyek,
+                    'penawaran_count' => $p->semuaPenawaran->count(),
+                    'penagihan_count' => $p->penagihanDinas->count(),
+                    'penawaran_ids' => $p->semuaPenawaran->pluck('id_penawaran')->toArray(),
+                    'penagihan' => $p->penagihanDinas->map(function($pn) {
+                        return [
+                            'penawaran_id' => $pn->penawaran_id,
+                            'status' => $pn->status_pembayaran,
+                            'nomor_invoice' => $pn->nomor_invoice
+                        ];
+                    })->toArray()
+                ];
+            })->toArray()
+        ]);
+
         // Transform ke format yang dibutuhkan untuk ditampilkan
         $piutangList = collect();
 
@@ -1350,6 +1370,14 @@ public function exportTSV(Request $request)
                 $tanggalJatuhTempo = null;
                 $nomorInvoice = '';
                 
+                // Debug log untuk setiap iterasi
+                Log::info('Processing penawaran:', [
+                    'proyek' => $proyek->kode_proyek,
+                    'penawaran_id' => $penawaran->id_penawaran,
+                    'has_penagihan' => $penagihan ? true : false,
+                    'penagihan_status' => $penagihan ? $penagihan->status_pembayaran : null
+                ]);
+                
                 if (!$penagihan) {
                     // Belum ada penagihan sama sekali
                     $shouldInclude = true;
@@ -1357,6 +1385,12 @@ public function exportTSV(Request $request)
                     $status = 'belum_ditagih';
                     $tanggalJatuhTempo = now()->addDays(30); // Default 30 hari dari sekarang
                     $nomorInvoice = 'Belum Ditagih';
+                    
+                    Log::info('Case: Belum ada penagihan', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'should_include' => $shouldInclude
+                    ]);
                 } else if ($penagihan->status_pembayaran != 'lunas') {
                     // Ada penagihan tapi belum lunas
                     $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
@@ -1368,6 +1402,16 @@ public function exportTSV(Request $request)
                         $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
                         $nomorInvoice = $penagihan->nomor_invoice;
                     }
+                    
+                    Log::info('Case: Ada penagihan belum lunas', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'status_pembayaran' => $penagihan->status_pembayaran,
+                        'total_harga' => $penagihan->total_harga,
+                        'total_bayar' => $totalBayar,
+                        'sisa_pembayaran' => $sisaPembayaran,
+                        'should_include' => $shouldInclude
+                    ]);
                 } else if ($request->has('show_all') && $request->get('show_all') === 'true') {
                     // Tampilkan yang lunas juga jika show_all = true
                     $shouldInclude = true;
@@ -1376,6 +1420,19 @@ public function exportTSV(Request $request)
                     $status = $penagihan->status_pembayaran;
                     $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
                     $nomorInvoice = $penagihan->nomor_invoice;
+                    
+                    Log::info('Case: Show all (lunas)', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'should_include' => $shouldInclude
+                    ]);
+                } else {
+                    Log::info('Case: Tidak diinclude (lunas)', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'status_pembayaran' => $penagihan->status_pembayaran,
+                        'should_include' => false
+                    ]);
                 }
 
                 if ($shouldInclude) {
@@ -1419,7 +1476,6 @@ public function exportTSV(Request $request)
                         'hari_telat' => $tanggalJatuhTempo && $tanggalJatuhTempo < now() 
                             ? now()->diffInDays($tanggalJatuhTempo) 
                             : 0,
-                        'buktiPembayaran' => $penagihan ? $penagihan->buktiPembayaran : collect()
                     ];
 
                     $piutangList->push($piutangItem);
@@ -1427,17 +1483,18 @@ public function exportTSV(Request $request)
             }
         }
 
-        // Sort by tanggal_jatuh_tempo
-        $piutangList = $piutangList->sortBy('tanggal_jatuh_tempo');
+        // Sort by tanggal jatuh tempo (yang paling urgent di atas)
+        $piutangList = $piutangList->sortBy(function($item) {
+            return $item->tanggal_jatuh_tempo ?? now()->addYears(10);
+        });
 
-        // Manual pagination
-        $perPage = 10;
+        // Convert to paginated collection
         $currentPage = $request->get('page', 1);
+        $perPage = 10;
         $total = $piutangList->count();
         $items = $piutangList->forPage($currentPage, $perPage)->values();
 
-        // Create paginator
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
             $items,
             $total,
             $perPage,
@@ -1449,9 +1506,9 @@ public function exportTSV(Request $request)
         );
 
         // Append query parameters
-        $paginator->appends($request->query());
+        $paginated->appends($request->query());
 
-        return $paginator;
+        return $paginated;
     }
 
     /**
