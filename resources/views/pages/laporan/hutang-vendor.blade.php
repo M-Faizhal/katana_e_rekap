@@ -60,7 +60,7 @@
                 <i class="fas fa-building text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
             </div>
             <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Vendor Belum Bayar</h3>
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Vendor Belum Lunas</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">{{ $stats['jumlah_vendor'] ?? 0 }}</p>
             </div>
         </div>

@@ -1064,54 +1064,13 @@ public function exportTSV(Request $request)
      */
     private function getHutangVendorStatistics()
     {
-        // Calculate vendor debt from unpaid amounts (total vendor - total paid)
-        $stats = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-            ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
-            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
-            ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
-            ->leftJoin('kalkulasi_hps', function($join) {
-                $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-                     ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
-            })
-            ->leftJoin('pembayaran', function($join) {
-                $join->on('penawaran.id_penawaran', '=', 'pembayaran.id_penawaran')
-                     ->on('vendor.id_vendor', '=', 'pembayaran.id_vendor')
-                     ->where('pembayaran.status_verifikasi', '=', 'Approved');
-            })
-            ->where('penawaran.status', 'ACC')
-            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->select(
-                DB::raw('SUM(COALESCE(kalkulasi_hps.total_harga_hpp, 0) - COALESCE(pembayaran.nominal_bayar, 0)) as total_hutang'),
-                DB::raw('COUNT(DISTINCT vendor.id_vendor) as jumlah_vendor')
-            )
-            ->first();
-            
-        $totalHutang = $stats->total_hutang ?? 0;
-        $jumlahVendor = $stats->jumlah_vendor ?? 0;
+        // Hitung total record hutang vendor (vendor per proyek)
+        // Menggunakan logika yang sama dengan getHutangVendorList untuk konsistensi
         
-        // For overdue payments, we need pending payments past due date
-        $hutangJatuhTempo = Pembayaran::where('status_verifikasi', '!=', 'Approved')
-            ->where('tanggal_bayar', '<', Carbon::now())
-            ->sum('nominal_bayar');
-            
-        $rataRataHutang = $jumlahVendor > 0 ? $totalHutang / $jumlahVendor : 0;
-
-        return [
-            'total_hutang' => $totalHutang ?? 0,
-            'hutang_jatuh_tempo' => $hutangJatuhTempo ?? 0,
-            'jumlah_vendor' => $jumlahVendor ?? 0,
-            'rata_rata_hutang' => $rataRataHutang ?? 0,
-        ];
-    }
-
-    /**
-     * Get hutang vendor list (menggunakan logika yang sama dengan PembayaranController)
-     */
-    private function getHutangVendorList(Request $request)
-    {
-        // Ambil proyek yang statusnya 'Pembayaran', 'Pengiriman', 'Selesai' dan sudah ada penawaran yang di-ACC
-        // Dengan vendor yang terlibat
+        $totalHutang = 0;
+        $jumlahHutangVendor = 0;
+        
+        // Ambil proyek yang perlu bayar dengan cara yang sama seperti getHutangVendorList
         $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
             ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
             ->whereHas('penawaranAktif', function ($query) {
@@ -1162,64 +1121,137 @@ public function exportTSV(Request $request)
                 return $proyek->vendors_data->count() > 0; // Hanya proyek yang ada vendor belum lunas
             });
 
-        // Flatten vendor data untuk ditampilkan dalam tabel
-        $hutangVendorFlat = collect();
+        // Hitung total hutang dan jumlah record
         foreach ($proyekPerluBayar as $proyek) {
             foreach ($proyek->vendors_data as $vendorData) {
-                $hutangVendorFlat->push($vendorData);
+                $totalHutang += $vendorData->sisa_bayar;
+                $jumlahHutangVendor++;
             }
         }
+            
+        // For overdue payments, we need pending payments past due date
+        $hutangJatuhTempo = Pembayaran::where('status_verifikasi', '!=', 'Approved')
+            ->where('tanggal_bayar', '<', Carbon::now())
+            ->sum('nominal_bayar');
+            
+        $rataRataHutang = $jumlahHutangVendor > 0 ? $totalHutang / $jumlahHutangVendor : 0;
+
+        return [
+            'total_hutang' => $totalHutang ?? 0,
+            'hutang_jatuh_tempo' => $hutangJatuhTempo ?? 0,
+            'jumlah_vendor' => $jumlahHutangVendor ?? 0,
+            'rata_rata_hutang' => $rataRataHutang ?? 0,
+        ];
+    }
+
+    /**
+     * Get hutang vendor list (menggunakan logika yang sama dengan PembayaranController)
+     */
+    private function getHutangVendorList(Request $request)
+    {
+        // Query langsung dengan join untuk menghindari N+1 queries
+        // Hanya ambil data yang diperlukan untuk tampilan tabel
+        $query = DB::table('proyek')
+            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
+            ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
+            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
+            ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
+            ->leftJoin('kalkulasi_hps', function($join) {
+                $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
+                     ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
+            })
+            ->leftJoin(DB::raw('(SELECT 
+                p.id_vendor, 
+                pn.id_proyek, 
+                COALESCE(SUM(CASE WHEN p.status_verifikasi = "Approved" THEN p.nominal_bayar ELSE 0 END), 0) as total_dibayar_approved
+                FROM pembayaran p 
+                JOIN penawaran pn ON p.id_penawaran = pn.id_penawaran 
+                GROUP BY p.id_vendor, pn.id_proyek
+            ) as pb'), function($join) {
+                $join->on('vendor.id_vendor', '=', 'pb.id_vendor')
+                     ->on('proyek.id_proyek', '=', 'pb.id_proyek');
+            })
+            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->where('penawaran.status', 'ACC')
+            ->select([
+                'proyek.id_proyek',
+                'proyek.kode_proyek',
+                'proyek.nama_klien',
+                'proyek.instansi',
+                'vendor.id_vendor',
+                'vendor.nama_vendor',
+                'vendor.jenis_perusahaan',
+                'vendor.email',
+                DB::raw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) as total_vendor'),
+                DB::raw('COALESCE(MAX(pb.total_dibayar_approved), 0) as total_dibayar_approved'),
+                DB::raw('CASE 
+                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0 THEN "Data kalkulasi HPS belum diisi"
+                    ELSE NULL 
+                END as warning_hps')
+            ])
+            ->groupBy([
+                'proyek.id_proyek', 'proyek.kode_proyek', 'proyek.nama_klien', 'proyek.instansi',
+                'vendor.id_vendor', 'vendor.nama_vendor', 'vendor.jenis_perusahaan', 'vendor.email'
+            ])
+            ->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(MAX(pb.total_dibayar_approved), 0) > 0) OR warning_hps IS NOT NULL')
+            ->orderBy('vendor.nama_vendor')
+            ->orderBy('proyek.kode_proyek');
 
         // Apply filters
-        if ($request->filled('status')) {
-            $status = $request->get('status');
-            if ($status == 'hps_kosong') {
-                $hutangVendorFlat = $hutangVendorFlat->filter(function ($item) {
-                    return $item->warning_hps;
-                });
-            } elseif ($status == 'pending') {
-                $hutangVendorFlat = $hutangVendorFlat->filter(function ($item) {
-                    return !$item->status_lunas && !$item->warning_hps;
-                });
-            }
-        }
-
         if ($request->filled('vendor')) {
-            $vendorName = $request->get('vendor');
-            $hutangVendorFlat = $hutangVendorFlat->filter(function ($item) use ($vendorName) {
-                return stripos($item->vendor->nama_vendor, $vendorName) !== false;
-            });
+            $query->where('vendor.nama_vendor', 'like', '%' . $request->vendor . '%');
         }
 
         if ($request->filled('nominal')) {
-            $nominal = $request->get('nominal');
-            $hutangVendorFlat = $hutangVendorFlat->filter(function ($item) use ($nominal) {
-                $sisaBayar = $item->sisa_bayar;
-                switch ($nominal) {
-                    case '0-10jt':
-                        return $sisaBayar < 10000000;
-                    case '10-50jt':
-                        return $sisaBayar >= 10000000 && $sisaBayar <= 50000000;
-                    case '50-100jt':
-                        return $sisaBayar >= 50000000 && $sisaBayar <= 100000000;
-                    case '100jt+':
-                        return $sisaBayar > 100000000;
-                }
-                return true;
-            });
+            $nominal = $request->nominal;
+            if ($nominal === '0-10jt') {
+                $query->havingRaw('total_vendor < 10000000');
+            } elseif ($nominal === '10-50jt') {
+                $query->havingRaw('total_vendor >= 10000000 AND total_vendor < 50000000');
+            } elseif ($nominal === '50-100jt') {
+                $query->havingRaw('total_vendor >= 50000000 AND total_vendor < 100000000');
+            } elseif ($nominal === '100jt+') {
+                $query->havingRaw('total_vendor >= 100000000');
+            }
         }
 
-        // Sort by sisa_bayar descending
-        $hutangVendorFlat = $hutangVendorFlat->sortByDesc('sisa_bayar');
+        // Get results and transform to objects for blade compatibility
+        $results = $query->get()->map(function($item) {
+            $sisaBayar = $item->total_vendor - $item->total_dibayar_approved;
+            $persenBayar = $item->total_vendor > 0 ? ($item->total_dibayar_approved / $item->total_vendor) * 100 : 0;
+            $statusLunas = $item->total_vendor > 0 ? $sisaBayar <= 0 : false;
+            
+            return (object) [
+                'vendor' => (object) [
+                    'id_vendor' => $item->id_vendor,
+                    'nama_vendor' => $item->nama_vendor,
+                    'jenis_perusahaan' => $item->jenis_perusahaan,
+                    'email' => $item->email,
+                ],
+                'proyek' => (object) [
+                    'id_proyek' => $item->id_proyek,
+                    'kode_proyek' => $item->kode_proyek,
+                    'nama_klien' => $item->nama_klien,
+                    'instansi' => $item->instansi,
+                ],
+                'total_vendor' => $item->total_vendor,
+                'total_dibayar_approved' => $item->total_dibayar_approved,
+                'sisa_bayar' => $sisaBayar,
+                'warning_hps' => $item->warning_hps,
+                'persen_bayar' => $persenBayar,
+                'status_lunas' => $statusLunas,
+            ];
+        });
 
-        // Convert to paginated result
-        $currentPage = request()->get('page', 1);
+        // Manual pagination
         $perPage = 10;
-        $currentPageItems = $hutangVendorFlat->slice(($currentPage - 1) * $perPage, $perPage);
-        
+        $currentPage = request()->get('page', 1);
+        $total = $results->count();
+        $items = $results->forPage($currentPage, $perPage);
+
         return new \Illuminate\Pagination\LengthAwarePaginator(
-            $currentPageItems,
-            $hutangVendorFlat->count(),
+            $items,
+            $total,
             $perPage,
             $currentPage,
             ['path' => request()->url(), 'pageName' => 'page']
