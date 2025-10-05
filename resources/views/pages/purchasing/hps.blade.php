@@ -979,6 +979,12 @@ function updateVendor(index, vendorId) {
 function updateValue(index, field, value) {
     // Handle empty values
     if (value === '' || value === null || value === undefined) {
+        // For text fields, allow empty strings
+        if (['keterangan_1', 'keterangan_2', 'catatan'].includes(field)) {
+            kalkulasiData[index][field] = '';
+            return;
+        }
+        
         kalkulasiData[index][field] = 0;
         
         // Handle percentage sync for empty values
@@ -990,6 +996,12 @@ function updateValue(index, field, value) {
             calculateTotals();
         }
         return;
+    }
+    
+    // Handle text fields that should not be converted to numbers
+    if (['keterangan_1', 'keterangan_2', 'catatan'].includes(field)) {
+        kalkulasiData[index][field] = value;
+        return; // No calculation needed for text fields
     }
     
     // Convert formatted number (with dots) to actual number
