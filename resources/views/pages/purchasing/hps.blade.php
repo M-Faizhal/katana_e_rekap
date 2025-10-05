@@ -392,6 +392,20 @@
     font-style: italic;
 }
 
+/* Client mapping styles */
+.hps-table .bg-blue-50 {
+    background-color: #eff6ff !important;
+}
+
+.hps-table .bg-blue-50 input {
+    background-color: #dbeafe !important;
+    border-color: #3b82f6 !important;
+}
+
+.hps-table .border-blue-300 {
+    border-color: #93c5fd !important;
+}
+
 .hps-table input[type="text"],
 .hps-table input[type="number"],
 .hps-table select {
@@ -528,6 +542,11 @@ async function initializeHPS() {
         // Initialize HPS Calculator
         window.hpsCalculator.init(currentProject, kalkulasiData, barangList, vendorList);
         
+        // Auto-fill existing kalkulasi data dari client requests jika diperlukan
+        if (kalkulasiData.length > 0) {
+            window.hpsCalculator.autoFillFromClientRequests();
+        }
+        
         // Populate table
         populateKalkulasiTable();
         calculateTotals();
@@ -578,15 +597,25 @@ function populateKalkulasiTable() {
 // Create kalkulasi table row
 function createKalkulasiTableRow(item, index) {
     const barangOptions = createBarangOptions(item.id_barang);
+    const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+    const hasClientMapping = clientRequest ? true : false;
+    
+    // Tambahkan visual indicator jika ada mapping dengan client request
+    const mappingIndicator = hasClientMapping ? 
+        `<span class="text-xs text-blue-600 font-medium" title="Data dari permintaan klien: ${clientRequest.nama_barang}">
+            <i class="fas fa-link"></i> ${index + 1}
+        </span>` : 
+        `<span class="text-xs text-gray-500">${index + 1}</span>`;
     
     return `
-        <tr class="hover:bg-gray-50">
-            <td class="px-2 py-3 text-sm text-gray-900">${index + 1}</td>
+        <tr class="hover:bg-gray-50 ${hasClientMapping ? 'bg-blue-50' : ''}">
+            <td class="px-2 py-3 text-sm text-gray-900">${mappingIndicator}</td>
             <td class="px-2 py-3">
                 <select onchange="updateBarang(${index}, this.value)" class="no-spin" id="barang-select-${index}" ${!canEdit ? 'disabled' : ''}>
                     <option value="">Pilih Barang</option>
                     ${barangOptions}
                 </select>
+                ${hasClientMapping ? `<div class="text-xs text-blue-600 mt-1">Permintaan: ${clientRequest.nama_barang}</div>` : ''}
             </td>
             <td class="px-2 py-3 text-sm text-gray-700">
                 <span>${item.nama_vendor || '-'}</span>
@@ -596,9 +625,12 @@ function createKalkulasiTableRow(item, index) {
             </td>
             <td class="px-2 py-3 text-sm text-gray-700">
                 <span>${item.satuan || '-'}</span>
+                ${hasClientMapping ? `<div class="text-xs text-blue-600">Klien: ${clientRequest.satuan}</div>` : ''}
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.qty > 0 ? item.qty : ''}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16" placeholder="1" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.qty > 0 ? item.qty : ''}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16 ${hasClientMapping ? 'bg-blue-50 border-blue-300' : ''}" placeholder="1" ${!canEdit ? 'readonly' : ''}>
+                ${hasClientMapping ? `<div class="text-xs text-blue-600">Klien: ${clientRequest.jumlah}</div>` : ''}
+            </td>
             </td>
             <td class="px-2 py-3">
                 <input type="number" value="${item.harga_vendor > 0 ? item.harga_vendor : ''}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20" placeholder="0" ${!canEdit ? 'readonly' : ''}>
@@ -640,7 +672,9 @@ function createKalkulasiTableRow(item, index) {
                 <span>${formatRupiah(item.harga_per_pcs || 0)}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="number" value="${item.harga_pagu_dinas_per_pcs > 0 ? item.harga_pagu_dinas_per_pcs : ''}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                <input type="number" value="${item.harga_pagu_dinas_per_pcs > 0 ? item.harga_pagu_dinas_per_pcs : ''}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20 ${hasClientMapping ? 'bg-blue-50 border-blue-300' : ''}" placeholder="0" ${!canEdit ? 'readonly' : ''}>
+                ${hasClientMapping ? `<div class="text-xs text-blue-600">Klien: ${formatRupiah(clientRequest.harga_satuan)}</div>` : ''}
+            </td>
             </td>
             <td class="px-2 py-3 bg-gray-50 text-xs">
                 <span>${formatRupiah(item.pagu_total || 0)}</span>
@@ -763,6 +797,13 @@ function addVendorItem() {
     }
     const newItem = window.hpsCalculator.addVendorItem();
     populateKalkulasiTable();
+    
+    // Show info jika ada auto-fill
+    const currentIndex = kalkulasiData.length - 1;
+    const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[currentIndex];
+    if (clientRequest) {
+        showSuccessMessage(`Item baru ditambah dengan data dari permintaan klien: ${clientRequest.nama_barang} (${clientRequest.jumlah} ${clientRequest.satuan})`);
+    }
 }
 
 // Update functions
@@ -1019,15 +1060,24 @@ async function saveKalkulasi() {
         return;
     }
 
-    // --- Batasi nilai persentase agar tidak out of range ---
+    // --- Batasi nilai persentase agar tidak out of range database ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi gross_income_percent dan nett_income_persentase maksimal 100
-        const grossIncomePercent = Math.min(parseFloat(item.gross_income_percent || 0), 100);
-        const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
+        // Batasi persentase dalam range yang aman untuk database (-999.99 sampai 999.99)
+        const safePercentRange = (value) => {
+            const numValue = parseFloat(value || 0);
+            return Math.max(-999.99, Math.min(999.99, numValue));
+        };
+        
+        const grossIncomePercent = safePercentRange(item.gross_income_percent);
+        const nettIncomePercent = safePercentRange(item.nett_income_persentase);
+        const persenKenaikan = safePercentRange(item.persen_kenaikan);
+        
         return {
             ...item,
             gross_income_percent: grossIncomePercent,
-            nett_income_persentase: nettIncomePercent
+            nett_income_persentase: nettIncomePercent,
+            persen_kenaikan: persenKenaikan,
+            kenaikan_percent: persenKenaikan
         };
     });
 
@@ -1532,15 +1582,24 @@ async function saveKalkulasiWithHistory() {
         return;
     }
 
-    // --- Batasi nilai persentase agar tidak out of range ---
+    // --- Batasi nilai persentase agar tidak out of range database ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi gross_income_percent dan nett_income_persentase maksimal 100
-        const grossIncomePercent = Math.min(parseFloat(item.gross_income_percent || 0), 100);
-        const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
+        // Batasi persentase dalam range yang aman untuk database (-999.99 sampai 999.99)
+        const safePercentRange = (value) => {
+            const numValue = parseFloat(value || 0);
+            return Math.max(-999.99, Math.min(999.99, numValue));
+        };
+        
+        const grossIncomePercent = safePercentRange(item.gross_income_percent);
+        const nettIncomePercent = safePercentRange(item.nett_income_persentase);
+        const persenKenaikan = safePercentRange(item.persen_kenaikan);
+        
         return {
             ...item,
             gross_income_percent: grossIncomePercent,
-            nett_income_persentase: nettIncomePercent
+            nett_income_persentase: nettIncomePercent,
+            persen_kenaikan: persenKenaikan,
+            kenaikan_percent: persenKenaikan
         };
     });
 

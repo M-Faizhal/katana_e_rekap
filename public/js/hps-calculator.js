@@ -32,22 +32,38 @@ class HPSCalculator {
     parseClientRequests(proyek) {
         let requests = [];
         
-        if (proyek.proyek_barang && proyek.proyek_barang.length > 0) {
+        // Support multiple data structures
+        if (proyek.proyekBarang && proyek.proyekBarang.length > 0) {
+            // Laravel structure
+            requests = proyek.proyekBarang.map((item, index) => ({
+                id: index + 1,
+                nama_barang: item.nama_barang,
+                qty: parseInt(item.jumlah) || 1,
+                jumlah: parseInt(item.jumlah) || 1,
+                satuan: item.satuan || 'Unit',
+                harga_satuan: parseFloat(item.harga_satuan) || 0,
+                harga_total: parseFloat(item.harga_total) || 0
+            }));
+        } else if (proyek.proyek_barang && proyek.proyek_barang.length > 0) {
+            // Alternative structure
             requests = proyek.proyek_barang.map((item, index) => ({
                 id: index + 1,
                 nama_barang: item.nama_barang,
-                qty: parseFloat(item.jumlah) || 1,
+                qty: parseInt(item.jumlah) || 1,
+                jumlah: parseInt(item.jumlah) || 1,
                 satuan: item.satuan || 'Unit',
                 harga_satuan: parseFloat(item.harga_satuan) || 0,
                 harga_total: parseFloat(item.harga_total) || 0
             }));
         } else if (proyek.nama_barang) {
+            // Single item structure
             requests = [{
                 id: 1,
                 nama_barang: proyek.nama_barang,
-                qty: proyek.jumlah || 1,
+                qty: parseInt(proyek.jumlah) || 1,
+                jumlah: parseInt(proyek.jumlah) || 1,
                 satuan: proyek.satuan || 'Unit',
-                harga_satuan: proyek.harga_satuan || 0,
+                harga_satuan: parseFloat(proyek.harga_satuan) || 0,
                 harga_total: proyek.harga_total || 0
             }];
         }
@@ -128,11 +144,12 @@ class HPSCalculator {
         
         // 13. Persen Kenaikan - CALCULATED based on formula
         // Formula: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100
+        // NOTE: Nilai ini BOLEH NEGATIF jika target yang diharapkan lebih rendah dari biaya (loss scenario)
         // Where:
         // - Harga Yang Diharapkan × QTY = Target revenue yang diinginkan
         // - Total Harga hpp = Modal/cost barang
         // - Nilai PPH + Nilai PPN = Pajak yang harus dibayar
-        // - Result = Persentase kenaikan yang dibutuhkan untuk mencapai target
+        // - Result = Persentase kenaikan yang dibutuhkan untuk mencapai target (bisa minus untuk loss)
         const totalHargaHpp = totalHarga; // Total harga is the hpp
         const nilaiPpn = totalHarga * 0.11; // PPN 11%
         const nilaiPph = totalHarga * 0.015; // PPH 1.5%
@@ -356,8 +373,11 @@ class HPSCalculator {
         return summary;
     }
 
-    // Add new vendor item with corrected structure
+    // Add new vendor item with auto-fill from client requests based on order
     addVendorItem() {
+        const newIndex = this.kalkulasiData.length;
+        const matchingClientRequest = this.clientRequests[newIndex] || null;
+        
         const newItem = {
             id: Date.now(),
             id_barang: '',
@@ -365,8 +385,8 @@ class HPSCalculator {
             id_vendor: '',
             nama_vendor: '',
             jenis_vendor: '',
-            satuan: 'Unit',
-            qty: 1,
+            satuan: matchingClientRequest ? matchingClientRequest.satuan : 'Unit',
+            qty: matchingClientRequest ? matchingClientRequest.qty : 1,
             harga_vendor: 0,
             harga_diskon: 0,          // ← INPUT: Harga setelah diskon
             nilai_diskon: 0,          // ← CALCULATED: Diskon per item
@@ -382,7 +402,7 @@ class HPSCalculator {
             hps: 0,
             nilai_hps: 0,
             harga_per_pcs: 0,
-            harga_pagu_dinas_per_pcs: 0,
+            harga_pagu_dinas_per_pcs: matchingClientRequest ? matchingClientRequest.harga_satuan : 0,
             pagu_total: 0,
             nilai_pagu_anggaran: 0,
             selisih_pagu_hps: 0,
@@ -428,7 +448,50 @@ class HPSCalculator {
         };
 
         this.kalkulasiData.push(newItem);
+        
+        // Log untuk debugging
+        console.log('Added vendor item with client request mapping:', {
+            itemIndex: newIndex,
+            clientRequest: matchingClientRequest,
+            qty: newItem.qty,
+            harga_pagu_dinas_per_pcs: newItem.harga_pagu_dinas_per_pcs,
+            satuan: newItem.satuan
+        });
+        
         return newItem;
+    }
+
+    // Helper method untuk auto-fill data berdasarkan urutan
+    autoFillFromClientRequests() {
+        this.kalkulasiData.forEach((item, index) => {
+            const matchingClientRequest = this.clientRequests[index] || null;
+            
+            if (matchingClientRequest) {
+                // Auto-fill qty dari permintaan klien
+                if (!item.qty || item.qty === 1) {
+                    item.qty = matchingClientRequest.qty;
+                }
+                
+                // Auto-fill harga_pagu_dinas_per_pcs dari harga_satuan permintaan klien
+                if (!item.harga_pagu_dinas_per_pcs || item.harga_pagu_dinas_per_pcs === 0) {
+                    item.harga_pagu_dinas_per_pcs = matchingClientRequest.harga_satuan;
+                }
+                
+                // Auto-fill satuan jika belum ada
+                if (!item.satuan || item.satuan === 'Unit') {
+                    item.satuan = matchingClientRequest.satuan;
+                }
+                
+                console.log(`Auto-filled item ${index + 1}:`, {
+                    qty: item.qty,
+                    harga_pagu_dinas_per_pcs: item.harga_pagu_dinas_per_pcs,
+                    satuan: item.satuan,
+                    from_client: matchingClientRequest
+                });
+            }
+        });
+        
+        return this.kalkulasiData;
     }
 
     // Remove vendor item

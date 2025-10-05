@@ -1008,17 +1008,26 @@ async function saveKalkulasi() {
         return;
     }
 
-    // --- Batasi nilai persentase agar tidak out of range ---
+    // --- Batasi nilai persentase agar tidak out of range database ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi gross_income_percent dan nett_income_percent maksimal 100
-        const grossIncomePercent = Math.min(parseFloat(item.gross_income_persentase || 0), 100);
-        const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
+        // Batasi persentase dalam range yang aman untuk database (-999.99 sampai 999.99)
+        const safePercentRange = (value) => {
+            const numValue = parseFloat(value || 0);
+            return Math.max(-999.99, Math.min(999.99, numValue));
+        };
+        
+        const grossIncomePercent = safePercentRange(item.gross_income_persentase);
+        const nettIncomePercent = safePercentRange(item.nett_income_persentase);
+        const persenKenaikan = safePercentRange(item.persen_kenaikan);
+        
         return {
             ...item,
             gross_income_persentase: grossIncomePercent,
             gross_income_percent: grossIncomePercent,
             nett_income_persentase: nettIncomePercent,
-            nett_income_percent: nettIncomePercent
+            nett_income_percent: nettIncomePercent,
+            persen_kenaikan: persenKenaikan,
+            kenaikan_percent: persenKenaikan
         };
     });
 
@@ -1369,17 +1378,26 @@ async function saveKalkulasiWithHistory() {
         return;
     }
 
-    // --- Batasi nilai persentase agar tidak out of range ---
+    // --- Batasi nilai persentase agar tidak out of range database ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi gross_income_percent dan nett_income_percent maksimal 100
-        const grossIncomePercent = Math.min(parseFloat(item.gross_income_persentase || 0), 100);
-        const nettIncomePercent = Math.min(parseFloat(item.nett_income_persentase || 0), 100);
+        // Batasi persentase dalam range yang aman untuk database (-999.99 sampai 999.99)
+        const safePercentRange = (value) => {
+            const numValue = parseFloat(value || 0);
+            return Math.max(-999.99, Math.min(999.99, numValue));
+        };
+        
+        const grossIncomePercent = safePercentRange(item.gross_income_persentase);
+        const nettIncomePercent = safePercentRange(item.nett_income_persentase);
+        const persenKenaikan = safePercentRange(item.persen_kenaikan);
+        
         return {
             ...item,
             gross_income_persentase: grossIncomePercent,
             gross_income_percent: grossIncomePercent,
             nett_income_persentase: nettIncomePercent,
-            nett_income_percent: nettIncomePercent
+            nett_income_percent: nettIncomePercent,
+            persen_kenaikan: persenKenaikan,
+            kenaikan_percent: persenKenaikan
         };
     });
 
