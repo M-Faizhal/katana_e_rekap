@@ -93,18 +93,7 @@
         </div>
     </div>
     <div class="p-4 sm:p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
-                <select id="status-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
-                    <option value="">Semua Status</option>
-                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak</option>
-                    <option value="overdue" {{ request('status') == 'overdue' ? 'selected' : '' }}>Terlambat</option>
-                    <option value="hps_kosong" {{ request('status') == 'hps_kosong' ? 'selected' : '' }}>HPS Belum Diisi</option>
-                </select>
-            </div>
-
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
                 <select id="vendor-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
@@ -302,13 +291,11 @@
 
 <script>
 function applyFilters() {
-    const status = document.getElementById('status-filter').value;
     const vendor = document.getElementById('vendor-filter').value;
     const nominal = document.getElementById('nominal-filter').value;
 
     // Build URL with query parameters
     const params = new URLSearchParams();
-    if (status) params.append('status', status);
     if (vendor) params.append('vendor', vendor);
     if (nominal) params.append('nominal', nominal);
 
