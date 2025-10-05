@@ -980,9 +980,15 @@ function updateValue(index, field, value) {
     // Handle empty values
     if (value === '' || value === null || value === undefined) {
         kalkulasiData[index][field] = 0;
-        calculateRow(index);
-        populateKalkulasiTable();
-        calculateTotals();
+        
+        // Handle percentage sync for empty values
+        if (['omzet_dinas_percent', 'bendera_percent', 'bank_cost_percent', 'biaya_ops_percent'].includes(field)) {
+            syncPercentageToAllItems(field, 0);
+        } else {
+            calculateRow(index);
+            populateKalkulasiTable();
+            calculateTotals();
+        }
         return;
     }
     
@@ -1000,13 +1006,20 @@ function updateValue(index, field, value) {
         } else {
             kalkulasiData[index][field] = numericValue;
         }
-    } else {
+        calculateRow(index);
+        populateKalkulasiTable();
+        calculateTotals();
+    } 
+    // Handle percentage fields that should sync across all items
+    else if (['omzet_dinas_percent', 'bendera_percent', 'bank_cost_percent', 'biaya_ops_percent'].includes(field)) {
+        syncPercentageToAllItems(field, numericValue);
+    } 
+    else {
         kalkulasiData[index][field] = numericValue;
+        calculateRow(index);
+        populateKalkulasiTable();
+        calculateTotals();
     }
-    
-    calculateRow(index);
-    populateKalkulasiTable();
-    calculateTotals();
 }
 
 // Function to parse formatted number (remove dots and convert to number)
@@ -1033,6 +1046,19 @@ function formatNumber(number) {
         number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     
     return formattedNumber;
+}
+
+// Function to sync percentage values to all items
+function syncPercentageToAllItems(field, value) {
+    // Update all items with the same percentage value
+    for (let i = 0; i < kalkulasiData.length; i++) {
+        kalkulasiData[i][field] = value;
+        calculateRow(i);
+    }
+    
+    // Update the table display
+    populateKalkulasiTable();
+    calculateTotals();
 }
 
 function calculateRow(index) {
