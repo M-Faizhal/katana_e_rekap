@@ -234,33 +234,33 @@
     </div>
 
     <!-- Pagination -->
-    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+    <div id="paginationContainer" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
             <div class="text-sm text-gray-700 text-center sm:text-left">
-                Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">{{ count($potensiData) }}</span> dari <span class="font-medium">{{ $totalPotensi }}</span> hasil
+                <span id="paginationInfo">Menampilkan 1-{{ count($potensiData) }} dari {{ $totalPotensi }} hasil</span>
             </div>
 
             <!-- Mobile Pagination (Simple) -->
-            <div class="flex sm:hidden items-center justify-center space-x-3">
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px] flex items-center" disabled>
+            <div class="flex sm:hidden items-center justify-center space-x-3" id="mobilePagination">
+                <button id="mobilePrevBtn" onclick="goToPage(currentPage - 1)" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px] flex items-center" disabled>
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <span class="text-sm font-medium text-gray-700 px-3 py-2">1 / 3</span>
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 min-h-[44px] flex items-center">
+                <span class="text-sm font-medium text-gray-700 px-3 py-2" id="mobilePageInfo">1 / 1</span>
+                <button id="mobileNextBtn" onclick="goToPage(currentPage + 1)" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 min-h-[44px] flex items-center" disabled>
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
 
             <!-- Desktop Pagination (Full) -->
-            <div class="hidden sm:flex space-x-2">
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
-                    <i class="fas fa-chevron-left"></i>
+            <div class="hidden sm:flex space-x-2" id="desktopPagination">
+                <button id="desktopPrevBtn" onclick="goToPage(currentPage - 1)" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
+                    <i class="fas fa-chevron-left mr-1"></i> Sebelumnya
                 </button>
-                <button class="px-3 py-2 text-sm bg-red-600 text-white rounded-lg">1</button>
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">2</button>
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">3</button>
-                <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-                    <i class="fas fa-chevron-right"></i>
+                <div id="pageNumbersContainer" class="flex items-center space-x-2">
+                    <!-- Page numbers will be generated here -->
+                </div>
+                <button id="desktopNextBtn" onclick="goToPage(currentPage + 1)" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                    Selanjutnya <i class="fas fa-chevron-right ml-1"></i>
                 </button>
             </div>
         </div>
@@ -486,6 +486,12 @@
 <script>
 // Data from controller
 const potensiData = @json($potensiData);
+
+// Pagination variables
+let currentPage = 1;
+const itemsPerPage = 5; // Show 5 potensi per page
+let currentData = potensiData; // Will be filtered data
+let totalPages = Math.ceil(currentData.length / itemsPerPage);
 
 // Function to view detail potensi
 function viewDetailPotensi(id) {
@@ -799,6 +805,151 @@ document.addEventListener('DOMContentLoaded', function() {
 function openDetailPotensiModal(id) {
     viewDetailPotensi(id);
 }
+
+// Pagination Functions
+function displayPotensi() {
+    const potensiCards = document.querySelectorAll('.space-y-6 > div:not(.text-center)'); // Exclude empty state
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    // Update currentData (no filtering for now, but ready for future search functionality)
+    currentData = potensiData;
+    
+    // Recalculate total pages
+    totalPages = Math.ceil(currentData.length / itemsPerPage);
+    
+    // Hide all cards first
+    potensiCards.forEach(card => {
+        card.classList.add('hidden');
+    });
+    
+    // Show only cards for current page
+    const currentPageData = currentData.slice(startIndex, endIndex);
+    currentPageData.forEach((potensiItem, index) => {
+        const actualIndex = startIndex + index;
+        if (potensiCards[actualIndex]) {
+            potensiCards[actualIndex].classList.remove('hidden');
+        }
+    });
+    
+    updatePaginationInfo();
+    renderPagination();
+}
+
+function updatePaginationInfo() {
+    const totalItems = currentData.length;
+    const startItem = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+    
+    document.getElementById('paginationInfo').textContent = 
+        `Menampilkan ${startItem}-${endItem} dari ${totalItems} hasil`;
+    
+    document.getElementById('mobilePageInfo').textContent = 
+        `${currentPage} / ${Math.max(1, totalPages)}`;
+}
+
+function renderPagination() {
+    // Update prev/next buttons
+    const hasPrev = currentPage > 1;
+    const hasNext = currentPage < totalPages;
+    
+    // Mobile pagination
+    document.getElementById('mobilePrevBtn').disabled = !hasPrev;
+    document.getElementById('mobileNextBtn').disabled = !hasNext;
+    
+    // Desktop pagination
+    document.getElementById('desktopPrevBtn').disabled = !hasPrev;
+    document.getElementById('desktopNextBtn').disabled = !hasNext;
+    
+    // Generate page numbers for desktop
+    const pageNumbersContainer = document.getElementById('pageNumbersContainer');
+    pageNumbersContainer.innerHTML = '';
+    
+    // Show page numbers (max 5 visible)
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust start if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = createPageButton(i);
+        pageNumbersContainer.appendChild(pageBtn);
+    }
+    
+    // Hide pagination if only one page
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (totalPages <= 1) {
+        paginationContainer.style.display = 'none';
+    } else {
+        paginationContainer.style.display = 'flex';
+    }
+}
+
+function createPageButton(pageNum) {
+    const button = document.createElement('button');
+    button.className = pageNum === currentPage 
+        ? 'px-3 py-2 text-sm bg-red-600 text-white rounded-lg'
+        : 'px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50';
+    button.textContent = pageNum;
+    button.onclick = () => goToPage(pageNum);
+    return button;
+}
+
+function goToPage(page) {
+    if (page < 1 || page > totalPages) return;
+    
+    currentPage = page;
+    displayPotensi();
+    
+    // Scroll to top of potensi container
+    const mainContent = document.querySelector('.bg-white.rounded-2xl.shadow-lg');
+    if (mainContent) {
+        mainContent.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
+}
+
+// Initialize pagination on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Original DOMContentLoaded code
+    const filterSelects = document.querySelectorAll('select[name="tahun"], select[name="admin_marketing"], select[name="status"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.form.submit();
+            }
+        });
+    }
+
+    const fabButton = document.querySelector('button[onclick*="modalTambahPotensi"]');
+    if (fabButton) {
+        fabButton.addEventListener('click', function() {
+            setTimeout(() => {
+                if (typeof initTambahPotensiModal === 'function') {
+                    initTambahPotensiModal();
+                }
+            }, 100);
+        });
+    }
+    
+    // Initialize pagination
+    setTimeout(() => {
+        displayPotensi();
+    }, 100);
+});
 </script>
 
 @endsection

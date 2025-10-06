@@ -117,7 +117,6 @@
                      data-instansi="{{ implode(',', array_column($wilayah['instansi_list'], 'instansi')) }}"
                      data-admin="{{ implode(',', array_filter(array_column($wilayah['instansi_list'], 'admin_marketing'))) }}"
                      data-jumlah-instansi="{{ $wilayah['jumlah_instansi'] }}"
-                     data-total-proyek="{{ $wilayah['total_proyek'] }}"
                      data-updated="{{ $wilayah['updated_at'] }}">
                     <!-- Wilayah Header -->
                     <div class="flex items-center justify-between mb-4">
@@ -134,9 +133,6 @@
                         <div class="flex items-center space-x-2">
                             <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                                 {{ $wilayah['jumlah_instansi'] }} Instansi
-                            </span>
-                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                                {{ $wilayah['total_proyek'] }} Proyek
                             </span>
                         </div>
                     </div>
@@ -169,7 +165,6 @@
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex-1">
                                     <h4 class="font-semibold text-gray-800 text-sm mb-1">{{ $instansi['instansi'] }}</h4>
-                                    <p class="text-xs text-gray-600 mb-2">{{ $instansi['jumlah_proyek'] }} proyek aktif</p>
                                 </div>
                                 <div class="flex space-x-1">
                                     <button onclick="detailInstansi({{ $instansi['id'] }})" class="text-blue-600 hover:bg-blue-100 p-1 rounded transition-colors" title="Detail">
@@ -251,31 +246,31 @@
             </div>
 
             <!-- Pagination -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mt-8 pt-6 border-t border-gray-200 space-y-3 sm:space-y-0">
+            <div id="paginationContainer" class="flex flex-col sm:flex-row sm:items-center justify-between mt-8 pt-6 border-t border-gray-200 space-y-3 sm:space-y-0">
                 <div class="text-sm text-gray-600 text-center sm:text-left">
-                    Menampilkan 1-{{ count($wilayahData) }} dari {{ count($wilayahData) }} data wilayah
+                    <span id="paginationInfo">Menampilkan 1-{{ count($wilayahData) }} dari {{ count($wilayahData) }} data wilayah</span>
                 </div>
 
                 <!-- Mobile Pagination (Simple) -->
-                <div class="flex sm:hidden items-center justify-center space-x-3">
-                    <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px] flex items-center" disabled>
+                <div class="flex sm:hidden items-center justify-center space-x-3" id="mobilePagination">
+                    <button id="mobilePrevBtn" onclick="goToPage(currentPage - 1)" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px] flex items-center" disabled>
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <span class="text-sm font-medium text-gray-700 px-3 py-2">1 / 4</span>
-                    <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 min-h-[44px] flex items-center">
+                    <span class="text-sm font-medium text-gray-700 px-3 py-2" id="mobilePageInfo">1 / 1</span>
+                    <button id="mobileNextBtn" onclick="goToPage(currentPage + 1)" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 min-h-[44px] flex items-center" disabled>
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
 
                 <!-- Desktop Pagination (Full) -->
-                <div class="hidden sm:flex items-center space-x-2">
-                    <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
+                <div class="hidden sm:flex items-center space-x-2" id="desktopPagination">
+                    <button id="desktopPrevBtn" onclick="goToPage(currentPage - 1)" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50" disabled>
                         <i class="fas fa-chevron-left mr-1"></i> Sebelumnya
                     </button>
-                    <button class="px-3 py-2 text-sm bg-red-600 text-white rounded-lg">1</button>
-                    <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">2</button>
-                    <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">3</button>
-                    <button class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <div id="pageNumbersContainer" class="flex items-center space-x-2">
+                        <!-- Page numbers will be generated here -->
+                    </div>
+                    <button id="desktopNextBtn" onclick="goToPage(currentPage + 1)" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
                         Selanjutnya <i class="fas fa-chevron-right ml-1"></i>
                     </button>
                 </div>
@@ -294,6 +289,12 @@
         // Data from controller - flatten instansi data for easier access
         const wilayahData = @json($wilayahData);
         const instansiData = {};
+
+        // Pagination variables
+        let currentPage = 1;
+        const itemsPerPage = 5; // Show 5 wilayah per page
+        let currentData = wilayahData; // Will be filtered data
+        let totalPages = Math.ceil(currentData.length / itemsPerPage);
 
         // Flatten instansi data for direct access by ID
         wilayahData.forEach(wilayah => {
@@ -697,5 +698,162 @@
             document.getElementById('filterPIC').value = '';
             filterWilayah();
         }
+
+        // Pagination Functions
+        function displayWilayah() {
+            const cards = document.querySelectorAll('.wilayah-card');
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+
+            // Get visible cards (those not hidden by filter)
+            const visibleCards = Array.from(cards).filter(card =>
+                card.style.display !== 'none'
+            );
+
+            // Update currentData to match visible cards
+            currentData = visibleCards.map((card, index) => {
+                return wilayahData.find(w => w.wilayah === card.getAttribute('data-wilayah'));
+            }).filter(Boolean);
+
+            // Recalculate total pages based on visible data
+            totalPages = Math.ceil(currentData.length / itemsPerPage);
+
+            // Hide all cards first
+            cards.forEach(card => {
+                if (card.style.display !== 'none') { // Don't affect filtered cards
+                    card.classList.add('hidden');
+                }
+            });
+
+            // Show only cards for current page
+            const currentPageData = currentData.slice(startIndex, endIndex);
+            currentPageData.forEach(wilayahItem => {
+                const card = Array.from(cards).find(c =>
+                    c.getAttribute('data-wilayah') === wilayahItem.wilayah
+                );
+                if (card && card.style.display !== 'none') {
+                    card.classList.remove('hidden');
+                }
+            });
+
+            updatePaginationInfo();
+            renderPagination();
+        }
+
+        function updatePaginationInfo() {
+            const totalItems = currentData.length;
+            const startItem = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+            document.getElementById('paginationInfo').textContent =
+                `Menampilkan ${startItem}-${endItem} dari ${totalItems} data wilayah`;
+
+            document.getElementById('mobilePageInfo').textContent =
+                `${currentPage} / ${Math.max(1, totalPages)}`;
+        }
+
+        function renderPagination() {
+            // Update prev/next buttons
+            const hasPrev = currentPage > 1;
+            const hasNext = currentPage < totalPages;
+
+            // Mobile pagination
+            document.getElementById('mobilePrevBtn').disabled = !hasPrev;
+            document.getElementById('mobileNextBtn').disabled = !hasNext;
+
+            // Desktop pagination
+            document.getElementById('desktopPrevBtn').disabled = !hasPrev;
+            document.getElementById('desktopNextBtn').disabled = !hasNext;
+
+            // Generate page numbers for desktop
+            const pageNumbersContainer = document.getElementById('pageNumbersContainer');
+            pageNumbersContainer.innerHTML = '';
+
+            // Show page numbers (max 5 visible)
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            // Adjust start if we're near the end
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = createPageButton(i);
+                pageNumbersContainer.appendChild(pageBtn);
+            }
+
+            // Hide pagination if only one page
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (totalPages <= 1) {
+                paginationContainer.style.display = 'none';
+            } else {
+                paginationContainer.style.display = 'flex';
+            }
+        }
+
+        function createPageButton(pageNum) {
+            const button = document.createElement('button');
+            button.className = pageNum === currentPage
+                ? 'px-3 py-2 text-sm bg-red-600 text-white rounded-lg'
+                : 'px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50';
+            button.textContent = pageNum;
+            button.onclick = () => goToPage(pageNum);
+            return button;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+
+            currentPage = page;
+            displayWilayah();
+
+            // Scroll to top of wilayah container
+            document.getElementById('wilayahContainer').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Update filter function to work with pagination
+        function filterWilayah() {
+            const filterPIC = document.getElementById('filterPIC').value.toLowerCase();
+            const cards = document.querySelectorAll('.wilayah-card');
+            let visibleCount = 0;
+
+            // First, apply filter by showing/hiding cards
+            cards.forEach(card => {
+                const admin = card.getAttribute('data-admin').toLowerCase();
+                const picMatch = filterPIC === '' || admin.includes(filterPIC);
+
+                if (picMatch) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Reset to first page after filtering
+            currentPage = 1;
+
+            // Apply pagination to filtered results
+            displayWilayah();
+
+            // Show/hide no results message
+            const noResults = document.getElementById('noResults');
+            if (visibleCount === 0) {
+                noResults.classList.remove('hidden');
+                document.getElementById('paginationContainer').style.display = 'none';
+            } else {
+                noResults.classList.add('hidden');
+            }
+        }
+
+        // Initialize pagination on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            displayWilayah();
+        });
     </script>
     @endsection
