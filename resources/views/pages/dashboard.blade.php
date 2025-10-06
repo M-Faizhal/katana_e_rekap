@@ -502,7 +502,7 @@
         <div id="indonesiaMap" class="w-full h-full rounded-2xl z-10"></div>
 
         <!-- Collapsible Map Legend -->
-        <div class="absolute bottom-1 sm:bottom-6 left-1 sm:left-6 z-50">
+        <div class="absolute bottom-1 sm:bottom-6 right-1 sm:right-6 z-40">
             <div class="bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg border border-gray-200">
                 <!-- Legend Button Header -->
                 <button
@@ -546,7 +546,7 @@
         </div>
 
         <!-- Collapsible Statistics Box -->
-        <div class="absolute top-1 sm:top-6 right-1 sm:right-6 z-50">
+        <div class="absolute top-1 sm:top-6 left-1 sm:left-6 z-40">
             <div class="bg-white/95 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-lg border border-gray-200">
                 <!-- Statistics Button Header -->
                 <button
@@ -771,10 +771,35 @@
 /* Enhanced marker effects */
 .city-marker .marker {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .city-marker .marker:hover {
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+/* Map control spacing improvements */
+.leaflet-top.leaflet-left {
+    top: 20px;
+    left: 20px;
+}
+
+.leaflet-control-zoom {
+    margin-bottom: 10px;
+}
+
+.leaflet-bar {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+}
+
+.leaflet-control-zoom a {
+    width: 34px;
+    height: 34px;
+    line-height: 34px;
+    font-size: 18px;
+    font-weight: bold;
 }
 
 /* Marker bounce animation on load */
@@ -1017,11 +1042,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to get marker size based on sales level
     function getMarkerSize(level) {
         switch(level) {
-            case 'very-high': return 20;
-            case 'high': return 16;
-            case 'medium': return 14;
-            case 'low': return 12;
-            default: return 10;
+            case 'very-high': return 28;
+            case 'high': return 24;
+            case 'medium': return 20;
+            case 'low': return 18;
+            default: return 16;
         }
     }
 
@@ -1179,24 +1204,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Disable zoom on scroll to prevent accidental zooming
     map.scrollWheelZoom.disable();
 
-    // Add zoom control back
+    // Add zoom control back with better positioning
     map.addControl(L.control.zoom({
-        position: 'topright'
+        position: 'topleft'
     }));
 
     // Custom control for enabling/disabling scroll zoom
-    const scrollControl = L.control({position: 'topright'});
+    const scrollControl = L.control({position: 'topleft'});
     scrollControl.onAdd = function(map) {
         const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
         div.style.backgroundColor = 'white';
         div.style.backgroundImage = 'none';
-        div.style.width = '30px';
-        div.style.height = '30px';
+        div.style.width = '34px';
+        div.style.height = '34px';
         div.style.cursor = 'pointer';
         div.style.fontSize = '16px';
         div.style.display = 'flex';
         div.style.alignItems = 'center';
         div.style.justifyContent = 'center';
+        div.style.marginTop = '10px';
         div.innerHTML = '🔒';
         div.title = 'Toggle scroll zoom';
 
