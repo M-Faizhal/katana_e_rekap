@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Exception;
 
@@ -450,29 +451,96 @@ class ProyekController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        // Role-based access control: Allow superadmin and admin_marketing
-        $user = Auth::user();
-        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+        try {
+            Log::info('updateStatus called', [
+                'proyek_id' => $id,
+                'request_data' => $request->all(),
+                'headers' => $request->headers->all(),
+                'method' => $request->method()
+            ]);
+
+            // Role-based access control: Allow superadmin and admin_marketing
+            $user = Auth::user();
+            if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak memiliki akses untuk mengubah status proyek. Hanya superadmin dan PIC marketing yang dapat melakukan aksi ini.'
+                ], 403);
+            }
+
+            // Validate project exists
+            $proyek = Proyek::find($id);
+            if (!$proyek) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Proyek tidak ditemukan'
+                ], 404);
+            }
+
+            // Validate request data
+            $validator = Validator::make($request->all(), [
+                'status' => 'required|in:menunggu,penawaran,pembayaran,pengiriman,selesai,gagal'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak valid: ' . $validator->errors()->first()
+                ], 422);
+            }
+
+            // Update status
+            $proyek->update([
+                'status' => $request->status
+            ]);
+
+            Log::info('Status proyek berhasil diubah', [
+                'proyek_id' => $id,
+                'old_status' => $proyek->getOriginal('status'),
+                'new_status' => $request->status,
+                'user_id' => $user->id_user
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status proyek berhasil diperbarui',
+                'data' => $proyek
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating proyek status', [
+                'proyek_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak memiliki akses untuk mengubah status proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
-            ], 403);
+                'message' => 'Terjadi kesalahan saat mengubah status proyek: ' . $e->getMessage()
+            ], 500);
         }
+    }
 
-        $proyek = Proyek::findOrFail($id);
-
-        $request->validate([
-            'status' => 'required|in:menunggu,penawaran,pembayaran,pengiriman,selesai,gagal'
-        ]);
-
-        $proyek->update([
-            'status' => $request->status
+    public function testStatus(Request $request, $id)
+    {
+        Log::info('testStatus called', [
+            'proyek_id' => $id,
+            'request_data' => $request->all(),
+            'user' => Auth::user() ? [
+                'id' => Auth::user()->id_user,
+                'nama' => Auth::user()->nama,
+                'role' => Auth::user()->role
+            ] : null
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Status proyek berhasil diperbarui',
-            'data' => $proyek
+            'message' => 'Test endpoint berhasil',
+            'data' => [
+                'id' => $id,
+                'request' => $request->all(),
+                'user' => Auth::user() ? Auth::user()->nama : 'No user'
+            ]
         ]);
     }
 

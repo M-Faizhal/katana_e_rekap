@@ -1500,18 +1500,39 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
         selectElement.classList.add('opacity-50');
     }
 
-    // Update status via API (simulasi dengan timeout)
+    // Update status via API
     fetch(`/marketing/proyek/${proyekId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             status: newStatus
         })
     })
-    .then(response => response.json())
+    .then(async response => {
+        // Check if response is ok
+        if (!response.ok) {
+            // Try to get response text for debugging
+            const responseText = await response.text();
+            console.error('HTTP Error Response:', responseText);
+            throw new Error(`HTTP error! status: ${response.status}. Response: ${responseText.substring(0, 200)}...`);
+        }
+        
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            // Get response text for debugging
+            const responseText = await response.text();
+            console.error('Non-JSON Response:', responseText);
+            throw new Error('Response bukan JSON yang valid. Content-Type: ' + (contentType || 'unknown') + '. Response: ' + responseText.substring(0, 200) + '...');
+        }
+        
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Update data

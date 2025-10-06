@@ -66,8 +66,8 @@
                 <p class="text-xl sm:text-2xl font-bold text-red-600 mb-1">Rp {{ $stats['total_hutang_formatted'] ?? '0' }}</p>
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-exclamation-triangle text-orange-500 text-sm"></i>
-                    <span class="text-sm font-medium text-orange-500">{{ $stats['vendor_pending'] }}</span>
-                    <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">vendor pending</span>
+                    <span class="text-sm font-medium text-orange-500">{{ $stats['jumlah_vendor_hutang'] ?? 0 }}</span>
+                    <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">vendor hutang</span>
                 </div>
             </div>
         </div>
@@ -128,8 +128,8 @@
                     <i class="fas fa-trophy text-yellow-600"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Omset Per Marketing</h3>
-                    <p class="text-sm text-gray-600">Top performer admin marketing</p>
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Omset Per PIC Marketing</h3>
+                    <p class="text-sm text-gray-600">Top performer PIC marketing</p>
                 </div>
             </div>
             <a href="{{ route('laporan.omset') }}" class="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium self-start sm:self-auto">
@@ -142,7 +142,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin Marketing</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PIC Marketing</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Omset</th>
                     </tr>
@@ -213,7 +213,7 @@
                     <tr>
                         <td colspan="4" class="px-4 py-8 text-center text-gray-500">
                             <i class="fas fa-users text-3xl mb-2"></i>
-                            <p>Belum ada data omset marketing</p>
+                            <p>Belum ada data omset PIC marketing</p>
                         </td>
                     </tr>
                     @endforelse
@@ -224,7 +224,7 @@
         @if($revenuePerPerson->count() > 0)
         <div class="mt-4 pt-4 border-t border-gray-200">
             <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-600">Total Marketing: {{ $revenuePerPerson->count() }}</span>
+                <span class="text-gray-600">Total PIC Marketing: {{ $revenuePerPerson->count() }}</span>
                 <span class="text-gray-600">Total Omset: Rp {{ $formatAmount($revenuePerPerson->sum('total_revenue')) }}</span>
             </div>
         </div>
@@ -248,8 +248,22 @@
         <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
             @forelse($vendorDebts as $debt)
             @php
-                $statusColor = $debt->status == 'overdue' ? 'red' : ($debt->status == 'warning' ? 'orange' : ($debt->status == 'Lunas' ? 'green' : 'yellow'));
-                $statusText = $debt->status == 'overdue' ? 'Overdue' : ($debt->status == 'warning' ? $debt->days_overdue . ' hari lagi' : ($debt->status == 'Lunas' ? 'Lunas' : 'Normal'));
+                if ($debt->warning_hps) {
+                    $statusColor = 'orange';
+                    $statusText = 'HPS Belum Diisi';
+                } elseif ($debt->status_lunas) {
+                    $statusColor = 'green';
+                    $statusText = 'Lunas';
+                } elseif ($debt->status == 'overdue') {
+                    $statusColor = 'red';
+                    $statusText = 'Overdue (' . $debt->days_overdue . ' hari)';
+                } elseif ($debt->status == 'warning') {
+                    $statusColor = 'orange';
+                    $statusText = 'Mendekati Jatuh Tempo';
+                } else {
+                    $statusColor = 'blue';
+                    $statusText = 'Normal';
+                }
             @endphp
             <div class="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-{{ $statusColor }}-50 to-{{ $statusColor }}-100 rounded-xl border-l-4 border-{{ $statusColor }}-500">
                 <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
@@ -258,23 +272,37 @@
                     </div>
                     <div class="min-w-0 flex-1">
                         <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $debt->nama_vendor }}</p>
-                        <p class="text-xs sm:text-sm text-gray-600">{{ $debt->nama_barang }}</p>
-                        <p class="text-xs text-{{ $statusColor }}-500 font-medium">{{ $debt->kode_proyek }}</p>
+                        @if($debt->jenis_perusahaan)
+                            <p class="text-xs sm:text-sm text-gray-600">{{ $debt->jenis_perusahaan }}</p>
+                        @endif
+                        <p class="text-xs text-{{ $statusColor }}-600 font-medium">{{ $debt->kode_proyek }} - {{ $debt->instansi }}</p>
                     </div>
                 </div>
                 <div class="text-right flex-shrink-0 ml-2">
-                    <p class="text-sm sm:text-lg font-bold text-{{ $statusColor }}-600">
-                        @if($debt->total_hutang >= 1000000000)
-                            Rp {{ number_format($debt->total_hutang / 1000000000, 1) }}M
-                        @elseif($debt->total_hutang >= 1000000)
-                            Rp {{ number_format($debt->total_hutang / 1000000, 1) }}jt
-                        @elseif($debt->total_hutang >= 1000)
-                            Rp {{ number_format($debt->total_hutang / 1000, 0) }}rb
-                        @else
-                            Rp {{ number_format($debt->total_hutang, 0) }}
+                    @if($debt->warning_hps)
+                        <p class="text-sm sm:text-lg font-bold text-{{ $statusColor }}-600">-</p>
+                        <p class="text-xs text-{{ $statusColor }}-600">{{ $debt->warning_hps }}</p>
+                    @else
+                        <p class="text-sm sm:text-lg font-bold text-{{ $statusColor }}-600">
+                            @if($debt->sisa_bayar >= 1000000000)
+                                Rp {{ number_format($debt->sisa_bayar / 1000000000, 1) }}M
+                            @elseif($debt->sisa_bayar >= 1000000)
+                                Rp {{ number_format($debt->sisa_bayar / 1000000, 1) }}jt
+                            @elseif($debt->sisa_bayar >= 1000)
+                                Rp {{ number_format($debt->sisa_bayar / 1000, 0) }}rb
+                            @else
+                                Rp {{ number_format($debt->sisa_bayar, 0) }}
+                            @endif
+                        </p>
+                        @if($debt->total_vendor > 0)
+                            <div class="text-xs text-gray-500 mb-1">{{ number_format($debt->persen_bayar, 1) }}% terbayar</div>
+                            <div class="w-16 bg-gray-200 rounded-full h-1.5">
+                                <div class="@if($debt->status_lunas) bg-green-600 @else bg-{{ $statusColor }}-600 @endif h-1.5 rounded-full transition-all duration-300" 
+                                     style="width: {{ min($debt->persen_bayar, 100) }}%"></div>
+                            </div>
                         @endif
-                    </p>
-                    <span class="px-2 py-1 bg-{{ $statusColor }}-200 text-{{ $statusColor }}-700 rounded-full text-xs">{{ $statusText }}</span>
+                    @endif
+                    <span class="inline-block mt-2 px-2 py-1 bg-{{ $statusColor }}-200 text-{{ $statusColor }}-700 rounded-full text-xs">{{ $statusText }}</span>
                 </div>
             </div>
             @empty
