@@ -53,16 +53,27 @@ class DashboardController extends Controller
         // Get hutang vendor statistics (using same logic as laporan)
         $hutangVendorStats = $this->getHutangVendorStats();
         
+        // Get piutang dinas statistics (using same logic as laporan)
+        $piutangDinasStats = $this->getPiutangDinasStats();
+        
         // Override hutang statistics with more accurate calculation
         $stats['total_hutang'] = $hutangVendorStats['total_hutang'];
         $stats['jumlah_vendor_hutang'] = $hutangVendorStats['jumlah_vendor'];
         $stats['rata_rata_hutang'] = $hutangVendorStats['rata_rata_hutang'];
+        
+        // Override piutang statistics with more accurate calculation
+        $stats['total_piutang'] = $piutangDinasStats['total_piutang'];
+        $stats['piutang_jatuh_tempo'] = $piutangDinasStats['piutang_jatuh_tempo'];
+        $stats['jumlah_proyek_piutang'] = $piutangDinasStats['jumlah_proyek'];
+        $stats['rata_rata_piutang'] = $piutangDinasStats['rata_rata_piutang'];
 
         // Add formatted versions for display (same as omset/laporan report)
         $stats['omset_bulan_ini_formatted'] = $this->formatRupiah($stats['omset_bulan_ini']);
         $stats['total_hutang_formatted'] = $hutangVendorStats['total_hutang_formatted'];
         $stats['rata_rata_hutang_formatted'] = $hutangVendorStats['rata_rata_hutang_formatted'];
-        $stats['total_piutang_formatted'] = $this->formatRupiah($stats['total_piutang']);
+        $stats['total_piutang_formatted'] = $piutangDinasStats['total_piutang_formatted'];
+        $stats['piutang_jatuh_tempo_formatted'] = $piutangDinasStats['piutang_jatuh_tempo_formatted'];
+        $stats['rata_rata_piutang_formatted'] = $piutangDinasStats['rata_rata_piutang_formatted'];
 
         // Get monthly revenue data (default to current year)
         $monthlyRevenue = $this->getMonthlyRevenue();
@@ -455,37 +466,145 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get client receivables data
+     * Get piutang dinas statistics for dashboard
+     */
+    private function getPiutangDinasStats()
+    {
+        // Ambil semua proyek yang sudah di ACC dan hitung piutangnya (same logic as LaporanController)
+        $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
+            $query->where('status', 'ACC');
+        }, 'penagihanDinas.buktiPembayaran'])
+        ->whereHas('semuaPenawaran', function($query) {
+            $query->where('status', 'ACC');
+        })
+        ->get();
+
+        $totalPiutang = 0;
+        $piutangJatuhTempo = 0;
+        $jumlahProyek = 0;
+
+        foreach ($proyekAcc as $proyek) {
+            foreach ($proyek->semuaPenawaran as $penawaran) {
+                // Cek apakah ada penagihan untuk penawaran ini
+                $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
+
+                if (!$penagihan) {
+                    // Belum ada penagihan sama sekali - semua jadi piutang
+                    $totalPiutang += $penawaran->total_penawaran ?? 0;
+                    $jumlahProyek++;
+                    // Anggap jatuh tempo jika sudah lebih dari 30 hari sejak ACC
+                    if ($penawaran->updated_at < now()->subDays(30)) {
+                        $piutangJatuhTempo += $penawaran->total_penawaran ?? 0;
+                    }
+                } else if ($penagihan->status_pembayaran != 'lunas') {
+                    // Ada penagihan tapi belum lunas
+                    $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
+                    $sisaPembayaran = $penagihan->total_harga - $totalBayar;
+
+                    if ($sisaPembayaran > 0) {
+                        $totalPiutang += $sisaPembayaran;
+                        $jumlahProyek++;
+
+                        // Check if overdue
+                        if ($penagihan->tanggal_jatuh_tempo && $penagihan->tanggal_jatuh_tempo < now()) {
+                            $piutangJatuhTempo += $sisaPembayaran;
+                        }
+                    }
+                }
+            }
+        }
+
+        $rataRataPiutang = $jumlahProyek > 0 ? $totalPiutang / $jumlahProyek : 0;
+
+        return [
+            'total_piutang' => $totalPiutang,
+            'piutang_jatuh_tempo' => $piutangJatuhTempo,
+            'jumlah_proyek' => $jumlahProyek,
+            'rata_rata_piutang' => $rataRataPiutang,
+            'total_piutang_formatted' => $this->formatRupiah($totalPiutang),
+            'piutang_jatuh_tempo_formatted' => $this->formatRupiah($piutangJatuhTempo),
+            'rata_rata_piutang_formatted' => $this->formatRupiah($rataRataPiutang),
+        ];
+    }
+
+    /**
+     * Get client receivables data - updated to match LaporanController logic
      */
     private function getClientReceivables()
     {
-        return DB::table('penagihan_dinas')
-            ->select(
-                'proyek.instansi',
-                'proyek.kode_proyek',
-                'penagihan_dinas.nomor_invoice',
-                'penagihan_dinas.total_harga',
-                'penagihan_dinas.tanggal_jatuh_tempo',
-                'penagihan_dinas.status_pembayaran',
-                DB::raw('COALESCE(SUM(bukti_pembayaran.jumlah_bayar), 0) as total_dibayar')
-            )
-            ->join('proyek', 'penagihan_dinas.proyek_id', '=', 'proyek.id_proyek')
-            ->leftJoin('bukti_pembayaran', 'penagihan_dinas.id', '=', 'bukti_pembayaran.penagihan_dinas_id')
-            ->where('penagihan_dinas.status_pembayaran', '!=', 'lunas')
-            ->groupBy('penagihan_dinas.id', 'proyek.instansi', 'proyek.kode_proyek',
-                     'penagihan_dinas.nomor_invoice', 'penagihan_dinas.total_harga',
-                     'penagihan_dinas.tanggal_jatuh_tempo', 'penagihan_dinas.status_pembayaran')
-            ->orderBy('penagihan_dinas.tanggal_jatuh_tempo', 'asc')
-            ->limit(4)
-            ->get()
-            ->map(function($item) {
-                $item->sisa_piutang = $item->total_harga - $item->total_dibayar;
-                $item->progress = $item->total_harga > 0 ? ($item->total_dibayar / $item->total_harga) * 100 : 0;
-                $daysOverdue = Carbon::parse($item->tanggal_jatuh_tempo)->diffInDays(Carbon::now());
-                $item->days_overdue = $daysOverdue;
-                $item->status = $daysOverdue > 0 ? 'overdue' : 'pending';
-                return $item;
-            });
+        // Ambil semua proyek yang sudah di ACC (same logic as LaporanController)
+        $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
+            $query->where('status', 'ACC');
+        }, 'penagihanDinas.buktiPembayaran'])
+        ->whereHas('semuaPenawaran', function($query) {
+            $query->where('status', 'ACC');
+        })
+        ->get();
+
+        // Transform ke format yang dibutuhkan untuk dashboard
+        $piutangList = collect();
+
+        foreach ($proyekAcc as $proyek) {
+            foreach ($proyek->semuaPenawaran as $penawaran) {
+                $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
+
+                $shouldInclude = false;
+                $sisaPembayaran = 0;
+                $status = '';
+                $tanggalJatuhTempo = null;
+                $nomorInvoice = '';
+                $totalBayar = 0;
+
+                if (!$penagihan) {
+                    // Belum ada penagihan sama sekali
+                    $shouldInclude = true;
+                    $sisaPembayaran = $penawaran->total_penawaran ?? 0;
+                    $status = 'belum_ditagih';
+                    $tanggalJatuhTempo = now()->addDays(30); // Default 30 hari dari sekarang
+                    $nomorInvoice = 'Belum Ditagih';
+                } else if ($penagihan->status_pembayaran != 'lunas') {
+                    // Ada penagihan tapi belum lunas
+                    $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
+                    $sisaPembayaran = $penagihan->total_harga - $totalBayar;
+
+                    if ($sisaPembayaran > 0) {
+                        $shouldInclude = true;
+                        $status = $penagihan->status_pembayaran;
+                        $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
+                        $nomorInvoice = $penagihan->nomor_invoice;
+                    }
+                }
+
+                if ($shouldInclude) {
+                    // Calculate progress and overdue status
+                    $totalHarga = $penawaran->total_penawaran ?? 0;
+                    $progress = $totalHarga > 0 ? ($totalBayar / $totalHarga) * 100 : 0;
+                    $daysOverdue = $tanggalJatuhTempo && $tanggalJatuhTempo < now() ? now()->diffInDays($tanggalJatuhTempo) : 0;
+                    $statusColor = $daysOverdue > 0 ? 'overdue' : 'pending';
+
+                    // Create receivable item matching dashboard format
+                    $piutangItem = (object)[
+                        'instansi' => $proyek->instansi,
+                        'kode_proyek' => $proyek->kode_proyek,
+                        'nomor_invoice' => $nomorInvoice,
+                        'total_harga' => $totalHarga,
+                        'total_dibayar' => $totalBayar,
+                        'sisa_piutang' => $sisaPembayaran,
+                        'progress' => $progress,
+                        'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
+                        'status_pembayaran' => $status,
+                        'days_overdue' => $daysOverdue,
+                        'status' => $statusColor,
+                        'hari_telat' => $daysOverdue
+                    ];
+
+                    $piutangList->push($piutangItem);
+                }
+            }
+        }
+
+        // Sort by due date (ascending) and limit to 4 for dashboard
+        return $piutangList->sortBy('tanggal_jatuh_tempo')->take(4);
     }
 
     /**
@@ -746,66 +865,121 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get debt age analysis for clients based on invoice due dates
+     * Get debt age analysis for clients based on invoice due dates - using same logic as piutang dinas
      */
     private function getDebtAgeAnalysis()
     {
-        // Get all outstanding invoices with their age in days
-        $outstandingInvoices = DB::table('penagihan_dinas')
-            ->select(
-                'proyek.instansi',
-                'proyek.kode_proyek',
-                'penagihan_dinas.nomor_invoice',
-                'penagihan_dinas.total_harga',
-                'penagihan_dinas.tanggal_jatuh_tempo',
-                'penagihan_dinas.status_pembayaran',
-                DB::raw('COALESCE(SUM(bukti_pembayaran.jumlah_bayar), 0) as total_dibayar'),
-                DB::raw('DATEDIFF(CURDATE(), penagihan_dinas.tanggal_jatuh_tempo) as days_overdue')
-            )
-            ->join('proyek', 'penagihan_dinas.proyek_id', '=', 'proyek.id_proyek')
-            ->leftJoin('bukti_pembayaran', 'penagihan_dinas.id', '=', 'bukti_pembayaran.penagihan_dinas_id')
-            ->where('penagihan_dinas.status_pembayaran', '!=', 'lunas')
-            ->groupBy('penagihan_dinas.id', 'proyek.instansi', 'proyek.kode_proyek',
-                     'penagihan_dinas.nomor_invoice', 'penagihan_dinas.total_harga',
-                     'penagihan_dinas.tanggal_jatuh_tempo', 'penagihan_dinas.status_pembayaran')
-            ->having(DB::raw('(penagihan_dinas.total_harga - COALESCE(SUM(bukti_pembayaran.jumlah_bayar), 0))'), '>', 0)
-            ->orderBy('days_overdue', 'desc')
-            ->limit(8)
-            ->get();
+        // Ambil semua proyek yang sudah di ACC (same logic as piutang dinas)
+        $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
+            $query->where('status', 'ACC');
+        }, 'penagihanDinas.buktiPembayaran'])
+        ->whereHas('semuaPenawaran', function($query) {
+            $query->where('status', 'ACC');
+        })
+        ->get();
 
-        return $outstandingInvoices->map(function($item) {
-            // Calculate outstanding amount
-            $item->outstanding_amount = $item->total_harga - $item->total_dibayar;
+        // Transform ke format untuk debt age analysis
+        $debtAgeList = collect();
 
-            // Determine age category and color
-            if ($item->days_overdue <= 30) {
-                $item->age_category = '0-30 hari';
-                $item->color_class = 'green';
-                $item->status_text = 'Baik';
-            } elseif ($item->days_overdue <= 60) {
-                $item->age_category = '30-60 hari';
-                $item->color_class = 'yellow';
-                $item->status_text = 'Perhatian';
-            } elseif ($item->days_overdue <= 90) {
-                $item->age_category = '60-90 hari';
-                $item->color_class = 'orange';
-                $item->status_text = 'Waspada';
-            } elseif ($item->days_overdue <= 120) {
-                $item->age_category = '90-120 hari';
-                $item->color_class = 'red';
-                $item->status_text = 'Buruk';
-            } elseif ($item->days_overdue <= 150) {
-                $item->age_category = '120-150 hari';
-                $item->color_class = 'red';
-                $item->status_text = 'Sangat Buruk';
-            } else {
-                $item->age_category = '>150 hari';
-                $item->color_class = 'red';
-                $item->status_text = 'Kritis';
+        foreach ($proyekAcc as $proyek) {
+            foreach ($proyek->semuaPenawaran as $penawaran) {
+                $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
+
+                $shouldInclude = false;
+                $sisaPembayaran = 0;
+                $status = '';
+                $tanggalJatuhTempo = null;
+                $nomorInvoice = '';
+                $totalBayar = 0;
+                $daysOverdue = 0;
+
+                if (!$penagihan) {
+                    // Belum ada penagihan sama sekali
+                    $shouldInclude = true;
+                    $sisaPembayaran = $penawaran->total_penawaran ?? 0;
+                    $status = 'belum_ditagih';
+                    $tanggalJatuhTempo = now()->addDays(30); // Default 30 hari dari sekarang
+                    $nomorInvoice = 'Belum Ditagih';
+                    $daysOverdue = 0; // Belum telat karena belum ditagih
+                } else if ($penagihan->status_pembayaran != 'lunas') {
+                    // Ada penagihan tapi belum lunas
+                    $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
+                    $sisaPembayaran = $penagihan->total_harga - $totalBayar;
+
+                    if ($sisaPembayaran > 0) {
+                        $shouldInclude = true;
+                        $status = $penagihan->status_pembayaran;
+                        $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
+                        $nomorInvoice = $penagihan->nomor_invoice;
+                        
+                        // Calculate days overdue
+                        if ($tanggalJatuhTempo && $tanggalJatuhTempo < now()) {
+                            $daysOverdue = now()->diffInDays($tanggalJatuhTempo);
+                        } else {
+                            $daysOverdue = 0;
+                        }
+                    }
+                }
+
+                if ($shouldInclude && $sisaPembayaran > 0) {
+                    // Determine age category and color
+                    $ageCategory = '';
+                    $colorClass = '';
+                    $statusText = '';
+
+                    if ($daysOverdue <= 0) {
+                        $ageCategory = '0-30 hari';
+                        $colorClass = 'green';
+                        $statusText = $status == 'belum_ditagih' ? 'Belum Ditagih' : 'Baik';
+                    } elseif ($daysOverdue <= 30) {
+                        $ageCategory = '0-30 hari';
+                        $colorClass = 'green';
+                        $statusText = 'Baik';
+                    } elseif ($daysOverdue <= 60) {
+                        $ageCategory = '30-60 hari';
+                        $colorClass = 'yellow';
+                        $statusText = 'Perhatian';
+                    } elseif ($daysOverdue <= 90) {
+                        $ageCategory = '60-90 hari';
+                        $colorClass = 'orange';
+                        $statusText = 'Waspada';
+                    } elseif ($daysOverdue <= 120) {
+                        $ageCategory = '90-120 hari';
+                        $colorClass = 'red';
+                        $statusText = 'Buruk';
+                    } elseif ($daysOverdue <= 150) {
+                        $ageCategory = '120-150 hari';
+                        $colorClass = 'red';
+                        $statusText = 'Sangat Buruk';
+                    } else {
+                        $ageCategory = '>150 hari';
+                        $colorClass = 'red';
+                        $statusText = 'Kritis';
+                    }
+
+                    // Create debt age item
+                    $debtAgeItem = (object)[
+                        'instansi' => $proyek->instansi,
+                        'kode_proyek' => $proyek->kode_proyek,
+                        'nomor_invoice' => $nomorInvoice,
+                        'total_harga' => $penawaran->total_penawaran ?? 0,
+                        'total_dibayar' => $totalBayar,
+                        'outstanding_amount' => $sisaPembayaran,
+                        'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
+                        'status_pembayaran' => $status,
+                        'days_overdue' => $daysOverdue,
+                        'age_category' => $ageCategory,
+                        'color_class' => $colorClass,
+                        'status_text' => $statusText
+                    ];
+
+                    $debtAgeList->push($debtAgeItem);
+                }
             }
+        }
 
-            return $item;
-        });
+        // Sort by outstanding amount (descending) and limit to top 8
+        return $debtAgeList->sortByDesc('outstanding_amount')->take(8);
     }
 
     /**

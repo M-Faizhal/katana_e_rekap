@@ -83,9 +83,9 @@
                 <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Total Piutang</h3>
                 <p class="text-xl sm:text-2xl font-bold text-yellow-600 mb-1">Rp {{ $stats['total_piutang_formatted'] ?? '0' }}</p>
                 <div class="flex items-center space-x-1">
-                    <i class="fas fa-clock text-yellow-500 text-sm"></i>
-                    <span class="text-sm font-medium text-yellow-500">{{ $stats['dinas_pending'] }}</span>
-                    <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">dinas pending</span>
+                    <i class="fas fa-exclamation-triangle text-red-500 text-sm"></i>
+                    <span class="text-sm font-medium text-red-500">{{ $stats['jumlah_proyek_piutang'] ?? 0 }}</span>
+                    <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">proyek piutang</span>
                 </div>
             </div>
         </div>
@@ -239,7 +239,7 @@
         <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
             <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Hutang Vendor</h3>
             <div class="flex items-center space-x-2">
-                <span class="px-2 sm:px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs sm:text-sm font-medium">{{ $stats['vendor_pending'] }} Pending</span>
+                <span class="px-2 sm:px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs sm:text-sm font-medium">{{ $stats['jumlah_vendor_hutang'] ?? 0 }} Vendor</span>
                 <a href="{{ route('laporan.hutang-vendor') }}" class="text-red-600 hover:text-red-700 text-xs sm:text-sm font-medium whitespace-nowrap" onclick="event.stopPropagation();">
                     Lihat Semua
                 </a>
@@ -315,17 +315,7 @@
         <div class="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
             <div class="flex justify-between items-center">
                 <span class="text-gray-600 font-medium text-sm sm:text-base">Total Hutang:</span>
-                <span class="text-lg sm:text-xl font-bold text-red-600">
-                    @if($stats['total_hutang'] >= 1000000000)
-                        Rp {{ number_format($stats['total_hutang'] / 1000000000, 1) }}M
-                    @elseif($stats['total_hutang'] >= 1000000)
-                        Rp {{ number_format($stats['total_hutang'] / 1000000, 1) }}jt
-                    @elseif($stats['total_hutang'] >= 1000)
-                        Rp {{ number_format($stats['total_hutang'] / 1000, 0) }}rb
-                    @else
-                        Rp {{ number_format($stats['total_hutang'], 0) }}
-                    @endif
-                </span>
+                <span class="text-lg sm:text-xl font-bold text-red-600">Rp {{ $stats['total_hutang_formatted'] ?? '0' }}</span>
             </div>
         </div>
     </div>
@@ -335,7 +325,7 @@
         <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
             <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Piutang Dinas</h3>
             <div class="flex items-center space-x-2">
-                <span class="px-2 sm:px-3 py-1 bg-yellow-100 text-yellow-600 rounded-full text-xs sm:text-sm font-medium">{{ $stats['dinas_pending'] }} Pending</span>
+                <span class="px-2 sm:px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs sm:text-sm font-medium">{{ $stats['piutang_jatuh_tempo_formatted'] ?? '0' }} Jatuh Tempo</span>
                 <a href="{{ route('laporan.piutang-dinas') }}" class="text-yellow-600 hover:text-yellow-700 text-xs sm:text-sm font-medium whitespace-nowrap" onclick="event.stopPropagation();">
                     Lihat Semua
                 </a>
@@ -344,33 +334,74 @@
         <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
             @forelse($clientReceivables as $receivable)
             @php
-                $statusColor = $receivable->status == 'overdue' ? 'red' : 'green';
-                $progressColor = $receivable->progress > 75 ? 'green' : ($receivable->progress > 50 ? 'yellow' : ($receivable->progress > 25 ? 'orange' : 'red'));
+                // Status color based on payment status and overdue (consistent with laporan)
+                $statusColor = 'gray';
+                if ($receivable->status_pembayaran == 'belum_bayar' || $receivable->status_pembayaran == 'belum_ditagih') {
+                    $statusColor = $receivable->days_overdue > 0 ? 'red' : 'yellow';
+                } elseif ($receivable->status_pembayaran == 'dp') {
+                    $statusColor = $receivable->days_overdue > 0 ? 'orange' : 'blue';
+                } else {
+                    $statusColor = 'green';
+                }
             @endphp
-            <div class="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-{{ $progressColor }}-50 to-{{ $progressColor }}-100 rounded-xl border-l-4 border-{{ $progressColor }}-500">
+            <div class="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-{{ $statusColor }}-50 to-{{ $statusColor }}-100 rounded-xl border-l-4 border-{{ $statusColor }}-500">
                 <div class="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-{{ $progressColor }}-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-{{ $statusColor }}-500 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
                         <i class="fas fa-university text-white text-sm sm:text-base"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $receivable->instansi }}</p>
-                        <p class="text-xs sm:text-sm text-gray-600">{{ $receivable->kode_proyek }}</p>
-                        <p class="text-xs text-{{ $progressColor }}-600 font-medium">Invoice: {{ $receivable->nomor_invoice }}</p>
+                        <div class="flex items-center space-x-2 mb-1">
+                            <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $receivable->instansi ?? '-' }}</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                @if($receivable->status_pembayaran == 'belum_bayar' || $receivable->status_pembayaran == 'belum_ditagih') bg-yellow-100 text-yellow-800
+                                @elseif($receivable->status_pembayaran == 'dp') bg-blue-100 text-blue-800
+                                @else bg-gray-100 text-gray-800 @endif">
+                                @if($receivable->status_pembayaran == 'belum_bayar') 
+                                    Belum Bayar
+                                @elseif($receivable->status_pembayaran == 'belum_ditagih') 
+                                    Belum Ditagih
+                                @elseif($receivable->status_pembayaran == 'dp') 
+                                    DP Dibayar
+                                @else 
+                                    {{ ucfirst($receivable->status_pembayaran) }}
+                                @endif
+                            </span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-gray-600">{{ $receivable->kode_proyek ?? '-' }}</p>
+                        <p class="text-xs text-{{ $statusColor }}-600 font-medium">Invoice: {{ $receivable->nomor_invoice }}</p>
                     </div>
                 </div>
                 <div class="text-right flex-shrink-0 ml-2">
-                    <p class="text-sm sm:text-lg font-bold text-{{ $progressColor }}-600">
-                        @if($receivable->sisa_piutang >= 1000000000)
-                            Rp {{ number_format($receivable->sisa_piutang / 1000000000, 1) }}M
-                        @elseif($receivable->sisa_piutang >= 1000000)
-                            Rp {{ number_format($receivable->sisa_piutang / 1000000, 1) }}jt
-                        @elseif($receivable->sisa_piutang >= 1000)
-                            Rp {{ number_format($receivable->sisa_piutang / 1000, 0) }}rb
-                        @else
-                            Rp {{ number_format($receivable->sisa_piutang, 0) }}
-                        @endif
+                    <p class="text-sm sm:text-lg font-bold text-{{ $statusColor }}-600">
+                        @php
+                            $nominal = $receivable->sisa_piutang;
+                            if ($nominal >= 1000000000) {
+                                echo 'Rp ' . number_format($nominal / 1000000000, 1, ',', '.') . ' M';
+                            } elseif ($nominal >= 1000000) {
+                                echo 'Rp ' . number_format($nominal / 1000000, 1, ',', '.') . ' jt';
+                            } elseif ($nominal >= 1000) {
+                                echo 'Rp ' . number_format($nominal / 1000, 1, ',', '.') . ' rb';
+                            } else {
+                                echo 'Rp ' . number_format($nominal, 0, ',', '.');
+                            }
+                        @endphp
                     </p>
-                    <span class="px-2 py-1 bg-{{ $progressColor }}-200 text-{{ $progressColor }}-700 rounded-full text-xs">{{ number_format($receivable->progress, 0) }}% dibayar</span>
+                    @if($receivable->days_overdue > 0)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            {{ $receivable->days_overdue }} hari telat
+                        </span>
+                    @else
+                        @if($receivable->progress > 0)
+                            <div class="text-xs text-gray-500 mb-1">{{ number_format($receivable->progress, 1) }}% terbayar</div>
+                            <div class="w-16 bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-{{ $statusColor }}-600 h-1.5 rounded-full" style="width: {{ min($receivable->progress, 100) }}%"></div>
+                            </div>
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                On Time
+                            </span>
+                        @endif
+                    @endif
                 </div>
             </div>
             @empty
@@ -382,18 +413,18 @@
         </div>
         <div class="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
             <div class="flex justify-between items-center">
-                <span class="text-gray-600 font-medium text-sm sm:text-base">Total Piutang:</span>
-                <span class="text-lg sm:text-xl font-bold text-yellow-600">
-                    @if($stats['total_piutang'] >= 1000000000)
-                        Rp {{ number_format($stats['total_piutang'] / 1000000000, 1) }}M
-                    @elseif($stats['total_piutang'] >= 1000000)
-                        Rp {{ number_format($stats['total_piutang'] / 1000000, 1) }}jt
-                    @elseif($stats['total_piutang'] >= 1000)
-                        Rp {{ number_format($stats['total_piutang'] / 1000, 0) }}rb
-                    @else
-                        Rp {{ number_format($stats['total_piutang'], 0) }}
-                    @endif
-                </span>
+                <div class="text-xs sm:text-sm text-gray-600">
+                    <span class="font-medium">Total Piutang:</span>
+                    <span class="text-yellow-600 font-bold ml-1">Rp {{ $stats['total_piutang_formatted'] ?? '0' }}</span>
+                </div>
+                <div class="text-xs sm:text-sm text-gray-600">
+                    <span class="font-medium">Jatuh Tempo:</span>
+                    <span class="text-red-600 font-bold ml-1">Rp {{ $stats['piutang_jatuh_tempo_formatted'] ?? '0' }}</span>
+                </div>
+                <div class="text-xs sm:text-sm text-gray-600">
+                    <span class="font-medium">Proyek:</span>
+                    <span class="text-blue-600 font-bold ml-1">{{ $stats['jumlah_proyek_piutang'] ?? 0 }}</span>
+                </div>
             </div>
         </div>
     </div>
