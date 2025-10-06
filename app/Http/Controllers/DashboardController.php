@@ -96,6 +96,9 @@ class DashboardController extends Controller
         // Get debt age analysis
         $debtAgeAnalysis = $this->getDebtAgeAnalysis();
 
+        // Get year range from project data (same as laporan)
+        $yearRange = $this->getYearRange();
+
         return view('pages.dashboard', compact(
             'stats',
             'monthlyRevenue',
@@ -104,7 +107,8 @@ class DashboardController extends Controller
             'clientReceivables',
             'geographicData',
             'geographicStats',
-            'debtAgeAnalysis'
+            'debtAgeAnalysis',
+            'yearRange'
         ));
     }
 
@@ -1011,5 +1015,33 @@ class DashboardController extends Controller
             'monthlyRevenue' => $monthlyRevenue,
             'revenuePerPerson' => $revenuePerPerson
         ]);
+    }
+
+    /**
+     * Get year range from project data - same logic as LaporanController
+     */
+    private function getYearRange()
+    {
+        $yearRange = DB::table('proyek')
+            ->selectRaw('MIN(YEAR(tanggal)) as min_year, MAX(YEAR(tanggal)) as max_year')
+            ->where('status', '!=', 'Gagal') // Exclude failed projects
+            ->first();
+
+        // Set defaults if no projects exist
+        $currentYear = Carbon::now()->year;
+        $minYear = $yearRange->min_year ?? $currentYear;
+        $maxYear = $yearRange->max_year ?? $currentYear;
+
+        // Ensure min year is not less than 2020 (reasonable minimum)
+        $minYear = max($minYear, 2020);
+        
+        // Allow max year to extend to next year for future projects
+        $maxYear = max($maxYear, $currentYear);
+
+        return [
+            'min_year' => $minYear,
+            'max_year' => $maxYear,
+            'current_year' => $currentYear
+        ];
     }
 }

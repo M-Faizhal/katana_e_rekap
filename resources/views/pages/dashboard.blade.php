@@ -109,7 +109,7 @@
             <div class="flex items-center space-x-2">
                 <label class="text-sm font-medium text-gray-700 hidden sm:block">Tahun:</label>
                 <select id="dashboardYearFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white">
-                    @for($year = 2022; $year <= date('Y') + 1; $year++)
+                    @for($year = $yearRange['min_year']; $year <= $yearRange['max_year']; $year++)
                         <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
                     @endfor
                 </select>
@@ -297,7 +297,7 @@
                         @if($debt->total_vendor > 0)
                             <div class="text-xs text-gray-500 mb-1">{{ number_format($debt->persen_bayar, 1) }}% terbayar</div>
                             <div class="w-16 bg-gray-200 rounded-full h-1.5">
-                                <div class="@if($debt->status_lunas) bg-green-600 @else bg-{{ $statusColor }}-600 @endif h-1.5 rounded-full transition-all duration-300" 
+                                <div class="@if($debt->status_lunas) bg-green-600 @else bg-{{ $statusColor }}-600 @endif h-1.5 rounded-full transition-all duration-300"
                                      style="width: {{ min($debt->persen_bayar, 100) }}%"></div>
                             </div>
                         @endif
@@ -356,13 +356,13 @@
                                 @if($receivable->status_pembayaran == 'belum_bayar' || $receivable->status_pembayaran == 'belum_ditagih') bg-yellow-100 text-yellow-800
                                 @elseif($receivable->status_pembayaran == 'dp') bg-blue-100 text-blue-800
                                 @else bg-gray-100 text-gray-800 @endif">
-                                @if($receivable->status_pembayaran == 'belum_bayar') 
+                                @if($receivable->status_pembayaran == 'belum_bayar')
                                     Belum Bayar
-                                @elseif($receivable->status_pembayaran == 'belum_ditagih') 
+                                @elseif($receivable->status_pembayaran == 'belum_ditagih')
                                     Belum Ditagih
-                                @elseif($receivable->status_pembayaran == 'dp') 
+                                @elseif($receivable->status_pembayaran == 'dp')
                                     DP Dibayar
-                                @else 
+                                @else
                                     {{ ucfirst($receivable->status_pembayaran) }}
                                 @endif
                             </span>
@@ -1288,7 +1288,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (debtAgeCtx) {
         // Take only top 5 items and prepare data
         const debtData = @json($debtAgeAnalysis->take(5)->values());
-        
+
         // Validate data before processing
         if (!debtData || !Array.isArray(debtData) || debtData.length === 0) {
             console.log('No debt age data available for chart');
@@ -1335,10 +1335,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Additional validation for each debt item
-        const validDebtData = debtData.filter(debt => 
-            debt && 
-            typeof debt === 'object' && 
-            debt.instansi && 
+        const validDebtData = debtData.filter(debt =>
+            debt &&
+            typeof debt === 'object' &&
+            debt.instansi &&
             debt.outstanding_amount !== undefined
         );
 
