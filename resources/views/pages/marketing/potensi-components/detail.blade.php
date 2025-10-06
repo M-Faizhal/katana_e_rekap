@@ -58,7 +58,7 @@
                         <p id="detailPotensiJenisPengadaan" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-sm font-medium text-gray-500">Admin Marketing</label>
+                        <label class="text-sm font-medium text-gray-500">PIC Marketing</label>
                         <p id="detailPotensiAdminMarketing" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                     <div class="space-y-1">

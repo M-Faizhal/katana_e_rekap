@@ -159,13 +159,13 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PIC Marketing</label>
                             <input type="text" id="tambahAdminMarketing" name="admin_marketing" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600" value="[Nama User Login]" readonly>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PIC Purchasing</label>
                             <select id="tambahAdminPurchasing" name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Pilih admin purchasing</option>
+                                <option value="">Pilih PIC purchasing</option>
                                 <!-- Options will be populated by JS -->
                             </select>
                         </div>
@@ -558,21 +558,21 @@ function initTambahPotensiModal() {
     const currentYear = new Date().getFullYear();
     document.getElementById('tambahTahunPotensi').value = currentYear;
 
-    // Load admin purchasing options
+    // Load PIC purchasing options
     loadAdminPurchasingOptions('tambahAdminPurchasing');
 }
 
-// Function to load admin purchasing options
+// Function to load PIC purchasing options
 function loadAdminPurchasingOptions(selectId) {
     // This would typically fetch from server
     // For now, add sample options
     const select = document.getElementById(selectId);
     if (select) {
         select.innerHTML = `
-            <option value="">Pilih admin purchasing</option>
-            <option value="1">Admin Purchasing 1</option>
-            <option value="2">Admin Purchasing 2</option>
-            <option value="3">Admin Purchasing 3</option>
+            <option value="">Pilih PIC purchasing</option>
+            <option value="1">PIC Purchasing 1</option>
+            <option value="2">PIC Purchasing 2</option>
+            <option value="3">PIC Purchasing 3</option>
         `;
     }
 }

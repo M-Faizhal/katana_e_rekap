@@ -54,11 +54,11 @@
                         <p id="detailJenisPengadaan" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-sm font-medium text-gray-500">Admin Marketing</label>
+                        <label class="text-sm font-medium text-gray-500">PIC Marketing</label>
                         <p id="detailAdminMarketing" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-sm font-medium text-gray-500">Admin Purchasing</label>
+                        <label class="text-sm font-medium text-gray-500">PIC Purchasing</label>
                         <p id="detailAdminPurchasing" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                     <div class="space-y-1">
@@ -174,18 +174,18 @@ async function loadDetailDocuments(proyekId) {
     try {
         currentDetailProyekId = proyekId;
         console.log('Loading documents for project:', proyekId);
-        
+
         const response = await fetch(`/marketing/penawaran/project/${proyekId}/data`);
-        
+
         if (!response.ok) {
             console.warn('No penawaran data found for project', proyekId);
             setDocumentStatus('tidak_ada');
             return;
         }
-        
+
         const data = await response.json();
         console.log('Document data received:', data);
-        
+
         if (data.success && data.data) {
             currentDetailDocuments = data.data;
             updateDetailDocumentDisplay(data.data);

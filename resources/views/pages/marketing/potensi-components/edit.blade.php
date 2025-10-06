@@ -58,13 +58,13 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PIC Marketing</label>
                             <input type="text" id="editPotensiAdminMarketing" name="admin_marketing" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600" value="[Nama User Login]" readonly>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PIC Purchasing</label>
                             <select id="editPotensiAdminPurchasing" name="admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Pilih admin purchasing</option>
+                                <option value="">Pilih PIC purchasing</option>
                             </select>
                         </div>
                         <div>
@@ -313,13 +313,13 @@ function loadEditPotensiData(data) {
     document.getElementById('editPotensiTahunPotensi').value = data.tahun_potensi || data.tahun || '';
     document.getElementById('editPotensiCatatan').value = data.catatan || '';
 
-    // Load admin purchasing options and set selected
+    // Load PIC purchasing options and set selected
     loadEditAdminPurchasingOptions();
     setTimeout(() => {
         const adminPurchasingSelect = document.getElementById('editPotensiAdminPurchasing');
         if (adminPurchasingSelect && data.id_admin_purchasing) {
             adminPurchasingSelect.value = data.id_admin_purchasing;
-            console.log('Set admin purchasing to:', data.id_admin_purchasing);
+            console.log('Set PIC purchasing to:', data.id_admin_purchasing);
             console.log('Current select value:', adminPurchasingSelect.value);
         }
     }, 500);
@@ -464,7 +464,7 @@ function submitFormEditPotensi() {
     // Debug: Check specific fields
     const adminPurchasing = document.getElementById('editPotensiAdminPurchasing').value;
     const tahunPotensi = document.getElementById('editPotensiTahunPotensi').value;
-    console.log('Admin Purchasing value:', adminPurchasing);
+    console.log('PIC Purchasing value:', adminPurchasing);
     console.log('Tahun Potensi value:', tahunPotensi);
 
     // Make sure the values are properly added to formData
@@ -575,7 +575,7 @@ if (typeof showCustomAlert === 'undefined') {
     }
 }
 
-// Function to load admin purchasing options (same as proyek)
+// Function to load PIC purchasing options (same as proyek)
 async function loadEditAdminPurchasingOptions() {
     try {
         const response = await fetch('/marketing/potensi/users/select');
@@ -588,9 +588,9 @@ async function loadEditAdminPurchasingOptions() {
                 const currentValue = select.value;
 
                 // Clear existing options except the first one
-                select.innerHTML = '<option value="">Pilih admin purchasing</option>';
+                select.innerHTML = '<option value="">Pilih PIC purchasing</option>';
 
-                // Add options for purchasing and admin roles
+                // Add options for purchasing and PIC roles
                 data.data.forEach(user => {
                     if (user.role === 'admin_purchasing' || user.role === 'superadmin') {
                         const option = document.createElement('option');
@@ -607,7 +607,7 @@ async function loadEditAdminPurchasingOptions() {
             }
         }
     } catch (error) {
-        console.error('Error loading admin purchasing options for edit potensi:', error);
+        console.error('Error loading PIC purchasing options for edit potensi:', error);
     }
 }
 
@@ -627,7 +627,7 @@ if (typeof formatRupiah === 'undefined') {
 
 // Add file preview functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Load admin purchasing options on page load
+    // Load PIC purchasing options on page load
     loadEditAdminPurchasingOptions();
 
     // File input preview handlers

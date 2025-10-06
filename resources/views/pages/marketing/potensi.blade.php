@@ -94,7 +94,7 @@
                     @endforeach
                 </select>
                 <select name="admin_marketing" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    <option value="">Semua Admin Marketing</option>
+                    <option value="">Semua PIC Marketing</option>
                     @foreach($adminMarketingList as $admin)
                         <option value="{{ $admin->id_user }}" {{ $adminMarketingFilter == $admin->id_user ? 'selected' : '' }}>{{ $admin->nama }}</option>
                     @endforeach
@@ -187,12 +187,12 @@
                     </div>
                 </div>
 
-                <!-- Admin Info dan Actions -->
+                <!-- PIC Info dan Actions -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 pt-4 border-t border-gray-200">
                     <div class="flex items-center space-x-4 mb-3 sm:mb-0">
                         <div class="flex items-center space-x-2">
                             <i class="fas fa-user-tie text-gray-400"></i>
-                            <span class="text-sm text-gray-600">Marketing: <span class="font-medium text-gray-800">{{ $potensi['admin_marketing'] }}</span></span>
+                            <span class="text-sm text-gray-600">PIC Marketing: <span class="font-medium text-gray-800">{{ $potensi['admin_marketing'] }}</span></span>
                         </div>
                         <div class="text-xs text-gray-400">•</div>
                         <div class="flex items-center space-x-2">
@@ -811,18 +811,18 @@ function displayPotensi() {
     const potensiCards = document.querySelectorAll('.space-y-6 > div:not(.text-center)'); // Exclude empty state
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    
+
     // Update currentData (no filtering for now, but ready for future search functionality)
     currentData = potensiData;
-    
+
     // Recalculate total pages
     totalPages = Math.ceil(currentData.length / itemsPerPage);
-    
+
     // Hide all cards first
     potensiCards.forEach(card => {
         card.classList.add('hidden');
     });
-    
+
     // Show only cards for current page
     const currentPageData = currentData.slice(startIndex, endIndex);
     currentPageData.forEach((potensiItem, index) => {
@@ -831,7 +831,7 @@ function displayPotensi() {
             potensiCards[actualIndex].classList.remove('hidden');
         }
     });
-    
+
     updatePaginationInfo();
     renderPagination();
 }
@@ -840,11 +840,11 @@ function updatePaginationInfo() {
     const totalItems = currentData.length;
     const startItem = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-    
-    document.getElementById('paginationInfo').textContent = 
+
+    document.getElementById('paginationInfo').textContent =
         `Menampilkan ${startItem}-${endItem} dari ${totalItems} hasil`;
-    
-    document.getElementById('mobilePageInfo').textContent = 
+
+    document.getElementById('mobilePageInfo').textContent =
         `${currentPage} / ${Math.max(1, totalPages)}`;
 }
 
@@ -852,34 +852,34 @@ function renderPagination() {
     // Update prev/next buttons
     const hasPrev = currentPage > 1;
     const hasNext = currentPage < totalPages;
-    
+
     // Mobile pagination
     document.getElementById('mobilePrevBtn').disabled = !hasPrev;
     document.getElementById('mobileNextBtn').disabled = !hasNext;
-    
+
     // Desktop pagination
     document.getElementById('desktopPrevBtn').disabled = !hasPrev;
     document.getElementById('desktopNextBtn').disabled = !hasNext;
-    
+
     // Generate page numbers for desktop
     const pageNumbersContainer = document.getElementById('pageNumbersContainer');
     pageNumbersContainer.innerHTML = '';
-    
+
     // Show page numbers (max 5 visible)
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     // Adjust start if we're near the end
     if (endPage - startPage + 1 < maxVisiblePages) {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
         const pageBtn = createPageButton(i);
         pageNumbersContainer.appendChild(pageBtn);
     }
-    
+
     // Hide pagination if only one page
     const paginationContainer = document.getElementById('paginationContainer');
     if (totalPages <= 1) {
@@ -891,7 +891,7 @@ function renderPagination() {
 
 function createPageButton(pageNum) {
     const button = document.createElement('button');
-    button.className = pageNum === currentPage 
+    button.className = pageNum === currentPage
         ? 'px-3 py-2 text-sm bg-red-600 text-white rounded-lg'
         : 'px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50';
     button.textContent = pageNum;
@@ -901,16 +901,16 @@ function createPageButton(pageNum) {
 
 function goToPage(page) {
     if (page < 1 || page > totalPages) return;
-    
+
     currentPage = page;
     displayPotensi();
-    
+
     // Scroll to top of potensi container
     const mainContent = document.querySelector('.bg-white.rounded-2xl.shadow-lg');
     if (mainContent) {
-        mainContent.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
+        mainContent.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
         });
     }
 }
@@ -944,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 100);
         });
     }
-    
+
     // Initialize pagination
     setTimeout(() => {
         displayPotensi();

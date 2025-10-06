@@ -7,19 +7,19 @@
 <div class="bg-white rounded-xl shadow-lg border border-gray-100 mb-6">
     <div class="px-6 py-4">
         <nav class="flex space-x-8" aria-label="Tabs">
-            <a href="{{ route('laporan.proyek') }}" 
+            <a href="{{ route('laporan.proyek') }}"
                class="border-red-500 text-red-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                 Laporan Proyek
             </a>
-            <a href="{{ route('laporan.omset') }}" 
+            <a href="{{ route('laporan.omset') }}"
                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                 Laporan Omset
             </a>
-            <a href="{{ route('laporan.hutang-vendor') }}" 
+            <a href="{{ route('laporan.hutang-vendor') }}"
                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                 Hutang Vendor
             </a>
-            <a href="{{ route('laporan.piutang-dinas') }}" 
+            <a href="{{ route('laporan.piutang-dinas') }}"
                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
                 Piutang Dinas
             </a>
@@ -141,8 +141,8 @@
                         <button onclick="changeYear('monthly', -1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
                             <i class="fas fa-chevron-left text-xs"></i>
                         </button>
-                        <input type="number" id="monthlyChartYear" value="{{ date('Y') }}" min="{{ $yearRange['min_year'] }}" max="{{ $yearRange['max_year'] }}" 
-                               class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                        <input type="number" id="monthlyChartYear" value="{{ date('Y') }}" min="{{ $yearRange['min_year'] }}" max="{{ $yearRange['max_year'] }}"
+                               class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                onchange="updateMonthlyChart()" onkeyup="handleYearInput(this, 'monthly')"
                                title="Range: {{ $yearRange['min_year'] }} - {{ $yearRange['max_year'] }}">
                         <button onclick="changeYear('monthly', 1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
@@ -177,8 +177,8 @@
                     <button onclick="changeYear('value', -1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:ring-2 focus:ring-purple-500">
                         <i class="fas fa-chevron-left text-xs"></i>
                     </button>
-                    <input type="number" id="valueChartYear" value="{{ date('Y') }}" min="{{ $yearRange['min_year'] }}" max="{{ $yearRange['max_year'] }}" 
-                           class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                    <input type="number" id="valueChartYear" value="{{ date('Y') }}" min="{{ $yearRange['min_year'] }}" max="{{ $yearRange['max_year'] }}"
+                           class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                            onchange="updateValueChart()" onkeyup="handleYearInput(this, 'value')"
                            title="Range: {{ $yearRange['min_year'] }} - {{ $yearRange['max_year'] }}">
                     <button onclick="changeYear('value', 1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:ring-2 focus:ring-purple-500">
@@ -211,14 +211,14 @@
             <!-- Periode Filter dengan Date Range -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
-                <input type="date" id="start-date" value="{{ request('start_date') }}" 
+                <input type="date" id="start-date" value="{{ request('start_date') }}"
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                        placeholder="Pilih tanggal mulai">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
-                <input type="date" id="end-date" value="{{ request('end_date') }}" 
+                <input type="date" id="end-date" value="{{ request('end_date') }}"
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                        placeholder="Pilih tanggal akhir">
             </div>
@@ -320,7 +320,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {{ $project->kode_proyek }}
                     </td>
-    
+
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $project->instansi }}
                     </td>
@@ -351,7 +351,7 @@
                         @endphp
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="viewProjectDetail({{ $project->id_proyek }})" 
+                        <button onclick="viewProjectDetail({{ $project->id_proyek }})"
                                 class="text-indigo-600 hover:text-indigo-900 mr-3">
                             <i class="fas fa-eye"></i> Detail
                         </button>
@@ -450,7 +450,7 @@ function setQuickFilter(period) {
     // Format dates for input[type="date"]
     startDateInput.value = startDate.toISOString().split('T')[0];
     endDateInput.value = endDate.toISOString().split('T')[0];
-    
+
     // Auto apply filter
     applyFilters();
 }
@@ -506,8 +506,8 @@ function showProjectDetailModal(project) {
                     <div>
                         <h4 class="font-semibold text-gray-900 mb-2">Tim & Nilai</h4>
                         <div class="space-y-2 text-sm">
-                            <div><span class="font-medium">Admin Marketing:</span> ${project.admin_marketing}</div>
-                            <div><span class="font-medium">Admin Purchasing:</span> ${project.admin_purchasing}</div>
+                            <div><span class="font-medium">PIC Marketing:</span> ${project.admin_marketing}</div>
+                            <div><span class="font-medium">PIC Purchasing:</span> ${project.admin_purchasing}</div>
                             <div><span class="font-medium">Total Nilai:</span> ${formatCurrency(project.total_nilai)}</div>
                             <div><span class="font-medium">Catatan:</span> ${project.catatan}</div>
                         </div>
@@ -524,13 +524,13 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
 
-    const bgColor = type === 'success' ? 'bg-green-500' : 
-                   type === 'error' ? 'bg-red-500' : 
+    const bgColor = type === 'success' ? 'bg-green-500' :
+                   type === 'error' ? 'bg-red-500' :
                    type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
-    const iconName = type === 'success' ? 'check' : 
-                    type === 'error' ? 'exclamation-triangle' : 
+    const iconName = type === 'success' ? 'check' :
+                    type === 'error' ? 'exclamation-triangle' :
                     type === 'warning' ? 'exclamation-circle' : 'info-circle';
-    
+
     notification.classList.add(bgColor, 'text-white');
 
     notification.innerHTML = `
@@ -559,7 +559,7 @@ function showNotification(message, type = 'info') {
 // Update monthly chart based on selected year
 async function updateMonthlyChart() {
     const selectedYear = document.getElementById('monthlyChartYear').value;
-    
+
     try {
         // Show loading indicator
         const canvas = document.getElementById('monthlyChart');
@@ -569,7 +569,7 @@ async function updateMonthlyChart() {
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Memuat data...', canvas.width / 2, canvas.height / 2);
-        
+
         // Fetch new data for selected year
         const response = await fetch(`{{ route('laporan.proyek') }}?ajax=1&chart_year=${selectedYear}`, {
             headers: {
@@ -578,13 +578,13 @@ async function updateMonthlyChart() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.chartData) {
             // Update chart data
             monthlyChart.data.labels = data.chartData.monthly_projects.map(item => item.month);
@@ -596,7 +596,7 @@ async function updateMonthlyChart() {
     } catch (error) {
         console.error('Error updating monthly chart:', error);
         showNotification('Gagal memuat data chart: ' + error.message, 'error');
-        
+
         // Restore chart
         monthlyChart.update();
     }
@@ -605,7 +605,7 @@ async function updateMonthlyChart() {
 // Update value chart based on selected year
 async function updateValueChart() {
     const selectedYear = document.getElementById('valueChartYear').value;
-    
+
     try {
         // Show loading indicator
         const canvas = document.getElementById('valueChart');
@@ -615,7 +615,7 @@ async function updateValueChart() {
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Memuat data...', canvas.width / 2, canvas.height / 2);
-        
+
         // Fetch new data for selected year
         const response = await fetch(`{{ route('laporan.proyek') }}?ajax=1&chart_year=${selectedYear}`, {
             headers: {
@@ -624,13 +624,13 @@ async function updateValueChart() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.chartData) {
             // Update chart data
             valueChart.data.labels = data.chartData.monthly_values.map(item => item.month);
@@ -642,7 +642,7 @@ async function updateValueChart() {
     } catch (error) {
         console.error('Error updating value chart:', error);
         showNotification('Gagal memuat data chart: ' + error.message, 'error');
-        
+
         // Restore chart
         valueChart.update();
     }
@@ -652,7 +652,7 @@ async function updateValueChart() {
 function syncChartYears() {
     const monthlyYear = document.getElementById('monthlyChartYear').value;
     const valueYear = document.getElementById('valueChartYear').value;
-    
+
     // Sync both dropdowns to use same year
     if (monthlyYear !== valueYear) {
         document.getElementById('valueChartYear').value = monthlyYear;
@@ -666,7 +666,7 @@ const yearRange = @json($yearRange);
 // Handle year input changes with validation
 function handleYearInput(input, chartType) {
     const year = parseInt(input.value);
-    
+
     // Validate year range using dynamic data
     if (year < yearRange.min_year) {
         input.value = yearRange.min_year;
@@ -675,7 +675,7 @@ function handleYearInput(input, chartType) {
         input.value = yearRange.max_year;
         showNotification(`Tahun maksimum adalah ${yearRange.max_year}`, 'warning');
     }
-    
+
     // Auto update chart after short delay to avoid rapid API calls
     clearTimeout(window.yearInputTimeout);
     window.yearInputTimeout = setTimeout(() => {
@@ -697,11 +697,11 @@ function changeYear(chartType, direction) {
     const otherInput = document.getElementById(chartType === 'monthly' ? 'valueChartYear' : 'monthlyChartYear');
     const currentYear = parseInt(input.value);
     const newYear = currentYear + direction;
-    
+
     if (newYear >= yearRange.min_year && newYear <= yearRange.max_year) {
         input.value = newYear;
         otherInput.value = newYear;
-        
+
         // Update both charts
         updateMonthlyChart();
         updateValueChart();
@@ -717,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('valueChartYear').value = this.value;
         updateValueChart();
     });
-    
+
     document.getElementById('valueChartYear').addEventListener('change', function() {
         document.getElementById('monthlyChartYear').value = this.value;
         updateMonthlyChart();

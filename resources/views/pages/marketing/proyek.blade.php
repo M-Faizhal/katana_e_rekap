@@ -250,7 +250,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
                     <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Admin Marketing</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">PIC Marketing</p>
                         <div class="flex items-center space-x-2">
                             <div class="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <i class="fas fa-user text-red-600 text-xs sm:text-sm"></i>
@@ -259,7 +259,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         </div>
                     </div>
                     <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Admin Purchasing</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">PIC Purchasing</p>
                         <div class="flex items-center space-x-2">
                             <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <i class="fas fa-user text-blue-600 text-xs sm:text-sm"></i>
@@ -1276,7 +1276,7 @@ function getStatusClass(status) {
 function buatPenawaran(id) {
     // Check user role access
     @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
-        alert('Tidak memiliki akses untuk membuat penawaran. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.');
+        alert('Tidak memiliki akses untuk membuat penawaran. Hanya superadmin dan PIC marketing yang dapat melakukan aksi ini.');
         return;
     @endif
 
@@ -1298,7 +1298,7 @@ function buatPenawaran(id) {
 function editProyek(id) {
     // Check user role access
     @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
-        alert('Tidak memiliki akses untuk mengedit proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.');
+        alert('Tidak memiliki akses untuk mengedit proyek. Hanya superadmin dan PIC marketing yang dapat melakukan aksi ini.');
         return;
     @endif
 
@@ -1391,7 +1391,7 @@ function editProyek(id) {
 function deleteProyek(id) {
     // Check user role access
     @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
-        alert('Tidak memiliki akses untuk menghapus proyek. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.');
+        alert('Tidak memiliki akses untuk menghapus proyek. Hanya superadmin dan PIC marketing yang dapat melakukan aksi ini.');
         return;
     @endif
 

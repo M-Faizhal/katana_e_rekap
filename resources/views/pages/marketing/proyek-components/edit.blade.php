@@ -56,15 +56,15 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PIC Marketing</label>
                             <select id="editAdminMarketing" name="id_admin_marketing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
-                                <option value="">Pilih admin marketing</option>
+                                <option value="">Pilih PIC marketing</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PIC Purchasing</label>
                             <select id="editAdminPurchasing" name="id_admin_purchasing" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Pilih admin purchasing</option>
+                                <option value="">Pilih PIC purchasing</option>
                             </select>
                         </div>
                         <div>
@@ -278,7 +278,7 @@ function loadEditData(data) {
     setElementValue('editTahunPotensi', data.tahun_potensi);
     setElementValue('editStatus', data.status);
 
-    // Set admin marketing dengan ID
+    // Set PIC marketing dengan ID
     const adminMarketingSelect = document.getElementById('editAdminMarketing');
     if (adminMarketingSelect && data.id_admin_marketing) {
         // Wait for options to load then set value
@@ -287,13 +287,13 @@ function loadEditData(data) {
         }, 100);
     }
 
-    // Set admin purchasing dengan ID
+    // Set PIC purchasing dengan ID
     const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
     if (adminPurchasingSelect && data.id_admin_purchasing) {
         // Wait for options to load then set value
         setTimeout(() => {
             adminPurchasingSelect.value = data.id_admin_purchasing;
-            console.log('Set admin purchasing to:', data.id_admin_purchasing);
+            console.log('Set PIC purchasing to:', data.id_admin_purchasing);
         }, 500);
     }
 
@@ -923,8 +923,8 @@ function validateEditForm() {
         { id: 'editKabupatenKota', label: 'Kabupaten/Kota' },
         { id: 'editNamaInstansi', label: 'Nama Instansi' },
         { id: 'editJenisPengadaan', label: 'Jenis Pengadaan' },
-        { id: 'editAdminMarketing', label: 'Admin Marketing' },
-        { id: 'editAdminPurchasing', label: 'Admin Purchasing' }
+        { id: 'editAdminMarketing', label: 'PIC Marketing' },
+        { id: 'editAdminPurchasing', label: 'PIC Purchasing' }
     ];
 
     for (let field of requiredFields) {
@@ -958,7 +958,7 @@ function collectEditFormData() {
     data.potensi = getElementValue('editPotensiValue', 'tidak');
     data.tahun_potensi = parseInt(getElementValue('editTahunPotensi')) || new Date().getFullYear();
 
-    // Admin data
+    // PIC data
     const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
     data.id_admin_purchasing = adminPurchasingSelect ? adminPurchasingSelect.value : null;
     data.id_admin_marketing = 1; // Ambil dari session user yang login
@@ -1015,7 +1015,7 @@ function collectEditFormData() {
     return data;
 }
 
-// Function to load admin marketing options for edit
+// Function to load PIC marketing options for edit
 async function loadEditAdminMarketingOptions() {
     try {
         const response = await fetch('/marketing/proyek/users');
@@ -1028,9 +1028,9 @@ async function loadEditAdminMarketingOptions() {
                 const currentValue = select.value;
 
                 // Clear existing options except the first one
-                select.innerHTML = '<option value="">Pilih admin marketing</option>';
+                select.innerHTML = '<option value="">Pilih PIC marketing</option>';
 
-                // Add options for marketing and admin roles
+                // Add options for marketing and PIC roles
                 data.data.forEach(user => {
                     if (user.role === 'admin_marketing' || user.role === 'superadmin') {
                         const option = document.createElement('option');
@@ -1047,11 +1047,11 @@ async function loadEditAdminMarketingOptions() {
             }
         }
     } catch (error) {
-        console.error('Error loading admin marketing options for edit:', error);
+        console.error('Error loading PIC marketing options for edit:', error);
     }
 }
 
-// Function to load admin purchasing options for edit
+// Function to load PIC purchasing options for edit
 async function loadEditAdminPurchasingOptions() {
     try {
         const response = await fetch('/marketing/proyek/users');
@@ -1064,9 +1064,9 @@ async function loadEditAdminPurchasingOptions() {
                 const currentValue = select.value;
 
                 // Clear existing options except the first one
-                select.innerHTML = '<option value="">Pilih admin purchasing</option>';
+                select.innerHTML = '<option value="">Pilih PIC purchasing</option>';
 
-                // Add options for purchasing and admin roles
+                // Add options for purchasing and PIC roles
                 data.data.forEach(user => {
                     if (user.role === 'admin_purchasing' || user.role === 'superadmin') {
                         const option = document.createElement('option');
@@ -1083,16 +1083,16 @@ async function loadEditAdminPurchasingOptions() {
             }
         }
     } catch (error) {
-        console.error('Error loading admin purchasing options for edit:', error);
+        console.error('Error loading PIC purchasing options for edit:', error);
     }
 }
 
 // Initialize edit modal
 document.addEventListener('DOMContentLoaded', function() {
-    // Load admin marketing options
+    // Load PIC marketing options
     loadEditAdminMarketingOptions();
 
-    // Load admin purchasing options
+    // Load PIC purchasing options
     loadEditAdminPurchasingOptions();
 
     // Initialize form submission

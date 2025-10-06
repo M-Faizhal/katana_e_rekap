@@ -184,16 +184,16 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Marketing</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PIC Marketing</label>
                             <select name="id_admin_marketing" id="adminMarketingSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
-                                <option value="">Pilih admin marketing</option>
+                                <option value="">Pilih PIC marketing</option>
                             </select>
-                            <small class="text-gray-500 text-xs mt-1">Pilih admin marketing yang bertanggung jawab untuk proyek ini</small>
+                            <small class="text-gray-500 text-xs mt-1">Pilih PIC marketing yang bertanggung jawab untuk proyek ini</small>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Admin Purchasing</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">PIC Purchasing</label>
                             <select name="admin_purchasing" id="adminPurchasingSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Pilih admin purchasing</option>
+                                <option value="">Pilih PIC purchasing</option>
                             </select>
                         </div>
                         <div>
@@ -1110,8 +1110,8 @@ async function validateTambahForm() {
         { name: 'kabupaten_kota', label: 'Kabupaten/Kota' },
         { name: 'nama_instansi', label: 'Nama Instansi' },
         { name: 'jenis_pengadaan', label: 'Jenis Pengadaan' },
-        { name: 'id_admin_marketing', label: 'Admin Marketing' },
-        { name: 'admin_purchasing', label: 'Admin Purchasing' }
+        { name: 'id_admin_marketing', label: 'PIC Marketing' },
+        { name: 'admin_purchasing', label: 'PIC Purchasing' }
     ];
 
     for (let field of requiredFields) {
@@ -1123,10 +1123,10 @@ async function validateTambahForm() {
         }
     }
 
-    // Validasi admin marketing sudah dipilih
+    // Validasi PIC marketing sudah dipilih
     const adminMarketingId = document.querySelector('[name="id_admin_marketing"]')?.value;
     if (!adminMarketingId) {
-        await showErrorAlert('Admin Marketing harus dipilih!', 'Data Tidak Lengkap');
+        await showErrorAlert('PIC Marketing harus dipilih!', 'Data Tidak Lengkap');
         return false;
     }
 
@@ -1234,7 +1234,7 @@ function collectTambahFormData() {
         data.spesifikasi = 'Spesifikasi standar';
     }
 
-    // Ambil ID admin marketing dari form
+    // Ambil ID PIC marketing dari form
     const adminMarketingId = formData.get('id_admin_marketing');
     data.id_admin_marketing = adminMarketingId ? parseInt(adminMarketingId) : null;
 
@@ -1279,7 +1279,7 @@ function resetTambahModal() {
         potensiValue.value = '';
     }
 
-    // Reset admin marketing dropdown to current user
+    // Reset PIC marketing dropdown to current user
     const adminMarketingSelect = document.getElementById('adminMarketingSelect');
     if (adminMarketingSelect) {
         // Find and select the current user option
@@ -1291,7 +1291,7 @@ function resetTambahModal() {
         }
     }
 
-    // Reset admin purchasing dropdown
+    // Reset PIC purchasing dropdown
     const adminPurchasingSelect = document.getElementById('adminPurchasingSelect');
     if (adminPurchasingSelect) {
         adminPurchasingSelect.selectedIndex = 0;
@@ -1309,7 +1309,7 @@ function resetTambahModal() {
     hitungTotalKeseluruhan();
 }
 
-// Function to load admin marketing options
+// Function to load PIC marketing options
 async function loadAdminMarketingOptions() {
     try {
         const response = await fetch('/marketing/proyek/users');
@@ -1319,9 +1319,9 @@ async function loadAdminMarketingOptions() {
             const select = document.getElementById('adminMarketingSelect');
             if (select) {
                 // Clear existing options except the first one
-                select.innerHTML = '<option value="">Pilih admin marketing</option>';
+                select.innerHTML = '<option value="">Pilih PIC marketing</option>';
 
-                // Add options for marketing and admin roles
+                // Add options for marketing and PIC roles
                 data.data.forEach(user => {
                     if (user.role === 'admin_marketing' || user.role === 'superadmin') {
                         const option = document.createElement('option');
@@ -1339,11 +1339,11 @@ async function loadAdminMarketingOptions() {
             }
         }
     } catch (error) {
-        console.error('Error loading admin marketing options:', error);
+        console.error('Error loading PIC marketing options:', error);
     }
 }
 
-// Function to load admin purchasing options
+// Function to load PIC purchasing options
 async function loadAdminPurchasingOptions() {
     try {
         const response = await fetch('/marketing/proyek/users');
@@ -1353,9 +1353,9 @@ async function loadAdminPurchasingOptions() {
             const select = document.getElementById('adminPurchasingSelect');
             if (select) {
                 // Clear existing options except the first one
-                select.innerHTML = '<option value="">Pilih admin purchasing</option>';
+                select.innerHTML = '<option value="">Pilih PIC purchasing</option>';
 
-                // Add options for purchasing and admin roles
+                // Add options for purchasing and PIC roles
                 data.data.forEach(user => {
                     if (user.role === 'admin_purchasing' || user.role === 'superadmin') {
                         const option = document.createElement('option');
@@ -1367,13 +1367,13 @@ async function loadAdminPurchasingOptions() {
             }
         }
     } catch (error) {
-        console.error('Error loading admin purchasing options:', error);
+        console.error('Error loading PIC purchasing options:', error);
     }
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Load admin marketing options
+    // Load PIC marketing options
     loadAdminMarketingOptions();
 
     // Load admin purchasing options
