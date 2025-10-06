@@ -117,22 +117,22 @@ class DashboardController extends Controller
         $currentYear = Carbon::now()->year;
         $lastMonth = Carbon::now()->subMonth();
 
-        // Calculate omset bulan ini (revenue this month) - use same method as omset report
-        // Using total_harga from riwayat_hps for completed projects only
-        $omsetBulanIni = DB::table('riwayat_hps')
-            ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-            ->where('proyek.status', 'Selesai')
-            ->whereMonth('proyek.created_at', $currentMonth)
-            ->whereYear('proyek.created_at', $currentYear)
-            ->sum('riwayat_hps.total_harga') ?? 0;
+        // Calculate omset bulan ini (revenue this month) - using same method as LaporanController
+        // Using harga_total from proyek table and tanggal field for completed projects only
+        $omsetBulanIni = DB::table('proyek')
+            ->where('status', 'Selesai')
+            ->whereNotNull('harga_total')
+            ->whereMonth('tanggal', $currentMonth)
+            ->whereYear('tanggal', $currentYear)
+            ->sum('harga_total') ?? 0;
 
         // Calculate omset bulan lalu untuk perbandingan
-        $omsetBulanLalu = DB::table('riwayat_hps')
-            ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-            ->where('proyek.status', 'Selesai')
-            ->whereMonth('proyek.created_at', $lastMonth->month)
-            ->whereYear('proyek.created_at', $lastMonth->year)
-            ->sum('riwayat_hps.total_harga') ?? 0;
+        $omsetBulanLalu = DB::table('proyek')
+            ->where('status', 'Selesai')
+            ->whereNotNull('harga_total')
+            ->whereMonth('tanggal', $lastMonth->month)
+            ->whereYear('tanggal', $lastMonth->year)
+            ->sum('harga_total') ?? 0;
 
         // Calculate growth percentage
         $omsetGrowth = $omsetBulanLalu > 0 ?
@@ -224,12 +224,12 @@ class DashboardController extends Controller
 
         // If specific month is requested, only return that month's data
         if ($specificMonth) {
-            $revenue = DB::table('riwayat_hps')
-                ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->where('proyek.status', 'Selesai')
-                ->whereMonth('proyek.created_at', $specificMonth)
-                ->whereYear('proyek.created_at', $year)
-                ->sum('riwayat_hps.total_harga') ?? 0;
+            $revenue = DB::table('proyek')
+                ->where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereMonth('tanggal', $specificMonth)
+                ->whereYear('tanggal', $year)
+                ->sum('harga_total') ?? 0;
 
             // Still return 12 months but highlight the selected month
             for ($month = 1; $month <= 12; $month++) {
@@ -242,12 +242,12 @@ class DashboardController extends Controller
         } else {
             // Return all months
             for ($month = 1; $month <= 12; $month++) {
-                $revenue = DB::table('riwayat_hps')
-                    ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                    ->where('proyek.status', 'Selesai')
-                    ->whereMonth('proyek.created_at', $month)
-                    ->whereYear('proyek.created_at', $year)
-                    ->sum('riwayat_hps.total_harga') ?? 0;
+                $revenue = DB::table('proyek')
+                    ->where('status', 'Selesai')
+                    ->whereNotNull('harga_total')
+                    ->whereMonth('tanggal', $month)
+                    ->whereYear('tanggal', $year)
+                    ->sum('harga_total') ?? 0;
 
                 $monthlyData[] = [
                     'month' => $month,
@@ -265,19 +265,19 @@ class DashboardController extends Controller
      */
     private function getRevenuePerPerson()
     {
-        // Get marketing admins only
+        // Get marketing admins only - using same method as LaporanController
         $marketingAdmins = DB::table('users')
             ->select(
                 'users.nama',
                 'users.id_user',
-                DB::raw('SUM(riwayat_hps.total_harga) as total_revenue'),
+                DB::raw('SUM(proyek.harga_total) as total_revenue'),
                 DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
                 DB::raw("'Marketing' as role")
             )
             ->join('proyek', 'proyek.id_admin_marketing', '=', 'users.id_user')
-            ->join('riwayat_hps', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
             ->where('proyek.status', 'Selesai')
-            ->whereYear('proyek.created_at', Carbon::now()->year)
+            ->whereNotNull('proyek.harga_total')
+            ->whereYear('proyek.tanggal', Carbon::now()->year)
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_revenue', 'desc')
             ->take(10)
