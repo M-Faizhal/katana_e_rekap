@@ -310,7 +310,7 @@
         
         @php
             // Calculate summary data (same as in hps-ajukan)
-            $totalHppModal = $kalkulasiData->sum('harga_vendor');
+            $totalHppModal = $kalkulasiData->sum('jumlah_volume');
             $totalHps = $kalkulasiData->sum('hps');
             $totalDiskon = $kalkulasiData->sum('total_diskon');
             $totalVolume = $kalkulasiData->sum('jumlah_volume');
