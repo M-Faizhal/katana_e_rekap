@@ -3,9 +3,9 @@
 @section('title', 'Dashboard - Cyber KATANA')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="w-full px-4 sm:px-6 lg:px-8">
 <!-- Welcome Banner -->
-<div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
+<div class="bg-red-800 rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4 w-full">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Dashboard Cyber KATANA</h1>
@@ -18,9 +18,9 @@
 </div>
 
 <!-- Stats Cards Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 justify-items-center">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
     <!-- Card 1 - Total Omset Bulan Ini -->
-    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full max-w-sm">
+    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full">
         <div class="flex items-center space-x-3 sm:space-x-4">
             <div class="p-2 sm:p-3 rounded-xl bg-green-600 shadow-md">
                 <i class="fas fa-chart-line text-white text-lg sm:text-xl"></i>
@@ -38,7 +38,7 @@
     </div>
 
     <!-- Card 2 - Total Proyek Aktif -->
-    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full max-w-sm">
+    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full">
         <div class="flex items-center space-x-3 sm:space-x-4">
             <div class="p-2 sm:p-3 rounded-xl bg-blue-600 shadow-md">
                 <i class="fas fa-project-diagram text-white text-lg sm:text-xl"></i>
@@ -56,7 +56,7 @@
     </div>
 
     <!-- Card 3 - Total Hutang -->
-    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full max-w-sm">
+    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full">
         <div class="flex items-center space-x-3 sm:space-x-4">
             <div class="p-2 sm:p-3 rounded-xl bg-red-600 shadow-md">
                 <i class="fas fa-credit-card text-white text-lg sm:text-xl"></i>
@@ -74,7 +74,7 @@
     </div>
 
     <!-- Card 4 - Total Piutang -->
-    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full max-w-sm">
+    <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full">
         <div class="flex items-center space-x-3 sm:space-x-4">
             <div class="p-2 sm:p-3 rounded-xl bg-yellow-600 shadow-md">
                 <i class="fas fa-hand-holding-usd text-white text-lg sm:text-xl"></i>
@@ -93,7 +93,7 @@
 </div>
 
 <!-- Large Content Cards -->
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8 w-full">
     <!-- Left Large Card - Grafik Omset Per Bulan -->
     <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
@@ -115,7 +115,7 @@
                 </select>
             </div>
         </div>
-        <div class="h-64 sm:h-80">
+        <div class="h-64 sm:h-80 lg:h-96 w-full">
             <canvas id="dashboardOmsetChart"></canvas>
         </div>
     </div>
@@ -137,8 +137,8 @@
             </a>
         </div>
 
-        <div>
-            <table class="min-w-full divide-y divide-gray-200">
+        <div class="w-full overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 w-full">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
@@ -233,7 +233,7 @@
 </div>
 
 <!-- Hutang dan Piutang Section -->
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8 w-full">
     <!-- Left Card - Hutang Vendor -->
     <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 hover:shadow-xl transition-all duration-300 cursor-pointer" onclick="window.location.href='{{ route('laporan.hutang-vendor') }}'">
         <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
@@ -245,7 +245,7 @@
                 </a>
             </div>
         </div>
-        <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
+        <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto w-full">
             @forelse($vendorDebts as $debt)
             @php
                 if ($debt->warning_hps) {
@@ -331,7 +331,7 @@
                 </a>
             </div>
         </div>
-        <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
+        <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto w-full">
             @forelse($clientReceivables as $receivable)
             @php
                 // Status color based on payment status and overdue (consistent with laporan)
@@ -431,7 +431,7 @@
 </div>
 
 <!-- Usia Hutang Section -->
-<div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 mb-6 sm:mb-8">
+<div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 mb-6 sm:mb-8 w-full">
     <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
         <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Usia Piutang Klien (Top 5)</h3>
         <div class="flex items-center space-x-2">
@@ -444,7 +444,7 @@
 
     @if($debtAgeAnalysis->count() > 0)
     <!-- Chart Container -->
-    <div class="h-64 sm:h-80 mb-6">
+    <div class="h-64 sm:h-80 lg:h-96 mb-6 w-full">
         <canvas id="debtAgeChart"></canvas>
     </div>
     @else
@@ -457,7 +457,7 @@
     <!-- Legend for Age Categories -->
     <div class="mt-4 pt-4 border-t border-gray-200">
         <h4 class="text-sm font-medium text-gray-700 mb-3">Kategori Usia Hutang:</h4>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs w-full">
             <div class="flex items-center space-x-2">
                 <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                 <span class="text-gray-600">0-30 hari</span>
@@ -489,7 +489,7 @@
 
 
 <!-- Indonesia Map Section -->
-<div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 mb-6 sm:mb-8">
+<div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100 mb-6 sm:mb-8 w-full">
     <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
         <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Distribusi Geografis Penjualan</h3>
         <div class="flex space-x-2">
@@ -497,7 +497,7 @@
         </div>
     </div>
 
-    <div class="h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-blue-50 via-white to-green-50 rounded-2xl relative overflow-hidden shadow-inner border border-gray-100">
+    <div class="h-64 sm:h-80 lg:h-96 xl:h-[32rem] bg-gradient-to-br from-blue-50 via-white to-green-50 rounded-2xl relative overflow-hidden shadow-inner border border-gray-100 w-full">
         <!-- Leaflet Map Container -->
         <div id="indonesiaMap" class="w-full h-full rounded-2xl z-10"></div>
 
