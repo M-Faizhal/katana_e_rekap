@@ -747,8 +747,8 @@ function updateDokumentasi(pengirimanId) {
     // Set form action - gunakan route Laravel yang benar
     document.getElementById('formUpdateDokumentasi').action = `/purchasing/pengiriman/${pengirimanId}/update-dokumentasi`;
     
-    // Find pengiriman data
-    const pengirimanData = @json($pengirimanBerjalan);
+    // Find pengiriman data - perbaiki untuk handle pagination
+    const pengirimanData = @json($pengirimanBerjalan->items()); // Ambil items() dari paginated data
     const pengiriman = pengirimanData.find(p => p.id_pengiriman == pengirimanId);
     
     // Check if current user is assigned to this project or is superadmin
@@ -849,8 +849,8 @@ function updateDokumentasi(pengirimanId) {
 
 // Lihat detail pengiriman selesai
 function lihatDetailSelesai(pengirimanId) {
-    // Find pengiriman data
-    const pengirimanData = @json($pengirimanSelesai);
+    // Find pengiriman data - perbaiki untuk handle pagination
+    const pengirimanData = @json($pengirimanSelesai->items()); // Ambil items() dari paginated data
     const pengiriman = pengirimanData.find(p => p.id_pengiriman == pengirimanId);
     
     if (pengiriman) {
