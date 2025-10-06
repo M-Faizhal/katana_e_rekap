@@ -621,19 +621,18 @@ class DashboardController extends Controller
                 return collect([]);
             }
 
-            // Use total_harga from riwayat_hps for consistency with omset report
+            // Use harga_total from proyek for consistency with dashboard omset calculation
             $wilayahData = DB::table('proyek')
                 ->select(
                     DB::raw("TRIM(proyek.kab_kota) as city_name"),
-                    DB::raw('SUM(riwayat_hps.total_harga) as total_sales'),
+                    DB::raw('SUM(proyek.harga_total) as total_sales'),
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
-                    DB::raw('AVG(riwayat_hps.total_harga) as avg_sales')
+                    DB::raw('AVG(proyek.harga_total) as avg_sales')
                 )
-                ->join('riwayat_hps', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
                 ->where('proyek.status', 'Selesai')
                 ->whereNotNull('proyek.kab_kota')
                 ->where('proyek.kab_kota', '!=', '')
-                ->whereNotNull('riwayat_hps.total_harga')
+                ->whereNotNull('proyek.harga_total')
                 ->groupBy('proyek.kab_kota')
                 ->orderBy('total_sales', 'desc')
                 ->get();

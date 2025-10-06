@@ -442,7 +442,7 @@
         </div>
     </div>
 
-    @if($debtAgeAnalysis->count() > 0)
+    @if($debtAgeAnalysis && $debtAgeAnalysis->count() > 0)
     <!-- Chart Container -->
     <div class="h-64 sm:h-80 lg:h-96 mb-6 w-full">
         <canvas id="debtAgeChart"></canvas>
@@ -450,7 +450,7 @@
     @else
     <div class="text-center py-8 text-gray-500">
         <i class="fas fa-clock text-3xl mb-2"></i>
-        <p>Tidak ada data usia hutang saat ini</p>
+        <p>Tidak ada data usia piutang saat ini</p>
     </div>
     @endif
 
@@ -1282,12 +1282,18 @@ function toggleStats() {
 let dashboardOmsetChart;
 
 // Debt Age Chart Configuration
-@if($debtAgeAnalysis->count() > 0)
+@if($debtAgeAnalysis && $debtAgeAnalysis->count() > 0)
 document.addEventListener('DOMContentLoaded', function() {
     const debtAgeCtx = document.getElementById('debtAgeChart');
     if (debtAgeCtx) {
         // Take only top 5 items and prepare data
-        const debtData = @json($debtAgeAnalysis->take(5));
+        const debtData = @json($debtAgeAnalysis->take(5)->values());
+        
+        // Validate data before processing
+        if (!debtData || !Array.isArray(debtData) || debtData.length === 0) {
+            console.log('No debt age data available for chart');
+            return;
+        }
 
         // Function to get color based on age category
         function getColorByAgeCategory(colorClass) {
@@ -1312,14 +1318,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return colorMap[colorClass] || colorMap['red'];
         }
 
-        // Prepare chart data
-        const labels = debtData.map(debt => debt.instansi);
-        const amounts = debtData.map(debt => debt.outstanding_amount);
-        const backgroundColors = debtData.map(debt => getColorByAgeCategory(debt.color_class).bg);
-        const borderColors = debtData.map(debt => getColorByAgeCategory(debt.color_class).border);
+
 
         // Format currency for tooltips
         function formatCurrency(value) {
+            if (!value || isNaN(value)) return 'Rp 0';
             if (value >= 1000000000) {
                 return 'Rp ' + (value / 1000000000).toFixed(1) + 'M';
             } else if (value >= 1000000) {
@@ -1330,6 +1333,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 return 'Rp ' + value.toLocaleString();
             }
         }
+
+        // Additional validation for each debt item
+        const validDebtData = debtData.filter(debt => 
+            debt && 
+            typeof debt === 'object' && 
+            debt.instansi && 
+            debt.outstanding_amount !== undefined
+        );
+
+        if (validDebtData.length === 0) {
+            console.log('No valid debt age data after filtering');
+            return;
+        }
+
+        // Use validated data
+        const labels = validDebtData.map(debt => debt.instansi || 'Unknown');
+        const amounts = validDebtData.map(debt => parseFloat(debt.outstanding_amount) || 0);
+        const backgroundColors = validDebtData.map(debt => getColorByAgeCategory(debt.color_class || 'red').bg);
+        const borderColors = validDebtData.map(debt => getColorByAgeCategory(debt.color_class || 'red').border);
 
         new Chart(debtAgeCtx, {
             type: 'bar',
