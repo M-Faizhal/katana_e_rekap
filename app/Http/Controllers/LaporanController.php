@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Barang;
-use App\Models\User;
+use App\Models\User;    
 use App\Models\Proyek;
 use App\Models\Vendor;
 use App\Models\Penawaran;
@@ -91,7 +91,7 @@ class LaporanController extends Controller
 
         // Get year range from project data
         $yearRange = $this->getYearRange();
-
+        
         // Debug log
         Log::info('Year range data:', $yearRange);
 
@@ -113,7 +113,7 @@ class LaporanController extends Controller
 
         // Get vendor debt list
         $hutangVendor = $this->getHutangVendorList($request);
-
+        
         // Get unique vendors for filter dropdown
         $allVendors = collect();
         if ($hutangVendor->count() > 0) {
@@ -212,7 +212,7 @@ class LaporanController extends Controller
             $penawaranAcc = Penawaran::where('id_proyek', $project->id_proyek)
                 ->where('status', 'ACC')
                 ->first();
-
+            
             // Hanya ambil nilai dari penawaran ACC, jika tidak ada maka 0
             $project->total_nilai = $penawaranAcc ? ($penawaranAcc->total_penawaran ?? 0) : 0;
         }
@@ -333,7 +333,7 @@ class LaporanController extends Controller
 
     $callback = function() use ($projects) {
         $file = fopen('php://output', 'w');
-
+        
         // Add BOM for proper UTF-8 encoding in Excel
         fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
@@ -361,19 +361,19 @@ class LaporanController extends Controller
             if ($project->penawaran && $project->penawaran->penawaranDetail) {
                 foreach ($project->penawaran->penawaranDetail as $detail) {
                     // Clean data - hapus koma dan karakter khusus yang bisa merusak CSV
-                    $instansi = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '],
+                    $instansi = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
                         $project->instansi);
-
-                    $namaBarang = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '],
+                    
+                    $namaBarang = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
                         $detail->barang->nama_barang ?? '-');
-
-                    $spesifikasi = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '],
+                    
+                    $spesifikasi = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
                         $detail->barang->spesifikasi ?? $detail->barang->deskripsi ?? '-');
-
-                    $jenisPN = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '],
+                    
+                    $jenisPN = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
                         $project->jenis_pengadaan);
-
-                    $note = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '],
+                    
+                    $note = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
                         $project->catatan ?? '-');
 
                     fputcsv($file, [
@@ -392,7 +392,7 @@ class LaporanController extends Controller
                         $project->adminPurchasing->nama ?? '-',
                         ucfirst($project->status)
                     ], ';');
-
+                    
                     $no++;
                 }
             }
@@ -457,7 +457,7 @@ public function exportExcel(Request $request)
 {
     $projects = $this->getFilteredProjects($request);
     $filename = 'laporan-proyek-' . Carbon::now()->format('Y-m-d') . '.xlsx';
-
+    
     return Excel::download(new ProjectsExport($projects), $filename);
 }
 */
@@ -477,7 +477,7 @@ public function exportTSV(Request $request)
 
     $callback = function() use ($projects) {
         $file = fopen('php://output', 'w');
-
+        
         // Add BOM
         fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
@@ -526,7 +526,7 @@ public function exportTSV(Request $request)
                         $project->adminPurchasing->nama ?? '-',
                         ucfirst($project->status)
                     ];
-
+                    
                     fwrite($file, implode("\t", $row) . "\n");
                     $no++;
                 }
@@ -555,7 +555,7 @@ public function exportTSV(Request $request)
         $penawaranAcc = Penawaran::where('id_proyek', $project->id_proyek)
             ->where('status', 'ACC')
             ->first();
-
+        
         $totalNilai = $penawaranAcc ? ($penawaranAcc->total_penawaran ?? 0) : 0;
 
         return response()->json([
@@ -616,75 +616,62 @@ public function exportTSV(Request $request)
     {
         $currentMonth = Carbon::now();
         $currentYear = Carbon::now()->year;
-
+        
         // Get year filter parameter
         $selectedYear = $request ? $request->get('year') : null;
-
+        
         if ($selectedYear && $selectedYear !== 'all') {
             // For specific year
             $year = (int) $selectedYear;
-
+            
             // Total Omset = Omset kumulatif dari awal sampai tahun terpilih
-            $totalOmset = DB::table('riwayat_hps')
-                ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->where('proyek.status', 'Selesai')
-                ->whereNotNull('riwayat_hps.total_harga')
-                ->whereYear('proyek.tanggal', '<=', $year)
-                ->sum('riwayat_hps.total_harga');
-
+            $totalOmset = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', '<=', $year)
+                ->sum('harga_total');
+                
             // Omset Tahun = Omset hanya di tahun terpilih saja
-            $omsetTahunIni = DB::table('riwayat_hps')
-                ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->where('proyek.status', 'Selesai')
-                ->whereNotNull('riwayat_hps.total_harga')
-                ->whereYear('proyek.tanggal', $year)
-                ->sum('riwayat_hps.total_harga');
-
+            $omsetTahunIni = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', $year)
+                ->sum('harga_total');
+            
             // Omset bulan ini (jika tahun terpilih adalah tahun sekarang)
             if ($year == $currentYear) {
-                $omsetBulanIni = DB::table('riwayat_hps')
-                    ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                    ->where('proyek.status', 'Selesai')
-                    ->whereNotNull('riwayat_hps.total_harga')
-                    ->whereYear('proyek.tanggal', $year)
-                    ->whereMonth('proyek.tanggal', $currentMonth->month)
-                    ->sum('riwayat_hps.total_harga');
+                $omsetBulanIni = Proyek::where('status', 'Selesai')
+                    ->whereNotNull('harga_total')
+                    ->whereYear('tanggal', $year)
+                    ->whereMonth('tanggal', $currentMonth->month)
+                    ->sum('harga_total');
             } else {
                 // Jika bukan tahun sekarang, ambil bulan terakhir dari tahun itu
-                $omsetBulanIni = DB::table('riwayat_hps')
-                    ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                    ->where('proyek.status', 'Selesai')
-                    ->whereNotNull('riwayat_hps.total_harga')
-                    ->whereYear('proyek.tanggal', $year)
-                    ->whereMonth('proyek.tanggal', 12) // Desember
-                    ->sum('riwayat_hps.total_harga');
+                $omsetBulanIni = Proyek::where('status', 'Selesai')
+                    ->whereNotNull('harga_total')
+                    ->whereYear('tanggal', $year)
+                    ->whereMonth('tanggal', 12) // Desember
+                    ->sum('harga_total');
             }
         } else {
             // For "Semua Tahun" option, show cumulative data
-
+            
             // Total Omset - semua proyek selesai dari awal sampai akhir
-            $totalOmset = DB::table('riwayat_hps')
-                ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->where('proyek.status', 'Selesai')
-                ->whereNotNull('riwayat_hps.total_harga')
-                ->sum('riwayat_hps.total_harga');
+            $totalOmset = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->sum('harga_total');
 
             // Omset Tahun Ini - proyek selesai tahun ini
-            $omsetTahunIni = DB::table('riwayat_hps')
-                ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->where('proyek.status', 'Selesai')
-                ->whereNotNull('riwayat_hps.total_harga')
-                ->whereYear('proyek.tanggal', $currentYear)
-                ->sum('riwayat_hps.total_harga');
+            $omsetTahunIni = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', $currentYear)
+                ->sum('harga_total');
 
             // Omset Bulan Ini - proyek selesai bulan ini
-            $omsetBulanIni = DB::table('riwayat_hps')
-                ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->where('proyek.status', 'Selesai')
-                ->whereNotNull('riwayat_hps.total_harga')
-                ->whereYear('proyek.tanggal', $currentYear)
-                ->whereMonth('proyek.tanggal', $currentMonth->month)
-                ->sum('riwayat_hps.total_harga');
+            $omsetBulanIni = Proyek::where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', $currentYear)
+                ->whereMonth('tanggal', $currentMonth->month)
+                ->sum('harga_total');
+        }
 
         return [
             'total_omset' => $totalOmset ?? 0,
@@ -692,7 +679,6 @@ public function exportTSV(Request $request)
             'omset_bulan_ini' => $omsetBulanIni ?? 0,
         ];
     }
-}
 
     /**
      * Get monthly omset data (with year filter)
@@ -700,17 +686,16 @@ public function exportTSV(Request $request)
     private function getMonthlyOmset(Request $request)
     {
         $selectedYear = $request->get('year');
-
+        
         if ($selectedYear && $selectedYear === 'all') {
             // For "Semua Tahun", show yearly data instead of monthly
-            return DB::table('riwayat_hps')
-                ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->where('proyek.status', 'Selesai')
-                ->whereNotNull('riwayat_hps.total_harga')
+            return DB::table('proyek')
+                ->where('status', 'Selesai')
+                ->whereNotNull('harga_total')
                 ->select(
-                    DB::raw('YEAR(proyek.tanggal) as year'),
-                    DB::raw('SUM(riwayat_hps.total_harga) as total_omset'),
-                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
+                    DB::raw('YEAR(tanggal) as year'),
+                    DB::raw('SUM(harga_total) as total_omset'),
+                    DB::raw('COUNT(id_proyek) as jumlah_proyek')
                 )
                 ->groupBy('year')
                 ->orderBy('year')
@@ -718,16 +703,15 @@ public function exportTSV(Request $request)
         } else {
             // For specific year or default (current year), show monthly data
             $year = $selectedYear ? (int) $selectedYear : Carbon::now()->year;
-
-            return DB::table('riwayat_hps')
-                ->join('proyek', 'riwayat_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->where('proyek.status', 'Selesai')
-                ->whereNotNull('riwayat_hps.total_harga')
-                ->whereYear('proyek.tanggal', $year)
+            
+            return DB::table('proyek')
+                ->where('status', 'Selesai')
+                ->whereNotNull('harga_total')
+                ->whereYear('tanggal', $year)
                 ->select(
-                    DB::raw('MONTH(proyek.tanggal) as month'),
-                    DB::raw('SUM(riwayat_hps.total_harga) as total_omset'),
-                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
+                    DB::raw('MONTH(tanggal) as month'),
+                    DB::raw('SUM(harga_total) as total_omset'),
+                    DB::raw('COUNT(id_proyek) as jumlah_proyek')
                 )
                 ->groupBy('month')
                 ->orderBy('month')
@@ -768,25 +752,24 @@ public function exportTSV(Request $request)
         // Base query
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
-            ->join('riwayat_hps', 'proyek.id_proyek', '=', 'riwayat_hps.id_proyek')
             ->where('proyek.status', 'Selesai')
-            ->whereNotNull('riwayat_hps.total_harga');
-
+            ->whereNotNull('proyek.harga_total');
+            
         // Apply year filter
         $selectedYear = $request ? $request->get('year') : null;
-
+        
         if ($selectedYear && $selectedYear !== 'all') {
             // For specific year
             $year = (int) $selectedYear;
             $query->whereYear('proyek.tanggal', $year);
         }
         // For "all" years, no additional filter needed
-
+        
         $result = $query->select(
                 'users.nama as name',
-                DB::raw('SUM(riwayat_hps.total_harga) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                DB::raw('AVG(riwayat_hps.total_harga) as rata_rata_omset_per_proyek')
+                DB::raw('SUM(proyek.harga_total) as total_omset'),
+                DB::raw('COUNT(proyek.id_proyek) as jumlah_proyek'),
+                DB::raw('AVG(proyek.harga_total) as rata_rata_omset_per_proyek')
             )
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_omset', 'desc')
@@ -806,10 +789,10 @@ public function exportTSV(Request $request)
                 ->groupBy('users.id_user', 'users.nama')
                 ->limit(10)
                 ->get();
-
+            
             return $allMarketingUsers;
         }
-
+        
         return $result;
     }
 
@@ -821,25 +804,24 @@ public function exportTSV(Request $request)
         // Base query
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_purchasing')
-            ->join('riwayat_hps', 'proyek.id_proyek', '=', 'riwayat_hps.id_proyek')
             ->where('proyek.status', 'Selesai')
-            ->whereNotNull('riwayat_hps.total_harga');
-
+            ->whereNotNull('proyek.harga_total');
+            
         // Apply year filter
         $selectedYear = $request ? $request->get('year') : null;
-
+        
         if ($selectedYear && $selectedYear !== 'all') {
             // For specific year
             $year = (int) $selectedYear;
             $query->whereYear('proyek.tanggal', $year);
         }
         // For "all" years, no additional filter needed
-
+        
         $result = $query->select(
                 'users.nama as name',
-                DB::raw('SUM(riwayat_hps.total_harga) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                DB::raw('AVG(riwayat_hps.total_harga) as rata_rata_omset_per_proyek')
+                DB::raw('SUM(proyek.harga_total) as total_omset'),
+                DB::raw('COUNT(proyek.id_proyek) as jumlah_proyek'),
+                DB::raw('AVG(proyek.harga_total) as rata_rata_omset_per_proyek')
             )
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_omset', 'desc')
@@ -859,10 +841,10 @@ public function exportTSV(Request $request)
                 ->groupBy('users.id_user', 'users.nama')
                 ->limit(10)
                 ->get();
-
+            
             return $allPurchasingUsers;
         }
-
+        
         return $result;
     }
 
@@ -877,11 +859,11 @@ public function exportTSV(Request $request)
 
         // Get filtered monthly omset data
         $monthlyOmset = $this->getFilteredMonthlyOmset($year, $month, $period);
-
+        
         // Get filtered admin data
         $adminMarketing = $this->getAdminMarketingOmset($request);
         $adminPurchasing = $this->getAdminPurchasingOmset($request);
-
+        
         // Get updated stats for the filtered period
         $stats = $this->getFilteredOmsetStatistics($year, $month);
 
@@ -916,11 +898,11 @@ public function exportTSV(Request $request)
         } else {
             // For monthly or quarterly, filter by year and optionally by month
             $query->whereYear('proyek.updated_at', $year);
-
+            
             if ($month) {
                 $query->whereMonth('proyek.updated_at', $month);
             }
-
+            
             return $query->select(
                     DB::raw('MONTH(proyek.updated_at) as month'),
                     DB::raw('SUM(kalkulasi_hps.nett_income) as total_omset'),
@@ -946,7 +928,7 @@ public function exportTSV(Request $request)
         });
 
         $currentOmset = $currentQuery->sum('nett_income');
-
+        
         // For comparison, get previous period data
         $previousQuery = KalkulasiHps::whereHas('proyek', function($query) use ($year, $month) {
             $query->where('status', 'Selesai');
@@ -984,7 +966,7 @@ public function exportTSV(Request $request)
     {
         // Get year from chart_year parameter or default to current year
         $year = $request->get('chart_year', $request->get('year', Carbon::now()->year));
-
+        
         // Get monthly project data for the entire year (12 months, excluding 'Gagal' status)
         $monthlyProjects = DB::table('proyek')
             ->select(
@@ -1001,7 +983,7 @@ public function exportTSV(Request $request)
         // Create complete 12-month data array
         $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $monthlyProjectsFormatted = [];
-
+        
         for ($i = 1; $i <= 12; $i++) {
             $monthData = $monthlyProjects->firstWhere('month_num', $i);
             $monthlyProjectsFormatted[] = [
@@ -1041,7 +1023,7 @@ public function exportTSV(Request $request)
 
         // Create complete 12-month values data array
         $monthlyValuesFormatted = [];
-
+        
         for ($i = 1; $i <= 12; $i++) {
             $monthData = $monthlyValues->firstWhere('month_num', $i);
             $monthlyValuesFormatted[] = [
@@ -1064,7 +1046,7 @@ public function exportTSV(Request $request)
     {
         $stats = $this->getStatistics();
         $chartData = $this->getChartData($request);
-
+        
         return response()->json([
             'stats' => $stats,
             'chartData' => $chartData,
@@ -1084,10 +1066,10 @@ public function exportTSV(Request $request)
     {
         // Hitung total record hutang vendor (vendor per proyek)
         // Menggunakan logika yang sama dengan getHutangVendorList untuk konsistensi
-
+        
         $totalHutang = 0;
         $jumlahHutangVendor = 0;
-
+        
         // Ambil proyek yang perlu bayar dengan cara yang sama seperti getHutangVendorList
         $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
             ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
@@ -1146,12 +1128,12 @@ public function exportTSV(Request $request)
                 $jumlahHutangVendor++;
             }
         }
-
+            
         // For overdue payments, we need pending payments past due date
         $hutangJatuhTempo = Pembayaran::where('status_verifikasi', '!=', 'Approved')
             ->where('tanggal_bayar', '<', Carbon::now())
             ->sum('nominal_bayar');
-
+            
         $rataRataHutang = $jumlahHutangVendor > 0 ? $totalHutang / $jumlahHutangVendor : 0;
 
         return [
@@ -1178,12 +1160,12 @@ public function exportTSV(Request $request)
                 $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
                      ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
             })
-            ->leftJoin(DB::raw('(SELECT
-                p.id_vendor,
-                pn.id_proyek,
+            ->leftJoin(DB::raw('(SELECT 
+                p.id_vendor, 
+                pn.id_proyek, 
                 COALESCE(SUM(CASE WHEN p.status_verifikasi = "Approved" THEN p.nominal_bayar ELSE 0 END), 0) as total_dibayar_approved
-                FROM pembayaran p
-                JOIN penawaran pn ON p.id_penawaran = pn.id_penawaran
+                FROM pembayaran p 
+                JOIN penawaran pn ON p.id_penawaran = pn.id_penawaran 
                 GROUP BY p.id_vendor, pn.id_proyek
             ) as pb'), function($join) {
                 $join->on('vendor.id_vendor', '=', 'pb.id_vendor')
@@ -1202,9 +1184,9 @@ public function exportTSV(Request $request)
                 'vendor.email',
                 DB::raw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) as total_vendor'),
                 DB::raw('COALESCE(MAX(pb.total_dibayar_approved), 0) as total_dibayar_approved'),
-                DB::raw('CASE
+                DB::raw('CASE 
                     WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0 THEN "Data kalkulasi HPS belum diisi"
-                    ELSE NULL
+                    ELSE NULL 
                 END as warning_hps')
             ])
             ->groupBy([
@@ -1238,7 +1220,7 @@ public function exportTSV(Request $request)
             $sisaBayar = $item->total_vendor - $item->total_dibayar_approved;
             $persenBayar = $item->total_vendor > 0 ? ($item->total_dibayar_approved / $item->total_vendor) * 100 : 0;
             $statusLunas = $item->total_vendor > 0 ? $sisaBayar <= 0 : false;
-
+            
             return (object) [
                 'vendor' => (object) [
                     'id_vendor' => $item->id_vendor,
@@ -1298,7 +1280,7 @@ public function exportTSV(Request $request)
             foreach ($proyek->semuaPenawaran as $penawaran) {
                 // Cek apakah ada penagihan untuk penawaran ini
                 $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
-
+                
                 if (!$penagihan) {
                     // Belum ada penagihan sama sekali - semua jadi piutang
                     $totalPiutang += $penawaran->total_penawaran ?? 0;
@@ -1311,11 +1293,11 @@ public function exportTSV(Request $request)
                     // Ada penagihan tapi belum lunas
                     $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
                     $sisaPembayaran = $penagihan->total_harga - $totalBayar;
-
+                    
                     if ($sisaPembayaran > 0) {
                         $totalPiutang += $sisaPembayaran;
                         $jumlahProyek++;
-
+                        
                         // Check if overdue
                         if ($penagihan->tanggal_jatuh_tempo && $penagihan->tanggal_jatuh_tempo < now()) {
                             $piutangJatuhTempo += $sisaPembayaran;
@@ -1324,7 +1306,7 @@ public function exportTSV(Request $request)
                 }
             }
         }
-
+            
         $rataRataPiutang = $jumlahProyek > 0 ? $totalPiutang / $jumlahProyek : 0;
 
         return [
@@ -1381,13 +1363,13 @@ public function exportTSV(Request $request)
         foreach ($proyekAcc as $proyek) {
             foreach ($proyek->semuaPenawaran as $penawaran) {
                 $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
-
+                
                 $shouldInclude = false;
                 $sisaPembayaran = 0;
                 $status = '';
                 $tanggalJatuhTempo = null;
                 $nomorInvoice = '';
-
+                
                 // Debug log untuk setiap iterasi
                 Log::info('Processing penawaran:', [
                     'proyek' => $proyek->kode_proyek,
@@ -1395,7 +1377,7 @@ public function exportTSV(Request $request)
                     'has_penagihan' => $penagihan ? true : false,
                     'penagihan_status' => $penagihan ? $penagihan->status_pembayaran : null
                 ]);
-
+                
                 if (!$penagihan) {
                     // Belum ada penagihan sama sekali
                     $shouldInclude = true;
@@ -1403,7 +1385,7 @@ public function exportTSV(Request $request)
                     $status = 'belum_ditagih';
                     $tanggalJatuhTempo = now()->addDays(30); // Default 30 hari dari sekarang
                     $nomorInvoice = 'Belum Ditagih';
-
+                    
                     Log::info('Case: Belum ada penagihan', [
                         'proyek' => $proyek->kode_proyek,
                         'penawaran_id' => $penawaran->id_penawaran,
@@ -1413,14 +1395,14 @@ public function exportTSV(Request $request)
                     // Ada penagihan tapi belum lunas
                     $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
                     $sisaPembayaran = $penagihan->total_harga - $totalBayar;
-
+                    
                     if ($sisaPembayaran > 0) {
                         $shouldInclude = true;
                         $status = $penagihan->status_pembayaran;
                         $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
                         $nomorInvoice = $penagihan->nomor_invoice;
                     }
-
+                    
                     Log::info('Case: Ada penagihan belum lunas', [
                         'proyek' => $proyek->kode_proyek,
                         'penawaran_id' => $penawaran->id_penawaran,
@@ -1438,7 +1420,7 @@ public function exportTSV(Request $request)
                     $status = $penagihan->status_pembayaran;
                     $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
                     $nomorInvoice = $penagihan->nomor_invoice;
-
+                    
                     Log::info('Case: Show all (lunas)', [
                         'proyek' => $proyek->kode_proyek,
                         'penawaran_id' => $penawaran->id_penawaran,
@@ -1491,8 +1473,8 @@ public function exportTSV(Request $request)
                         'sisa_pembayaran' => $sisaPembayaran,
                         'status_pembayaran' => $status,
                         'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
-                        'hari_telat' => $tanggalJatuhTempo && $tanggalJatuhTempo < now()
-                            ? now()->diffInDays($tanggalJatuhTempo)
+                        'hari_telat' => $tanggalJatuhTempo && $tanggalJatuhTempo < now() 
+                            ? now()->diffInDays($tanggalJatuhTempo) 
                             : 0,
                     ];
 
@@ -1548,7 +1530,7 @@ public function exportTSV(Request $request)
 
         // Get omset data for export
         $omsetData = $this->getOmsetData($year, $month, $period);
-
+        
         // Create request object for admin methods
         $filterRequest = new Request();
         $filterRequest->merge([
@@ -1556,7 +1538,7 @@ public function exportTSV(Request $request)
             'month' => $month,
             'period' => $period
         ]);
-
+        
         $adminMarketing = $this->getAdminMarketingOmset($filterRequest);
         $adminPurchasing = $this->getAdminPurchasingOmset($filterRequest);
 
@@ -1582,7 +1564,7 @@ public function exportTSV(Request $request)
 
         $callback = function() use ($omsetData, $adminMarketing, $adminPurchasing, $year, $month, $period) {
             $file = fopen('php://output', 'w');
-
+            
             // Add BOM for proper UTF-8 encoding in Excel
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
@@ -1599,20 +1581,20 @@ public function exportTSV(Request $request)
             // Omset per bulan/periode
             fputcsv($file, ['DATA OMSET PER ' . strtoupper($period)], ';');
             fputcsv($file, ['Periode', 'Jumlah Omset (Rp)'], ';');
-
+            
             foreach ($omsetData as $data) {
                 fputcsv($file, [
                     $data['label'],
                     number_format($data['value'], 0, ',', '.')
                 ], ';');
             }
-
+            
             fputcsv($file, [], ';'); // Empty row
 
             // Top Marketing
             fputcsv($file, ['TOP MARKETING'], ';');
             fputcsv($file, ['Nama Admin', 'Jumlah Proyek', 'Total Omset (Rp)'], ';');
-
+            
             foreach ($adminMarketing as $admin) {
                 fputcsv($file, [
                     $admin->name ?? $admin->nama ?? 'N/A',
@@ -1620,13 +1602,13 @@ public function exportTSV(Request $request)
                     number_format($admin->total_omset ?? 0, 0, ',', '.')
                 ], ';');
             }
-
+            
             fputcsv($file, [], ';'); // Empty row
 
             // Top Purchasing
             fputcsv($file, ['TOP PURCHASING'], ';');
             fputcsv($file, ['Nama Admin', 'Jumlah Proyek', 'Total Omset (Rp)'], ';');
-
+            
             foreach ($adminPurchasing as $admin) {
                 fputcsv($file, [
                     $admin->name ?? $admin->nama ?? 'N/A',
@@ -1647,14 +1629,14 @@ public function exportTSV(Request $request)
     private function getOmsetData($year, $month = null, $period = 'monthly')
     {
         $data = [];
-
+        
         if ($period === 'monthly') {
             // Get monthly data for the year
             for ($m = 1; $m <= 12; $m++) {
                 if ($month && $month != $m) {
                     continue; // Skip if specific month is requested
                 }
-
+                
                 // Use the same logic as other methods - exclude only Gagal and Menunggu
                 $omset = KalkulasiHps::whereHas('proyek', function($q) use ($year, $m) {
                     $q->whereNotIn('status', ['Gagal', 'Menunggu'])
@@ -1673,7 +1655,7 @@ public function exportTSV(Request $request)
             for ($q = 1; $q <= 4; $q++) {
                 $startMonth = ($q - 1) * 3 + 1;
                 $endMonth = $q * 3;
-
+                
                 $omset = KalkulasiHps::whereHas('proyek', function($query) use ($year, $startMonth, $endMonth) {
                     $query->whereNotIn('status', ['Gagal', 'Menunggu'])
                           ->whereYear('created_at', $year)
@@ -1720,7 +1702,7 @@ public function exportTSV(Request $request)
 
         // Ensure min year is not less than 2020 (reasonable minimum)
         $minYear = max($minYear, 2020);
-
+        
         // Allow max year to extend to next year for future projects
         $maxYear = max($maxYear, $currentYear);
 
