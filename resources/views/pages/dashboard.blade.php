@@ -271,11 +271,11 @@
                         <i class="fas fa-building text-white text-sm sm:text-base"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $debt->nama_vendor }}</p>
-                        @if($debt->jenis_perusahaan)
+                        <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $debt->nama_vendor ?? 'Unknown Vendor' }}</p>
+                        @if(isset($debt->jenis_perusahaan) && $debt->jenis_perusahaan)
                             <p class="text-xs sm:text-sm text-gray-600">{{ $debt->jenis_perusahaan }}</p>
                         @endif
-                        <p class="text-xs text-{{ $statusColor }}-600 font-medium">{{ $debt->kode_proyek }} - {{ $debt->instansi }}</p>
+                        <p class="text-xs text-{{ $statusColor }}-600 font-medium">{{ $debt->kode_proyek ?? '-' }} - {{ $debt->instansi ?? '-' }}</p>
                     </div>
                 </div>
                 <div class="text-right flex-shrink-0 ml-2">
@@ -336,10 +336,13 @@
             @php
                 // Status color based on payment status and overdue (consistent with laporan)
                 $statusColor = 'gray';
-                if ($receivable->status_pembayaran == 'belum_bayar' || $receivable->status_pembayaran == 'belum_ditagih') {
-                    $statusColor = $receivable->days_overdue > 0 ? 'red' : 'yellow';
-                } elseif ($receivable->status_pembayaran == 'dp') {
-                    $statusColor = $receivable->days_overdue > 0 ? 'orange' : 'blue';
+                $statusPembayaran = $receivable->status_pembayaran ?? 'unknown';
+                $daysOverdue = $receivable->days_overdue ?? 0;
+
+                if ($statusPembayaran == 'belum_bayar' || $statusPembayaran == 'belum_ditagih') {
+                    $statusColor = $daysOverdue > 0 ? 'red' : 'yellow';
+                } elseif ($statusPembayaran == 'dp') {
+                    $statusColor = $daysOverdue > 0 ? 'orange' : 'blue';
                 } else {
                     $statusColor = 'green';
                 }
@@ -353,28 +356,28 @@
                         <div class="flex items-center space-x-2 mb-1">
                             <p class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ $receivable->instansi ?? '-' }}</p>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                                @if($receivable->status_pembayaran == 'belum_bayar' || $receivable->status_pembayaran == 'belum_ditagih') bg-yellow-100 text-yellow-800
-                                @elseif($receivable->status_pembayaran == 'dp') bg-blue-100 text-blue-800
+                                @if($statusPembayaran == 'belum_bayar' || $statusPembayaran == 'belum_ditagih') bg-yellow-100 text-yellow-800
+                                @elseif($statusPembayaran == 'dp') bg-blue-100 text-blue-800
                                 @else bg-gray-100 text-gray-800 @endif">
-                                @if($receivable->status_pembayaran == 'belum_bayar')
+                                @if($statusPembayaran == 'belum_bayar')
                                     Belum Bayar
-                                @elseif($receivable->status_pembayaran == 'belum_ditagih')
+                                @elseif($statusPembayaran == 'belum_ditagih')
                                     Belum Ditagih
-                                @elseif($receivable->status_pembayaran == 'dp')
+                                @elseif($statusPembayaran == 'dp')
                                     DP Dibayar
                                 @else
-                                    {{ ucfirst($receivable->status_pembayaran) }}
+                                    {{ ucfirst($statusPembayaran) }}
                                 @endif
                             </span>
                         </div>
                         <p class="text-xs sm:text-sm text-gray-600">{{ $receivable->kode_proyek ?? '-' }}</p>
-                        <p class="text-xs text-{{ $statusColor }}-600 font-medium">Invoice: {{ $receivable->nomor_invoice }}</p>
+                        <p class="text-xs text-{{ $statusColor }}-600 font-medium">Invoice: {{ $receivable->nomor_invoice ?? '-' }}</p>
                     </div>
                 </div>
                 <div class="text-right flex-shrink-0 ml-2">
                     <p class="text-sm sm:text-lg font-bold text-{{ $statusColor }}-600">
                         @php
-                            $nominal = $receivable->sisa_piutang;
+                            $nominal = $receivable->sisa_piutang ?? 0;
                             if ($nominal >= 1000000000) {
                                 echo 'Rp ' . number_format($nominal / 1000000000, 1, ',', '.') . ' M';
                             } elseif ($nominal >= 1000000) {
@@ -386,15 +389,15 @@
                             }
                         @endphp
                     </p>
-                    @if($receivable->days_overdue > 0)
+                    @if($daysOverdue > 0)
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            {{ $receivable->days_overdue }} hari telat
+                            {{ $daysOverdue }} hari telat
                         </span>
                     @else
-                        @if($receivable->progress > 0)
-                            <div class="text-xs text-gray-500 mb-1">{{ number_format($receivable->progress, 1) }}% terbayar</div>
+                        @if(($receivable->progress ?? 0) > 0)
+                            <div class="text-xs text-gray-500 mb-1">{{ number_format($receivable->progress ?? 0, 1) }}% terbayar</div>
                             <div class="w-16 bg-gray-200 rounded-full h-1.5">
-                                <div class="bg-{{ $statusColor }}-600 h-1.5 rounded-full" style="width: {{ min($receivable->progress, 100) }}%"></div>
+                                <div class="bg-{{ $statusColor }}-600 h-1.5 rounded-full" style="width: {{ min($receivable->progress ?? 0, 100) }}%"></div>
                             </div>
                         @else
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">

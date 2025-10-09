@@ -52,15 +52,15 @@ class DashboardController extends Controller
 
         // Get hutang vendor statistics (using same logic as laporan)
         $hutangVendorStats = $this->getHutangVendorStats();
-        
+
         // Get piutang dinas statistics (using same logic as laporan)
         $piutangDinasStats = $this->getPiutangDinasStats();
-        
+
         // Override hutang statistics with more accurate calculation
         $stats['total_hutang'] = $hutangVendorStats['total_hutang'];
         $stats['jumlah_vendor_hutang'] = $hutangVendorStats['jumlah_vendor'];
         $stats['rata_rata_hutang'] = $hutangVendorStats['rata_rata_hutang'];
-        
+
         // Override piutang statistics with more accurate calculation
         $stats['total_piutang'] = $piutangDinasStats['total_piutang'];
         $stats['piutang_jatuh_tempo'] = $piutangDinasStats['piutang_jatuh_tempo'];
@@ -188,7 +188,7 @@ class DashboardController extends Controller
 
         $totalHutang = 0;
         $vendorPending = 0;
-        
+
         foreach ($hutangVendorData as $data) {
             $sisaBayar = $data->total_vendor - $data->total_dibayar_approved;
             if ($sisaBayar > 0 || $data->warning_hps) {
@@ -334,7 +334,7 @@ class DashboardController extends Controller
 
         $totalHutang = 0;
         $jumlahVendor = 0;
-        
+
         foreach ($hutangVendorData as $data) {
             $sisaBayar = $data->total_vendor - $data->total_dibayar_approved;
             if ($sisaBayar > 0 || $data->warning_hps) {
@@ -365,7 +365,7 @@ class DashboardController extends Controller
             ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
             ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
             ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
-            ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
+            ->leftJoin('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
             ->leftJoin('kalkulasi_hps', function($join) {
                 $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
                      ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
@@ -389,9 +389,9 @@ class DashboardController extends Controller
                 'proyek.nama_klien',
                 'proyek.instansi',
                 'vendor.id_vendor',
-                'vendor.nama_vendor',
-                'vendor.jenis_perusahaan',
-                'vendor.email',
+                DB::raw('COALESCE(vendor.nama_vendor, "Vendor Tidak Ditemukan") as nama_vendor'),
+                DB::raw('vendor.jenis_perusahaan as jenis_perusahaan'),
+                DB::raw('vendor.email as email'),
                 DB::raw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) as total_vendor'),
                 DB::raw('COALESCE(MAX(pb.total_dibayar_approved), 0) as total_dibayar_approved'),
                 DB::raw('CASE
@@ -414,6 +414,7 @@ class DashboardController extends Controller
             return collect([
                 (object) [
                     'nama_vendor' => 'Tidak ada hutang vendor',
+                    'jenis_perusahaan' => null,
                     'kode_proyek' => '-',
                     'instansi' => '-',
                     'total_vendor' => 0,
@@ -435,7 +436,7 @@ class DashboardController extends Controller
 
             // Calculate days overdue
             $daysOverdue = $item->oldest_date ? Carbon::parse($item->oldest_date)->diffInDays(Carbon::now()) : 0;
-            
+
             // Determine status
             if ($item->warning_hps) {
                 $status = 'warning'; // HPS belum diisi
@@ -914,7 +915,7 @@ class DashboardController extends Controller
                         $status = $penagihan->status_pembayaran;
                         $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
                         $nomorInvoice = $penagihan->nomor_invoice;
-                        
+
                         // Calculate days overdue
                         if ($tanggalJatuhTempo && $tanggalJatuhTempo < now()) {
                             $daysOverdue = now()->diffInDays($tanggalJatuhTempo);
@@ -1034,7 +1035,7 @@ class DashboardController extends Controller
 
         // Ensure min year is not less than 2020 (reasonable minimum)
         $minYear = max($minYear, 2020);
-        
+
         // Allow max year to extend to next year for future projects
         $maxYear = max($maxYear, $currentYear);
 
