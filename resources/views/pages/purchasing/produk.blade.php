@@ -76,7 +76,7 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:items-center">
             <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
@@ -118,6 +118,17 @@
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Meubel</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">{{ $produkMeubel }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row sm:items-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
+                <i class="fas fa-ellipsis-h text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Lain-lain</h3>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">{{ $produkLainLain }}</p>
             </div>
         </div>
     </div>
@@ -265,6 +276,7 @@
                                     @if($item->kategori == 'Elektronik') bg-blue-100 text-blue-800
                                     @elseif($item->kategori == 'Mesin') bg-green-100 text-green-800
                                     @elseif($item->kategori == 'Meubel') bg-yellow-100 text-yellow-800
+                                    @elseif($item->kategori == 'Lain-lain') bg-purple-100 text-purple-800
                                     @else bg-gray-100 text-gray-800
                                     @endif">
                                     {{ $item->kategori }}
@@ -392,6 +404,9 @@
                             break;
                         case 'Meubel':
                             categoryBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                            break;
+                        case 'Lain-lain':
+                            categoryBadge.classList.add('bg-purple-100', 'text-purple-800');
                             break;
                         default:
                             categoryBadge.classList.add('bg-gray-100', 'text-gray-800');

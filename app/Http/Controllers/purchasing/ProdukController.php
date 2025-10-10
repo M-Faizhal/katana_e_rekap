@@ -112,7 +112,8 @@ class ProdukController extends Controller
                     COUNT(*) as totalProduk,
                     COUNT(CASE WHEN kategori = "Elektronik" THEN 1 END) as produkElektronik,
                     COUNT(CASE WHEN kategori = "Meubel" THEN 1 END) as produkMeubel,
-                    COUNT(CASE WHEN kategori = "Mesin" THEN 1 END) as produkMesin
+                    COUNT(CASE WHEN kategori = "Mesin" THEN 1 END) as produkMesin,
+                    COUNT(CASE WHEN kategori = "Lain-lain" THEN 1 END) as produkLainLain
                 ')
                 ->first();
                 
@@ -121,6 +122,7 @@ class ProdukController extends Controller
                 'produkElektronik' => $stats->produkElektronik,
                 'produkMeubel' => $stats->produkMeubel,
                 'produkMesin' => $stats->produkMesin,
+                'produkLainLain' => $stats->produkLainLain,
             ];
         });
     }
