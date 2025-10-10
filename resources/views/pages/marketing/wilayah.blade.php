@@ -74,6 +74,9 @@
                     <p class="text-gray-600 mt-1">Kelola data wilayah dan informasi kontak pejabat</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button onclick="refreshPage()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl transition-colors duration-200 flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
                     <button onclick="tambahWilayah()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition-colors duration-200 flex items-center">
                         <i class="fas fa-plus mr-2"></i>Tambah Wilayah
                     </button>
@@ -291,10 +294,39 @@
         const instansiData = {};
 
         // Pagination variables
-        let currentPage = 1;
+        let currentPage = parseInt(localStorage.getItem('wilayah_current_page')) || 1;
         const itemsPerPage = 5; // Show 5 wilayah per page
         let currentData = wilayahData; // Will be filtered data
         let totalPages = Math.ceil(currentData.length / itemsPerPage);
+
+        // Save current filters from localStorage
+        let savedFilterPIC = localStorage.getItem('wilayah_filter_pic') || '';
+
+        // Function to save current state to localStorage
+        function saveCurrentState() {
+            localStorage.setItem('wilayah_current_page', currentPage);
+            localStorage.setItem('wilayah_filter_pic', document.getElementById('filterPIC').value);
+        }
+
+        // Function to restore state from localStorage
+        function restoreState() {
+            // Restore filter
+            const savedFilter = localStorage.getItem('wilayah_filter_pic');
+            if (savedFilter) {
+                document.getElementById('filterPIC').value = savedFilter;
+            }
+            
+            // Restore page
+            const savedPage = parseInt(localStorage.getItem('wilayah_current_page')) || 1;
+            currentPage = savedPage;
+            
+            // Apply filter with page preservation if there was a saved filter
+            if (savedFilter) {
+                filterWilayah(true); // preserve page
+            } else {
+                displayWilayah();
+            }
+        }
 
         // Flatten instansi data for direct access by ID
         wilayahData.forEach(wilayah => {
@@ -313,6 +345,9 @@
 
         // Function to add new wilayah
         function tambahWilayah() {
+            // Save current state before opening modal
+            saveCurrentState();
+            
             // Clear form
             document.getElementById('formTambahWilayah').reset();
 
@@ -323,6 +358,9 @@
 
         // Function to add instansi to existing wilayah
         function tambahInstansiKeWilayah(namaWilayah, provinsi) {
+            // Save current state before opening modal
+            saveCurrentState();
+            
             // Clear form
             document.getElementById('formTambahWilayah').reset();
 
@@ -347,6 +385,9 @@
 
         // Function to view instansi detail (renamed from detailWilayah)
         function detailInstansi(id) {
+            // Save current state before opening modal
+            saveCurrentState();
+            
             const data = instansiData[id];
             if (data) {
                 // Populate detail modal
@@ -372,6 +413,9 @@
 
         // Function to edit wilayah/instansi
         function editWilayah(id) {
+            // Save current state before opening modal
+            saveCurrentState();
+            
             const data = instansiData[id];
             console.log('Edit function called with ID:', id);
             console.log('Data found:', data);
@@ -399,6 +443,9 @@
 
         // Function to delete wilayah
         function hapusWilayah(id) {
+            // Save current state before opening modal
+            saveCurrentState();
+            
             const data = instansiData[id];
             if (data) {
                 // Populate delete confirmation
@@ -478,6 +525,9 @@
 
                     // Show success message
                     alert(result.body.message || 'Data wilayah berhasil ditambahkan!');
+
+                    // Save current state before reload
+                    saveCurrentState();
 
                     // Refresh page to show new data
                     setTimeout(() => {
@@ -572,6 +622,9 @@
                     // Show success message
                     alert(result.body.message || 'Data wilayah berhasil diperbarui!');
 
+                    // Save current state before reload
+                    saveCurrentState();
+
                     // Refresh page to show updated data
                     setTimeout(() => {
                         location.reload();
@@ -641,6 +694,9 @@
                     // Show success message
                     alert(result.body.message || 'Data wilayah berhasil dihapus!');
 
+                    // Save current state before reload
+                    saveCurrentState();
+
                     // Refresh page to show updated data
                     setTimeout(() => {
                         location.reload();
@@ -696,6 +752,7 @@
 
         function resetFilter() {
             document.getElementById('filterPIC').value = '';
+            localStorage.removeItem('wilayah_filter_pic');
             filterWilayah();
         }
 
@@ -718,6 +775,15 @@
             // Recalculate total pages based on visible data
             totalPages = Math.ceil(currentData.length / itemsPerPage);
 
+            // Adjust current page if it's beyond the total pages (e.g., after deletion)
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+                localStorage.setItem('wilayah_current_page', currentPage);
+            } else if (totalPages === 0) {
+                currentPage = 1;
+                localStorage.setItem('wilayah_current_page', currentPage);
+            }
+
             // Hide all cards first
             cards.forEach(card => {
                 if (card.style.display !== 'none') { // Don't affect filtered cards
@@ -726,7 +792,7 @@
             });
 
             // Show only cards for current page
-            const currentPageData = currentData.slice(startIndex, endIndex);
+            const currentPageData = currentData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
             currentPageData.forEach(wilayahItem => {
                 const card = Array.from(cards).find(c =>
                     c.getAttribute('data-wilayah') === wilayahItem.wilayah
@@ -807,6 +873,10 @@
             if (page < 1 || page > totalPages) return;
 
             currentPage = page;
+            
+            // Save current page to localStorage
+            localStorage.setItem('wilayah_current_page', currentPage);
+            
             displayWilayah();
 
             // Scroll to top of wilayah container
@@ -817,8 +887,12 @@
         }
 
         // Update filter function to work with pagination
-        function filterWilayah() {
+        function filterWilayah(preservePage = false) {
             const filterPIC = document.getElementById('filterPIC').value.toLowerCase();
+            
+            // Save filter state to localStorage
+            localStorage.setItem('wilayah_filter_pic', document.getElementById('filterPIC').value);
+            
             const cards = document.querySelectorAll('.wilayah-card');
             let visibleCount = 0;
 
@@ -835,8 +909,11 @@
                 }
             });
 
-            // Reset to first page after filtering
-            currentPage = 1;
+            // Reset to first page after filtering (only if not preserving page)
+            if (!preservePage) {
+                currentPage = 1;
+                localStorage.setItem('wilayah_current_page', currentPage);
+            }
 
             // Apply pagination to filtered results
             displayWilayah();
@@ -851,9 +928,23 @@
             }
         }
 
+        // Function to refresh page while maintaining state
+        function refreshPage() {
+            // Save current state before refresh
+            saveCurrentState();
+            
+            // Reload the page
+            location.reload();
+        }
+
         // Initialize pagination on page load
         document.addEventListener('DOMContentLoaded', function() {
-            displayWilayah();
+            restoreState();
+        });
+
+        // Save state before page unload (browser refresh/navigation)
+        window.addEventListener('beforeunload', function() {
+            saveCurrentState();
         });
     </script>
     @endsection
