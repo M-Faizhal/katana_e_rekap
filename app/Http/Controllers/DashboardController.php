@@ -68,7 +68,7 @@ class DashboardController extends Controller
         $stats['rata_rata_piutang'] = $piutangDinasStats['rata_rata_piutang'];
 
         // Add formatted versions for display (same as omset/laporan report)
-        $stats['omset_bulan_ini_formatted'] = $this->formatRupiah($stats['omset_bulan_ini']);
+        $stats['omset_tahun_ini_formatted'] = $this->formatRupiah($stats['omset_tahun_ini']);
         $stats['total_hutang_formatted'] = $hutangVendorStats['total_hutang_formatted'];
         $stats['rata_rata_hutang_formatted'] = $hutangVendorStats['rata_rata_hutang_formatted'];
         $stats['total_piutang_formatted'] = $piutangDinasStats['total_piutang_formatted'];
@@ -119,29 +119,29 @@ class DashboardController extends Controller
     {
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
-        $lastMonth = Carbon::now()->subMonth();
+        $lastYear = Carbon::now()->subYear();
 
-        // Calculate omset bulan ini (revenue this month) - using same method as LaporanController
-        // Using harga_total from proyek table and tanggal field for completed projects only
-        $omsetBulanIni = DB::table('proyek')
-            ->where('status', 'Selesai')
+        // Calculate omset tahun ini (revenue this year) - using same method as LaporanController
+        // Using harga_total from proyek with ACC penawaran status
+        $omsetTahunIni = Proyek::whereHas('semuaPenawaran', function($query) {
+                $query->where('status', 'ACC');
+            })
             ->whereNotNull('harga_total')
-            ->whereMonth('tanggal', $currentMonth)
             ->whereYear('tanggal', $currentYear)
             ->sum('harga_total') ?? 0;
 
-        // Calculate omset bulan lalu untuk perbandingan
-        $omsetBulanLalu = DB::table('proyek')
-            ->where('status', 'Selesai')
+        // Calculate omset tahun lalu untuk perbandingan
+        $omsetTahunLalu = Proyek::whereHas('semuaPenawaran', function($query) {
+                $query->where('status', 'ACC');
+            })
             ->whereNotNull('harga_total')
-            ->whereMonth('tanggal', $lastMonth->month)
-            ->whereYear('tanggal', $lastMonth->year)
+            ->whereYear('tanggal', $lastYear->year)
             ->sum('harga_total') ?? 0;
 
         // Calculate growth percentage
-        $omsetGrowth = $omsetBulanLalu > 0 ?
-            (($omsetBulanIni - $omsetBulanLalu) / $omsetBulanLalu) * 100 :
-            ($omsetBulanIni > 0 ? 100 : 0);
+        $omsetGrowth = $omsetTahunLalu > 0 ?
+            (($omsetTahunIni - $omsetTahunLalu) / $omsetTahunLalu) * 100 :
+            ($omsetTahunIni > 0 ? 100 : 0);
 
         // Count active projects
         $proyekAktif = Proyek::whereNotIn('status', ['selesai', 'gagal'])->count();
@@ -207,7 +207,7 @@ class DashboardController extends Controller
             ->count();
 
         return [
-            'omset_bulan_ini' => $omsetBulanIni,
+            'omset_tahun_ini' => $omsetTahunIni,
             'omset_growth' => round($omsetGrowth, 1),
             'proyek_aktif' => $proyekAktif,
             'proyek_baru' => $proyekBaru,
@@ -229,11 +229,12 @@ class DashboardController extends Controller
         // If specific month is requested, only return that month's data
         if ($specificMonth) {
             $revenue = DB::table('proyek')
-                ->where('status', 'Selesai')
-                ->whereNotNull('harga_total')
-                ->whereMonth('tanggal', $specificMonth)
-                ->whereYear('tanggal', $year)
-                ->sum('harga_total') ?? 0;
+                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                ->where('penawaran.status', 'ACC')
+                ->whereNotNull('proyek.harga_total')
+                ->whereMonth('proyek.tanggal', $specificMonth)
+                ->whereYear('proyek.tanggal', $year)
+                ->sum('proyek.harga_total') ?? 0;
 
             // Still return 12 months but highlight the selected month
             for ($month = 1; $month <= 12; $month++) {
@@ -247,11 +248,12 @@ class DashboardController extends Controller
             // Return all months
             for ($month = 1; $month <= 12; $month++) {
                 $revenue = DB::table('proyek')
-                    ->where('status', 'Selesai')
-                    ->whereNotNull('harga_total')
-                    ->whereMonth('tanggal', $month)
-                    ->whereYear('tanggal', $year)
-                    ->sum('harga_total') ?? 0;
+                    ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                    ->where('penawaran.status', 'ACC')
+                    ->whereNotNull('proyek.harga_total')
+                    ->whereMonth('proyek.tanggal', $month)
+                    ->whereYear('proyek.tanggal', $year)
+                    ->sum('proyek.harga_total') ?? 0;
 
                 $monthlyData[] = [
                     'month' => $month,
@@ -279,7 +281,8 @@ class DashboardController extends Controller
                 DB::raw("'Marketing' as role")
             )
             ->join('proyek', 'proyek.id_admin_marketing', '=', 'users.id_user')
-            ->where('proyek.status', 'Selesai')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->where('penawaran.status', 'ACC')
             ->whereNotNull('proyek.harga_total')
             ->whereYear('proyek.tanggal', Carbon::now()->year)
             ->groupBy('users.id_user', 'users.nama')
@@ -626,7 +629,7 @@ class DashboardController extends Controller
                 return collect([]);
             }
 
-            // Use harga_total from proyek for consistency with dashboard omset calculation
+            // Use harga_total from proyek with ACC penawaran for consistency with dashboard omset calculation
             $wilayahData = DB::table('proyek')
                 ->select(
                     DB::raw("TRIM(proyek.kab_kota) as city_name"),
@@ -634,7 +637,8 @@ class DashboardController extends Controller
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
                     DB::raw('AVG(proyek.harga_total) as avg_sales')
                 )
-                ->where('proyek.status', 'Selesai')
+                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                ->where('penawaran.status', 'ACC')
                 ->whereNotNull('proyek.kab_kota')
                 ->where('proyek.kab_kota', '!=', '')
                 ->whereNotNull('proyek.harga_total')

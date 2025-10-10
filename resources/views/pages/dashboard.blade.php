@@ -19,19 +19,19 @@
 
 <!-- Stats Cards Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-    <!-- Card 1 - Total Omset Bulan Ini -->
+    <!-- Card 1 - Total Omset Tahun Ini -->
     <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full">
         <div class="flex items-center space-x-3 sm:space-x-4">
             <div class="p-2 sm:p-3 rounded-xl bg-green-600 shadow-md">
                 <i class="fas fa-chart-line text-white text-lg sm:text-xl"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Omset Bulan Ini</h3>
-                <p class="text-xl sm:text-2xl font-bold text-green-600 mb-1">Rp {{ $stats['omset_bulan_ini_formatted'] ?? '0' }}</p>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Omset Tahun Ini</h3>
+                <p class="text-xl sm:text-2xl font-bold text-green-600 mb-1">Rp {{ $stats['omset_tahun_ini_formatted'] ?? '0' }}</p>
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-arrow-{{ $stats['omset_growth'] >= 0 ? 'up' : 'down' }} text-{{ $stats['omset_growth'] >= 0 ? 'green' : 'red' }}-500 text-sm"></i>
                     <span class="text-sm font-medium text-{{ $stats['omset_growth'] >= 0 ? 'green' : 'red' }}-500">{{ $stats['omset_growth'] >= 0 ? '+' : '' }}{{ $stats['omset_growth'] }}%</span>
-                    <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">dari bulan lalu</span>
+                    <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">dari tahun lalu</span>
                 </div>
             </div>
         </div>
