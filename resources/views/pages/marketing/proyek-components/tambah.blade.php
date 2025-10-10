@@ -273,9 +273,9 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Satuan (Rp)</label>
                                     <div class="harga-satuan-wrapper">
-                                        <input type="text" name="barang[0][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input" placeholder="1,500,000" oninput="formatHargaSatuan(this)" onchange="hitungTotal(this)">
+                                        <input type="text" name="barang[0][harga_satuan]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm harga-satuan-input" placeholder="1.500.000,50" oninput="formatHargaSatuan(this)" onchange="hitungTotal(this)">
                                     </div>
-                                    <small class="text-gray-500 text-xs">Opsional - untuk estimasi (contoh: 1,500,000)</small>
+                                    <small class="text-gray-500 text-xs">Opsional - untuk estimasi (contoh: 1.500.000,50)</small>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Total (Rp)</label>
@@ -443,7 +443,7 @@ function tambahBarang() {
             input.type = 'text';
             input.setAttribute('oninput', 'formatHargaSatuan(this)');
             input.setAttribute('onchange', 'hitungTotal(this)');
-            input.placeholder = '1,500,000';
+            input.placeholder = '1.500.000,50';
 
             // Pastikan wrapper ada untuk input harga satuan
             if (!input.parentElement.classList.contains('harga-satuan-wrapper')) {
@@ -631,55 +631,88 @@ function hitungTotal(input) {
     const row = input.closest('.barang-item');
     const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
 
-    // Get numeric value from formatted harga satuan
+    // Get numeric value from formatted harga satuan (supports decimals in Indonesian format)
     let hargaSatuan = 0;
     const hargaSatuanInput = row.querySelector('.harga-satuan-input');
     if (hargaSatuanInput) {
-        hargaSatuan = parseFloat(hargaSatuanInput.value.replace(/,/g, '')) || 0;
+        // Remove thousand separators (dots) and replace decimal comma with dot, then parse as float
+        let cleanValue = hargaSatuanInput.value
+            .replace(/\./g, '')    // Remove thousand separators (dots)
+            .replace(/,/g, '.');   // Replace decimal comma with dot
+        hargaSatuan = parseFloat(cleanValue) || 0;
     }
 
     const total = qty * hargaSatuan;
 
     const totalInput = row.querySelector('.harga-total-input');
     if (totalInput) {
-        // Format dengan koma sebagai pemisah ribuan
-        totalInput.value = total > 0 ? total.toLocaleString('id-ID') : '0';
+        // Format with Indonesian format (dots for thousands, comma for decimals)
+        totalInput.value = total > 0 ? formatRupiahNumber(total) : '0';
     }
     hitungTotalKeseluruhan();
 }
 
-// Function to format number with commas for harga satuan input
+// Function to format number with dots for thousand separator and comma for decimal (Indonesian format)
 function formatHargaSatuan(input) {
     // Get the cursor position before formatting
     let cursorPosition = input.selectionStart;
     let oldValue = input.value;
 
-    // Remove all non-digit characters
-    let value = input.value.replace(/[^\d]/g, '');
+    // Remove all characters except digits and comma (,) for decimal
+    let value = input.value.replace(/[^\d,]/g, '');
 
-    // Format with commas
-    if (value) {
-        // Add commas every 3 digits
-        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    // Handle multiple decimal commas - keep only the first one
+    let parts = value.split(',');
+    if (parts.length > 2) {
+        value = parts[0] + ',' + parts.slice(1).join('');
+    }
+
+    // Split into integer and decimal parts
+    let [integerPart, decimalPart] = value.split(',');
+
+    // Format integer part with thousand separators (dots)
+    if (integerPart) {
+        // Add dots every 3 digits for thousand separators
+        integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // Reconstruct the value
+    if (decimalPart !== undefined) {
+        // Allow unlimited decimal places
+        value = integerPart + ',' + decimalPart;
+    } else {
+        value = integerPart || '';
     }
 
     // Update input value
     input.value = value;
 
     // Adjust cursor position after formatting
-    let commasBeforeCursor = (oldValue.substring(0, cursorPosition).match(/,/g) || []).length;
-    let commasAfterCursor = (value.substring(0, cursorPosition).match(/,/g) || []).length;
-    let newCursorPosition = cursorPosition + (commasAfterCursor - commasBeforeCursor);
+    let dotsBeforeCursor = (oldValue.substring(0, cursorPosition).match(/\./g) || []).length;
+    let dotsAfterCursor = (value.substring(0, cursorPosition).match(/\./g) || []).length;
+    let newCursorPosition = cursorPosition + (dotsAfterCursor - dotsBeforeCursor);
 
     // Set cursor position
     setTimeout(() => {
-        input.setSelectionRange(newCursorPosition, newCursorPosition);
+        if (newCursorPosition >= 0 && newCursorPosition <= value.length) {
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
     }, 0);
 }
 
-// Function to format rupiah for display
+// Function to format rupiah for display (supports decimals)
 function formatRupiahNumber(angka) {
-    return angka.toLocaleString('id-ID');
+    // Check if number has decimal places
+    if (angka % 1 !== 0) {
+        // Has decimal places - format with up to 2 decimal places
+        return angka.toLocaleString('id-ID', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 5
+        });
+    } else {
+        // Whole number - format without decimal places
+        return angka.toLocaleString('id-ID');
+    }
 }
 
 function hitungTotalKeseluruhan() {
@@ -690,8 +723,11 @@ function hitungTotalKeseluruhan() {
 
         if (qtyInput && hargaSatuanInput) {
             const qty = parseFloat(qtyInput.value) || 0;
-            // Remove commas from formatted price before parsing
-            const hargaSatuan = parseFloat(hargaSatuanInput.value.replace(/,/g, '')) || 0;
+            // Remove thousand separators (dots) and replace decimal comma with dot for parsing
+            let cleanValue = hargaSatuanInput.value
+                .replace(/\./g, '')    // Remove thousand separators (dots)
+                .replace(/,/g, '.');   // Replace decimal comma with dot
+            const hargaSatuan = parseFloat(cleanValue) || 0;
             total += qty * hargaSatuan;
         }
     });
@@ -703,7 +739,17 @@ function hitungTotalKeseluruhan() {
 }
 
 function formatRupiah(angka) {
-    return 'Rp ' + angka.toLocaleString('id-ID');
+    // Check if number has decimal places
+    if (angka % 1 !== 0) {
+        // Has decimal places - format with up to 2 decimal places
+        return 'Rp ' + angka.toLocaleString('id-ID', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 5
+        });
+    } else {
+        // Whole number - format without decimal places
+        return 'Rp ' + angka.toLocaleString('id-ID');
+    }
 }
 
 // File Upload Functions for Spesifikasi
@@ -1199,8 +1245,14 @@ function collectTambahFormData() {
         const hargaSatuanRaw = item.querySelector('input[name*="[harga_satuan]"]')?.value;
         const spesifikasi = item.querySelector('textarea[name*="[spesifikasi]"]')?.value?.trim();
 
-        // Remove commas from harga satuan before parsing
-        const hargaSatuan = hargaSatuanRaw ? parseFloat(hargaSatuanRaw.replace(/,/g, '')) : null;
+        // Convert Indonesian formatted price to number (remove dots, replace comma with dot)
+        let hargaSatuan = null;
+        if (hargaSatuanRaw) {
+            const cleanValue = hargaSatuanRaw
+                .replace(/\./g, '')    // Remove thousand separators (dots)
+                .replace(/,/g, '.');   // Replace decimal comma with dot
+            hargaSatuan = parseFloat(cleanValue) || null;
+        }
 
         // Hanya tambahkan barang yang memiliki data minimal (nama, qty, satuan)
         if (namaBarang && qty && satuan) {
@@ -1382,7 +1434,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load preview kode proyek
     loadPreviewKodeProyek();
 
-    // Add keypress event listener for harga satuan inputs to only allow numbers
+    // Add keypress event listener for harga satuan inputs to allow numbers and comma
     document.addEventListener('keypress', function(e) {
         if (e.target.classList.contains('harga-satuan-input')) {
             // Allow: backspace, delete, tab, escape, enter
@@ -1394,10 +1446,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 (e.keyCode === 88 && e.ctrlKey === true)) {
                 return;
             }
-            // Ensure that it is a number and stop the keypress
-            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-                e.preventDefault();
+            
+            // Allow comma (,) for decimal separator - keyCode 44
+            if (e.keyCode === 44) {
+                // Check if comma already exists in the input
+                const currentValue = e.target.value;
+                if (currentValue.includes(',')) {
+                    e.preventDefault(); // Prevent multiple commas
+                }
+                return;
             }
+            
+            // Allow numbers (0-9) - keyCode 48-57 for regular numbers, 96-105 for numpad
+            if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
+                return;
+            }
+            
+            // Block all other characters
+            e.preventDefault();
         }
     });
 

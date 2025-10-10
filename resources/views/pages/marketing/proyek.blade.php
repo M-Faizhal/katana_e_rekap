@@ -273,7 +273,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                 <div class="mt-4 pt-4 border-t border-gray-100">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-sm text-gray-500">Total Nilai Proyek:</span>
-                        <span class="text-lg font-bold text-red-600">Rp {{ number_format($proyek['total_nilai'], 0, ',', '.') }}</span>
+                        <span class="text-lg font-bold text-red-600">Rp {{ number_format($proyek['total_nilai'], 2, ',', '.') }}</span>
                     </div>
 
                     <!-- Penawaran Info -->
@@ -1708,7 +1708,20 @@ function updateStatistics() {
 
 // Utility Functions
 function formatRupiah(angka) {
-    return 'Rp ' + parseInt(angka).toLocaleString('id-ID');
+    if (!angka && angka !== 0) return 'Rp 0,00';
+    
+    // Convert to number and handle decimal places
+    let number = typeof angka === 'string' ? parseFloat(angka.toString().replace(/\./g, '').replace(',', '.')) : parseFloat(angka);
+    
+    if (isNaN(number)) return 'Rp 0,00';
+    
+    // Format with Indonesian locale - keep all decimal places if any, minimum 2
+    let formatted = new Intl.NumberFormat('id-ID', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 20
+    }).format(number);
+    
+    return 'Rp ' + formatted;
 }
 
 function formatTanggal(tanggal) {
