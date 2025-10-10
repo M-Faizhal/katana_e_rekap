@@ -507,8 +507,13 @@ function addEditItem(itemData = null) {
     // Calculate total for this item if data provided
     if (itemData && qty && hargaSatuan) {
         const newItem = container.lastElementChild;
-        const total = parseFloat(qty) * parseFloat(hargaSatuan);
-        newItem.querySelector('.harga-total-input-edit').value = total;
+        const qtyValue = parseFloat(qty) || 0;
+        const hargaSatuanValue = parseIndonesianNumber(hargaSatuan);
+        const total = qtyValue * hargaSatuanValue;
+        
+        if (total > 0) {
+            newItem.querySelector('.harga-total-input-edit').value = formatNumberToIndonesian(total);
+        }
     }
 }
 
@@ -583,6 +588,42 @@ function updateEditDeleteButtons() {
     });
 }
 
+// Helper function to format number to Indonesian format (dots for thousands, comma for decimals)
+function formatNumberToIndonesian(number) {
+    if (!number || isNaN(number)) return '0';
+    
+    // Convert to string and handle decimal places
+    let numStr = number.toString();
+    let [integerPart, decimalPart] = numStr.split('.');
+    
+    // Format integer part with dots as thousand separators
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Reconstruct with comma as decimal separator if there are decimals
+    if (decimalPart && decimalPart !== '0') {
+        // Remove trailing zeros from decimal part
+        decimalPart = decimalPart.replace(/0+$/, '');
+        if (decimalPart) {
+            return integerPart + ',' + decimalPart;
+        }
+    }
+    
+    return integerPart;
+}
+
+// Helper function to parse Indonesian formatted number to float
+function parseIndonesianNumber(value) {
+    if (!value || typeof value !== 'string') return 0;
+    
+    // Clean the value: remove dots (thousand separators) and replace comma with dot for decimal
+    let cleanValue = value
+        .trim()
+        .replace(/\./g, '')    // Remove thousand separators (dots)
+        .replace(/,/g, '.');   // Replace decimal comma with dot for parsing
+    
+    return parseFloat(cleanValue) || 0;
+}
+
 function hitungTotalEdit(input) {
     const row = input.closest('.barang-item-edit');
     const qtyInput = row.querySelector('.qty-input-edit');
@@ -591,41 +632,12 @@ function hitungTotalEdit(input) {
 
     if (qtyInput && hargaSatuanInput && totalInput) {
         const qty = parseFloat(qtyInput.value) || 0;
-        
-        // Get numeric value from formatted harga satuan (supports decimals in Indonesian format)
-        let hargaSatuan = 0;
-        if (hargaSatuanInput.value) {
-            // Remove thousand separators (dots) and replace decimal comma with dot, then parse as float
-            let cleanValue = hargaSatuanInput.value
-                .trim()
-                .replace(/\./g, '')    // Remove thousand separators (dots)
-                .replace(/,/g, '.');   // Replace decimal comma with dot
-            hargaSatuan = parseFloat(cleanValue) || 0;
-        }
+        const hargaSatuan = parseIndonesianNumber(hargaSatuanInput.value);
         
         const total = qty * hargaSatuan;
 
-        // Format with Indonesian format - manual implementation for reliability
-        if (total > 0) {
-            let formattedTotal = '';
-            
-            // Check if has decimals
-            if (total % 1 !== 0) {
-                // Round to 2 decimal places
-                const rounded = Math.round(total * 100) / 100;
-                const parts = rounded.toFixed(2).split('.');
-                // Format integer part with dots
-                const integerFormatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                formattedTotal = integerFormatted + ',' + parts[1];
-            } else {
-                // Whole number - format with dots
-                formattedTotal = total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            }
-            
-            totalInput.value = formattedTotal;
-        } else {
-            totalInput.value = '0';
-        }
+        // Format total with Indonesian format
+        totalInput.value = formatNumberToIndonesian(total);
         
         hitungTotalKeseluruhanEdit();
     }
@@ -702,11 +714,8 @@ function hitungTotalKeseluruhanEdit() {
 
         if (qtyInput && hargaSatuanInput) {
             const qty = parseFloat(qtyInput.value) || 0;
-            // Remove thousand separators (dots) and replace decimal comma with dot for parsing
-            let cleanValue = hargaSatuanInput.value
-                .replace(/\./g, '')    // Remove thousand separators (dots)
-                .replace(/,/g, '.');   // Replace decimal comma with dot
-            const hargaSatuan = parseFloat(cleanValue) || 0;
+            const hargaSatuan = parseIndonesianNumber(hargaSatuanInput.value);
+            
             total += qty * hargaSatuan;
         }
     });
@@ -748,757 +757,158 @@ function loadCurrentFiles(data) {
     document.getElementById('currentSuratPersetujuan').textContent = 'Loading...';
 
     // Load documents from penawaran data if available
-    if (data.penawaran && data.penawaran.surat_penawaran) {
-        console.log('Loading from provided penawaran data:', data.penawaran);
-        updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran',
-                        data.penawaran.surat_penawaran, 'penawaran');
-        updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan',
-                        data.penawaran.surat_pesanan, 'pesanan');
-        updatePenawaranStatus(data.penawaran.status);
+    if (data.penawaran && data.penawaran.length > 0) {
+        const penawaran = data.penawaran[0]; // Get the first/latest penawaran
+        
+        // Show penawaran status info
+        const statusInfo = document.getElementById('penawaranStatusInfo');
+        const statusSpan = document.getElementById('penawaranStatus');
+        if (statusInfo && statusSpan && penawaran.status) {
+            statusSpan.textContent = penawaran.status;
+            statusInfo.classList.remove('hidden');
+        }
+
+        // Load surat penawaran
+        if (penawaran.surat_penawaran) {
+            updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', penawaran.surat_penawaran);
+        } else {
+            document.getElementById('currentSuratPenawaran').textContent = 'Belum ada file';
+        }
+
+        // Load surat persetujuan (surat pesanan)
+        if (penawaran.surat_pesanan) {
+            updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', penawaran.surat_pesanan);
+        } else {
+            document.getElementById('currentSuratPersetujuan').textContent = 'Belum ada file';
+        }
     } else {
-        // Fetch penawaran data for this project
-        console.log('No penawaran data provided, fetching from API for project ID:', data.id);
-        fetchPenawaranData(data.id);
+        // No penawaran data - show no files
+        document.getElementById('currentSuratPenawaran').textContent = 'Belum ada file';
+        document.getElementById('currentSuratPersetujuan').textContent = 'Belum ada file';
+        
+        // Hide penawaran status info
+        const statusInfo = document.getElementById('penawaranStatusInfo');
+        if (statusInfo) {
+            statusInfo.classList.add('hidden');
+        }
+    }
+}
+
+// Helper function to update file display
+function updateFileDisplay(textElementId, linkElementId, filename) {
+    const textElement = document.getElementById(textElementId);
+    const linkElement = document.getElementById(linkElementId);
+    
+    if (filename) {
+        textElement.textContent = filename;
+        if (linkElement) {
+            linkElement.href = `/storage/documents/${filename}`;
+            linkElement.classList.remove('hidden');
+        }
+    } else {
+        textElement.textContent = 'Belum ada file';
+        if (linkElement) {
+            linkElement.classList.add('hidden');
+        }
     }
 }
 
 // Function to fetch penawaran data from server
 async function fetchPenawaranData(proyekId) {
     try {
-        console.log('Fetching penawaran data for project:', proyekId);
-        const url = `/marketing/penawaran/project/${proyekId}/data`;
-        console.log('Fetching from URL:', url);
-
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            }
-        });
-
-        console.log('API Response status:', response.status);
-        console.log('API Response headers:', response.headers);
-
+        const response = await fetch(`/api/proyek/${proyekId}/penawaran`);
         if (response.ok) {
-            const result = await response.json();
-            console.log('API Response data:', result);
-
-            if (result.success && result.data) {
-                const penawaran = result.data;
-                console.log('Penawaran data loaded successfully:', penawaran);
-
-                // Update current files display with download links
-                updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran',
-                                penawaran.surat_penawaran, 'penawaran');
-                updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan',
-                                penawaran.surat_pesanan, 'pesanan');
-
-                // Show penawaran status
-                updatePenawaranStatus(penawaran.status);
-            } else {
-                console.log('API returned unsuccessful response:', result);
-                // Set default empty values
-                updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
-                updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
-                hidePenawaranStatus();
-            }
-        } else {
-            console.log('API request failed with status:', response.status);
-            const errorText = await response.text();
-            console.log('Error response:', errorText);
-
-            // Set default empty values
-            updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
-            updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
-            hidePenawaranStatus();
+            const data = await response.json();
+            return data;
         }
     } catch (error) {
         console.error('Error fetching penawaran data:', error);
-        // Set default empty values on error
-        updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
-        updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
-        hidePenawaranStatus();
     }
+    return null;
 }
 
-// Function to update penawaran status display
-function updatePenawaranStatus(status) {
-    const statusInfoDiv = document.getElementById('penawaranStatusInfo');
-    const statusSpan = document.getElementById('penawaranStatus');
-
-    if (statusInfoDiv && statusSpan && status) {
-        let statusText = status;
-        let statusClass = 'text-blue-700';
-
-        switch(status) {
-            case 'ACC':
-                statusText = 'Disetujui';
-                statusClass = 'text-green-700';
-                break;
-            case 'Menunggu':
-                statusText = 'Menunggu';
-                statusClass = 'text-yellow-700';
-                break;
-            case 'Ditolak':
-                statusText = 'Ditolak';
-                statusClass = 'text-red-700';
-                break;
-        }
-
-        statusSpan.textContent = statusText;
-        statusSpan.className = `text-sm font-semibold ${statusClass}`;
-        statusInfoDiv.classList.remove('hidden');
-    }
-}
-
-// Function to hide penawaran status
-function hidePenawaranStatus() {
-    const statusInfoDiv = document.getElementById('penawaranStatusInfo');
-    if (statusInfoDiv) {
-        statusInfoDiv.classList.add('hidden');
-    }
-}
-
-// Helper function to update file display with download links
-function updateFileDisplay(textElementId, linkElementId, filename, type = null) {
-    const textElement = document.getElementById(textElementId);
-    const linkElement = document.getElementById(linkElementId);
-
-    console.log(`Updating file display: ${textElementId} = ${filename}, type = ${type}`);
-
-    if (textElement) {
-        if (filename && filename !== 'null' && filename !== '' && filename !== null && filename !== undefined) {
-            textElement.textContent = filename;
-            textElement.classList.remove('text-gray-400');
-            textElement.classList.add('text-gray-600');
-
-            // Show download link if file exists and type is provided
-            if (linkElement && type) {
-                const downloadUrl = `/marketing/penawaran/download/${type}/${filename}`;
-                linkElement.href = downloadUrl;
-                linkElement.classList.remove('hidden');
-                console.log(`Download link set: ${downloadUrl}`);
-            }
-        } else {
-            textElement.textContent = 'Tidak ada file';
-            textElement.classList.remove('text-gray-600');
-            textElement.classList.add('text-gray-400');
-
-            // Hide download link
-            if (linkElement) {
-                linkElement.classList.add('hidden');
-                linkElement.href = '#';
-            }
-        }
+// File upload functions
+function toggleFileUploadEdit(checkbox, itemIndex) {
+    const fileUploadArea = document.getElementById(`fileUploadAreaEdit_${itemIndex}`);
+    if (checkbox.checked) {
+        fileUploadArea.classList.remove('hidden');
     } else {
-        console.warn(`Element ${textElementId} not found`);
-    }
-}
-
-// Function to clear file input
-function clearFile(inputId) {
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(inputId + 'Preview');
-
-    if (input) {
-        input.value = '';
-    }
-    if (preview) {
-        preview.classList.add('hidden');
-    }
-}
-
-// File upload preview handlers
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInputs = ['editSuratPenawaran', 'editSuratPersetujuan'];
-
-    fileInputs.forEach(inputId => {
-        const input = document.getElementById(inputId);
-        const preview = document.getElementById(inputId + 'Preview');
-
-        if (input && preview) {
-            input.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                const filenameSpan = preview.querySelector('.filename');
-
-                if (file) {
-                    filenameSpan.textContent = file.name;
-                    preview.classList.remove('hidden');
-                } else {
-                    preview.classList.add('hidden');
-                }
-            });
+        fileUploadArea.classList.add('hidden');
+        // Clear file input
+        const fileInput = document.getElementById(`fileInputEdit_${itemIndex}`);
+        if (fileInput) {
+            fileInput.value = '';
         }
-    });
-});
-
-// Form submission - moved to DOMContentLoaded
-function initializeEditFormSubmission() {
-    const editForm = document.getElementById('formEditProyek');
-    if (!editForm) {
-        console.error('Edit form not found');
-        return;
-    }
-
-    editForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        console.log('Form submit triggered');
-
-        // Validasi form
-        if (!validateEditForm()) {
-            console.log('Form validation failed');
-            return;
-        }
-
-        // Ambil ID proyek yang sedang diedit
-        const proyekId = document.getElementById('editId').value;
-        if (!proyekId) {
-            console.error('Proyek ID not found');
-            alert('ID Proyek tidak ditemukan!');
-            return;
-        }
-
-        console.log('Collecting form data...');
-        // Kumpulkan data form
-        const formData = collectEditFormData();
-        console.log('Form data collected:', formData);
-
-        // Submit data
-        const submitButton = document.querySelector('button[form="formEditProyek"]') ||
-                           e.target.querySelector('button[type="submit"]') ||
-                           document.querySelector('#modalEditProyek button[type="submit"]');
-
-        if (!submitButton) {
-            console.error('Submit button not found');
-            alert('Terjadi kesalahan: Submit button tidak ditemukan');
-            return;
-        }
-
-        const originalText = submitButton.innerHTML;
-
-        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
-        submitButton.disabled = true;
-
-        // Create FormData manually from collected data (TIDAK dari form element)
-        const formDataObj = new FormData();
-
-        // Add method override for PUT
-        formDataObj.append('_method', 'PUT');
-
-        // Add CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (csrfToken) {
-            formDataObj.append('_token', csrfToken);
-        }
-
-        // Add basic data
-        formDataObj.append('tanggal', formData.tanggal);
-        formDataObj.append('kab_kota', formData.kab_kota);
-        formDataObj.append('instansi', formData.instansi);
-        formDataObj.append('jenis_pengadaan', formData.jenis_pengadaan);
-        formDataObj.append('catatan', formData.catatan || '');
-        formDataObj.append('potensi', formData.potensi);
-        formDataObj.append('tahun_potensi', formData.tahun_potensi);
-        formDataObj.append('id_admin_marketing', formData.id_admin_marketing);
-        formDataObj.append('id_admin_purchasing', formData.id_admin_purchasing);
-
-        // Add barang data as JSON string
-        if (formData.daftar_barang && formData.daftar_barang.length > 0) {
-            formDataObj.append('daftar_barang', JSON.stringify(formData.daftar_barang));
-            console.log('Appended daftar_barang:', formData.daftar_barang);
-        }
-
-        console.log('FormData ready to send');
-
-        // Kirim data ke server
-        fetch(`/marketing/proyek/${proyekId}`, {
-            method: 'POST', // Use POST with _method override for file uploads
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                // Don't set Content-Type, let browser set it for FormData
-            },
-            body: formDataObj
-        })
-        .then(async response => {
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
-
-            // Check if response is JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error('Non-JSON response:', text.substring(0, 500));
-                throw new Error('Server mengembalikan response yang tidak valid. Silakan cek console untuk detail.');
-            }
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `HTTP error! status: ${response.status}`);
-            }
-
-            return data;
-        })
-        .then(data => {
-            if (data.success) {
-                closeModal('modalEditProyek');
-
-                // Show success message
-                if (typeof showSuccessModal === 'function') {
-                    showSuccessModal('Proyek berhasil diupdate!');
-                } else {
-                    alert('Proyek berhasil diupdate!');
-                }
-
-                // Reload page untuk update data
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                throw new Error(data.message || 'Terjadi kesalahan saat mengupdate data');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan: ' + error.message);
-        })
-        .finally(() => {
-            if (submitButton) {
-                submitButton.innerHTML = originalText;
-                submitButton.disabled = false;
-            }
-        });
-    });
-}
-
-// Fungsi validasi form edit
-function validateEditForm() {
-    const requiredFields = [
-        { id: 'editTanggal', label: 'Tanggal' },
-        { id: 'editKabupatenKota', label: 'Kabupaten/Kota' },
-        { id: 'editNamaInstansi', label: 'Nama Instansi' },
-        { id: 'editJenisPengadaan', label: 'Jenis Pengadaan' },
-        { id: 'editAdminMarketing', label: 'PIC Marketing' },
-        { id: 'editAdminPurchasing', label: 'PIC Purchasing' }
-    ];
-
-    for (let field of requiredFields) {
-        const input = document.getElementById(field.id);
-        if (!input || !input.value.trim()) {
-            alert(`${field.label} harus diisi!`);
-            if (input) input.focus();
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// Fungsi untuk mengumpulkan data form edit
-function collectEditFormData() {
-    const data = {};
-
-    // Helper function to safely get element value
-    const getElementValue = (id, defaultValue = '') => {
-        const element = document.getElementById(id);
-        return element ? element.value : defaultValue;
-    };
-
-    // Data dasar
-    data.tanggal = getElementValue('editTanggal');
-    data.kab_kota = getElementValue('editKabupatenKota');
-    data.instansi = getElementValue('editNamaInstansi');
-    data.jenis_pengadaan = getElementValue('editJenisPengadaan');
-    data.catatan = getElementValue('editCatatan');
-    data.potensi = getElementValue('editPotensiValue', 'tidak');
-    data.tahun_potensi = parseInt(getElementValue('editTahunPotensi')) || new Date().getFullYear();
-
-    // PIC data
-    const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
-    data.id_admin_purchasing = adminPurchasingSelect ? adminPurchasingSelect.value : null;
-    data.id_admin_marketing = 1; // Ambil dari session user yang login
-
-    // Ambil data barang dari form
-    const barangItems = document.querySelectorAll('.barang-item-edit');
-    console.log('Found barang items for edit:', barangItems.length);
-
-    if (barangItems.length > 0) {
-        // Multiple barang - gunakan format daftar_barang array
-        data.daftar_barang = [];
-
-        barangItems.forEach((item, index) => {
-            const namaInput = item.querySelector('input[name*="[nama]"]');
-            const qtyInput = item.querySelector('input[name*="[qty]"]');
-            const satuanSelect = item.querySelector('select[name*="[satuan]"]');
-            const hargaSatuanInput = item.querySelector('input[name*="[harga_satuan]"]');
-            const spesifikasiTextarea = item.querySelector('textarea[name*="[spesifikasi]"]');
-
-            const barangData = {
-                nama_barang: namaInput ? namaInput.value : '',
-                jumlah: qtyInput ? parseInt(qtyInput.value) || 1 : 1,
-                satuan: satuanSelect ? satuanSelect.value || 'Unit' : 'Unit',
-                spesifikasi: spesifikasiTextarea ? spesifikasiTextarea.value || 'Spesifikasi standar' : 'Spesifikasi standar',
-                harga_satuan: null
-            };
-
-            // Convert Indonesian formatted price to number (remove dots, replace comma with dot)
-            if (hargaSatuanInput && hargaSatuanInput.value) {
-                const cleanValue = hargaSatuanInput.value
-                    .replace(/\./g, '')    // Remove thousand separators (dots)
-                    .replace(/,/g, '.');   // Replace decimal comma with dot
-                barangData.harga_satuan = parseFloat(cleanValue) || null;
-            }
-
-            if (barangData.nama_barang) {
-                data.daftar_barang.push(barangData);
-                console.log(`Barang edit ${index + 1}:`, barangData);
-            }
-        });
-
-        // Jika tidak ada barang valid yang ditemukan, fallback ke single barang
-        if (data.daftar_barang.length === 0) {
-            console.log('No valid barang found in items, using fallback data');
-            data.nama_barang = getElementValue('editNamaProyek') || 'Barang Default';
-            data.jumlah = 1;
-            data.satuan = 'Unit';
-            data.spesifikasi = 'Spesifikasi standar';
-            data.harga_satuan = null;
-        }
-    } else {
-        // Single barang - gunakan format lama untuk backward compatibility
-        console.log('No barang items found, using single barang format');
-        data.nama_barang = getElementValue('editNamaProyek') || 'Barang Default';
-        data.jumlah = 1;
-        data.satuan = 'Unit';
-        data.spesifikasi = getElementValue('editSpesifikasi', 'Spesifikasi standar');
-        data.harga_satuan = null;
-    }
-
-    console.log('Collected edit form data:', data);
-    return data;
-}
-
-// Function to load PIC marketing options for edit
-async function loadEditAdminMarketingOptions() {
-    try {
-        const response = await fetch('/marketing/proyek/users');
-        const data = await response.json();
-
-        if (data.success) {
-            const select = document.getElementById('editAdminMarketing');
-            if (select) {
-                // Store current value
-                const currentValue = select.value;
-
-                // Clear existing options except the first one
-                select.innerHTML = '<option value="">Pilih PIC marketing</option>';
-
-                // Add options for marketing and PIC roles
-                data.data.forEach(user => {
-                    if (user.role === 'admin_marketing' || user.role === 'superadmin') {
-                        const option = document.createElement('option');
-                        option.value = user.id_user;
-                        option.textContent = user.nama;
-                        select.appendChild(option);
-                    }
-                });
-
-                // Restore current value if it exists
-                if (currentValue) {
-                    select.value = currentValue;
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Error loading PIC marketing options for edit:', error);
-    }
-}
-
-// Function to load PIC purchasing options for edit
-async function loadEditAdminPurchasingOptions() {
-    try {
-        const response = await fetch('/marketing/proyek/users');
-        const data = await response.json();
-
-        if (data.success) {
-            const select = document.getElementById('editAdminPurchasing');
-            if (select) {
-                // Store current value
-                const currentValue = select.value;
-
-                // Clear existing options except the first one
-                select.innerHTML = '<option value="">Pilih PIC purchasing</option>';
-
-                // Add options for purchasing and PIC roles
-                data.data.forEach(user => {
-                    if (user.role === 'admin_purchasing' || user.role === 'superadmin') {
-                        const option = document.createElement('option');
-                        option.value = user.id_user;
-                        option.textContent = user.nama;
-                        select.appendChild(option);
-                    }
-                });
-
-                // Restore current value if it exists
-                if (currentValue) {
-                    select.value = currentValue;
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Error loading PIC purchasing options for edit:', error);
-    }
-}
-
-// Initialize edit modal
-document.addEventListener('DOMContentLoaded', function() {
-    // Load PIC marketing options
-    loadEditAdminMarketingOptions();
-
-    // Load PIC purchasing options
-    loadEditAdminPurchasingOptions();
-
-    // Initialize form submission
-    initializeEditFormSubmission();
-
-    // Add keypress event listener for harga satuan inputs in edit modal to allow numbers and comma
-    document.addEventListener('keypress', function(e) {
-        if (e.target.classList.contains('harga-satuan-input-edit')) {
-            // Allow: backspace, delete, tab, escape, enter
-            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                (e.keyCode === 65 && e.ctrlKey === true) ||
-                (e.keyCode === 67 && e.ctrlKey === true) ||
-                (e.keyCode === 86 && e.ctrlKey === true) ||
-                (e.keyCode === 88 && e.ctrlKey === true)) {
-                return;
-            }
-            
-            // Allow comma (,) for decimal separator - keyCode 44
-            if (e.keyCode === 44) {
-                // Check if comma already exists in the input
-                const currentValue = e.target.value;
-                if (currentValue.includes(',')) {
-                    e.preventDefault(); // Prevent multiple commas
-                }
-                return;
-            }
-            
-            // Allow numbers (0-9) - keyCode 48-57 for regular numbers, 96-105 for numpad
-            if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
-                return;
-            }
-            
-            // Block all other characters
-            e.preventDefault();
-        }
-    });
-
-    // Ensure form event listener is attached
-    const editForm = document.getElementById('formEditProyek');
-    if (editForm) {
-        console.log('Edit form found and initialized');
-    } else {
-        console.error('Edit form not found during initialization');
-    }
-
-    console.log('Edit modal initialized');
-});
-
-// Debug function to test API
-window.testPenawaranAPI = function(proyekId) {
-    console.log('Testing penawaran API for project:', proyekId);
-    fetchPenawaranData(proyekId);
-};
-
-// File Upload Functions for Edit Form
-function toggleFileUploadEdit(checkbox, index) {
-    const fileUploadArea = document.getElementById(`fileUploadAreaEdit_${index}`);
-    if (fileUploadArea) {
-        if (checkbox.checked) {
-            fileUploadArea.classList.remove('hidden');
-            // Add animation
-            fileUploadArea.style.opacity = '0';
-            fileUploadArea.style.transform = 'translateY(-10px)';
-            setTimeout(() => {
-                fileUploadArea.style.transition = 'all 0.3s ease';
-                fileUploadArea.style.opacity = '1';
-                fileUploadArea.style.transform = 'translateY(0)';
-            }, 10);
-        } else {
-            fileUploadArea.classList.add('hidden');
-            // Clear files when hiding
-            clearSpecFilesEdit(index);
+        // Hide file preview
+        const filePreview = document.getElementById(`filePreviewEdit_${itemIndex}`);
+        if (filePreview) {
+            filePreview.classList.add('hidden');
         }
     }
 }
 
-function handleFileSelectEdit(input, index) {
-    const files = input.files;
-    const filePreview = document.getElementById(`filePreviewEdit_${index}`);
-    const fileList = document.getElementById(`fileListEdit_${index}`);
-
-    if (files.length > 0) {
+function handleFileSelectEdit(input, itemIndex) {
+    const filePreview = document.getElementById(`filePreviewEdit_${itemIndex}`);
+    const fileList = document.getElementById(`fileListEdit_${itemIndex}`);
+    
+    if (input.files.length > 0) {
         filePreview.classList.remove('hidden');
         fileList.innerHTML = '';
-
-        // Validate and display files
-        let validFiles = [];
-        Array.from(files).forEach((file, fileIndex) => {
-            if (validateFileEdit(file)) {
-                validFiles.push(file);
-                const fileItem = createFilePreviewItemEdit(file, index, fileIndex);
-                fileList.appendChild(fileItem);
-            }
+        
+        Array.from(input.files).forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'flex items-center justify-between bg-white p-2 rounded border text-sm';
+            fileItem.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-file text-gray-500 mr-2"></i>
+                    <span>${file.name}</span>
+                    <span class="text-gray-400 ml-2">(${(file.size / 1024).toFixed(1)} KB)</span>
+                </div>
+                <button type="button" onclick="removeFileEdit(${itemIndex}, ${index})" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            fileList.appendChild(fileItem);
         });
-
-        if (validFiles.length === 0) {
-            filePreview.classList.add('hidden');
-            input.value = ''; // Clear invalid files
-        }
     } else {
         filePreview.classList.add('hidden');
     }
 }
 
-function validateFileEdit(file) {
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    const allowedTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'image/jpeg',
-        'image/jpg',
-        'image/png'
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-        alert(`File ${file.name} tidak didukung. Gunakan PDF, DOC, XLS, atau gambar.`);
-        return false;
-    }
-
-    if (file.size > maxSize) {
-        alert(`File ${file.name} terlalu besar. Maksimal 5MB.`);
-        return false;
-    }
-
-    return true;
-}
-
-function createFilePreviewItemEdit(file, itemIndex, fileIndex) {
-    const fileItem = document.createElement('div');
-    fileItem.className = 'flex items-center justify-between bg-gray-50 rounded-lg p-2 border border-gray-200';
-
-    const fileSize = (file.size / 1024).toFixed(1);
-    const fileIcon = getFileIconEdit(file.type);
-
-    fileItem.innerHTML = `
-        <div class="flex items-center flex-1">
-            <i class="${fileIcon} text-gray-500 mr-2"></i>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-700 truncate">${file.name}</p>
-                <p class="text-xs text-gray-500">${fileSize} KB</p>
-            </div>
-        </div>
-        <button type="button" onclick="removeSpecFileEdit(${itemIndex}, ${fileIndex})"
-                class="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full p-1 transition-colors duration-200">
-            <i class="fas fa-times text-xs"></i>
-        </button>
-    `;
-
-    return fileItem;
-}
-
-function getFileIconEdit(mimeType) {
-    if (mimeType.includes('pdf')) return 'fas fa-file-pdf text-red-500';
-    if (mimeType.includes('word')) return 'fas fa-file-word text-blue-500';
-    if (mimeType.includes('excel') || mimeType.includes('sheet')) return 'fas fa-file-excel text-green-500';
-    if (mimeType.includes('image')) return 'fas fa-file-image text-purple-500';
-    return 'fas fa-file text-gray-500';
-}
-
-function removeSpecFileEdit(itemIndex, fileIndex) {
+function removeFileEdit(itemIndex, fileIndex) {
     const fileInput = document.getElementById(`fileInputEdit_${itemIndex}`);
-    const fileList = document.getElementById(`fileListEdit_${itemIndex}`);
-    const filePreview = document.getElementById(`filePreviewEdit_${itemIndex}`);
-
-    if (fileInput && fileList) {
-        // Remove the file from the input (this is tricky with file inputs)
-        // We'll need to create a new FileList without the removed file
+    if (fileInput) {
+        // Create new FileList without the removed file
         const dt = new DataTransfer();
-        const files = fileInput.files;
-
-        for (let i = 0; i < files.length; i++) {
-            if (i !== fileIndex) {
-                dt.items.add(files[i]);
-            }
-        }
-
-        fileInput.files = dt.files;
-
-        // Remove the visual element
-        const fileItems = fileList.children;
-        if (fileItems[fileIndex]) {
-            fileItems[fileIndex].remove();
-        }
-
-        // Hide preview if no files left
-        if (fileInput.files.length === 0) {
-            filePreview.classList.add('hidden');
-        }
-
-        // Re-index remaining file items
-        Array.from(fileList.children).forEach((item, index) => {
-            const removeBtn = item.querySelector('button');
-            if (removeBtn) {
-                removeBtn.setAttribute('onclick', `removeSpecFileEdit(${itemIndex}, ${index})`);
+        Array.from(fileInput.files).forEach((file, index) => {
+            if (index !== fileIndex) {
+                dt.items.add(file);
             }
         });
+        fileInput.files = dt.files;
+        
+        // Refresh file display
+        handleFileSelectEdit(fileInput, itemIndex);
     }
 }
 
-function clearSpecFilesEdit(index) {
-    const fileInput = document.getElementById(`fileInputEdit_${index}`);
-    const filePreview = document.getElementById(`filePreviewEdit_${index}`);
-    const fileList = document.getElementById(`fileListEdit_${index}`);
-
-    if (fileInput) fileInput.value = '';
-    if (filePreview) filePreview.classList.add('hidden');
-    if (fileList) fileList.innerHTML = '';
-}
-
-// Helper functions for file display
-function getFileIcon(filename) {
-    const ext = filename.split('.').pop().toLowerCase();
-    switch (ext) {
-        case 'pdf': return 'fa-file-pdf text-red-500';
-        case 'doc':
-        case 'docx': return 'fa-file-word text-blue-500';
-        case 'xls':
-        case 'xlsx': return 'fa-file-excel text-green-500';
-        case 'jpg':
-        case 'jpeg':
-        case 'png': return 'fa-file-image text-purple-500';
-        default: return 'fa-file text-gray-500';
+function clearFile(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.value = '';
+        
+        // Hide preview if exists
+        const previewId = inputId + 'Preview';
+        const preview = document.getElementById(previewId);
+        if (preview) {
+            preview.classList.add('hidden');
+        }
     }
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 function downloadFile(filename) {
-    window.open(`/marketing/proyek/file/${filename}`, '_blank');
-}
-
-function previewFile(filename) {
-    window.open(`/marketing/proyek/file/${filename}/preview`, '_blank');
+    if (filename && filename !== 'Belum ada file') {
+        window.open(`/storage/documents/${filename}`, '_blank');
+    }
 }
 </script>
