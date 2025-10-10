@@ -597,6 +597,7 @@ function hitungTotalEdit(input) {
         if (hargaSatuanInput.value) {
             // Remove thousand separators (dots) and replace decimal comma with dot, then parse as float
             let cleanValue = hargaSatuanInput.value
+                .trim()
                 .replace(/\./g, '')    // Remove thousand separators (dots)
                 .replace(/,/g, '.');   // Replace decimal comma with dot
             hargaSatuan = parseFloat(cleanValue) || 0;
@@ -604,8 +605,28 @@ function hitungTotalEdit(input) {
         
         const total = qty * hargaSatuan;
 
-        // Format with Indonesian format (dots for thousands, comma for decimals)
-        totalInput.value = total > 0 ? formatRupiahNumberEdit(total) : '0';
+        // Format with Indonesian format - manual implementation for reliability
+        if (total > 0) {
+            let formattedTotal = '';
+            
+            // Check if has decimals
+            if (total % 1 !== 0) {
+                // Round to 2 decimal places
+                const rounded = Math.round(total * 100) / 100;
+                const parts = rounded.toFixed(2).split('.');
+                // Format integer part with dots
+                const integerFormatted = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                formattedTotal = integerFormatted + ',' + parts[1];
+            } else {
+                // Whole number - format with dots
+                formattedTotal = total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            }
+            
+            totalInput.value = formattedTotal;
+        } else {
+            totalInput.value = '0';
+        }
+        
         hitungTotalKeseluruhanEdit();
     }
 }

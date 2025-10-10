@@ -1710,16 +1710,15 @@ function updateStatistics() {
 function formatRupiah(angka) {
     if (!angka && angka !== 0) return 'Rp 0,00';
     
-    // Convert to number and handle decimal places
-    let number = typeof angka === 'string' ? parseFloat(angka.toString().replace(/\./g, '').replace(',', '.')) : parseFloat(angka);
+    let number = parseFloat(angka);
     
     if (isNaN(number)) return 'Rp 0,00';
     
-    // Format with Indonesian locale - keep all decimal places if any, minimum 2
-    let formatted = new Intl.NumberFormat('id-ID', {
+    // Format dengan 2 desimal
+    let formatted = number.toLocaleString('id-ID', {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 20
-    }).format(number);
+        maximumFractionDigits: 2
+    });
     
     return 'Rp ' + formatted;
 }
