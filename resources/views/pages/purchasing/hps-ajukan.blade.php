@@ -448,24 +448,381 @@
     margin: 0;
 }
 
-/* Prevent mouse wheel scrolling on focused number inputs */
-.hps-table input[type="number"]:focus {
-    pointer-events: auto;
+/* Searchable Dropdown Styles */
+.barang-search-container {
+    position: relative;
 }
 
-/* Responsive */
+.barang-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 9999;
+    margin-top: 1px;
+}
+
+.barang-dropdown-item {
+    padding: 14px 18px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: block;
+    width: 100%;
+    text-align: left;
+    user-select: none;
+    position: relative;
+    background: linear-gradient(90deg, transparent 0%, transparent 100%);
+    border-left: 3px solid transparent;
+}
+
+.barang-dropdown-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    transition: width 0.3s ease;
+    z-index: 0;
+}
+
+.barang-dropdown-item span {
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.barang-dropdown-item:hover {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    color: #0f172a;
+    transform: translateX(4px) scale(1.02);
+    border-left: 3px solid #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.barang-dropdown-item:hover::before {
+    width: 4px;
+}
+
+.barang-dropdown-item:hover span {
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.barang-dropdown-item:last-child {
+    border-bottom: none;
+    border-radius: 0 0 8px 8px;
+}
+
+.barang-dropdown-item.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    transform: translateX(4px) scale(1.02);
+    border-left: 3px solid #1d4ed8;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+}
+
+.barang-dropdown-item.active::before {
+    width: 4px;
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+.barang-dropdown-item:active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateX(2px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Alternate hover styles for variety */
+.barang-dropdown-item:nth-child(even):hover {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-left: 3px solid #f59e0b;
+    color: #92400e;
+}
+
+.barang-dropdown-item:nth-child(3n):hover {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border-left: 3px solid #10b981;
+    color: #065f46;
+}
+
+.barang-dropdown-item:nth-child(4n):hover {
+    background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+    border-left: 3px solid #ec4899;
+    color: #831843;
+}
+
+/* Pulse animation on focus */
+@keyframes pulse-subtle {
+    0%, 100% { box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15); }
+    50% { box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25); }
+}
+
+.barang-dropdown-item:hover {
+    animation: pulse-subtle 2s infinite;
+}
+
+/* Icon and arrow styling */
+.barang-dropdown-item .item-icon {
+    transition: all 0.3s ease;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.barang-dropdown-item .item-arrow {
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateX(-10px);
+}
+
+.barang-dropdown-item:hover .item-icon {
+    transform: scale(1.2) rotate(5deg);
+    color: inherit;
+}
+
+.barang-dropdown-item:hover .item-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.barang-dropdown-item:nth-child(even):hover .item-icon i {
+    color: #f59e0b;
+}
+
+.barang-dropdown-item:nth-child(3n):hover .item-icon i {
+    color: #10b981;
+}
+
+.barang-dropdown-item:nth-child(4n):hover .item-icon i {
+    color: #ec4899;
+}
+
+.barang-dropdown-item.active .item-icon {
+    transform: scale(1.2) rotate(5deg);
+    color: white;
+}
+
+.barang-dropdown-item.active .item-arrow {
+    opacity: 1;
+    transform: translateX(0);
+    color: white;
+}
+
+/* Staggered animation for dropdown items */
+.barang-dropdown-item {
+    opacity: 0;
+    animation: slideInFromLeft 0.3s ease forwards;
+}
+
+.barang-dropdown-item:nth-child(1) { animation-delay: 0.05s; }
+.barang-dropdown-item:nth-child(2) { animation-delay: 0.1s; }
+.barang-dropdown-item:nth-child(3) { animation-delay: 0.15s; }
+.barang-dropdown-item:nth-child(4) { animation-delay: 0.2s; }
+.barang-dropdown-item:nth-child(5) { animation-delay: 0.25s; }
+.barang-dropdown-item:nth-child(6) { animation-delay: 0.3s; }
+.barang-dropdown-item:nth-child(7) { animation-delay: 0.35s; }
+.barang-dropdown-item:nth-child(8) { animation-delay: 0.4s; }
+.barang-dropdown-item:nth-child(9) { animation-delay: 0.45s; }
+.barang-dropdown-item:nth-child(10) { animation-delay: 0.5s; }
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Special highlight effect */
+.barang-dropdown-item:hover::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: dot-pulse 1.5s infinite;
+}
+
+@keyframes dot-pulse {
+    0%, 100% { 
+        opacity: 0.6;
+        transform: translateY(-50%) scale(1);
+    }
+    50% { 
+        opacity: 1;
+        transform: translateY(-50%) scale(1.2);
+    }
+}
+
+/* Loading and empty states */
+.barang-dropdown-loading,
+.barang-dropdown-empty,
+.barang-dropdown-summary {
+    padding: 16px 18px;
+    text-align: center;
+    font-size: 13px;
+    color: #6b7280;
+    background: #f9fafb;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.barang-dropdown-loading {
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.barang-search-loading {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.barang-dropdown-empty {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.barang-dropdown-summary {
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 500;
+    border-bottom: none;
+    border-radius: 0 0 8px 8px;
+}
+
+/* Input search styling */
+.barang-search-input {
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    background-color: #ffffff !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    min-height: 36px !important;
+}
+
+.barang-search-input:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+}
+
+.barang-search-input::placeholder {
+    color: #9ca3af !important;
+    font-style: italic !important;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .hps-table {
-        min-width: 2200px;
-        font-size: 11px;
+    .barang-dropdown {
+        max-height: 200px;
     }
     
-    .hps-table input,
-    .hps-table select {
-        font-size: 11px;
-        padding: 4px 6px;
-        min-height: 28px;
+    .barang-dropdown-item {
+        padding: 12px 16px;
+        font-size: 12px;
     }
+    
+    .barang-search-input {
+        font-size: 12px !important;
+        padding: 6px 10px !important;
+        min-height: 28px !important;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .barang-dropdown {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    
+    .barang-dropdown-item {
+        color: #e5e7eb;
+        border-bottom-color: #374151;
+    }
+    
+    .barang-dropdown-item:hover {
+        background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+        color: white;
+    }
+    
+    .barang-search-input {
+        background-color: #1f2937 !important;
+        border-color: #374151 !important;
+        color: #e5e7eb !important;
+    }
+    
+    .barang-dropdown-loading,
+    .barang-dropdown-empty,
+    .barang-dropdown-summary {
+        background: #374151;
+        color: #9ca3af;
+    }
+}
+
+/* Enhanced scrollbar for dropdown */
+.barang-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.barang-dropdown::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.barang-dropdown::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.barang-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Focus ring enhancement */
+.barang-search-input:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Placeholder animation */
+.barang-search-input:focus::placeholder {
+    opacity: 0.5;
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
 }
 </style>
 @endpush
@@ -512,6 +869,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupNumberFormatting() {
     // Add event listeners for number formatting
     document.addEventListener('input', function(e) {
+        // Skip formatting for search inputs - allow all characters
+        if (e.target.classList.contains('barang-search-input')) {
+            return; // Don't format search inputs
+        }
+        
         // Only format text inputs that are used for numbers
         if (e.target.type === 'text' && 
             (e.target.placeholder.includes('.') || 
@@ -540,8 +902,13 @@ function setupNumberFormatting() {
         }
     });
     
-    // Prevent invalid characters in number inputs
+    // Prevent invalid characters ONLY in numeric input fields (not search inputs)
     document.addEventListener('keypress', function(e) {
+        // Skip validation for search inputs - allow all characters
+        if (e.target.classList.contains('barang-search-input')) {
+            return; // Allow all characters for search
+        }
+        
         if (e.target.type === 'text' && 
             (e.target.placeholder.includes('.') || 
              ['qty', 'harga_vendor', 'harga_diskon', 'harga_yang_diharapkan', 'harga_pagu_dinas_per_pcs', 'nilai_sp', 'ongkir'].some(field => 
@@ -595,6 +962,11 @@ async function initializeHPS() {
         // Initialize HPS Calculator
         window.hpsCalculator.init(currentProject, kalkulasiData, barangList, vendorList);
         
+        // Auto-fill from client requests if available
+        if (window.hpsCalculator && typeof window.hpsCalculator.autoFillFromClientRequests === 'function') {
+            window.hpsCalculator.autoFillFromClientRequests();
+        }
+        
         // Populate table
         populateKalkulasiTable();
         calculateTotals();
@@ -644,16 +1016,39 @@ function populateKalkulasiTable() {
 
 // Create kalkulasi table row
 function createKalkulasiTableRow(item, index) {
-    const barangOptions = createBarangOptions(item.id_barang);
+    // Get client request data for this row
+    const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+    const hasClientMapping = clientRequest ? true : false;
     
     return `
         <tr class="hover:bg-gray-50">
             <td class="px-2 py-3 text-sm text-gray-900">${index + 1}</td>
             <td class="px-2 py-3">
-                <select onchange="updateBarang(${index}, this.value)" class="no-spin" id="barang-select-${index}" ${!canEdit ? 'disabled' : ''}>
-                    <option value="">Pilih Barang</option>
-                    ${barangOptions}
-                </select>
+                <div class="barang-search-container">
+                    <div style="position: relative;">
+                        <input type="text" 
+                               id="barang-search-${index}" 
+                               class="barang-search-input" 
+                               placeholder="🔍 Ketik untuk mencari barang..." 
+                               autocomplete="off"
+                               oninput="searchBarang(${index}, this.value)"
+                               onfocus="showBarangDropdown(${index})"
+                               onblur="hideBarangDropdown(${index})"
+                               ${!canEdit ? 'readonly' : ''}
+                               value="${item.nama_barang || ''}" />
+                        ${item.nama_barang ? `<button type="button" 
+                               onclick="clearBarangSelection(${index})"
+                               style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
+                                      background: none; border: none; color: #6b7280; cursor: pointer; 
+                                      padding: 4px; border-radius: 4px; hover:background-color: #f3f4f6;"
+                               title="Hapus pilihan">
+                            ✕
+                        </button>` : ''}
+                    </div>
+                    <div id="barang-dropdown-${index}" 
+                         class="barang-dropdown hidden">
+                    </div>
+                </div>
             </td>
             <td class="px-2 py-3 text-sm text-gray-700">
                 <span>${item.nama_vendor || '-'}</span>
@@ -665,7 +1060,8 @@ function createKalkulasiTableRow(item, index) {
                 <span>${item.satuan || '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="text" value="${item.qty > 0 ? formatNumber(item.qty) : ''}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16" placeholder="Jumlah" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.qty > 0 ? formatNumber(item.qty) : ''}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16 ${hasClientMapping ? 'bg-blue-50 border-blue-300' : ''}" placeholder="Jumlah" ${!canEdit ? 'readonly' : ''}>
+                ${hasClientMapping ? `<div class="text-xs text-blue-600">Klien: ${formatNumber(clientRequest.jumlah)}</div>` : ''}
             </td>
             <td class="px-2 py-3">
                 <input type="text" value="${item.harga_vendor > 0 ? formatNumber(item.harga_vendor) : ''}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20" placeholder="10.000" ${!canEdit ? 'readonly' : ''}>
@@ -707,7 +1103,8 @@ function createKalkulasiTableRow(item, index) {
                 <span>${(item.harga_per_pcs && item.harga_per_pcs > 0) ? formatRupiah(item.harga_per_pcs) : '-'}</span>
             </td>
             <td class="px-2 py-3">
-                <input type="text" value="${item.harga_pagu_dinas_per_pcs > 0 ? formatNumber(item.harga_pagu_dinas_per_pcs) : ''}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20" placeholder="11.000" ${!canEdit ? 'readonly' : ''}>
+                <input type="text" value="${item.harga_pagu_dinas_per_pcs > 0 ? formatNumber(item.harga_pagu_dinas_per_pcs) : ''}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20 ${hasClientMapping ? 'bg-blue-50 border-blue-300' : ''}" placeholder="11.000" ${!canEdit ? 'readonly' : ''}>
+                ${hasClientMapping ? `<div class="text-xs text-blue-600">Klien: ${formatRupiah(clientRequest.harga_satuan)}</div>` : ''}
             </td>
             <td class="px-2 py-3 bg-gray-50 text-xs">
                 <span>${(item.pagu_total && item.pagu_total > 0) ? formatRupiah(item.pagu_total) : '-'}</span>
@@ -829,6 +1226,18 @@ function addVendorItem() {
         return;
     }
     const newItem = window.hpsCalculator.addVendorItem();
+    
+    // Check if there's client request for this new item (based on current index)
+    const currentIndex = kalkulasiData.length - 1; // Last added item
+    const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[currentIndex];
+    if (clientRequest) {
+        // Auto-fill qty and pagu dinas from client request
+        kalkulasiData[currentIndex].qty = parseFloat(clientRequest.jumlah) || 0;
+        kalkulasiData[currentIndex].harga_pagu_dinas_per_pcs = parseFloat(clientRequest.harga_satuan) || 0;
+        
+        showSuccessMessage(`Item baru ditambah dengan data dari permintaan klien: ${clientRequest.nama_barang} (${clientRequest.jumlah} ${clientRequest.satuan})`);
+    }
+    
     populateKalkulasiTable();
 }
 
@@ -870,8 +1279,23 @@ async function updateBarang(index, barangId) {
                     kalkulasiData[index].harga_vendor = parseFloat(barangData.harga_vendor);
                 }
                 
-                // Show success message briefly
-                showSuccessMessage(`Data ${barangData.nama_barang} berhasil dimuat dengan vendor ${barangData.vendor ? barangData.vendor.nama_vendor : 'N/A'}`);
+                // Check if there's client request for this item and auto-fill qty and pagu dinas
+                const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+                if (clientRequest) {
+                    // Auto-fill qty from client request if not already set
+                    if (!kalkulasiData[index].qty || kalkulasiData[index].qty === 0) {
+                        kalkulasiData[index].qty = parseFloat(clientRequest.jumlah) || 0;
+                    }
+                    
+                    // Auto-fill pagu dinas from client request if not already set
+                    if (!kalkulasiData[index].harga_pagu_dinas_per_pcs || kalkulasiData[index].harga_pagu_dinas_per_pcs === 0) {
+                        kalkulasiData[index].harga_pagu_dinas_per_pcs = parseFloat(clientRequest.harga_satuan) || 0;
+                    }
+                    
+                    showSuccessMessage(`Data ${barangData.nama_barang} berhasil dimuat dengan qty klien: ${clientRequest.jumlah} dan pagu: ${formatRupiah(clientRequest.harga_satuan)}`);
+                } else {
+                    showSuccessMessage(`Data ${barangData.nama_barang} berhasil dimuat dengan vendor ${barangData.vendor ? barangData.vendor.nama_vendor : 'N/A'}`);
+                }
                 
             } else {
                 // Fallback to basic data if detailed fetch fails
@@ -887,6 +1311,25 @@ async function updateBarang(index, barangId) {
                             kalkulasiData[index].nama_vendor = vendor.nama_vendor;
                         }
                     }
+                    
+                    // Check if there's client request for this item and auto-fill qty and pagu dinas
+                    const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+                    if (clientRequest) {
+                        // Auto-fill qty from client request if not already set
+                        if (!kalkulasiData[index].qty || kalkulasiData[index].qty === 0) {
+                            kalkulasiData[index].qty = parseFloat(clientRequest.jumlah) || 0;
+                        }
+                        
+                        // Auto-fill pagu dinas from client request if not already set
+                        if (!kalkulasiData[index].harga_pagu_dinas_per_pcs || kalkulasiData[index].harga_pagu_dinas_per_pcs === 0) {
+                            kalkulasiData[index].harga_pagu_dinas_per_pcs = parseFloat(clientRequest.harga_satuan) || 0;
+                        }
+                    }
+                }
+                
+                // Don't reset input fields if called from selectBarang (already reset there)
+                if (!arguments[2]) {
+                    resetInputFields(index);
                 }
             }
             
@@ -911,6 +1354,25 @@ async function updateBarang(index, barangId) {
                         kalkulasiData[index].nama_vendor = vendor.nama_vendor;
                     }
                 }
+                
+                // Check if there's client request for this item and auto-fill qty and pagu dinas
+                const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+                if (clientRequest) {
+                    // Auto-fill qty from client request if not already set
+                    if (!kalkulasiData[index].qty || kalkulasiData[index].qty === 0) {
+                        kalkulasiData[index].qty = parseFloat(clientRequest.jumlah) || 0;
+                    }
+                    
+                    // Auto-fill pagu dinas from client request if not already set
+                    if (!kalkulasiData[index].harga_pagu_dinas_per_pcs || kalkulasiData[index].harga_pagu_dinas_per_pcs === 0) {
+                        kalkulasiData[index].harga_pagu_dinas_per_pcs = parseFloat(clientRequest.harga_satuan) || 0;
+                    }
+                }
+            }
+            
+            // Don't reset input fields if called from selectBarang (already reset there)
+            if (!arguments[2]) {
+                resetInputFields(index);
             }
             
             showErrorMessage('Gagal memuat detail barang, menggunakan data dasar');
@@ -924,6 +1386,9 @@ async function updateBarang(index, barangId) {
         kalkulasiData[index].satuan = '';
         kalkulasiData[index].harga_vendor = 0;
         kalkulasiData[index].jenis_vendor = '';
+        
+        // Reset all input fields when clearing barang
+        resetInputFields(index);
     }
     
     calculateRow(index);
@@ -1048,7 +1513,21 @@ function syncPercentageToAllItems(field, value) {
 }
 
 function calculateRow(index) {
+    // Backup qty dan pagu dinas sebelum kalkulasi
+    const preservedQty = kalkulasiData[index].qty;
+    const preservedPaguDinas = kalkulasiData[index].harga_pagu_dinas_per_pcs;
+    
     kalkulasiData[index] = window.hpsCalculator.calculateItem(kalkulasiData[index]);
+    
+    // Restore qty dan pagu dinas setelah kalkulasi (jika ada yang berubah)
+    if (kalkulasiData[index].qty !== preservedQty) {
+        console.warn('Calculator changed qty from', preservedQty, 'to', kalkulasiData[index].qty, '- restoring');
+        kalkulasiData[index].qty = preservedQty;
+    }
+    if (kalkulasiData[index].harga_pagu_dinas_per_pcs !== preservedPaguDinas) {
+        console.warn('Calculator changed pagu dinas from', preservedPaguDinas, 'to', kalkulasiData[index].harga_pagu_dinas_per_pcs, '- restoring');
+        kalkulasiData[index].harga_pagu_dinas_per_pcs = preservedPaguDinas;
+    }
 }
 
 function calculateTotals() {
@@ -1584,5 +2063,354 @@ async function saveKalkulasiWithHistory() {
         alert('Terjadi kesalahan saat menyimpan kalkulasi');
     }
 }
+
+// Fungsi untuk searchable dropdown barang
+let searchTimeout;
+let filteredBarangResults = [];
+let searchCache = new Map();
+
+function searchBarang(index, searchTerm) {
+    clearTimeout(searchTimeout);
+    const dropdown = document.getElementById(`barang-dropdown-${index}`);
+    
+    if (searchTerm.length === 0) {
+        dropdown.innerHTML = '';
+        dropdown.classList.add('hidden');
+        return;
+    }
+    
+    if (searchTerm.length < 2) {
+        dropdown.innerHTML = '<div class="barang-dropdown-empty">Ketik minimal 2 karakter</div>';
+        dropdown.classList.remove('hidden');
+        return;
+    }
+    
+    // Check cache first
+    const cacheKey = searchTerm.toLowerCase();
+    if (searchCache.has(cacheKey)) {
+        displaySearchResults(index, searchCache.get(cacheKey), searchTerm);
+        return;
+    }
+    
+    // Show loading indicator
+    dropdown.innerHTML = `
+        <div class="barang-dropdown-loading">
+            <span>Mencari barang</span>
+            <span class="barang-search-loading"></span>
+        </div>
+    `;
+    dropdown.classList.remove('hidden');
+    
+    searchTimeout = setTimeout(() => {
+        // Filter barang berdasarkan pencarian
+        filteredBarangResults = barangList.filter(barang => 
+            barang.nama_barang.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        
+        // Cache hasil pencarian
+        searchCache.set(cacheKey, filteredBarangResults);
+        
+        displaySearchResults(index, filteredBarangResults, searchTerm);
+    }, 200); // Reduced debounce time for better responsiveness
+}
+
+function displaySearchResults(index, results, searchTerm) {
+    const dropdown = document.getElementById(`barang-dropdown-${index}`);
+    
+    if (results.length === 0) {
+        dropdown.innerHTML = `
+            <div class="barang-dropdown-empty">
+                <div>Tidak ada barang ditemukan untuk "${searchTerm}"</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Coba kata kunci lain</div>
+            </div>
+        `;
+    } else {
+        const maxResults = Math.min(results.length, 10);
+        dropdown.innerHTML = results.slice(0, maxResults).map((barang, itemIndex) => 
+            `<div class="barang-dropdown-item" 
+                 onmousedown="event.preventDefault(); selectBarang(${index}, '${barang.id_barang}', '${barang.nama_barang.replace(/'/g, "\\'")}');"
+                 onmouseenter="highlightItem(this)"
+                 onmouseleave="unhighlightItem(this)"
+                 data-item-index="${itemIndex}">
+                <div class="flex items-center gap-3">
+                    <div class="item-icon">
+                        <i class="fas fa-cube text-gray-400"></i>
+                    </div>
+                    <span class="block truncate flex-1">${highlightSearchTerm(barang.nama_barang, searchTerm)}</span>
+                    <div class="item-arrow">
+                        <i class="fas fa-chevron-right text-gray-300"></i>
+                    </div>
+                </div>
+             </div>`
+        ).join('');
+        
+        if (results.length > 10) {
+            dropdown.innerHTML += `<div class="barang-dropdown-summary">Menampilkan 10 dari ${results.length} hasil untuk "${searchTerm}"</div>`;
+        }
+    }
+    
+    animateDropdownEntrance(dropdown);
+}
+
+function selectBarang(index, barangId, namaBarang) {
+    const input = document.getElementById(`barang-search-${index}`);
+    const dropdown = document.getElementById(`barang-dropdown-${index}`);
+    
+    console.log('Selecting barang:', namaBarang, 'for index:', index);
+    
+    input.value = namaBarang;
+    dropdown.classList.add('hidden');
+    
+    // Remove active class from all items
+    dropdown.querySelectorAll('.barang-dropdown-item.active').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Reset input fields when barang changes
+    resetInputFields(index);
+    
+    // Update barang data - pass true as third parameter to prevent double reset
+    updateBarang(index, barangId, true);
+}
+
+function clearBarangSelection(index) {
+    const input = document.getElementById(`barang-search-${index}`);
+    const dropdown = document.getElementById(`barang-dropdown-${index}`);
+    
+    input.value = '';
+    dropdown.classList.add('hidden');
+    
+    // PRESERVE qty dan pagu dinas saat clear barang
+    const preservedQty = kalkulasiData[index].qty;
+    const preservedPaguDinas = kalkulasiData[index].harga_pagu_dinas_per_pcs;
+    console.log('Clearing barang but preserving qty:', preservedQty, 'pagu dinas:', preservedPaguDinas);
+    
+    // Reset input fields when clearing barang
+    resetInputFields(index);
+    
+    // Clear barang data
+    kalkulasiData[index].id_barang = null;
+    kalkulasiData[index].nama_barang = '';
+    kalkulasiData[index].satuan = '';
+    kalkulasiData[index].harga_vendor = 0;
+    
+    // RESTORE qty dan pagu dinas setelah clear
+    kalkulasiData[index].qty = preservedQty;
+    kalkulasiData[index].harga_pagu_dinas_per_pcs = preservedPaguDinas;
+    
+    // Refresh table
+    populateKalkulasiTable();
+    calculateTotals();
+}
+
+// Function to reset input fields when barang changes
+// NOTE: qty dan harga_pagu_dinas_per_pcs TIDAK direset karena mengikuti permintaan klien
+function resetInputFields(index) {
+    console.log('Resetting input fields for item index:', index, '(qty dan pagu dinas tidak direset)');
+    
+    // PRESERVE qty dan harga_pagu_dinas_per_pcs - backup nilainya
+    const preservedQty = kalkulasiData[index].qty;
+    const preservedPaguDinas = kalkulasiData[index].harga_pagu_dinas_per_pcs;
+    console.log('Preserving qty:', preservedQty, 'pagu dinas:', preservedPaguDinas);
+
+    // Reset field input lainnya
+    kalkulasiData[index].harga_vendor = 0;
+    kalkulasiData[index].harga_diskon = 0;
+    kalkulasiData[index].harga_yang_diharapkan = 0;
+    kalkulasiData[index].nilai_sp = 0;
+    kalkulasiData[index].ongkir = 0;
+    kalkulasiData[index].omzet_dinas_percent = 0;
+    kalkulasiData[index].bendera_percent = 0;
+    kalkulasiData[index].bank_cost_percent = 0;
+    kalkulasiData[index].biaya_ops_percent = 0;
+    kalkulasiData[index].keterangan_1 = '';
+    kalkulasiData[index].keterangan_2 = '';
+    
+    // Reset calculated fields (akan dihitung ulang)
+    kalkulasiData[index].nilai_diskon = 0;
+    kalkulasiData[index].total_diskon = 0;
+    kalkulasiData[index].total_harga = 0;
+    kalkulasiData[index].jumlah_volume = 0;
+    kalkulasiData[index].persen_kenaikan = 0;
+    kalkulasiData[index].proyeksi_kenaikan = 0;
+    kalkulasiData[index].ppn_dinas = 0;
+    kalkulasiData[index].pph_dinas = 0;
+    kalkulasiData[index].hps = 0;
+    kalkulasiData[index].harga_per_pcs = 0;
+    kalkulasiData[index].pagu_total = 0;
+    kalkulasiData[index].selisih_pagu_hps = 0;
+    kalkulasiData[index].dpp = 0;
+    kalkulasiData[index].asumsi_nilai_cair = 0;
+    kalkulasiData[index].omzet_nilai_dinas = 0;
+    kalkulasiData[index].gross_nilai_bendera = 0;
+    
+    // RESTORE qty dan harga_pagu_dinas_per_pcs setelah reset calculated fields
+    kalkulasiData[index].qty = preservedQty;
+    kalkulasiData[index].harga_pagu_dinas_per_pcs = preservedPaguDinas;
+    console.log('Restored qty:', kalkulasiData[index].qty, 'pagu dinas:', kalkulasiData[index].harga_pagu_dinas_per_pcs);
+    
+    // Recalculate the row
+    calculateRow(index);
+}
+
+// Helper functions for item highlighting
+function highlightItem(element) {
+    // Remove active class from siblings
+    const siblings = element.parentElement.querySelectorAll('.barang-dropdown-item');
+    siblings.forEach(item => {
+        item.classList.remove('active');
+        item.style.animationDelay = '0s'; // Reset animation delay
+    });
+    
+    // Add active class to current item
+    element.classList.add('active');
+    
+    // Add special hover effect
+    element.style.animationDelay = '0s';
+    element.style.transform = 'translateX(4px) scale(1.02)';
+    
+    // Optional: Add subtle haptic feedback for mobile devices
+    if ('vibrate' in navigator) {
+        navigator.vibrate(10); // Very short vibration
+    }
+}
+
+function unhighlightItem(element) {
+    if (!element.classList.contains('active')) {
+        element.style.transform = '';
+    }
+}
+
+// Add smooth entrance animation when dropdown appears
+function animateDropdownEntrance(dropdown) {
+    dropdown.style.opacity = '0';
+    dropdown.style.transform = 'translateY(-10px)';
+    dropdown.classList.remove('hidden');
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+        dropdown.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        dropdown.style.opacity = '1';
+        dropdown.style.transform = 'translateY(0)';
+    });
+}
+
+function showBarangDropdown(index) {
+    const input = document.getElementById(`barang-search-${index}`);
+    const searchTerm = input.value;
+    
+    if (searchTerm.length >= 2) {
+        searchBarang(index, searchTerm);
+    }
+}
+
+function hideBarangDropdown(index) {
+    // Delay yang lebih lama untuk memungkinkan click pada dropdown item
+    setTimeout(() => {
+        const dropdown = document.getElementById(`barang-dropdown-${index}`);
+        if (dropdown) {
+            dropdown.classList.add('hidden');
+        }
+    }, 300);
+}
+
+// Function to highlight search term in results
+function highlightSearchTerm(text, searchTerm) {
+    if (!searchTerm || searchTerm.length < 2) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<mark style="background-color: #fef3c7; color: #92400e; padding: 1px 2px; border-radius: 2px;">$1</mark>');
+}
+
+// Tutup dropdown ketika click di luar area
+document.addEventListener('click', function(event) {
+    // Cari semua dropdown yang terbuka dan tutup jika click di luar
+    const dropdowns = document.querySelectorAll('[id^="barang-dropdown-"]');
+    dropdowns.forEach(dropdown => {
+        const container = dropdown.closest('.barang-search-container');
+        // Jangan tutup jika click pada dropdown item
+        if (container && !container.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+});
+
+// Prevent dropdown from closing when clicking inside dropdown
+document.addEventListener('mousedown', function(event) {
+    if (event.target.closest('.barang-dropdown')) {
+        event.preventDefault();
+    }
+});
+
+// Enhanced keyboard navigation with better UX
+document.addEventListener('keydown', function(event) {
+    if (event.target.id && event.target.id.startsWith('barang-search-')) {
+        const index = event.target.id.split('-')[2];
+        const dropdown = document.getElementById(`barang-dropdown-${index}`);
+        const input = event.target;
+        
+        if (event.key === 'Escape') {
+            dropdown.classList.add('hidden');
+            input.blur();
+            return;
+        }
+        
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            const items = dropdown.querySelectorAll('.barang-dropdown-item');
+            if (items.length > 0) {
+                dropdown.classList.remove('hidden');
+                const currentActive = dropdown.querySelector('.barang-dropdown-item.active');
+                let nextIndex = 0;
+                
+                if (currentActive) {
+                    currentActive.classList.remove('active');
+                    const currentIndex = Array.from(items).indexOf(currentActive);
+                    if (event.key === 'ArrowDown') {
+                        nextIndex = (currentIndex + 1) % items.length;
+                    } else {
+                        nextIndex = (currentIndex - 1 + items.length) % items.length;
+                    }
+                }
+                
+                items[nextIndex].classList.add('active');
+                items[nextIndex].scrollIntoView({ block: 'nearest' });
+            }
+            return;
+        }
+        
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const activeItem = dropdown.querySelector('.barang-dropdown-item.active');
+            if (activeItem) {
+                activeItem.click();
+            } else {
+                // If no item is active and there are results, select first item
+                const firstItem = dropdown.querySelector('.barang-dropdown-item');
+                if (firstItem) {
+                    firstItem.click();
+                }
+            }
+            return;
+        }
+        
+        if (event.key === 'Tab') {
+            // Close dropdown on tab
+            dropdown.classList.add('hidden');
+        }
+    }
+});
+
+// Clear search cache when barang list changes
+function clearSearchCache() {
+    searchCache.clear();
+}
+
+// Call clearSearchCache when barang list is reloaded
+const originalLoadBarangList = loadBarangList;
+loadBarangList = async function() {
+    await originalLoadBarangList.call(this);
+    clearSearchCache();
+};
 </script>
 @endpush
