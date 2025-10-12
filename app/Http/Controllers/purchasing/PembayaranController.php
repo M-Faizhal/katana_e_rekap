@@ -338,7 +338,26 @@ class PembayaranController extends Controller
             $sisaBayar = $totalModalVendor - $totalDibayar;
         }
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-form', compact('proyek', 'vendors', 'selectedVendor', 'totalDibayar', 'sisaBayar', 'totalModalVendor'));
+        // Ambil breakdown modal per barang jika vendor dipilih
+        $breakdownBarang = null;
+        if ($selectedVendor) {
+            $breakdownBarang = KalkulasiHps::with(['barang'])
+                ->where('id_proyek', $proyek->id_proyek)
+                ->where('id_vendor', $selectedVendor->id_vendor)
+                ->get()
+                ->map(function ($kalkulasi) {
+                    return (object) [
+                        'nama_barang' => $kalkulasi->barang->nama_barang ?? 'N/A',
+                        'satuan' => $kalkulasi->barang->satuan ?? 'N/A',
+                        'qty' => $kalkulasi->qty,
+                        'harga_vendor' => $kalkulasi->harga_vendor,
+                        'total_harga_hpp' => $kalkulasi->total_harga_hpp,
+                        'harga_akhir' => $kalkulasi->harga_akhir,
+                    ];
+                });
+        }
+
+        return view('pages.purchasing.pembayaran-components.pembayaran-form', compact('proyek', 'vendors', 'selectedVendor', 'totalDibayar', 'sisaBayar', 'totalModalVendor', 'breakdownBarang'));
     }
 
     /**
@@ -474,7 +493,23 @@ class PembayaranController extends Controller
             ->where('status_verifikasi', 'Approved')
             ->sum('nominal_bayar');
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-detail', compact('pembayaran', 'totalModalVendor', 'totalDibayarVendor'));
+        // Ambil breakdown modal per barang untuk vendor ini
+        $breakdownBarang = KalkulasiHps::with(['barang'])
+            ->where('id_proyek', $pembayaran->penawaran->proyek->id_proyek)
+            ->where('id_vendor', $pembayaran->id_vendor)
+            ->get()
+            ->map(function ($kalkulasi) {
+                return (object) [
+                    'nama_barang' => $kalkulasi->barang->nama_barang ?? 'N/A',
+                    'satuan' => $kalkulasi->barang->satuan ?? 'N/A',
+                    'qty' => $kalkulasi->qty,
+                    'harga_vendor' => $kalkulasi->harga_vendor,
+                    'total_harga_hpp' => $kalkulasi->total_harga_hpp,
+                    'harga_akhir' => $kalkulasi->harga_akhir,
+                ];
+            });
+
+        return view('pages.purchasing.pembayaran-components.pembayaran-detail', compact('pembayaran', 'totalModalVendor', 'totalDibayarVendor', 'breakdownBarang'));
     }
 
     /**
@@ -580,7 +615,23 @@ class PembayaranController extends Controller
 
         $sisaBayar = $totalModalVendor - $totalDibayar;
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-edit', compact('pembayaran', 'proyek', 'totalDibayar', 'sisaBayar', 'totalModalVendor'));
+        // Ambil breakdown modal per barang untuk vendor ini
+        $breakdownBarang = KalkulasiHps::with(['barang'])
+            ->where('id_proyek', $proyek->id_proyek)
+            ->where('id_vendor', $pembayaran->id_vendor)
+            ->get()
+            ->map(function ($kalkulasi) {
+                return (object) [
+                    'nama_barang' => $kalkulasi->barang->nama_barang ?? 'N/A',
+                    'satuan' => $kalkulasi->barang->satuan ?? 'N/A',
+                    'qty' => $kalkulasi->qty,
+                    'harga_vendor' => $kalkulasi->harga_vendor,
+                    'total_harga_hpp' => $kalkulasi->total_harga_hpp,
+                    'harga_akhir' => $kalkulasi->harga_akhir,
+                ];
+            });
+
+        return view('pages.purchasing.pembayaran-components.pembayaran-edit', compact('pembayaran', 'proyek', 'totalDibayar', 'sisaBayar', 'totalModalVendor', 'breakdownBarang'));
     }
 
     /**

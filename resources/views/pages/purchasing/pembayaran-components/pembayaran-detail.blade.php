@@ -20,6 +20,9 @@
                     <p class="text-indigo-100 text-sm sm:text-base lg:text-lg">
                         {{ $pembayaran->penawaran->proyek->nama_barang }}
                     </p>
+                    <p class="text-indigo-200 text-xs sm:text-sm">
+                        Vendor: {{ $pembayaran->vendor->nama_vendor ?? 'N/A' }}
+                    </p>
                 </div>
             </div>
             <div class="bg-indigo-700/30 rounded-lg p-3">
@@ -312,6 +315,160 @@
     </div>
 </div>
 
+<!-- Breakdown Modal per Barang Section -->
+@if($breakdownBarang && $breakdownBarang->count() > 0)
+<div class="bg-white rounded-xl shadow-lg border border-gray-100 mt-6">
+    <div class="p-6 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200 rounded-t-xl">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="bg-purple-100 rounded-lg p-2 mr-3">
+                    <i class="fas fa-chart-pie text-purple-600"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">Modal per Barang</h2>
+                    <p class="text-sm text-gray-600 mt-1">{{ $pembayaran->vendor->nama_vendor ?? 'Vendor' }} - Detail modal setiap item barang</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-lg font-bold text-purple-600">
+                    {{ $breakdownBarang->count() }} Item
+                </div>
+                <div class="text-sm text-gray-500">Total Barang</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="p-6">
+        <!-- Desktop View -->
+        <div class="hidden md:block">
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">No.</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Nama Barang</th>
+                            <th class="text-center py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Qty</th>
+                            <th class="text-center py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Satuan</th>
+                            <th class="text-right py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Harga Vendor</th>
+                            <th class="text-right py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Harga Akhir</th>
+                            <th class="text-right py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">Total Modal</th>
+                            <th class="text-center py-3 px-4 font-semibold text-gray-700 border-b border-gray-200">% dari Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($breakdownBarang as $index => $item)
+                        @php
+                            $persentaseModal = $totalModalVendor > 0 ? ($item->total_harga_hpp / $totalModalVendor) * 100 : 0;
+                        @endphp
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-3 px-4 border-b border-gray-100 text-sm">{{ $index + 1 }}</td>
+                            <td class="py-3 px-4 border-b border-gray-100">
+                                <div class="font-medium text-gray-900">{{ $item->nama_barang }}</div>
+                            </td>
+                            <td class="py-3 px-4 border-b border-gray-100 text-center">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ number_format($item->qty, 0, ',', '.') }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 border-b border-gray-100 text-center text-sm text-gray-600">
+                                {{ $item->satuan }}
+                            </td>
+                            <td class="py-3 px-4 border-b border-gray-100 text-right text-sm">
+                                <span class="text-gray-600">Rp {{ number_format($item->harga_vendor, 0, ',', '.') }}</span>
+                            </td>
+                            <td class="py-3 px-4 border-b border-gray-100 text-right text-sm font-medium">
+                                <span class="text-purple-600">Rp {{ number_format($item->harga_akhir, 0, ',', '.') }}</span>
+                            </td>
+                            <td class="py-3 px-4 border-b border-gray-100 text-right">
+                                <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 0, ',', '.') }}</span>
+                            </td>
+                            <td class="py-3 px-4 border-b border-gray-100 text-center">
+                                <div class="flex items-center justify-center">
+                                    <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                        <div class="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style="width: {{ $persentaseModal }}%"></div>
+                                    </div>
+                                    <span class="text-xs font-medium text-gray-700">{{ number_format($persentaseModal, 1) }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-gray-50 font-semibold">
+                            <td colspan="6" class="py-4 px-4 text-right border-t-2 border-gray-300">
+                                <span class="text-gray-700">Total Modal Vendor:</span>
+                            </td>
+                            <td class="py-4 px-4 text-right border-t-2 border-gray-300">
+                                <span class="text-lg font-bold text-green-600">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
+                            </td>
+                            <td class="py-4 px-4 text-center border-t-2 border-gray-300">
+                                <span class="text-sm font-medium text-green-600">100%</span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4">
+            @foreach($breakdownBarang as $index => $item)
+            @php
+                $persentaseModal = $totalModalVendor > 0 ? ($item->total_harga_hpp / $totalModalVendor) * 100 : 0;
+            @endphp
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex-1">
+                        <h4 class="font-medium text-gray-900">{{ $item->nama_barang }}</h4>
+                        <p class="text-sm text-gray-600 mt-1">Item #{{ $index + 1 }}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-green-600">
+                            Rp {{ number_format($item->total_harga_hpp, 0, ',', '.') }}
+                        </div>
+                        <div class="text-xs text-gray-500">{{ number_format($persentaseModal, 1) }}% dari total</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <span class="text-gray-600">Qty:</span>
+                        <span class="font-medium ml-1">{{ number_format($item->qty, 0, ',', '.') }} {{ $item->satuan }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Harga Vendor:</span>
+                        <span class="font-medium ml-1">Rp {{ number_format($item->harga_vendor, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-gray-600">Harga Akhir:</span>
+                        <span class="font-medium ml-1 text-purple-600">Rp {{ number_format($item->harga_akhir, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="flex justify-between items-center text-xs text-gray-600 mb-1">
+                        <span>Kontribusi Modal</span>
+                        <span>{{ number_format($persentaseModal, 1) }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300" style="width: {{ $persentaseModal }}%"></div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+            
+            <!-- Total Mobile -->
+            <div class="bg-green-50 rounded-lg p-4 border border-green-200 mt-4">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-green-800">Total Modal Vendor:</span>
+                    <span class="text-lg font-bold text-green-600">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Progress Section -->
 @php
     $totalPenawaran = $pembayaran->penawaran->total_penawaran;
@@ -357,6 +514,9 @@
             <div class="text-xs text-blue-700 mb-1">
                 <i class="fas fa-info-circle mr-1"></i>
                 Referensi: Total penawaran ke klien Rp {{ number_format($totalPenawaran, 0, ',', '.') }}. Modal vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>.
+                @if($breakdownBarang && $breakdownBarang->count() > 0)
+                <br>Detail breakdown per barang dapat dilihat pada tabel di atas untuk transparansi perhitungan modal vendor.
+                @endif
             </div>
         </div>
         
