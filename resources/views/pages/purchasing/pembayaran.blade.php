@@ -611,6 +611,30 @@ document.addEventListener('keydown', function(e) {
                                             @endif
                                         </div>
                                         
+                                        <!-- Barang yang Ditangani Vendor -->
+                                        @php
+                                            $barangVendor = $proyek->penawaranAktif->penawaranDetail
+                                                ->where('barang.id_vendor', $vendorData->vendor->id_vendor)
+                                                ->pluck('barang.nama_barang')
+                                                ->unique()
+                                                ->values();
+                                        @endphp
+                                        @if($barangVendor->count() > 0)
+                                        <div class="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <p class="text-xs font-medium text-blue-700 mb-1">
+                                                <i class="fas fa-cube mr-1"></i>
+                                                Barang yang Ditangani:
+                                            </p>
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach($barangVendor as $namaBarang)
+                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {{ $namaBarang }}
+                                                </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        @endif
+
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                                             <div>
                                                 <p class="text-sm text-gray-600">{{ $vendorData->vendor->jenis_perusahaan }}</p>
@@ -901,6 +925,30 @@ document.addEventListener('keydown', function(e) {
                                     @endif
                                 </div>
                                 
+                                <!-- Barang yang Ditangani Vendor -->
+                                @php
+                                    $barangVendor = $proyek->penawaranAktif->penawaranDetail
+                                        ->where('barang.id_vendor', $vendorData->vendor->id_vendor)
+                                        ->pluck('barang.nama_barang')
+                                        ->unique()
+                                        ->values();
+                                @endphp
+                                @if($barangVendor->count() > 0)
+                                <div class="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <p class="text-xs font-medium text-blue-700 mb-1">
+                                        <i class="fas fa-cube mr-1"></i>
+                                        Barang yang Ditangani:
+                                    </p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach($barangVendor as $namaBarang)
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                            {{ $namaBarang }}
+                                        </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+                                
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                                     <div>
                                         <p class="text-sm text-gray-600">{{ $vendorData->vendor->jenis_perusahaan }}</p>
@@ -1172,6 +1220,7 @@ document.addEventListener('keydown', function(e) {
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Barang</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
@@ -1189,8 +1238,12 @@ document.addEventListener('keydown', function(e) {
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">{{ $pembayaran->penawaran->proyek->nama_barang }}</div>
+                        <div class="text-xs text-gray-500">Kode: {{ $pembayaran->penawaran->proyek->kode_proyek }}</div>
+                    </td>
+                    <td class="px-6 py-4">
                         <div class="text-sm text-gray-500">{{ $pembayaran->penawaran->proyek->instansi }}</div>
                         <div class="text-xs text-gray-400">No. {{ $pembayaran->penawaran->no_penawaran }}</div>
+                        <div class="text-xs text-gray-400">{{ $pembayaran->penawaran->proyek->kab_kota }}</div>
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">{{ $pembayaran->vendor->nama_vendor }}</div>

@@ -322,12 +322,56 @@
             </div>
         </form>
 
+        <!-- Breakdown Modal per Barang Section (Optional Display) -->
+        @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
+        <div class="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+            <h3 class="text-sm font-semibold text-purple-800 mb-3 flex items-center">
+                <i class="fas fa-chart-pie mr-2"></i>
+                Modal per Barang ({{ $breakdownBarang->count() }} item)
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                @foreach($breakdownBarang as $item)
+                @php
+                    $persentaseModal = $totalModalVendor > 0 ? ($item->total_harga_hpp / $totalModalVendor) * 100 : 0;
+                @endphp
+                <div class="bg-white rounded-lg p-3 border border-purple-200 shadow-sm">
+                    <h4 class="font-medium text-gray-900 text-sm mb-2">{{ $item->nama_barang }}</h4>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Qty:</span>
+                            <span class="font-medium">{{ number_format($item->qty, 0, ',', '.') }} {{ $item->satuan }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Modal:</span>
+                            <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Kontribusi:</span>
+                            <span class="font-medium text-purple-600">{{ number_format($persentaseModal, 1) }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
+                            <div class="bg-purple-500 h-1 rounded-full" style="width: {{ $persentaseModal }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="mt-3 pt-3 border-t border-purple-200 flex justify-between items-center">
+                <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
+                <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
+            </div>
+        </div>
+        @endif
+
         <!-- Notes Section -->
         <div class="mt-6">
             <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg p-4">
                 <p class="text-xs text-yellow-800 flex items-center">
                     <i class="fas fa-info-circle mr-2"></i>
                     <strong>Catatan:</strong> Pembayaran ke vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>, bukan harga vendor barang.
+                    @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
+                    <br>Detail breakdown per barang dapat dilihat pada card di atas untuk transparansi perhitungan modal vendor.
+                    @endif
                 </p>
             </div>
         </div>
