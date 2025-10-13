@@ -294,7 +294,136 @@
     </div>
 </div>
 
+<!-- Progress Section -->
+@php
+    // Debug untuk mengetahui nilai yang dihitung
+    $simulasiTotalDibayar = $totalApproved + $pembayaran->nominal_bayar;
+    
+    // Pastikan tidak ada pembagian dengan nol
+    if ($totalModalVendor > 0) {
+        $persenBayar = ($simulasiTotalDibayar / $totalModalVendor) * 100;
+    } else {
+        $persenBayar = 0;
+    }
+    
+    // Batasi persentase maksimal 100% untuk display
+    $persenBayarDisplay = min($persenBayar, 100);
+@endphp
 
+<div class="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-xl border border-blue-100 mb-6">
+    <div class="p-6 sm:p-8 border-b border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                    <i class="fas fa-chart-line text-lg"></i>
+                </div>
+            </div>        <div class="ml-4">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Progress Pembayaran Vendor</h2>
+            <p class="text-gray-600 mt-1">Simulasi progress pembayaran untuk {{ $pembayaran->vendor->nama_vendor }} jika disetujui</p>
+        </div>
+    </div>
+    
+    <div class="p-6 sm:p-8">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center text-sm text-gray-600 mb-3">
+                <span class="font-medium">Progress Pembayaran Vendor</span>
+                <span class="font-bold text-lg {{ $persenBayar >= 100 ? 'text-green-600' : 'text-blue-600' }}">
+                    {{ number_format($persenBayar, 1) }}%
+                    @if($persenBayar > 100)
+                        <span class="text-xs text-red-600">(Melebihi Target)</span>
+                    @endif
+                </span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+                <div class="bg-gradient-to-r {{ $persenBayar >= 100 ? 'from-green-500 to-emerald-600' : 'from-blue-500 to-indigo-600' }} h-4 rounded-full transition-all duration-700 ease-out relative overflow-hidden" 
+                     style="width: {{ min($persenBayar, 100) }}%">
+                    <div class="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+                </div>
+            </div>
+            @if($persenBayar >= 100)
+                <div class="text-center mt-3">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Vendor Akan Lunas
+                    </span>
+                </div>
+            @endif
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Progress Card -->
+            <div class="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-200 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:scale-105">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full opacity-20"></div>
+                
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                                <i class="fas fa-percentage text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-blue-800">{{ number_format($persenBayar, 1) }}%</div>
+                        </div>
+                    </div>
+                    <div class="text-sm font-medium text-blue-700">Progress Vendor</div>
+                    <div class="text-xs text-blue-600 mt-1">Dari modal vendor</div>
+                </div>
+            </div>
+
+            <!-- Total Payment Card -->
+            <div class="group relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-100 border-2 border-green-200 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:scale-105">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full opacity-20"></div>
+                
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                                <i class="fas fa-money-bill-wave text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-green-800">Rp {{ number_format($totalApproved + $pembayaran->nominal_bayar, 0, ',', '.') }}</div>
+                        </div>
+                    </div>
+                    <div class="text-sm font-medium text-green-700">Total Akan Dibayar</div>
+                    <div class="text-xs text-green-600 mt-1">Termasuk pembayaran ini</div>
+                </div>
+            </div>
+
+            <!-- Remaining Balance Card -->
+            <div class="group relative overflow-hidden bg-gradient-to-br from-orange-50 to-red-100 border-2 border-orange-200 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:scale-105">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 h-16 w-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full opacity-20"></div>
+                
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-r from-orange-500 to-red-600 text-white">
+                                <i class="fas fa-credit-card text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            @php
+                                $sisaSetelahApprove = $totalModalVendor - ($totalApproved + $pembayaran->nominal_bayar);
+                            @endphp
+                            <div class="text-lg font-bold {{ $sisaSetelahApprove > 0 ? 'text-orange-800' : 'text-green-800' }}">
+                                Rp {{ number_format($sisaSetelahApprove, 0, ',', '.') }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-sm font-medium {{ $sisaSetelahApprove > 0 ? 'text-orange-700' : 'text-green-700' }}">
+                        {{ $sisaSetelahApprove > 0 ? 'Sisa Tagihan' : 'Vendor Lunas' }}
+                    </div>
+                    <div class="text-xs {{ $sisaSetelahApprove > 0 ? 'text-orange-600' : 'text-green-600' }} mt-1">
+                        Setelah pembayaran ini diapprove
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Action Buttons -->
 @if($pembayaran->status_verifikasi === 'Pending')

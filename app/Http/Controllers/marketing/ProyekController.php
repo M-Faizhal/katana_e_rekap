@@ -272,8 +272,13 @@ class ProyekController extends Controller
 
         $proyek = Proyek::findOrFail($id);
 
-        // Debug: Log data yang diterima untuk update
-        Log::info('Data update proyek yang diterima:', $request->all());
+        // Debug: Log semua data yang diterima
+        Log::info('=== UPDATE PROYEK DEBUG ===');
+        Log::info('Project ID: ' . $id);
+        Log::info('Request method: ' . $request->method());
+        Log::info('Request headers: ', $request->headers->all());
+        Log::info('All request data: ', $request->all());
+        Log::info('Files in request: ', $request->allFiles());
 
         // Parse daftar_barang jika berupa JSON string (sama seperti di store())
         $daftarBarang = null;
