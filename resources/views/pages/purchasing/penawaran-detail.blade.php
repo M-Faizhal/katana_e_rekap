@@ -100,7 +100,10 @@
         <div class="bg-blue-100 px-4 py-3 border-t border-blue-200">
             <div class="flex justify-between items-center">
                 <span class="text-sm font-medium text-blue-700">Total Permintaan Klien:</span>
-                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
+                @php
+                    $totalPermintaanKlien = $proyek->proyekBarang ? $proyek->proyekBarang->sum('harga_total') : 0;
+                @endphp
+                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($totalPermintaanKlien, 0, ',', '.') }}</span>
             </div>
         </div>
     </div>

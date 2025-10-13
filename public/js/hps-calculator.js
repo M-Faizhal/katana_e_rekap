@@ -506,25 +506,66 @@ class HPSCalculator {
         this.kalkulasiData = [];
     }
 
-    // Format currency
+    // Format currency with Indonesian format
     formatRupiah(amount) {
-        if (amount === null || amount === undefined || isNaN(amount)) return '-';
-        if (amount === 0) return '-';
+        // Convert to number if it's not already
+        const numericAmount = parseFloat(amount);
         
-        // Format dengan Rupiah dan pemisah ribuan menggunakan titik
-        return 'Rp ' + Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        if (isNaN(numericAmount) || numericAmount === null || numericAmount === undefined) return '-';
+        if (numericAmount === 0) return '-';
+        
+        // Format with Indonesian format (dots for thousands, comma for decimal)
+        let numStr;
+        if (numericAmount % 1 === 0) {
+            // Whole number
+            numStr = Math.round(numericAmount).toString();
+        } else {
+            // Decimal number - keep up to 2 decimal places, remove trailing zeros
+            numStr = numericAmount.toFixed(2).replace(/\.?0+$/, '');
+        }
+        
+        // Split into integer and decimal parts
+        const parts = numStr.split('.');
+        const integerPart = parts[0];
+        const decimalPart = parts[1];
+        
+        // Add thousand separators (dots) to integer part
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        // Combine with comma as decimal separator if there's a decimal part
+        const formattedAmount = decimalPart ? formattedInteger + ',' + decimalPart : formattedInteger;
+        
+        return 'Rp ' + formattedAmount;
     }
 
-    // Format number
+    // Format number with Indonesian format
     formatNumber(number) {
-        if (number === null || number === undefined || isNaN(number)) return '';
-        if (number === 0) return '';
+        // Convert to number if it's not already
+        const numericNumber = parseFloat(number);
         
-        // Convert to integer if it's a whole number, otherwise keep decimals
-        const isWholeNumber = number % 1 === 0;
-        const formattedNumber = isWholeNumber ? 
-            Math.round(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') :
-            number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        if (isNaN(numericNumber) || numericNumber === null || numericNumber === undefined) return '';
+        if (numericNumber === 0) return '';
+        
+        // Convert number to string with appropriate decimal places
+        let numStr;
+        if (numericNumber % 1 === 0) {
+            // Whole number
+            numStr = Math.round(numericNumber).toString();
+        } else {
+            // Decimal number - keep up to 2 decimal places, remove trailing zeros
+            numStr = numericNumber.toFixed(2).replace(/\.?0+$/, '');
+        }
+        
+        // Split into integer and decimal parts
+        const parts = numStr.split('.');
+        const integerPart = parts[0];
+        const decimalPart = parts[1];
+        
+        // Add thousand separators (dots) to integer part
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        // Combine with comma as decimal separator if there's a decimal part
+        const formattedNumber = decimalPart ? formattedInteger + ',' + decimalPart : formattedInteger;
         
         return formattedNumber;
     }
