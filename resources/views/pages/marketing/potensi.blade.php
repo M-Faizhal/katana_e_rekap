@@ -56,11 +56,11 @@
     <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
         <div class="flex items-center">
             <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
-                <i class="fas fa-building text-xl"></i>
+                <i class="fas fa-money-bill-wave text-xl"></i>
             </div>
             <div>
-                <p class="text-sm font-medium text-gray-600">Vendor Aktif</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $vendorAktifCount }}</p>
+                <p class="text-sm font-medium text-gray-600">Total Nilai</p>
+                <p class="text-2xl font-bold text-gray-900">Rp {{ number_format($totalNilai, 0, ',', '.') }}</p>
             </div>
         </div>
     </div>

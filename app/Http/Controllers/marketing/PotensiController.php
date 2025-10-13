@@ -132,7 +132,8 @@ class PotensiController extends Controller
                 'admin_purchasing' => $proyek->adminPurchasing ? $proyek->adminPurchasing->nama : '-',
                 'id_admin_marketing' => $proyek->id_admin_marketing,
                 'id_admin_purchasing' => $proyek->id_admin_purchasing,
-                'status' => $this->mapStatusToPotensi($proyek->status),
+                'status' => $this->mapStatusToPotensi($latestPenawaran ? $latestPenawaran->status : 'menunggu'),
+                'status_penawaran' => $latestPenawaran ? $latestPenawaran->status : 'Menunggu',
                 'tahun' => $proyek->tanggal->year,
                 'total_nilai' => $totalNilaiProyek > 0 ? $totalNilaiProyek : ($latestPenawaran ? $latestPenawaran->total_penawaran : ($proyek->harga_total ?? 0)),
                 'catatan' => $proyek->catatan,
@@ -160,11 +161,23 @@ class PotensiController extends Controller
 
         $potensiData = $potensiData->values()->toArray();
 
-        // Hitung statistik
+        // Hitung statistik berdasarkan status penawaran
         $totalPotensi = count($potensiData);
-        $pendingCount = collect($potensiData)->where('status', 'pending')->count();
-        $suksesCount = collect($potensiData)->where('status', 'sukses')->count();
-        $vendorAktifCount = 12; // Dummy count
+        
+        // Pending = status penawaran "Menunggu"
+        $pendingCount = collect($potensiData)->filter(function($item) {
+            return isset($item['status_penawaran']) && 
+                   strtolower($item['status_penawaran']) === 'menunggu';
+        })->count();
+        
+        // Sukses = status penawaran "ACC" atau "Sukses"
+        $suksesCount = collect($potensiData)->filter(function($item) {
+            $statusPenawaran = strtolower($item['status_penawaran'] ?? '');
+            return $statusPenawaran === 'acc' || $statusPenawaran === 'sukses';
+        })->count();
+        
+        // Total Nilai = sum semua nilai proyek
+        $totalNilai = collect($potensiData)->sum('nilai_proyek');
 
         // Ambil daftar admin marketing untuk filter
         $adminMarketingList = User::whereIn('role', ['superadmin', 'admin_marketing'])
@@ -183,7 +196,7 @@ class PotensiController extends Controller
             'totalPotensi',
             'pendingCount',
             'suksesCount',
-            'vendorAktifCount',
+            'totalNilai',
             'adminMarketingList',
             'tahunList',
             'tahunFilter',
@@ -329,6 +342,11 @@ class PotensiController extends Controller
                 ->where('potensi', 'ya')
                 ->findOrFail($id);
 
+            // Get latest penawaran for status
+            $latestPenawaran = \App\Models\Penawaran::where('id_proyek', $proyek->id_proyek)
+                                      ->orderBy('id_penawaran', 'desc')
+                                      ->first();
+
             $detailData = [
                 'id' => $proyek->id_proyek,
                 'kode' => $proyek->kode_proyek,
@@ -340,7 +358,8 @@ class PotensiController extends Controller
                 'deadline' => $proyek->deadline,
                 'admin_marketing' => $proyek->adminMarketing ? $proyek->adminMarketing->nama : '-',
                 'admin_purchasing' => $proyek->adminPurchasing ? $proyek->adminPurchasing->nama : '-',
-                'status' => $this->mapStatusToPotensi($proyek->status),
+                'status' => $this->mapStatusToPotensi($latestPenawaran ? $latestPenawaran->status : 'menunggu'),
+                'status_penawaran' => $latestPenawaran ? $latestPenawaran->status : 'Menunggu',
                 'tahun_potensi' => $proyek->tahun_potensi,
                 'catatan' => $proyek->catatan,
                 'total_nilai' => $proyek->harga_total,
@@ -496,6 +515,11 @@ class PotensiController extends Controller
                 ->where('potensi', 'ya')
                 ->findOrFail($id);
 
+            // Get latest penawaran for status
+            $latestPenawaran = \App\Models\Penawaran::where('id_proyek', $proyek->id_proyek)
+                                      ->orderBy('id_penawaran', 'desc')
+                                      ->first();
+
             // Generate vendor data (dummy data karena belum ada tabel vendor yang sesuai)
             $vendorData = [
                 'id' => 'VND-' . str_pad($id, 4, '0', STR_PAD_LEFT),
@@ -514,7 +538,8 @@ class PotensiController extends Controller
                 'nilai_proyek' => 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.'),
                 'deadline' => $proyek->deadline ? Carbon::parse($proyek->deadline)->format('d M Y') : '-',
                 'admin_marketing' => $proyek->adminMarketing ? $proyek->adminMarketing->nama : 'Tidak ada',
-                'status' => $this->mapStatusToPotensi($proyek->status),
+                'status' => $this->mapStatusToPotensi($latestPenawaran ? $latestPenawaran->status : 'menunggu'),
+                'status_penawaran' => $latestPenawaran ? $latestPenawaran->status : 'Menunggu',
                 'tanggal_assign' => Carbon::parse($proyek->tanggal)->format('d M Y'),
                 'catatan' => $proyek->catatan ?? 'Tidak ada catatan khusus',
                 'vendor' => $vendorData,
@@ -674,15 +699,17 @@ class PotensiController extends Controller
         }
     }
 
-    private function mapStatusToPotensi($status)
+    private function mapStatusToPotensi($statusPenawaran)
     {
-        switch (strtolower($status)) {
-            case 'selesai':
+        // Map berdasarkan status penawaran, bukan status proyek
+        $status = strtolower($statusPenawaran ?? 'menunggu');
+        
+        switch ($status) {
+            case 'acc':
+            case 'sukses':
                 return 'sukses';
-            case 'penawaran':
-            case 'pembayaran':
-            case 'pengiriman':
             case 'menunggu':
+            case 'pending':
                 return 'pending';
             default:
                 return 'pending';
