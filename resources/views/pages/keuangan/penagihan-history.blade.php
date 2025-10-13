@@ -77,11 +77,11 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-500">Total Harga:</span>
-                        <span class="text-lg font-bold text-gray-900">Rp {{ number_format((float)$penagihanDinas->total_harga, 0, ',', '.') }}</span>
+                        <span class="text-lg font-bold text-gray-900">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 0, ',', '.') }}</span>
                     </div>
                     
                     @php
-                        $totalHarga = (float)($penagihanDinas->total_harga ?? 0);
+                        $totalHarga = (float)($penagihanDinas->proyek->harga_total ?? 0);
                         $totalBayar = (float)($penagihanDinas->buktiPembayaran->sum('jumlah_bayar') ?? 0);
                         $sisaBayar = $totalHarga - $totalBayar;
                         $persentaseTerbayar = $totalHarga > 0 ? ($totalBayar / $totalHarga) * 100 : 0;

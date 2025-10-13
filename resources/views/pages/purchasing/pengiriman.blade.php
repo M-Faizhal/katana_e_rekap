@@ -3,6 +3,71 @@
 @section('title', 'Pengiriman - Cyber KATANA')
 
 @section('content')
+<style>
+    /* Custom styles untuk barang display */
+    .barang-tooltip {
+        transform: translateY(-100%);
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .barang-preview:hover .barang-tooltip {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .barang-item-hover:hover {
+        background-color: rgba(59, 130, 246, 0.05);
+        border-color: rgba(59, 130, 246, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Smooth scrolling untuk list barang */
+    .barang-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+    }
+    
+    .barang-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .barang-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .barang-scroll::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 3px;
+    }
+    
+    .barang-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(156, 163, 175, 0.8);
+    }
+    
+    /* Animation untuk modal barang */
+    @keyframes slideInModal {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    
+    .modal-barang-content {
+        animation: slideInModal 0.2s ease-out;
+    }
+    
+    /* Highlight search results */
+    .search-highlight {
+        background-color: rgba(255, 235, 59, 0.4);
+        padding: 1px 2px;
+        border-radius: 2px;
+    }
+</style>
 <!-- Access Control Info -->
 @php
     $currentUser = Auth::user();
@@ -116,6 +181,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barang</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modal Vendor</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -126,15 +192,128 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div>
-                                    <div class="font-medium">{{ $vendorProyek->proyek->nama_barang }}</div>
+                                    <div class="font-medium">{{ $vendorProyek->proyek->kode_proyek }}</div>
                                     <div class="text-gray-500">{{ $vendorProyek->proyek->instansi }}</div>
                                     <div class="text-xs text-gray-400">{{ $vendorProyek->proyek->penawaranAktif->no_penawaran ?? 'N/A' }}</div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div>
-                                    <div class="font-medium">{{ $vendorProyek->vendor['nama_vendor'] }}</div>
-                                    <div class="text-gray-500 text-xs">{{ $vendorProyek->vendor['jenis_perusahaan'] }}</div>
+                                    <div class="font-medium">{{ is_array($vendorProyek->vendor) ? $vendorProyek->vendor['nama_vendor'] : $vendorProyek->vendor->nama_vendor }}</div>
+                                    <div class="text-gray-500 text-xs">{{ is_array($vendorProyek->vendor) ? $vendorProyek->vendor['jenis_perusahaan'] : $vendorProyek->vendor->jenis_perusahaan }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <div class="max-w-xs">
+                                    @php
+                                        // PRIORITAS 1: Gunakan data barang_vendor yang sudah disiapkan controller
+                                        $barangVendor = [];
+                                        if (isset($vendorProyek->barang_vendor) && !empty($vendorProyek->barang_vendor)) {
+                                            $barangVendor = is_array($vendorProyek->barang_vendor) ? 
+                                                          $vendorProyek->barang_vendor : 
+                                                          [$vendorProyek->barang_vendor];
+                                        }
+                                        
+                                        // PRIORITAS 2: Cari barang dari kalkulasi HPS jika tidak ada dari controller
+                                        if (empty($barangVendor) && isset($vendorProyek->proyek->kalkulasiHps)) {
+                                            foreach ($vendorProyek->proyek->kalkulasiHps as $kalkulasi) {
+                                                $vendorId = is_array($vendorProyek->vendor) ? $vendorProyek->vendor['id_vendor'] : $vendorProyek->vendor->id_vendor;
+                                                if ($kalkulasi->id_vendor == $vendorId) {
+                                                    // Cek dulu dari relasi barang jika ada
+                                                    if (isset($kalkulasi->barang->nama_barang)) {
+                                                        $barangVendor[] = $kalkulasi->barang->nama_barang;
+                                                    } elseif (isset($kalkulasi->nama_barang)) {
+                                                        // Fallback ke field nama_barang langsung jika tidak ada relasi
+                                                        $barangVendor[] = $kalkulasi->nama_barang;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        // PRIORITAS 3: Fallback dari data vendor langsung
+                                        if (empty($barangVendor)) {
+                                            $namaBarang = is_array($vendorProyek->vendor) ? 
+                                                ($vendorProyek->vendor['nama_barang'] ?? null) : 
+                                                ($vendorProyek->vendor->nama_barang ?? null);
+                                            if ($namaBarang) {
+                                                $barangVendor = [$namaBarang];
+                                            }
+                                        }
+                                        
+                                        // PRIORITAS 4: Final fallback - gunakan nama proyek
+                                        if (empty($barangVendor)) {
+                                            $barangVendor = ['Barang untuk ' . $vendorProyek->proyek->kode_proyek];
+                                        }
+                                                         // Debug info - hapus setelah testing
+                        \Log::info('View Barang Debug:', [
+                            'proyek_code' => $vendorProyek->proyek->kode_proyek,
+                            'vendor_id' => is_array($vendorProyek->vendor) ? $vendorProyek->vendor['id_vendor'] : $vendorProyek->vendor->id_vendor, 
+                            'vendor_name' => is_array($vendorProyek->vendor) ? $vendorProyek->vendor['nama_vendor'] : $vendorProyek->vendor->nama_vendor,
+                            'vendor_is_array' => is_array($vendorProyek->vendor),
+                            'barang_vendor_from_controller' => $vendorProyek->barang_vendor ?? 'tidak ada',
+                            'kalkulasi_hps_count' => $vendorProyek->proyek->kalkulasiHps ? $vendorProyek->proyek->kalkulasiHps->count() : 'no kalkulasi',
+                            'final_barang_array' => $barangVendor
+                        ]);
+                                        
+                                        // Remove duplicates and clean up
+                                        $barangVendor = array_unique(array_filter($barangVendor));
+                                    @endphp
+                                    
+                                    @if(!empty($barangVendor))
+                                        <div class="relative group">
+                                            @if(count($barangVendor) == 1)
+                                                <div class="text-sm">
+                                                    <i class="fas fa-box text-blue-500 mr-1"></i>
+                                                    <span class="font-medium text-gray-900">{{ $barangVendor[0] }}</span>
+                                                </div>
+                                            @else
+                                                <!-- Tampilan ringkas untuk multiple items -->
+                                                <div class="text-sm cursor-pointer hover:bg-blue-50 p-2 rounded border border-gray-200" 
+                                                     onclick="showBarangDetail('{{ is_array($vendorProyek->vendor) ? $vendorProyek->vendor['id_vendor'] : $vendorProyek->vendor->id_vendor }}', {{ json_encode($barangVendor) }}, '{{ is_array($vendorProyek->vendor) ? $vendorProyek->vendor['nama_vendor'] : $vendorProyek->vendor->nama_vendor }}')"
+                                                     >
+                                                    <i class="fas fa-boxes text-blue-500 mr-1"></i>
+                                                    <span class="font-medium text-gray-900">{{ $barangVendor[0] }}</span>
+                                                    @if(count($barangVendor) > 1)
+                                                        <span class="text-blue-600 font-medium">
+                                                            @if(count($barangVendor) == 2)
+                                                                & {{ $barangVendor[1] }}
+                                                            @else
+                                                                & {{ count($barangVendor) - 1 }} lainnya
+                                                            @endif
+                                                        </span>
+                                                    @endif
+                                                    <i class="fas fa-eye text-gray-400 ml-1 text-xs"></i>
+                                                </div>
+                                                
+                                                <!-- Tooltip hover untuk preview cepat -->
+                                                <div class="absolute left-0 top-full mt-1 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg z-10 min-w-64 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                                    <div class="font-medium mb-1">{{ count($barangVendor) }} Jenis Barang:</div>
+                                                    <div class="max-h-32 overflow-y-auto space-y-1">
+                                                        @foreach($barangVendor as $index => $barang)
+                                                            <div class="flex items-start">
+                                                                <span class="text-gray-300 mr-1">{{ $index + 1 }}.</span>
+                                                                <span>{{ $barang }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                    <div class="text-gray-400 text-xs mt-1 border-t border-gray-700 pt-1">
+                                                        Klik untuk detail lengkap
+                                                    </div>
+                                                    <!-- Arrow pointer -->
+                                                    <div class="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                </div>
+                                                
+                                                <!-- Badge jumlah -->
+                                                <div class="text-xs text-green-600 mt-1">
+                                                    <i class="fas fa-layer-group mr-1"></i>{{ count($barangVendor) }} jenis barang
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="text-xs text-gray-400">
+                                            <i class="fas fa-question-circle mr-1"></i>Data barang tidak tersedia
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -164,7 +343,7 @@
                                 @endphp
 
                                 @if($canAccess)
-                                    <button onclick="buatPengiriman({{ $vendorProyek->proyek->penawaranAktif->id_penawaran }}, {{ $vendorProyek->vendor['id_vendor'] }})" 
+                                    <button onclick="buatPengiriman({{ $vendorProyek->proyek->penawaranAktif->id_penawaran }}, {{ is_array($vendorProyek->vendor) ? $vendorProyek->vendor['id_vendor'] : $vendorProyek->vendor->id_vendor }})" 
                                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
                                         <i class="fas fa-plus mr-1"></i> Buat Pengiriman
                                     </button>
@@ -222,10 +401,65 @@
                 <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
-                            <h4 class="font-semibold text-gray-900">{{ $pengiriman->penawaran->proyek->nama_barang }}</h4>
+                            <h4 class="font-semibold text-gray-900">{{ $pengiriman->penawaran->proyek->kode_proyek }}</h4>
                             <p class="text-sm text-gray-600">{{ $pengiriman->penawaran->proyek->instansi }}</p>
                             <div class="text-sm text-gray-500 mt-1 space-y-1">
                                 <div><span class="font-medium">Vendor:</span> {{ $pengiriman->vendor->nama_vendor }}</div>
+                                @php
+                                    // Process barang list untuk pengiriman dalam proses
+                                    $barangProses = [];
+                                    if (isset($pengiriman->barang_list) && !empty($pengiriman->barang_list)) {
+                                        $barangProses = is_array($pengiriman->barang_list) ? $pengiriman->barang_list : [$pengiriman->barang_list];
+                                    } else {
+                                        // Fallback dari kalkulasi HPS
+                                        if (isset($pengiriman->penawaran->proyek->kalkulasiHps)) {
+                                            foreach ($pengiriman->penawaran->proyek->kalkulasiHps as $kalkulasi) {
+                                                if ($kalkulasi->id_vendor == $pengiriman->id_vendor) {
+                                                    $barangProses[] = $kalkulasi->nama_barang;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    $barangProses = array_unique(array_filter($barangProses));
+                                @endphp
+                                
+                                @if(!empty($barangProses))
+                                    <div class="mb-2">
+                                        <span class="font-medium text-gray-700 text-sm">
+                                            <i class="fas fa-boxes mr-1"></i>Barang yang dikirim:
+                                        </span>
+                                        <div class="mt-1">
+                                            @if(count($barangProses) == 1)
+                                                <div class="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded inline-block">
+                                                    <i class="fas fa-box mr-1"></i>{{ $barangProses[0] }}
+                                                </div>
+                                            @elseif(count($barangProses) <= 2)
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach($barangProses as $index => $barang)
+                                                        <div class="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded flex items-center">
+                                                            <span class="w-4 h-4 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center mr-1">{{ $index + 1 }}</span>
+                                                            {{ $barang }}
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <div class="flex flex-wrap gap-1 items-center">
+                                                    @foreach(array_slice($barangProses, 0, 1) as $index => $barang)
+                                                        <div class="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded flex items-center">
+                                                            <span class="w-4 h-4 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center mr-1">{{ $index + 1 }}</span>
+                                                            {{ $barang }}
+                                                        </div>
+                                                    @endforeach
+                                                    <button onclick="showBarangDetail('{{ $pengiriman->id_vendor }}', {{ json_encode($barangProses) }}, '{{ $pengiriman->vendor->nama_vendor }}', 'Pengiriman: {{ $pengiriman->no_surat_jalan }}')" 
+                                                            class="text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200 hover:border-blue-300 transition-colors">
+                                                        <i class="fas fa-eye mr-1"></i>+ {{ count($barangProses) - 1 }} lainnya
+                                                        <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                                                    </button>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
                                 <div><span class="font-medium">Surat Jalan:</span> {{ $pengiriman->no_surat_jalan }}</div>
                                 <div><span class="font-medium">Tanggal Kirim:</span> {{ \Carbon\Carbon::parse($pengiriman->tanggal_kirim)->format('d M Y') }}</div>
                             </div>
@@ -349,10 +583,10 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Surat Jalan</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barang</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Surat Jalan & Tanggal</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dokumentasi</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -361,13 +595,11 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($pengirimanSelesai as $pengiriman)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $pengiriman->no_surat_jalan }}
-                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div>
-                                    <div class="font-medium">{{ $pengiriman->penawaran->proyek->nama_barang }}</div>
-                                    <div class="text-gray-500 text-xs">{{ $pengiriman->penawaran->proyek->instansi }}</div>
+                                    <div class="font-medium">{{ $pengiriman->penawaran->proyek->kode_proyek }}</div>
+                                    <div class="text-gray-500">{{ $pengiriman->penawaran->proyek->instansi }}</div>
+                                    <div class="text-xs text-gray-400">{{ $pengiriman->penawaran->no_penawaran ?? 'N/A' }}</div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -376,8 +608,80 @@
                                     <div class="text-gray-500 text-xs">{{ $pengiriman->vendor->jenis_perusahaan }}</div>
                                 </div>
                             </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <div class="max-w-xs">
+                                    @php
+                                        // Ambil daftar barang untuk pengiriman ini dari barang_list yang sudah disiapkan controller
+                                        $barangSelesai = [];
+                                        if (isset($pengiriman->barang_list) && !empty($pengiriman->barang_list)) {
+                                            $barangSelesai = is_array($pengiriman->barang_list) ? $pengiriman->barang_list : [$pengiriman->barang_list];
+                                        }
+                                        
+                                        // Remove duplicates and clean up
+                                        $barangSelesai = array_unique(array_filter($barangSelesai));
+                                    @endphp
+                                    
+                                    @if(!empty($barangSelesai))
+                                        <div class="relative group">
+                                            @if(count($barangSelesai) == 1)
+                                                <div class="text-sm">
+                                                    <i class="fas fa-box text-blue-500 mr-1"></i>
+                                                    <span class="font-medium text-gray-900">{{ $barangSelesai[0] }}</span>
+                                                </div>
+                                            @else
+                                                <!-- Tampilan ringkas untuk multiple items -->
+                                                <div class="text-sm cursor-pointer hover:bg-blue-50 p-2 rounded border border-gray-200" 
+                                                     onclick="showBarangDetail('{{ $pengiriman->id_vendor }}', {{ json_encode($barangSelesai) }}, '{{ $pengiriman->vendor->nama_vendor }}', 'Pengiriman Selesai - {{ $pengiriman->no_surat_jalan }}')">
+                                                    <i class="fas fa-boxes text-blue-500 mr-1"></i>
+                                                    <span class="font-medium text-gray-900">{{ $barangSelesai[0] }}</span>
+                                                    @if(count($barangSelesai) > 1)
+                                                        <span class="text-blue-600 font-medium">
+                                                            @if(count($barangSelesai) == 2)
+                                                                & {{ $barangSelesai[1] }}
+                                                            @else
+                                                                & {{ count($barangSelesai) - 1 }} lainnya
+                                                            @endif
+                                                        </span>
+                                                    @endif
+                                                    <i class="fas fa-eye text-gray-400 ml-1 text-xs"></i>
+                                                </div>
+                                                
+                                                <!-- Tooltip hover untuk preview cepat -->
+                                                <div class="absolute left-0 top-full mt-1 bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg z-10 min-w-64 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                                    <div class="font-medium mb-1">{{ count($barangSelesai) }} Jenis Barang:</div>
+                                                    <div class="max-h-32 overflow-y-auto space-y-1">
+                                                        @foreach($barangSelesai as $index => $barang)
+                                                            <div class="flex items-start">
+                                                                <span class="text-gray-300 mr-1">{{ $index + 1 }}.</span>
+                                                                <span>{{ $barang }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                    <div class="text-gray-400 text-xs mt-1 border-t border-gray-700 pt-1">
+                                                        Klik untuk detail lengkap
+                                                    </div>
+                                                    <!-- Arrow pointer -->
+                                                    <div class="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                </div>
+                                                
+                                                <!-- Badge jumlah -->
+                                                <div class="text-xs text-green-600 mt-1">
+                                                    <i class="fas fa-layer-group mr-1"></i>{{ count($barangSelesai) }} jenis barang
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="text-xs text-gray-400">
+                                            <i class="fas fa-question-circle mr-1"></i>Data barang tidak tersedia
+                                        </div>
+                                    @endif
+                                </div>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ \Carbon\Carbon::parse($pengiriman->tanggal_kirim)->format('d M Y') }}
+                                <div>
+                                    <div class="font-medium">{{ $pengiriman->no_surat_jalan }}</div>
+                                    <div class="text-gray-500 text-xs">{{ \Carbon\Carbon::parse($pengiriman->tanggal_kirim)->format('d M Y') }}</div>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($pengiriman->penawaran->proyek->status == 'Selesai')
@@ -635,6 +939,74 @@
     </div>
 </div>
 
+<!-- Modal Detail Barang -->
+<div id="modalDetailBarang" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl modal-barang-content">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold" id="modalBarangTitle">Detail Barang Vendor</h3>
+                        <p class="text-blue-100 text-sm" id="modalBarangSubtitle">Daftar lengkap barang</p>
+                    </div>
+                    <button onclick="tutupModal('modalDetailBarang')" class="text-white hover:text-blue-200 transition-colors">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Search Bar -->
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" id="searchBarang" placeholder="Cari nama barang..." 
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Statistik -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-boxes text-blue-500 mr-2"></i>
+                            <span class="text-sm text-gray-600">Total Barang:</span>
+                        </div>
+                        <span class="font-bold text-lg text-blue-600" id="totalBarangCount">0</span>
+                    </div>
+                </div>
+                
+                <!-- List Barang -->
+                <div class="max-h-96 overflow-y-auto barang-scroll" id="listBarangContainer">
+                    <div id="listBarang" class="space-y-2">
+                        <!-- Barang items akan diisi via JavaScript -->
+                    </div>
+                    
+                    <!-- No results message -->
+                    <div id="noResults" class="hidden text-center py-8 text-gray-500">
+                        <i class="fas fa-search text-4xl mb-3"></i>
+                        <p>Tidak ada barang yang ditemukan</p>
+                        <p class="text-sm">Coba ubah kata kunci pencarian</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-200 px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Gunakan pencarian untuk menemukan barang tertentu
+                    </div>
+                    <button onclick="tutupModal('modalDetailBarang')" 
+                            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Global variables for access control
 window.currentUserId = {{ $currentUser->id_user }};
@@ -700,6 +1072,39 @@ function buatPengiriman(penawaranId, vendorId) {
             return;
         }
 
+        // Generate barang list untuk vendor dengan smart display
+        let barangVendorHtml = '';
+        let barangList = [];
+        
+        if (selectedVendor.barang_vendor && Array.isArray(selectedVendor.barang_vendor) && selectedVendor.barang_vendor.length > 0) {
+            barangList = selectedVendor.barang_vendor;
+        } else if (selectedVendor.nama_barang) {
+            barangList = [selectedVendor.nama_barang];
+        }
+        
+        if (barangList.length > 0) {
+            if (barangList.length === 1) {
+                barangVendorHtml = `<div><span class="text-gray-500">Barang Vendor:</span> <span class="font-medium text-blue-600">
+                    <i class="fas fa-box mr-1"></i>${barangList[0]}
+                </span></div>`;
+            } else if (barangList.length <= 3) {
+                barangVendorHtml = `<div><span class="text-gray-500">Barang Vendor:</span> <span class="font-medium text-blue-600">
+                    <i class="fas fa-boxes mr-1"></i>${barangList.join(', ')}
+                </span></div>`;
+            } else {
+                barangVendorHtml = `<div><span class="text-gray-500">Barang Vendor:</span> 
+                    <span class="font-medium text-blue-600 cursor-pointer hover:underline" 
+                          onclick="showBarangDetail('${selectedVendor.vendor.id_vendor}', ${JSON.stringify(barangList)}, '${selectedVendor.vendor.nama_vendor}', 'Modal Buat Pengiriman')">
+                        <i class="fas fa-boxes mr-1"></i>${barangList[0]} & ${barangList.length - 1} lainnya
+                        <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                    </span>
+                    <div class="text-xs text-green-600 mt-1">
+                        <i class="fas fa-layer-group mr-1"></i>${barangList.length} jenis barang
+                    </div>
+                </div>`;
+            }
+        }
+
         document.getElementById('infoProyek').innerHTML = `
             <h4 class="font-semibold text-gray-900 mb-2">Informasi Proyek & Vendor</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -707,6 +1112,7 @@ function buatPengiriman(penawaranId, vendorId) {
                 <div><span class="text-gray-500">Nama Proyek:</span> <span class="font-medium">${selectedProyek.kode_proyek}</span></div>
                 <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${selectedProyek.instansi}</span></div>
                 <div><span class="text-gray-500">Vendor:</span> <span class="font-medium">${selectedVendor.vendor.nama_vendor}</span></div>
+                ${barangVendorHtml}
                 <div><span class="text-gray-500">Modal Vendor:</span> <span class="font-medium">Rp ${new Intl.NumberFormat('id-ID').format(selectedVendor.total_vendor)}</span></div>
                 <div><span class="text-gray-500">Dibayar (Approved):</span> <span class="font-medium text-blue-600">Rp ${new Intl.NumberFormat('id-ID').format(selectedVendor.total_dibayar_approved)}</span></div>
                 <div><span class="text-gray-500">Status:</span> <span class="font-medium ${selectedVendor.status_lunas ? 'text-green-600' : 'text-blue-600'}">
@@ -758,12 +1164,44 @@ function updateDokumentasi(pengirimanId) {
     }
     
     if (pengiriman) {
+        // Generate barang list untuk pengiriman dengan smart display
+        let barangPengirimanHtml = '';
+        let barangListUpdate = [];
+        
+        if (pengiriman.barang_list && Array.isArray(pengiriman.barang_list) && pengiriman.barang_list.length > 0) {
+            barangListUpdate = pengiriman.barang_list;
+        }
+        
+        if (barangListUpdate.length > 0) {
+            if (barangListUpdate.length === 1) {
+                barangPengirimanHtml = `<div><span class="text-gray-500">Barang:</span> <span class="font-medium text-blue-600">
+                    <i class="fas fa-box mr-1"></i>${barangListUpdate[0]}
+                </span></div>`;
+            } else if (barangListUpdate.length <= 3) {
+                barangPengirimanHtml = `<div><span class="text-gray-500">Barang:</span> <span class="font-medium text-blue-600">
+                    <i class="fas fa-boxes mr-1"></i>${barangListUpdate.join(', ')}
+                </span></div>`;
+            } else {
+                barangPengirimanHtml = `<div><span class="text-gray-500">Barang:</span> 
+                    <span class="font-medium text-blue-600 cursor-pointer hover:underline" 
+                          onclick="showBarangDetail('${pengiriman.id_vendor}', ${JSON.stringify(barangListUpdate)}, '${pengiriman.vendor.nama_vendor}', 'Update Dokumentasi - ${pengiriman.no_surat_jalan}')">
+                        <i class="fas fa-boxes mr-1"></i>${barangListUpdate[0]} & ${barangListUpdate.length - 1} lainnya
+                        <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                    </span>
+                    <div class="text-xs text-green-600 mt-1">
+                        <i class="fas fa-layer-group mr-1"></i>${barangListUpdate.length} jenis barang
+                    </div>
+                </div>`;
+            }
+        }
+
         document.getElementById('infoPengirimanUpdate').innerHTML = `
             <h4 class="font-semibold text-gray-900 mb-2">Informasi Pengiriman</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div><span class="text-gray-500">Surat Jalan:</span> <span class="font-medium">${pengiriman.no_surat_jalan}</span></div>
-                <div><span class="text-gray-500">Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.nama_barang}</span></div>
+                <div><span class="text-gray-500">Proyek:</span> <span class="font-medium">${pengiriman.penawaran.proyek.kode_proyek}</span></div>
                 <div><span class="text-gray-500">Vendor:</span> <span class="font-medium">${pengiriman.vendor.nama_vendor}</span></div>
+                ${barangPengirimanHtml}
                 <div><span class="text-gray-500">Status:</span> <span class="font-medium">${pengiriman.status_verifikasi.replace('_', ' ')}</span></div>
             </div>
         `;
@@ -876,6 +1314,41 @@ function lihatDetailSelesai(pengirimanId) {
             </div>
         `;
 
+        // Generate barang list untuk modal detail dengan smart display
+        let barangDetailHtml = '';
+        let barangListModal = [];
+        
+        if (pengiriman.barang_list && Array.isArray(pengiriman.barang_list) && pengiriman.barang_list.length > 0) {
+            barangListModal = pengiriman.barang_list;
+        }
+        
+        if (barangListModal.length > 0) {
+            if (barangListModal.length === 1) {
+                barangDetailHtml = `<div><span class="text-gray-500">Barang Dikirim:</span> <span class="font-medium text-blue-600">
+                    <i class="fas fa-box mr-1"></i>${barangListModal[0]}
+                </span></div>`;
+            } else if (barangListModal.length <= 3) {
+                barangDetailHtml = `<div><span class="text-gray-500">Barang Dikirim:</span> <span class="font-medium text-blue-600">
+                    <i class="fas fa-boxes mr-1"></i>${barangListModal.join(', ')}
+                </span></div>`;
+            } else {
+                barangDetailHtml = `<div><span class="text-gray-500">Barang Dikirim:</span> 
+                    <span class="font-medium text-blue-600 cursor-pointer hover:underline" 
+                          onclick="showBarangDetail('${pengiriman.id_vendor}', ${JSON.stringify(barangListModal)}, '${pengiriman.vendor.nama_vendor}', 'Detail Pengiriman Selesai - ${pengiriman.no_surat_jalan}')">
+                        <i class="fas fa-boxes mr-1"></i>${barangListModal[0]} & ${barangListModal.length - 1} lainnya
+                        <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                    </span>
+                    <div class="text-xs text-green-600 mt-1">
+                        <i class="fas fa-layer-group mr-1"></i>${barangListModal.length} jenis barang
+                    </div>
+                </div>`;
+            }
+        } else {
+            barangDetailHtml = `<div><span class="text-gray-500">Barang Dikirim:</span> <span class="text-gray-400 text-sm">
+                <i class="fas fa-question-circle mr-1"></i>Data tidak tersedia
+            </span></div>`;
+        }
+
         // Fill project info
         document.getElementById('infoProyekDetail').innerHTML = `
             <div><span class="text-gray-500">No. Penawaran:</span> <span class="font-medium">${pengiriman.penawaran.no_penawaran || 'N/A'}</span></div>
@@ -883,6 +1356,7 @@ function lihatDetailSelesai(pengirimanId) {
             <div><span class="text-gray-500">Instansi:</span> <span class="font-medium">${pengiriman.penawaran.proyek.instansi}</span></div>
             <div><span class="text-gray-500">Vendor:</span> <span class="font-medium">${pengiriman.vendor.nama_vendor}</span></div>
             <div><span class="text-gray-500">Tanggal Kirim:</span> <span class="font-medium">${new Date(pengiriman.tanggal_kirim).toLocaleDateString('id-ID')}</span></div>
+            ${barangDetailHtml}
         `;
 
         // Fill shipping info
@@ -1096,12 +1570,145 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// Show barang detail modal
+function showBarangDetail(vendorId, barangList, vendorName, subtitle = '') {
+    // Set title and subtitle
+    document.getElementById('modalBarangTitle').textContent = `Detail Barang - ${vendorName}`;
+    document.getElementById('modalBarangSubtitle').textContent = subtitle || 'Daftar lengkap barang untuk vendor ini';
+    
+    // Set total count
+    document.getElementById('totalBarangCount').textContent = barangList.length;
+    
+    // Store original list for searching
+    window.currentBarangList = barangList;
+    
+    // Render barang list
+    renderBarangList(barangList, '');
+    
+    // Clear search
+    document.getElementById('searchBarang').value = '';
+    
+    // Setup search functionality
+    setupBarangSearch();
+    
+    // Show modal
+    document.getElementById('modalDetailBarang').classList.remove('hidden');
+    
+    // Focus on search input after a short delay
+    setTimeout(() => {
+        document.getElementById('searchBarang').focus();
+    }, 100);
+}
+
+// Render barang list
+function renderBarangList(barangList, searchTerm = '') {
+    const container = document.getElementById('listBarang');
+    const noResults = document.getElementById('noResults');
+    
+    if (barangList.length === 0) {
+        container.innerHTML = '';
+        noResults.classList.remove('hidden');
+        return;
+    }
+    
+    noResults.classList.add('hidden');
+    
+    const html = barangList.map((barang, index) => {
+        let displayName = barang;
+        
+        // Highlight search term
+        if (searchTerm && searchTerm.length > 0) {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            displayName = barang.replace(regex, '<span class="search-highlight font-semibold">$1</span>');
+        }
+        
+        return `
+            <div class="flex items-center p-3 bg-white border border-gray-200 rounded-lg barang-item-hover transition-all duration-200 cursor-default">
+                <div class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center font-medium text-sm mr-3 shadow-sm">
+                    ${index + 1}
+                </div>
+                <div class="flex-grow">
+                    <div class="font-medium text-gray-900">${displayName}</div>
+                    <div class="text-xs text-gray-500 mt-1">
+                        <i class="fas fa-tag mr-1"></i>Item ${index + 1} dari ${barangList.length}
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center">
+                        <i class="fas fa-box text-blue-500"></i>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = html;
+}
+
+// Setup search functionality
+function setupBarangSearch() {
+    const searchInput = document.getElementById('searchBarang');
+    
+    // Remove existing event listeners
+    const newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    
+    // Add new event listener
+    document.getElementById('searchBarang').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        
+        if (searchTerm === '') {
+            renderBarangList(window.currentBarangList, '');
+            document.getElementById('totalBarangCount').textContent = window.currentBarangList.length;
+            return;
+        }
+        
+        const filteredList = window.currentBarangList.filter(barang => 
+            barang.toLowerCase().includes(searchTerm)
+        );
+        
+        renderBarangList(filteredList, searchTerm);
+        
+        // Update count with search indicator
+        document.getElementById('totalBarangCount').textContent = 
+            `${filteredList.length} / ${window.currentBarangList.length}`;
+    });
+    
+    // Reset count display
+    document.getElementById('totalBarangCount').textContent = window.currentBarangList.length;
+}
+
+// Enhanced modal closing
+function tutupModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+    
+    // Reset search if closing barang modal
+    if (modalId === 'modalDetailBarang') {
+        document.getElementById('searchBarang').value = '';
+        if (window.currentBarangList) {
+            renderBarangList(window.currentBarangList, '');
+            document.getElementById('totalBarangCount').textContent = window.currentBarangList.length;
+        }
+    }
+}
+
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         document.querySelectorAll('.fixed.inset-0:not(.hidden)').forEach(modal => {
-            modal.classList.add('hidden');
+            if (modal.id === 'modalDetailBarang') {
+                tutupModal('modalDetailBarang');
+            } else {
+                modal.classList.add('hidden');
+            }
         });
+    }
+    
+    // Quick search with Ctrl+F when barang modal is open
+    if (e.ctrlKey && e.key === 'f' && !document.getElementById('modalDetailBarang').classList.contains('hidden')) {
+        e.preventDefault();
+        document.getElementById('searchBarang').focus();
+        document.getElementById('searchBarang').select();
     }
 });
 </script>

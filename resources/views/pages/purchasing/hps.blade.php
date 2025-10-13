@@ -107,7 +107,10 @@
         <div class="bg-blue-100 px-4 py-3 border-t border-blue-200">
             <div class="flex justify-between items-center">
                 <span class="text-sm font-medium text-blue-700">Total Permintaan Klien:</span>
-                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
+                @php
+                    $totalPermintaanKlien = $proyek->proyekBarang ? $proyek->proyekBarang->sum('harga_total') : 0;
+                @endphp
+                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($totalPermintaanKlien, 0, ',', '.') }}</span>
             </div>
         </div>
     </div>
@@ -862,8 +865,46 @@ let kalkulasiData = @json($kalkulasiData ?? []);
 // Initialize default values for new fields
 kalkulasiData = kalkulasiData.map(item => ({
     ...item,
-    harga_yang_diharapkan: item.harga_yang_diharapkan || 0,
-    persen_kenaikan: item.persen_kenaikan || item.kenaikan_percent || 0
+    // Ensure all numeric fields are properly initialized
+    qty: parseFloat(item.qty) || 0,
+    harga_vendor: parseFloat(item.harga_vendor) || 0,
+    harga_diskon: parseFloat(item.harga_diskon) || 0,
+    harga_yang_diharapkan: parseFloat(item.harga_yang_diharapkan) || 0,
+    persen_kenaikan: parseFloat(item.persen_kenaikan || item.kenaikan_percent) || 0,
+    nilai_diskon: parseFloat(item.nilai_diskon) || 0,
+    total_diskon: parseFloat(item.total_diskon) || 0,
+    total_harga: parseFloat(item.total_harga) || 0,
+    jumlah_volume: parseFloat(item.jumlah_volume) || 0,
+    hps: parseFloat(item.hps) || 0,
+    harga_per_pcs: parseFloat(item.harga_per_pcs) || 0,
+    harga_pagu_dinas_per_pcs: parseFloat(item.harga_pagu_dinas_per_pcs) || 0,
+    pagu_total: parseFloat(item.pagu_total) || 0,
+    selisih_pagu_hps: parseFloat(item.selisih_pagu_hps) || 0,
+    nilai_sp: parseFloat(item.nilai_sp) || 0,
+    dpp: parseFloat(item.dpp) || 0,
+    asumsi_nilai_cair: parseFloat(item.asumsi_nilai_cair) || 0,
+    ongkir: parseFloat(item.ongkir) || 0,
+    omzet_dinas_percent: parseFloat(item.omzet_dinas_percent) || 0,
+    omzet_nilai_dinas: parseFloat(item.omzet_nilai_dinas) || 0,
+    bendera_percent: parseFloat(item.bendera_percent) || 0,
+    gross_nilai_bendera: parseFloat(item.gross_nilai_bendera) || 0,
+    bank_cost_percent: parseFloat(item.bank_cost_percent) || 0,
+    gross_nilai_bank_cost: parseFloat(item.gross_nilai_bank_cost) || 0,
+    biaya_ops_percent: parseFloat(item.biaya_ops_percent) || 0,
+    gross_nilai_biaya_ops: parseFloat(item.gross_nilai_biaya_ops) || 0,
+    sub_total_biaya_tidak_langsung: parseFloat(item.sub_total_biaya_tidak_langsung) || 0,
+    gross_income: parseFloat(item.gross_income) || 0,
+    gross_income_persentase: parseFloat(item.gross_income_persentase || item.gross_income_percent) || 0,
+    nilai_nett_income: parseFloat(item.nilai_nett_income || item.nett_income) || 0,
+    nett_income_persentase: parseFloat(item.nett_income_persentase || item.nett_income_percent) || 0,
+    // Keep string fields as strings
+    nama_barang: item.nama_barang || '',
+    nama_vendor: item.nama_vendor || '',
+    satuan: item.satuan || '',
+    jenis_vendor: item.jenis_vendor || '',
+    keterangan_1: item.keterangan_1 || '',
+    keterangan_2: item.keterangan_2 || '',
+    catatan: item.catatan || ''
 }));
 
 // Initialize on page load
@@ -892,25 +933,48 @@ function setupNumberFormatting() {
             // Get cursor position
             const cursorPos = e.target.selectionStart;
             const oldValue = e.target.value;
+            const inputValue = e.target.value;
             
-            // Format the value
-            const numericValue = parseFormattedNumber(e.target.value);
-            if (numericValue > 0) {
-                const formattedValue = formatNumber(numericValue);
-                
-                // Only update if different to avoid cursor jumping
-                if (formattedValue !== oldValue) {
-                    e.target.value = formattedValue;
-                    
-                    // Restore cursor position (approximately)
-                    const newCursorPos = Math.min(cursorPos + (formattedValue.length - oldValue.length), formattedValue.length);
-                    e.target.setSelectionRange(newCursorPos, newCursorPos);
+            // Don't format if input ends with comma (user might be about to type decimal)
+            // or if user just typed a comma (allow them to continue typing decimal part)
+            if (inputValue.endsWith(',')) {
+                return;
+            }
+            
+            // Don't format if input is empty or just contains invalid characters
+            if (inputValue === '' || inputValue === '0' || !/[\d,.]/.test(inputValue)) {
+                if (inputValue === '' || inputValue === '0') {
+                    e.target.value = '';
                 }
+                return;
+            }
+            
+            try {
+                const numericValue = parseFormattedNumber(inputValue);
+                if (numericValue > 0) {
+                    const formattedValue = formatNumber(numericValue);
+                    
+                    // Only update if different to avoid cursor jumping
+                    if (formattedValue !== oldValue && formattedValue !== inputValue) {
+                        e.target.value = formattedValue;
+                        
+                        // Restore cursor position (approximately)  
+                        let newCursorPos = cursorPos;
+                        const lengthDiff = formattedValue.length - oldValue.length;
+                        if (lengthDiff !== 0) {
+                            newCursorPos = Math.min(Math.max(cursorPos + lengthDiff, 0), formattedValue.length);
+                        }
+                        e.target.setSelectionRange(newCursorPos, newCursorPos);
+                    }
+                }
+            } catch (error) {
+                // If parsing fails, don't format but don't clear the input either
+                console.log('Parsing error:', error);
             }
         }
     });
     
-    // Prevent invalid characters in number inputs (but exclude search inputs)
+    // More permissive keypress handler - allow most input and validate later
     document.addEventListener('keypress', function(e) {
         // Skip search inputs - don't restrict characters for barang search
         if (e.target.id && e.target.id.startsWith('barang-search-')) {
@@ -923,19 +987,74 @@ function setupNumberFormatting() {
                 e.target.getAttribute('onchange') && e.target.getAttribute('onchange').includes(field)
              ))) {
             
-            // Allow: backspace, delete, tab, escape, enter
-            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                (e.keyCode === 65 && e.ctrlKey === true) ||
-                (e.keyCode === 67 && e.ctrlKey === true) ||
-                (e.keyCode === 86 && e.ctrlKey === true) ||
-                (e.keyCode === 88 && e.ctrlKey === true)) {
+            // Allow: backspace, delete, tab, escape, enter, arrow keys
+            if ([8, 9, 27, 13, 46, 37, 38, 39, 40].indexOf(e.keyCode) !== -1 ||
+                // Allow: Ctrl combinations
+                e.ctrlKey || e.metaKey ||
+                // Allow: Home, End
+                [35, 36].indexOf(e.keyCode) !== -1) {
                 return;
             }
             
-            // Ensure that it is a number or dot and stop the keypress
-            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && e.keyCode !== 190 && e.keyCode !== 110) {
+            // Be very permissive - only block clearly invalid characters
+            const char = e.key || String.fromCharCode(e.keyCode || e.which);
+            
+            // Allow digits, dot, comma, and some special characters
+            if (/[0-9.,]/.test(char)) {
+                return; // Allow it
+            }
+            
+            // Block alphabetic characters and symbols (but be permissive for punctuation)
+            if (/[a-zA-Z]/.test(char) || /[!@#$%^&*()_+=[\]{}|;':"<>?/\\~`]/.test(char)) {
                 e.preventDefault();
+            }
+        }
+    });
+    
+    // Additional event listener for better comma support
+    document.addEventListener('beforeinput', function(e) {
+        // Skip search inputs
+        if (e.target.id && e.target.id.startsWith('barang-search-')) {
+            return;
+        }
+        
+        if (e.target.type === 'text' && 
+            (e.target.placeholder.includes('.') || 
+             ['qty', 'harga_vendor', 'harga_diskon', 'harga_yang_diharapkan', 'harga_pagu_dinas_per_pcs', 'nilai_sp', 'ongkir'].some(field => 
+                e.target.getAttribute('onchange') && e.target.getAttribute('onchange').includes(field)
+             ))) {
+            
+            const currentValue = e.target.value;
+            const inputData = e.data;
+            
+            if (inputData) {
+                // Allow numbers
+                if (/[0-9]/.test(inputData)) {
+                    return;
+                }
+                
+                // Allow dot for thousands separator
+                if (inputData === '.') {
+                    if (currentValue.length === 0 || currentValue.includes(',')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    return;
+                }
+                
+                // Allow comma for decimal separator
+                if (inputData === ',') {
+                    if (currentValue.includes(',')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    return;
+                }
+                
+                // Block other characters
+                if (!/[0-9.,]/.test(inputData)) {
+                    e.preventDefault();
+                }
             }
         }
     });
@@ -1341,7 +1460,7 @@ async function updateBarang(index, barangId) {
                 if (barang.id_vendor) {
                     kalkulasiData[index].id_vendor = barang.id_vendor;
                     const vendor = vendorList.find(v => v.id_vendor == barang.id_vendor);
-                    if (vendor) {
+                                       if (vendor) {
                         kalkulasiData[index].nama_vendor = vendor.nama_vendor;
                     }
                 }
@@ -1510,28 +1629,63 @@ function updateValue(index, field, value) {
     }
 }
 
-// Function to parse formatted number (remove dots and convert to number)
+// Function to parse formatted number (Indonesian format: dots for thousands, comma for decimal)
 function parseFormattedNumber(value) {
     if (typeof value === 'number') return value;
     if (typeof value !== 'string') return 0;
     
-    // Remove dots and convert to number
-    const cleanValue = value.replace(/\./g, '').replace(/,/g, '.');
-    const numericValue = parseFloat(cleanValue) || 0;
+    // Indonesian format: 1.234.567,89
+    // Remove thousand separators (dots) but keep decimal separator (comma)
+    let cleanValue = value.trim();
     
+    // Handle comma as decimal separator
+    if (cleanValue.includes(',')) {
+        // Split by comma to separate integer and decimal parts
+        const parts = cleanValue.split(',');
+        if (parts.length === 2) {
+            // Remove dots from integer part (thousands separators)
+            const integerPart = parts[0].replace(/\./g, '');
+            const decimalPart = parts[1];
+            // Reconstruct with dot as decimal separator for parseFloat
+            cleanValue = integerPart + '.' + decimalPart;
+        }
+    } else {
+        // No decimal part, just remove dots (thousands separators)
+        cleanValue = cleanValue.replace(/\./g, '');
+    }
+    
+    const numericValue = parseFloat(cleanValue) || 0;
     return numericValue;
 }
 
-// Function to format number with thousand separators for input
+// Function to format number with Indonesian format (dots for thousands, comma for decimal)
 function formatNumber(number) {
-    if (number === null || number === undefined || isNaN(number)) return '';
-    if (number === 0) return '';
+    // Convert to number if it's not already
+    const numericNumber = parseFloat(number);
     
-    // Convert to integer if it's a whole number, otherwise keep decimals
-    const isWholeNumber = number % 1 === 0;
-    const formattedNumber = isWholeNumber ? 
-        Math.round(number).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') :
-        number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    if (isNaN(numericNumber) || numericNumber === null || numericNumber === undefined) return '';
+    if (numericNumber === 0) return '';
+    
+    // Convert number to string with appropriate decimal places
+    let numStr;
+    if (numericNumber % 1 === 0) {
+        // Whole number
+        numStr = Math.round(numericNumber).toString();
+    } else {
+        // Decimal number - keep up to 2 decimal places, remove trailing zeros
+        numStr = numericNumber.toFixed(5).replace(/\.?0+$/, '');
+    }
+    
+    // Split into integer and decimal parts
+    const parts = numStr.split('.');
+    const integerPart = parts[0];
+    const decimalPart = parts[1];
+    
+    // Add thousand separators (dots) to integer part
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Combine with comma as decimal separator if there's a decimal part
+    const formattedNumber = decimalPart ? formattedInteger + ',' + decimalPart : formattedInteger;
     
     return formattedNumber;
 }
@@ -1836,21 +1990,48 @@ Status proyek akan berubah menjadi "Penawaran".`;
 
 // Utility functions
 function formatRupiah(amount) {
-    if (amount === null || amount === undefined || isNaN(amount)) return '-';
-    if (amount === 0) return '-';
+    // Convert to number if it's not already
+    const numericAmount = parseFloat(amount);
     
-    // Format dengan Rupiah dan pemisah ribuan menggunakan titik
-    return 'Rp ' + Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    if (isNaN(numericAmount) || numericAmount === null || numericAmount === undefined) return '-';
+    if (numericAmount === 0) return '-';
+    
+    // Format with Indonesian format (dots for thousands, comma for decimal)
+    let numStr;
+    if (numericAmount % 1 === 0) {
+        // Whole number
+        numStr = Math.round(numericAmount).toString();
+    } else {
+        // Decimal number - keep up to 2 decimal places, remove trailing zeros
+        numStr = numericAmount.toFixed(2).replace(/\.?0+$/, '');
+    }
+    
+    // Split into integer and decimal parts
+    const parts = numStr.split('.');
+    const integerPart = parts[0];
+    const decimalPart = parts[1];
+    
+    // Add thousand separators (dots) to integer part
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    // Combine with comma as decimal separator if there's a decimal part
+    const formattedAmount = decimalPart ? formattedInteger + ',' + decimalPart : formattedInteger;
+    
+    return 'Rp ' + formattedAmount;
 }
 
 function formatPercent(value) {
-    if (value === null || value === undefined || isNaN(value)) return '-';
-    if (value === 0) return '-';
+    // Convert to number if it's not already
+    const numericValue = parseFloat(value);
+    
+    if (isNaN(numericValue) || numericValue === null || numericValue === undefined) return '-';
+    if (numericValue === 0) return '-';
+    
     return new Intl.NumberFormat('id-ID', {
         style: 'percent',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    }).format(value / 100);
+    }).format(numericValue / 100);
 }
 
 // Helper functions for notifications
@@ -2474,5 +2655,7 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
+
+
 </script>
 @endpush
