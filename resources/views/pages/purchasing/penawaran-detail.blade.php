@@ -27,7 +27,7 @@
                         {{ $penawaran->status }}
                     </span>
                     <span class="hidden sm:inline">|</span>
-                    <span class="font-medium">Total:</span> <span class="truncate text-green-600">{{ 'Rp ' . number_format($penawaran->total_penawaran ?? 0, 0, ',', '.') }}</span>
+                    <span class="font-medium">Total:</span> <span class="truncate text-green-600">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
                 </div>
             </div>
             <div class="flex gap-2">
@@ -133,7 +133,7 @@
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-500">Total Penawaran</label>
-                    <p class="text-green-600 font-bold text-lg">{{ 'Rp ' . number_format($penawaran->total_penawaran, 0, ',', '.') }}</p>
+                    <p class="text-green-600 font-bold text-lg">{{ 'Rp ' . number_format($proyek->harga_total, 0, ',', '.') }}</p>
                 </div>
             </div>
             
@@ -297,7 +297,7 @@
                             <strong>Total Penawaran:</strong>
                         </td>
                         <td class="px-4 py-4 text-right text-lg font-bold text-green-700">
-                            {{ 'Rp ' . number_format($penawaran->details->sum('subtotal'), 0, ',', '.') }}
+                            {{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}
                         </td>
                     </tr>
                 </tfoot>

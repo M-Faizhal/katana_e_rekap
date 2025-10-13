@@ -50,7 +50,7 @@
         
         <input type="hidden" name="proyek_id" value="{{ $proyek->id_proyek }}">
         <input type="hidden" name="penawaran_id" value="{{ $penawaran->id_penawaran }}">
-        <input type="hidden" name="total_harga" value="{{ $totalHarga }}">
+        <input type="hidden" name="total_harga" value="{{ $proyek->harga_total ?? 0 }}">
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Left Column -->
@@ -102,7 +102,7 @@
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500 uppercase tracking-wider">Total Harga</span>
-                                <div class="text-sm font-bold text-green-600">Rp {{ number_format($totalHarga, 0, ',', '.') }}</div>
+                                <div class="text-sm font-bold text-green-600">Rp {{ number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</div>
                             </div>
                         </div>
                     </div>
@@ -162,9 +162,8 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-100">
-                                    @php $grandTotal = 0; @endphp
                                     @foreach($penawaran->penawaranDetail as $index => $detail)
-                                        @php $subtotal = $detail->qty * $detail->harga_satuan; $grandTotal += $subtotal; @endphp
+                                        @php $subtotal = $detail->qty * $detail->harga_satuan; @endphp
                                         <tr class="hover:bg-blue-50 transition-all duration-200 group">
                                             <td class="px-4 py-4 text-sm text-gray-500 font-medium">
                                                 <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-semibold text-gray-600 group-hover:bg-blue-100">
@@ -225,7 +224,7 @@
                                 <div class="text-right">
                                     <div class="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 border border-green-200">
                                         <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
-                                        <span class="text-xl font-bold text-green-700">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
+                                        <span class="text-xl font-bold text-green-700">Rp {{ number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -579,7 +578,7 @@ input[type=number] {
 
 @push('scripts')
 <script>
-const totalHarga = {{ $totalHarga }};
+const totalHarga = {{ $proyek->harga_total ?? 0 }};
 
 // Prevent scroll wheel from changing number input values
 document.addEventListener('DOMContentLoaded', function() {

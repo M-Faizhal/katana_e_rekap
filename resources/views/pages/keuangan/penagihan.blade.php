@@ -102,7 +102,7 @@
                         @forelse($proyekBelumBayar as $proyek)
                         @php
                             $penawaran = $proyek->penawaranAktif;
-                            $totalHarga = $penawaran ? $penawaran->penawaranDetail->sum('subtotal') : 0;
+                            $totalHarga = $proyek->harga_total ?? 0;
                         @endphp
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4">
@@ -142,7 +142,7 @@
                                         Rp {{ number_format($totalHarga, 0, ',', '.') }}
                                     </div>
                                     <div class="text-xs text-gray-500">
-                                        {{ $penawaran->penawaranDetail->count() }} item
+                                        {{ ($penawaran && $penawaran->penawaranDetail) ? $penawaran->penawaranDetail->count() : 0 }} item
                                     </div>
                                 </div>
                             </td>

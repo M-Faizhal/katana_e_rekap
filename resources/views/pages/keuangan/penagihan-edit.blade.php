@@ -75,7 +75,7 @@
                         </div>
                         <div class="pt-3 border-t border-gray-200">
                             <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Total Harga Proyek</span>
-                            <div class="text-lg font-bold text-green-600">Rp {{ number_format((float)$penagihanDinas->total_harga, 0, ',', '.') }}</div>
+                            <div class="text-lg font-bold text-green-600">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 0, ',', '.') }}</div>
                         </div>
                     </div>
                 </div>
@@ -205,7 +205,7 @@
                         </div>
                         @php
                             $totalBayar = $penagihanDinas->buktiPembayaran->sum('jumlah_bayar');
-                            $sisaPembayaran = $penagihanDinas->total_harga - $totalBayar;
+                            $sisaPembayaran = ($penagihanDinas->proyek->harga_total ?? 0) - $totalBayar;
                         @endphp
                         @if($penagihanDinas->status_pembayaran === 'dp')
                         <div class="grid grid-cols-2 gap-4 pt-3 border-t border-purple-200">
