@@ -163,24 +163,6 @@
                             <div class="text-sm font-medium text-gray-900">{{ $pembayaran->vendor->nama_vendor }}</div>
                             <div class="text-sm text-gray-600">{{ $pembayaran->vendor->jenis_perusahaan }}</div>
                             <div class="text-xs text-gray-500">{{ $pembayaran->vendor->email }}</div>
-                            @php
-                                // Hitung info modal vendor
-                                $totalModalVendor = $pembayaran->penawaran->proyek->penawaranAktif->penawaranDetail
-                                    ->where('barang.id_vendor', $pembayaran->id_vendor)
-                                    ->sum(function($detail) {
-                                        return $detail->qty * $detail->barang->harga_vendor;
-                                    });
-                                $totalDibayarVendor = \App\Models\Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
-                                    ->where('id_vendor', $pembayaran->id_vendor)
-                                    ->where('status_verifikasi', 'Approved')
-                                    ->sum('nominal_bayar');
-                            @endphp
-                            <div class="text-xs text-blue-600 mt-1">
-                                Modal: Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
-                            </div>
-                            <div class="text-xs text-green-600">
-                                Dibayar: Rp {{ number_format($totalDibayarVendor, 0, ',', '.') }}
-                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
