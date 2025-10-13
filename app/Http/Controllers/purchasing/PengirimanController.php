@@ -23,7 +23,14 @@ class PengirimanController extends Controller
     {
         // Ambil proyek yang statusnya 'Pengiriman' atau 'Selesai'
         // Dan vendor yang sudah lunas pembayarannya
-        $proyekReady = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran', 'pengiriman'])
+        $proyekReady = Proyek::with([
+                'penawaranAktif.penawaranDetail.barang.vendor', 
+                'adminMarketing', 
+                'pembayaran', 
+                'pengiriman',
+                'kalkulasiHps.barang',
+                'kalkulasiHps.vendor'
+            ])
             ->whereIn('status', ['Pengiriman', 'Selesai'])
             ->whereHas('penawaranAktif', function ($query) {
                 $query->where('status', 'ACC');
@@ -77,6 +84,47 @@ class PengirimanController extends Controller
                         ->where('id_vendor', $vendor->id_vendor)
                         ->get();
 
+                    // Ambil daftar barang untuk vendor ini dari kalkulasi HPS
+                    $barangVendor = [];
+                    $kalkulasiCount = 0;
+                    $barangFoundCount = 0;
+                    
+                    if ($proyek->kalkulasiHps) {
+                        $kalkulasiCount = $proyek->kalkulasiHps->count();
+                        foreach ($proyek->kalkulasiHps as $kalkulasi) {
+                            if ($kalkulasi->id_vendor == $vendor->id_vendor) {
+                                if ($kalkulasi->barang && $kalkulasi->barang->nama_barang) {
+                                    $barangVendor[] = $kalkulasi->barang->nama_barang;
+                                    $barangFoundCount++;
+                                }
+                            }
+                        }
+                        $barangVendor = array_unique(array_filter($barangVendor));
+                    }
+
+                    // Fallback: jika tidak ada di kalkulasi HPS, ambil dari penawaran detail
+                    if (empty($barangVendor) && $proyek->penawaranAktif && $proyek->penawaranAktif->penawaranDetail) {
+                        foreach ($proyek->penawaranAktif->penawaranDetail as $detail) {
+                            if ($detail->barang && $detail->barang->id_vendor == $vendor->id_vendor && $detail->barang->nama_barang) {
+                                $barangVendor[] = $detail->barang->nama_barang;
+                            }
+                        }
+                        $barangVendor = array_unique(array_filter($barangVendor));
+                    }
+
+                    // Log debug information
+                    Log::info('Barang Vendor Debug:', [
+                        'proyek_id' => $proyek->id_proyek,
+                        'vendor_id' => $vendor->id_vendor,
+                        'vendor_name' => $vendor->nama_vendor,
+                        'kalkulasi_total_count' => $kalkulasiCount,
+                        'barang_found_count' => $barangFoundCount,
+                        'barang_vendor_array' => $barangVendor,
+                        'has_penawaran_aktif' => $proyek->penawaranAktif ? true : false,
+                        'penawaran_detail_count' => $proyek->penawaranAktif && $proyek->penawaranAktif->penawaranDetail ? 
+                            $proyek->penawaranAktif->penawaranDetail->count() : 0
+                    ]);
+
                     return [
                         'vendor' => $vendor->toArray(),
                         'total_vendor' => $totalVendor,
@@ -84,7 +132,8 @@ class PengirimanController extends Controller
                         'status_lunas' => $isLunas,
                         'has_approved_payment' => $hasPembayaranApproved,
                         'pengiriman' => $pengiriman ? $pengiriman->toArray() : null,
-                        'ready_to_ship' => $hasPembayaranApproved && $pengiriman->isEmpty() // Bisa kirim jika ada pembayaran approved dan belum ada pengiriman
+                        'ready_to_ship' => $hasPembayaranApproved && $pengiriman->isEmpty(), // Bisa kirim jika ada pembayaran approved dan belum ada pengiriman
+                        'barang_vendor' => $barangVendor // Daftar nama barang untuk vendor ini
                     ];
                 })->filter(function ($vendorData) {
                     return $vendorData['has_approved_payment']; // Hanya vendor yang ada pembayaran approved
@@ -117,16 +166,46 @@ class PengirimanController extends Controller
         );
 
         // Ambil pengiriman yang sedang berjalan (per vendor) dengan pagination
-        $pengirimanBerjalan = Pengiriman::with(['penawaran.proyek', 'vendor'])
+        $pengirimanBerjalan = Pengiriman::with([
+                'penawaran.proyek.kalkulasiHps.barang', 
+                'penawaran.proyek.kalkulasiHps.vendor',
+                'vendor'
+            ])
             ->whereIn('status_verifikasi', ['Pending', 'Dalam_Proses'])
             ->orderBy('created_at', 'desc')
             ->paginate(10, ['*'], 'proses_page');
+
+        // Tambahkan data barang untuk setiap pengiriman yang sedang berjalan
+        $pengirimanBerjalan->getCollection()->transform(function ($pengiriman) {
+            // Ambil daftar barang untuk vendor ini dari kalkulasi HPS
+            $barangList = [];
+            if ($pengiriman->penawaran && $pengiriman->penawaran->proyek && $pengiriman->penawaran->proyek->kalkulasiHps) {
+                foreach ($pengiriman->penawaran->proyek->kalkulasiHps as $kalkulasi) {
+                    if ($kalkulasi->id_vendor == $pengiriman->id_vendor && $kalkulasi->barang) {
+                        $barangList[] = $kalkulasi->barang->nama_barang;
+                    }
+                }
+                $barangList = array_unique(array_filter($barangList));
+            }
+
+            // Jika tidak ada barang_list di field, set dari kalkulasi HPS
+            if (empty($pengiriman->barang_list) && !empty($barangList)) {
+                $pengiriman->barang_list = $barangList;
+            }
+
+            return $pengiriman;
+        });
 
         // Ambil pengiriman yang sudah selesai (per vendor) dengan pagination
         // Kriteria selesai: 
         // 1. Status Verified (untuk proyek yang sudah Selesai)
         // 2. Atau dokumen lengkap (foto_sampai + tanda_terima) tapi proyek belum Selesai
-        $pengirimanSelesai = Pengiriman::with(['penawaran.proyek', 'vendor', 'verifiedBy'])
+        $pengirimanSelesai = Pengiriman::with([
+                'penawaran.proyek.kalkulasiHps.barang', 
+                'penawaran.proyek.kalkulasiHps.vendor',
+                'vendor', 
+                'verifiedBy'
+            ])
             ->where(function($query) {
                 // Yang sudah verified dan proyeknya selesai
                 $query->where('status_verifikasi', 'Verified')
@@ -145,6 +224,27 @@ class PengirimanController extends Controller
             ->orderBy('updated_at', 'desc')
             ->paginate(10, ['*'], 'selesai_page');
 
+        // Tambahkan data barang untuk setiap pengiriman yang selesai
+        $pengirimanSelesai->getCollection()->transform(function ($pengiriman) {
+            // Ambil daftar barang untuk vendor ini dari kalkulasi HPS
+            $barangList = [];
+            if ($pengiriman->penawaran && $pengiriman->penawaran->proyek && $pengiriman->penawaran->proyek->kalkulasiHps) {
+                foreach ($pengiriman->penawaran->proyek->kalkulasiHps as $kalkulasi) {
+                    if ($kalkulasi->id_vendor == $pengiriman->id_vendor && $kalkulasi->barang) {
+                        $barangList[] = $kalkulasi->barang->nama_barang;
+                    }
+                }
+                $barangList = array_unique(array_filter($barangList));
+            }
+
+            // Jika tidak ada barang_list di field, set dari kalkulasi HPS
+            if (empty($pengiriman->barang_list) && !empty($barangList)) {
+                $pengiriman->barang_list = $barangList;
+            }
+
+            return $pengiriman;
+        });
+
         // Debug log untuk memastikan struktur data benar
         Log::info('Proyek Ready Data Structure:', [
             'count' => $proyekReady->count(),
@@ -153,7 +253,11 @@ class PengirimanController extends Controller
                 'proyek_status' => $proyekReady->first()->status,
                 'vendors_ready_count' => count($proyekReady->first()->vendors_ready),
                 'vendors_ready_sample' => $proyekReady->first()->vendors_ready[0] ?? 'No vendors ready',
-                'all_vendors_ready' => $proyekReady->first()->vendors_ready
+                'barang_vendor_sample' => isset($proyekReady->first()->vendors_ready[0]['barang_vendor']) ? 
+                    $proyekReady->first()->vendors_ready[0]['barang_vendor'] : 'No barang data',
+                'kalkulasi_hps_count' => $proyekReady->first()->kalkulasiHps ? $proyekReady->first()->kalkulasiHps->count() : 0,
+                'kalkulasi_hps_sample' => $proyekReady->first()->kalkulasiHps ? 
+                    $proyekReady->first()->kalkulasiHps->first() : 'No kalkulasi HPS'
             ] : 'No projects'
         ]);
 
