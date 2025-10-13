@@ -281,9 +281,15 @@ function togglePotensiEdit(value) {
     }
 }
 
-function loadEditData(data) {
+async function loadEditData(data) {
     console.log('Loading edit data:', data);
     console.log('Penawaran data in loadEditData:', data.penawaran);
+
+    // Load user options first
+    await Promise.all([
+        loadEditAdminMarketingOptions(),
+        loadEditAdminPurchasingOptions()
+    ]);
 
     // Load basic information with null checks
     const setElementValue = (id, value) => {
@@ -310,20 +316,17 @@ function loadEditData(data) {
     // Set PIC marketing dengan ID
     const adminMarketingSelect = document.getElementById('editAdminMarketing');
     if (adminMarketingSelect && data.id_admin_marketing) {
-        // Wait for options to load then set value
-        setTimeout(() => {
-            adminMarketingSelect.value = data.id_admin_marketing;
-        }, 100);
+        // Options should be loaded by now, set value directly
+        adminMarketingSelect.value = data.id_admin_marketing;
+        console.log('Set PIC marketing to:', data.id_admin_marketing);
     }
 
     // Set PIC purchasing dengan ID
     const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
     if (adminPurchasingSelect && data.id_admin_purchasing) {
-        // Wait for options to load then set value
-        setTimeout(() => {
-            adminPurchasingSelect.value = data.id_admin_purchasing;
-            console.log('Set PIC purchasing to:', data.id_admin_purchasing);
-        }, 500);
+        // Options should be loaded by now, set value directly
+        adminPurchasingSelect.value = data.id_admin_purchasing;
+        console.log('Set PIC purchasing to:', data.id_admin_purchasing);
     }
 
     // Load potensi
@@ -909,6 +912,290 @@ function clearFile(inputId) {
 function downloadFile(filename) {
     if (filename && filename !== 'Belum ada file') {
         window.open(`/storage/documents/${filename}`, '_blank');
+    }
+}
+
+// Form submission for edit
+document.addEventListener('DOMContentLoaded', function() {
+    const formEditProyek = document.getElementById('formEditProyek');
+    if (formEditProyek) {
+        formEditProyek.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get the project ID from hidden input
+            const projectId = document.getElementById('editId').value;
+            if (!projectId) {
+                showNotification('ID Proyek tidak ditemukan', 'error');
+                return;
+            }
+
+            // Collect form data
+            const formDataObject = collectEditFormData();
+            if (!formDataObject) {
+                return;
+            }
+
+            // Submit data
+            const submitButton = e.target.querySelector('button[type="submit"]') || document.querySelector('button[form="formEditProyek"]');
+
+            if (!submitButton) {
+                console.error('Submit button not found');
+                showNotification('Terjadi kesalahan: tombol submit tidak ditemukan', 'error');
+                return;
+            }
+
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
+            submitButton.disabled = true;
+
+            // Create FormData for traditional form submission
+            const formData = new FormData();
+
+            // Add basic data
+            Object.keys(formDataObject).forEach(key => {
+                if (key !== 'daftar_barang') {
+                    formData.append(key, formDataObject[key]);
+                }
+            });
+
+            // Add method spoofing for PUT request
+            formData.append('_method', 'PUT');
+
+            // Add daftar_barang as JSON string
+            if (formDataObject.daftar_barang) {
+                formData.append('daftar_barang', JSON.stringify(formDataObject.daftar_barang));
+            }
+
+            // Add file uploads for each item barang
+            const barangItems = document.querySelectorAll('.barang-item-edit');
+            barangItems.forEach((item, index) => {
+                const fileInput = item.querySelector(`input[name="barang[${index}][files][]"]`);
+                if (fileInput && fileInput.files.length > 0) {
+                    // Add each file with the same naming convention
+                    Array.from(fileInput.files).forEach(file => {
+                        formData.append(`barang[${index}][files][]`, file);
+                    });
+                }
+            });
+
+            console.log('Sending Edit FormData with:');
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(key, `File: ${value.name} (${value.size} bytes)`);
+                } else {
+                    console.log(key, value);
+                }
+            }
+
+            // Send data to server using POST with method spoofing
+            try {
+                console.log('Sending request to:', `/marketing/proyek/${projectId}`);
+                
+                const response = await fetch(`/marketing/proyek/${projectId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                // Try to parse response
+                let data;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON response received:', text);
+                    throw new Error('Server returned non-JSON response');
+                }
+
+                console.log('Response data:', data);
+
+                if (response.ok && data.success) {
+                    // Show success message
+                    showNotification('Proyek berhasil diperbarui!', 'success');
+                    
+                    // Close modal
+                    closeModal('modalEditProyek');
+                    
+                    // Reload page to show updated data
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    // Handle error response
+                    const errorMessage = data.message || `HTTP error! status: ${response.status}`;
+                    console.error('Server error:', errorMessage);
+                    showNotification('Terjadi kesalahan: ' + errorMessage, 'error');
+                }
+
+            } catch (error) {
+                console.error('Network or parsing error:', error);
+                showNotification('Terjadi kesalahan: ' + error.message, 'error');
+            } finally {
+                // Restore button
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            }
+        });
+    }
+});
+
+// Function to collect edit form data
+function collectEditFormData() {
+    const formData = {};
+    
+    // Basic information
+    formData.tanggal = document.getElementById('editTanggal')?.value || '';
+    formData.kab_kota = document.getElementById('editKabupatenKota')?.value || '';
+    formData.instansi = document.getElementById('editNamaInstansi')?.value || '';
+    formData.jenis_pengadaan = document.getElementById('editJenisPengadaan')?.value || '';
+    formData.id_admin_marketing = document.getElementById('editAdminMarketing')?.value || '';
+    formData.id_admin_purchasing = document.getElementById('editAdminPurchasing')?.value || '';
+    formData.catatan = document.getElementById('editCatatan')?.value || '';
+    formData.potensi = document.getElementById('editPotensiValue')?.value || 'tidak';
+    formData.tahun_potensi = document.getElementById('editTahunPotensi')?.value || '';
+    
+    // Collect barang data
+    const barangItems = document.querySelectorAll('.barang-item-edit');
+    const daftarBarang = [];
+    
+    let hasError = false;
+    
+    barangItems.forEach((item, index) => {
+        const namaBarang = item.querySelector(`input[name="barang[${index}][nama]"]`)?.value || '';
+        const qty = item.querySelector(`input[name="barang[${index}][qty]`)?.value || '';
+        const satuan = item.querySelector(`select[name="barang[${index}][satuan]"]`)?.value || '';
+        const hargaSatuanStr = item.querySelector(`input[name="barang[${index}][harga_satuan]"]`)?.value || '';
+        const spesifikasi = item.querySelector(`textarea[name="barang[${index}][spesifikasi]"]`)?.value || '';
+        
+        // Validate required fields
+        if (!namaBarang || !qty || !satuan) {
+            showNotification(`Item ${index + 1}: Nama barang, qty, dan satuan harus diisi`, 'error');
+            hasError = true;
+            return;
+        }
+        
+        // Parse harga satuan (Indonesian format)
+        let hargaSatuan = 0;
+        if (hargaSatuanStr) {
+            hargaSatuan = parseIndonesianNumber(hargaSatuanStr);
+        }
+        
+        daftarBarang.push({
+            nama_barang: namaBarang,
+            jumlah: parseInt(qty),
+            satuan: satuan,
+            spesifikasi: spesifikasi,
+            harga_satuan: hargaSatuan
+        });
+    });
+    
+    if (hasError) {
+        return null;
+    }
+    
+    formData.daftar_barang = daftarBarang;
+    
+    console.log('Collected edit form data:', formData);
+    return formData;
+}
+
+// Function to show notification (reuse from main page)
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+    
+    if (type === 'success') {
+        notification.classList.add('bg-green-600', 'text-white');
+        notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+    } else if (type === 'error') {
+        notification.classList.add('bg-red-600', 'text-white');
+        notification.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
+    } else if (type === 'warning') {
+        notification.classList.add('bg-yellow-600', 'text-white');
+        notification.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${message}`;
+    } else {
+        notification.classList.add('bg-blue-600', 'text-white');
+        notification.innerHTML = `<i class="fas fa-info-circle mr-2"></i>${message}`;
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Slide in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Auto hide after 4 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Function to load admin marketing options for edit form
+async function loadEditAdminMarketingOptions() {
+    try {
+        const response = await fetch('/marketing/proyek/users');
+        const data = await response.json();
+
+        if (data.success) {
+            const select = document.getElementById('editAdminMarketing');
+            if (select) {
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Pilih PIC marketing</option>';
+
+                // Add options for marketing and PIC roles
+                data.data.forEach(user => {
+                    if (user.role === 'admin_marketing' || user.role === 'superadmin') {
+                        const option = document.createElement('option');
+                        option.value = user.id_user;
+                        option.textContent = user.nama;
+                        select.appendChild(option);
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading edit PIC marketing options:', error);
+    }
+}
+
+// Function to load admin purchasing options for edit form  
+async function loadEditAdminPurchasingOptions() {
+    try {
+        const response = await fetch('/marketing/proyek/users');
+        const data = await response.json();
+
+        if (data.success) {
+            const select = document.getElementById('editAdminPurchasing');
+            if (select) {
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Pilih PIC purchasing</option>';
+
+                // Add options for purchasing and PIC roles
+                data.data.forEach(user => {
+                    if (user.role === 'admin_purchasing' || user.role === 'superadmin') {
+                        const option = document.createElement('option');
+                        option.value = user.id_user;
+                        option.textContent = user.nama;
+                        select.appendChild(option);
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading edit PIC purchasing options:', error);
     }
 }
 </script>
