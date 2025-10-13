@@ -1,6 +1,6 @@
 <!-- Modal Edit Potensi -->
-<div id="modalEditPotensi" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-screen overflow-hidden my-4 mx-auto">
+<div id="modalEditPotensi" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl mx-auto my-4 flex flex-col" style="max-height: calc(100vh - 2rem);">
         <!-- Modal Header -->
         <div class="bg-red-800 text-white p-6 flex items-center justify-between flex-shrink-0">
             <div class="flex items-center space-x-3">
@@ -12,13 +12,13 @@
                     <p class="text-red-100 text-sm">Ubah data potensi proyek</p>
                 </div>
             </div>
-            <button onclick="closeModal('modalEditPotensi')" class="text-white hover:bg-white hover:text-red-800 p-2">
+            <button onclick="closeModal('modalEditPotensi')" class="text-white hover:bg-white hover:text-red-800 p-2 rounded-lg transition-colors duration-200">
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
 
         <!-- Modal Body -->
-        <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(100vh - 200px);">
+        <div class="p-6 overflow-y-auto flex-1">
             <form id="formEditPotensi" class="space-y-6">
                 <!-- Hidden ID -->
                 <input type="hidden" id="editPotensiId" name="id">

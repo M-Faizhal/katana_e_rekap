@@ -20,12 +20,15 @@ class PotensiController extends Controller
         // Ambil parameter filter
         $tahunFilter = $request->get('tahun');
         $adminMarketingFilter = $request->get('admin_marketing');
-        $statusFilter = $request->get('status');
+        $statusFilter = 'pending'; // Selalu tampilkan hanya status pending (menunggu)
         $searchFilter = $request->get('search');
 
-        // Query untuk mengambil proyek yang memiliki potensi = 'ya' dengan relasi yang sama seperti ProyekController
+        // Query untuk mengambil proyek yang memiliki potensi = 'ya' dan status = 'Menunggu'
+        // Hanya menampilkan proyek yang belum masuk ke proses penawaran/perhitungan
         $query = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
-            ->where('potensi', 'ya');
+            ->where('potensi', 'ya')
+            ->where('status', 'Menunggu') // Hanya ambil proyek dengan status Menunggu
+            ->whereDoesntHave('penawaran'); // Hanya ambil proyek yang belum punya penawaran
 
         // Filter berdasarkan tahun
         if ($tahunFilter) {
@@ -50,10 +53,8 @@ class PotensiController extends Controller
 
         // Transform data untuk view dengan struktur yang sama seperti ProyekController
         $potensiData = $proyekData->map(function ($proyek, $index) {
-            // Get latest penawaran for this project
-            $latestPenawaran = \App\Models\Penawaran::with('details')->where('id_proyek', $proyek->id_proyek)
-                                      ->orderBy('id_penawaran', 'desc')
-                                      ->first();
+            // Karena query sudah filter proyek tanpa penawaran, tidak perlu cek penawaran lagi
+            // Semua proyek di sini pasti status "Menunggu" dan belum ada penawaran
 
             // Generate vendor dummy berdasarkan index (for compatibility)
             $vendors = [
@@ -67,11 +68,11 @@ class PotensiController extends Controller
             $vendorIndex = $index % count($vendors);
             $vendor = $vendors[$vendorIndex];
 
-            // Prioritas daftar barang: proyekBarang -> penawaran detail -> fallback proyek langsung
+            // Daftar barang hanya dari proyek_barang (karena belum ada penawaran)
             $daftarBarang = [];
             $totalNilaiProyek = 0;
 
-            // Prioritas 1: Dari proyek_barang (multiple barang per permintaan klien)
+            // Ambil dari proyek_barang (semua proyek di halaman potensi harus punya data barang)
             if ($proyek->proyekBarang && $proyek->proyekBarang->count() > 0) {
                 foreach ($proyek->proyekBarang as $barang) {
                     $hargaTotal = $barang->harga_total ?? ($barang->harga_satuan * $barang->jumlah);
@@ -87,22 +88,7 @@ class PotensiController extends Controller
                     ];
                 }
             }
-            // Prioritas 2: Dari penawaran detail jika ada
-            elseif ($latestPenawaran && $latestPenawaran->details && $latestPenawaran->details->count() > 0) {
-                foreach ($latestPenawaran->details as $detail) {
-                    $totalNilaiProyek += $detail->harga_total;
-
-                    $daftarBarang[] = [
-                        'nama_barang' => $detail->nama_barang,
-                        'jumlah' => $detail->jumlah,
-                        'satuan' => $detail->satuan,
-                        'spesifikasi' => $detail->spesifikasi,
-                        'harga_satuan' => $detail->harga_satuan,
-                        'harga_total' => $detail->harga_total
-                    ];
-                }
-            }
-            // Prioritas 3: Fallback ke data kosong
+            // Fallback jika tidak ada data barang
             else {
                 $daftarBarang[] = [
                     'nama_barang' => 'Belum ada data barang',
@@ -127,24 +113,21 @@ class PotensiController extends Controller
                 'jenis_pengadaan' => $proyek->jenis_pengadaan,
                 'tanggal' => $proyek->tanggal->format('Y-m-d'),
                 'deadline' => $proyek->deadline ? $proyek->deadline->format('Y-m-d') : null,
-                'nilai_proyek' => $totalNilaiProyek > 0 ? $totalNilaiProyek : ($latestPenawaran ? $latestPenawaran->total_penawaran : ($proyek->harga_total ?? 0)),
+                'nilai_proyek' => $totalNilaiProyek > 0 ? $totalNilaiProyek : ($proyek->harga_total ?? 0),
                 'admin_marketing' => $proyek->adminMarketing ? $proyek->adminMarketing->nama : '-',
                 'admin_purchasing' => $proyek->adminPurchasing ? $proyek->adminPurchasing->nama : '-',
                 'id_admin_marketing' => $proyek->id_admin_marketing,
                 'id_admin_purchasing' => $proyek->id_admin_purchasing,
-                'status' => $this->mapStatusToPotensi($latestPenawaran ? $latestPenawaran->status : 'menunggu'),
-                'status_penawaran' => $latestPenawaran ? $latestPenawaran->status : 'Menunggu',
+                'status' => 'pending', // Selalu pending karena status proyek = Menunggu
+                'status_penawaran' => 'Menunggu', // Selalu Menunggu karena belum ada penawaran
                 'tahun' => $proyek->tanggal->year,
-                'total_nilai' => $totalNilaiProyek > 0 ? $totalNilaiProyek : ($latestPenawaran ? $latestPenawaran->total_penawaran : ($proyek->harga_total ?? 0)),
+                'total_nilai' => $totalNilaiProyek > 0 ? $totalNilaiProyek : ($proyek->harga_total ?? 0),
                 'catatan' => $proyek->catatan,
                 'potensi' => $proyek->potensi ?? 'ya', // Always 'ya' for potensi page
                 'tahun_potensi' => $proyek->tahun_potensi ?? Carbon::now()->year,
                 'tanggal_assign' => $proyek->created_at->format('d M Y'),
                 'daftar_barang' => $daftarBarang,
-                'penawaran' => $latestPenawaran ? [
-                    'id' => $latestPenawaran->id_penawaran,
-                    'status' => $latestPenawaran->status
-                ] : null,
+                'penawaran' => null, // Tidak ada penawaran untuk proyek di halaman potensi
                 // Add vendor data for compatibility
                 'vendor_id' => $vendor['id'],
                 'vendor_nama' => $vendor['nama'],
@@ -152,30 +135,29 @@ class PotensiController extends Controller
             ];
         });
 
-        // Filter berdasarkan status setelah transform (karena status di-mapping)
-        if ($statusFilter) {
-            $potensiData = $potensiData->filter(function($item) use ($statusFilter) {
-                return $item['status'] === $statusFilter;
-            });
-        }
+        // Selalu filter berdasarkan status "pending" (menunggu)
+        // Tidak menggunakan statusFilter dari request untuk memastikan hanya menampilkan status menunggu
+        $potensiData = $potensiData->filter(function($item) {
+            return $item['status'] === 'pending';
+        });
 
         $potensiData = $potensiData->values()->toArray();
 
         // Hitung statistik berdasarkan status penawaran
         $totalPotensi = count($potensiData);
-        
+
         // Pending = status penawaran "Menunggu"
         $pendingCount = collect($potensiData)->filter(function($item) {
-            return isset($item['status_penawaran']) && 
+            return isset($item['status_penawaran']) &&
                    strtolower($item['status_penawaran']) === 'menunggu';
         })->count();
-        
+
         // Sukses = status penawaran "ACC" atau "Sukses"
         $suksesCount = collect($potensiData)->filter(function($item) {
             $statusPenawaran = strtolower($item['status_penawaran'] ?? '');
             return $statusPenawaran === 'acc' || $statusPenawaran === 'sukses';
         })->count();
-        
+
         // Total Nilai = sum semua nilai proyek
         $totalNilai = collect($potensiData)->sum('nilai_proyek');
 
@@ -703,7 +685,7 @@ class PotensiController extends Controller
     {
         // Map berdasarkan status penawaran, bukan status proyek
         $status = strtolower($statusPenawaran ?? 'menunggu');
-        
+
         switch ($status) {
             case 'acc':
             case 'sukses':

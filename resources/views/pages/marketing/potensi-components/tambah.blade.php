@@ -99,8 +99,8 @@
 </div>
 
 <!-- Modal Tambah Potensi -->
-<div id="modalTambahPotensi" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-screen overflow-hidden my-4 mx-auto">
+<div id="modalTambahPotensi" class="fixed inset-0 backdrop-blur-xs bg-black/30 hidden z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl mx-auto my-4 flex flex-col" style="max-height: calc(100vh - 2rem);">
         <!-- Modal Header -->
         <div class="bg-red-800 text-white p-6 flex items-center justify-between flex-shrink-0">
             <div class="flex items-center space-x-3">
@@ -118,7 +118,7 @@
         </div>
 
         <!-- Modal Body -->
-        <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(100vh - 200px);">
+        <div class="p-6 overflow-y-auto flex-1">
             <form id="formTambahPotensi" class="space-y-6">
                 <!-- Informasi Dasar -->
                 <div class="bg-gray-50 rounded-xl p-6">

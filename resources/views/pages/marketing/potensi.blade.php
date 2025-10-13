@@ -99,11 +99,8 @@
                         <option value="{{ $admin->id_user }}" {{ $adminMarketingFilter == $admin->id_user ? 'selected' : '' }}>{{ $admin->nama }}</option>
                     @endforeach
                 </select>
-                <select name="status" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    <option value="">Semua Status</option>
-                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="sukses" {{ request('status') == 'sukses' ? 'selected' : '' }}>Sukses</option>
-                </select>
+                <!-- Status filter hidden - hanya menampilkan status menunggu -->
+                <input type="hidden" name="status" value="pending">
                 <button type="submit" class="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                     <i class="fas fa-filter mr-2"></i>Filter
                 </button>
@@ -694,13 +691,18 @@ if (typeof openModal === 'undefined') {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            modal.classList.add('flex', 'items-center', 'justify-center');
             document.body.classList.add('modal-open');
 
             // Add animation class
             const modalContent = modal.querySelector('.bg-white');
             if (modalContent) {
                 modalContent.classList.add('modal-enter');
+            }
+
+            // Initialize specific modals
+            if (modalId === 'modalTambahPotensi' && typeof initTambahPotensiModal === 'function') {
+                initTambahPotensiModal();
             }
         }
     }
@@ -716,13 +718,13 @@ if (typeof closeModal === 'undefined') {
                 modalContent.classList.add('modal-exit');
                 setTimeout(() => {
                     modal.classList.add('hidden');
-                    modal.classList.remove('flex');
+                    modal.classList.remove('flex', 'items-center', 'justify-center');
                     document.body.classList.remove('modal-open');
                     modalContent.classList.remove('modal-enter', 'modal-exit');
                 }, 300);
             } else {
                 modal.classList.add('hidden');
-                modal.classList.remove('flex');
+                modal.classList.remove('flex', 'items-center', 'justify-center');
                 document.body.classList.remove('modal-open');
             }
         }
@@ -770,8 +772,8 @@ function ucfirst(str) {
 
 // Search and filter functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto submit form when filter changes
-    const filterSelects = document.querySelectorAll('select[name="tahun"], select[name="admin_marketing"], select[name="status"]');
+    // Auto submit form when filter changes (tahun dan admin_marketing saja)
+    const filterSelects = document.querySelectorAll('select[name="tahun"], select[name="admin_marketing"]');
     filterSelects.forEach(select => {
         select.addEventListener('change', function() {
             this.form.submit();
@@ -918,7 +920,7 @@ function goToPage(page) {
 // Initialize pagination on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Original DOMContentLoaded code
-    const filterSelects = document.querySelectorAll('select[name="tahun"], select[name="admin_marketing"], select[name="status"]');
+    const filterSelects = document.querySelectorAll('select[name="tahun"], select[name="admin_marketing"]');
     filterSelects.forEach(select => {
         select.addEventListener('change', function() {
             this.form.submit();
