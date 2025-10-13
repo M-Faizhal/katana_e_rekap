@@ -1262,16 +1262,6 @@ document.addEventListener('keydown', function(e) {
                         <div class="text-sm font-medium text-gray-900">
                             Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
                         </div>
-                        @php
-                            $totalModalVendorPembayaran = $pembayaran->penawaran->proyek->penawaranAktif->penawaranDetail
-                                ->where('barang.id_vendor', $pembayaran->id_vendor)
-                                ->sum(function($detail) {
-                                    return $detail->qty * $detail->barang->harga_vendor;
-                                });
-                            $persenNominal = $totalModalVendorPembayaran > 0 ? 
-                                ($pembayaran->nominal_bayar / $totalModalVendorPembayaran) * 100 : 0;
-                        @endphp
-                        <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari modal vendor</div>
                     </td>
                     <td class="px-6 py-4">
                         @if($pembayaran->status_verifikasi == 'Pending')
@@ -1379,16 +1369,6 @@ document.addEventListener('keydown', function(e) {
                 </div>
                 <div class="mb-2">
                     <div class="text-sm font-medium text-gray-900">Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}</div>
-                    @php
-                        $totalModalVendorPembayaran = $pembayaran->penawaran->proyek->penawaranAktif->penawaranDetail
-                            ->where('barang.id_vendor', $pembayaran->id_vendor)
-                            ->sum(function($detail) {
-                                return $detail->qty * $detail->barang->harga_vendor;
-                            });
-                        $persenNominal = $totalModalVendorPembayaran > 0 ? 
-                            ($pembayaran->nominal_bayar / $totalModalVendorPembayaran) * 100 : 0;
-                    @endphp
-                    <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari modal vendor</div>
                 </div>
                 <div class="mb-2">
                     @if($pembayaran->status_verifikasi == 'Pending')

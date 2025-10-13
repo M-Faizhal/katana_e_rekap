@@ -223,15 +223,9 @@
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-lg font-semibold text-gray-800">Total Penawaran:</span>
                     <span class="text-2xl font-bold text-red-600">
-                    Rp {{ number_format($penawaranDetails->sum('subtotal'), 0, ',', '.') }}
+                    Rp {{ number_format($proyek->harga_total ?? 0, 0, ',', '.') }}
                     </span>
                 </div>
-                @if($penawaran->total_nilai != $penawaranDetails->sum('subtotal'))
-                <div class="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                    <i class="fas fa-exclamation-triangle mr-1"></i>
-                    Total tersimpan (Rp {{ number_format($penawaran->total_nilai ?? 0, 0, ',', '.') }}) berbeda dengan perhitungan detail
-                </div>
-                @endif
                 </div>
             </div>
             @else
@@ -733,11 +727,15 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     });
 });
 
-// Calculate total from penawaran details
+// Calculate total from proyek harga_total
 function calculateTotal() {
-    @if($penawaranDetails && $penawaranDetails->count() > 0)
-    const calculatedTotal = {{ $penawaranDetails->sum('subtotal') }};
-    document.getElementById('total_nilai').value = calculatedTotal;
+    const calculatedTotal = {{ $proyek->harga_total ?? 0 }};
+    
+    // Update total_nilai field if it exists
+    const totalField = document.getElementById('total_nilai');
+    if (totalField) {
+        totalField.value = calculatedTotal;
+    }
 
     // Show notification
     const notification = document.createElement('div');
@@ -748,9 +746,6 @@ function calculateTotal() {
     setTimeout(() => {
         notification.remove();
     }, 3000);
-    @else
-    alert('Belum ada detail penawaran untuk dihitung');
-    @endif
 }
 
 // Placeholder for edit penawaran modal
