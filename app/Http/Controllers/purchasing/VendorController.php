@@ -248,6 +248,37 @@ class VendorController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Check for max_input_vars issue early
+        $inputCount = count($request->all());
+        $maxInputVars = ini_get('max_input_vars') ?: 1000;
+        
+        // Add debugging to help diagnose max_input_vars issue
+        Log::info('Update vendor request received', [
+            'vendor_id' => $id,
+            'content_type' => $request->header('Content-Type'),
+            'method' => $request->method(),
+            'input_count' => $inputCount,
+            'max_input_vars' => $maxInputVars,
+            'has_barang' => $request->has('barang'),
+            'barang_count' => $request->has('barang') ? count($request->barang ?? []) : 0,
+            'is_json' => $request->isJson()
+        ]);
+        
+        // If we suspect max_input_vars issue, return specific error
+        if ($inputCount >= $maxInputVars * 0.9 && !$request->isJson()) {
+            Log::warning('Possible max_input_vars issue detected', [
+                'input_count' => $inputCount,
+                'max_input_vars' => $maxInputVars
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terlalu banyak data untuk diproses sekaligus. Silakan kurangi jumlah produk atau coba lagi.',
+                'error_code' => 'TOO_MANY_INPUT_VARS',
+                'suggestion' => 'Coba edit vendor dengan maksimal 50 produk sekaligus.'
+            ], 413);
+        }
+        
         // Check if user has permission
         if (Auth::user()->role !== 'admin_purchasing' && Auth::user()->role !== 'superadmin') {
             return response()->json([
@@ -258,7 +289,8 @@ class VendorController extends Controller
 
         $vendor = Vendor::findOrFail($id);
 
-        $request->validate([
+        // Handle JSON requests differently for validation
+        $validationRules = [
             'nama_vendor' => 'required|string|max:255',
             'email' => 'nullable|email|unique:vendor,email,' . $id . ',id_vendor',
             'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
@@ -270,10 +302,16 @@ class VendorController extends Controller
             'barang.*.kategori' => 'required_with:barang|in:Elektronik,Meubel,Mesin,Lain-lain',
             'barang.*.satuan' => 'required_with:barang|string|max:255',
             'barang.*.spesifikasi' => 'nullable|string',
-            'barang.*.spesifikasi_file' => 'nullable|file|mimes:pdf,doc,docx,txt,xls,xlsx|max:5120',
             'barang.*.harga_vendor' => 'required_with:barang|numeric|min:0',
-            'barang.*.foto_barang' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+        ];
+        
+        // Only validate file fields for FormData requests
+        if (!$request->isJson()) {
+            $validationRules['barang.*.spesifikasi_file'] = 'nullable|file|mimes:pdf,doc,docx,txt,xls,xlsx|max:5120';
+            $validationRules['barang.*.foto_barang'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
+        }
+        
+        $request->validate($validationRules);
 
         // Handle empty email - set to null if empty
         if (empty($request->email)) {
@@ -404,6 +442,23 @@ class VendorController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+            Log::error('Vendor update failed', [
+                'vendor_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Check if it's a max_input_vars related error
+            $errorMessage = $e->getMessage();
+            if (strpos($errorMessage, 'max_input_vars') !== false || 
+                strpos($errorMessage, 'Input variables exceeded') !== false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terlalu banyak produk untuk diproses sekaligus. Silakan edit vendor dengan jumlah produk yang lebih sedikit atau hubungi administrator.',
+                    'error_code' => 'MAX_INPUT_VARS_EXCEEDED'
+                ], 413);
+            }
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengupdate vendor: ' . $e->getMessage()

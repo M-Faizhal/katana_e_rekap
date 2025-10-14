@@ -599,17 +599,6 @@ function submitEditVendor() {
     
     const vendorId = document.getElementById('editVendorId').value;
     
-    // Create FormData manually to ensure all fields are included
-    const formData = new FormData();
-    
-    // Add vendor data manually
-    formData.append('_method', 'PUT');
-    formData.append('nama_vendor', document.getElementById('editNamaVendor').value || '');
-    formData.append('email', document.getElementById('editEmailVendor').value || '');
-    formData.append('jenis_perusahaan', document.getElementById('editJenisPerusahaan').value || '');
-    formData.append('kontak', document.getElementById('editKontakVendor').value || '');
-    formData.append('alamat', document.getElementById('editAlamatVendor').value || '');
-    
     // Validate required fields before sending
     const requiredFields = {
         'nama_vendor': document.getElementById('editNamaVendor').value,
@@ -634,13 +623,26 @@ function submitEditVendor() {
         }
     }
     
+    // Prepare vendor data
+    const vendorData = {
+        _method: 'PUT',
+        nama_vendor: document.getElementById('editNamaVendor').value || '',
+        email: document.getElementById('editEmailVendor').value || '',
+        jenis_perusahaan: document.getElementById('editJenisPerusahaan').value || '',
+        kontak: document.getElementById('editKontakVendor').value || '',
+        alamat: document.getElementById('editAlamatVendor').value || '',
+        barang: []
+    };
+    
     console.log('Vendor data being sent:', {
         ...requiredFields,
         email: document.getElementById('editEmailVendor').value || ''
     });
     
-    // Add barang data with validation
+    // Process and validate products
     let validProductCount = 0;
+    let hasFiles = false;
+    
     editVendorProducts.forEach((product, index) => {
         // Validate each product before adding
         const requiredProductFields = {
@@ -668,24 +670,26 @@ function submitEditVendor() {
         }
         
         if (isValidProduct) {
+            const productData = {
+                nama_barang: product.nama_barang,
+                brand: product.brand,
+                kategori: product.kategori,
+                satuan: product.satuan,
+                spesifikasi: product.spesifikasi || '',
+                harga_vendor: product.harga_vendor
+            };
+            
             if (product.id_barang) {
-                formData.append(`barang[${validProductCount}][id_barang]`, product.id_barang);
-            }
-            formData.append(`barang[${validProductCount}][nama_barang]`, product.nama_barang);
-            formData.append(`barang[${validProductCount}][brand]`, product.brand);
-            formData.append(`barang[${validProductCount}][kategori]`, product.kategori);
-            formData.append(`barang[${validProductCount}][satuan]`, product.satuan);
-            formData.append(`barang[${validProductCount}][spesifikasi]`, product.spesifikasi || '');
-            formData.append(`barang[${validProductCount}][harga_vendor]`, product.harga_vendor);
-            
-            if (product.foto_barang && product.foto_barang instanceof File) {
-                formData.append(`barang[${validProductCount}][foto_barang]`, product.foto_barang);
+                productData.id_barang = product.id_barang;
             }
             
-            if (product.spesifikasi_file && product.spesifikasi_file instanceof File) {
-                formData.append(`barang[${validProductCount}][spesifikasi_file]`, product.spesifikasi_file);
+            // Check if there are files
+            if ((product.foto_barang && product.foto_barang instanceof File) || 
+                (product.spesifikasi_file && product.spesifikasi_file instanceof File)) {
+                hasFiles = true;
             }
             
+            vendorData.barang.push(productData);
             validProductCount++;
         } else {
             console.error(`Product ${index} validation failed:`, product);
@@ -694,19 +698,73 @@ function submitEditVendor() {
     
     console.log(`Valid products to send: ${validProductCount} out of ${editVendorProducts.length}`);
     
-    // Debug: Log all formData entries
-    console.log('Complete FormData being sent:');
-    for (let [key, value] of formData.entries()) {
-        console.log(key, ':', value);
+    // Estimate total form variables to avoid max_input_vars limit
+    const estimatedVars = 6 + (validProductCount * 7); // 6 vendor fields + 7 fields per product
+    console.log(`Estimated form variables: ${estimatedVars}`);
+    
+    let requestBody;
+    let headers = {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Accept': 'application/json',
+    };
+    
+    // Always use JSON for large datasets to avoid max_input_vars limit
+    // Only use FormData for small datasets with files
+    if (estimatedVars > 100 || (!hasFiles && validProductCount > 0)) {
+        console.log('Using JSON submission to avoid max_input_vars limit');
+        
+        // For JSON requests, we can't send files, so we'll skip files for now
+        // Files will need to be handled separately if needed
+        if (hasFiles) {
+            console.warn('Files detected but using JSON submission - files will be skipped');
+            showToast('Perhatian: File akan diabaikan untuk menghindari error. Silakan edit produk satu per satu untuk menambah file.', 'warning');
+        }
+        
+        requestBody = JSON.stringify(vendorData);
+        headers['Content-Type'] = 'application/json';
+        
+    } else {
+        console.log('Using FormData submission for small dataset with files');
+        // Use FormData for small datasets with file uploads
+        const formData = new FormData();
+        
+        // Add vendor data
+        formData.append('_method', vendorData._method);
+        formData.append('nama_vendor', vendorData.nama_vendor);
+        formData.append('email', vendorData.email);
+        formData.append('jenis_perusahaan', vendorData.jenis_perusahaan);
+        formData.append('kontak', vendorData.kontak);
+        formData.append('alamat', vendorData.alamat);
+        
+        // Add product data (only for small datasets)
+        vendorData.barang.forEach((product, index) => {
+            if (product.id_barang) {
+                formData.append(`barang[${index}][id_barang]`, product.id_barang);
+            }
+            formData.append(`barang[${index}][nama_barang]`, product.nama_barang);
+            formData.append(`barang[${index}][brand]`, product.brand);
+            formData.append(`barang[${index}][kategori]`, product.kategori);
+            formData.append(`barang[${index}][satuan]`, product.satuan);
+            formData.append(`barang[${index}][spesifikasi]`, product.spesifikasi);
+            formData.append(`barang[${index}][harga_vendor]`, product.harga_vendor);
+            
+            // Add files from original products array
+            const originalProduct = editVendorProducts[index];
+            if (originalProduct.foto_barang && originalProduct.foto_barang instanceof File) {
+                formData.append(`barang[${index}][foto_barang]`, originalProduct.foto_barang);
+            }
+            if (originalProduct.spesifikasi_file && originalProduct.spesifikasi_file instanceof File) {
+                formData.append(`barang[${index}][spesifikasi_file]`, originalProduct.spesifikasi_file);
+            }
+        });
+        
+        requestBody = formData;
     }
     
     fetch(`/purchasing/vendor/${vendorId}`, {
         method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json',
-        },
-        body: formData,
+        headers: headers,
+        body: requestBody,
         credentials: 'same-origin'
     })
     .then(response => {
@@ -757,17 +815,36 @@ function submitEditVendor() {
             closeModal('modalEditVendor');
             location.reload();
         } else {
-            showToast(data.message || 'Gagal mengupdate vendor', 'error');
-            if (data.errors) {
-                console.error('Validation errors:', data.errors);
-                const firstError = Object.values(data.errors)[0][0];
-                showToast(firstError, 'error');
+            // Handle specific error codes
+            if (data.error_code === 'MAX_INPUT_VARS_EXCEEDED' || data.error_code === 'TOO_MANY_INPUT_VARS') {
+                showToast(data.message + ' Silakan edit vendor dengan jumlah produk yang lebih sedikit.', 'error');
+                if (data.suggestion) {
+                    setTimeout(() => {
+                        showToast(data.suggestion, 'info');
+                    }, 3000);
+                }
+            } else {
+                showToast(data.message || 'Gagal mengupdate vendor', 'error');
+                if (data.errors) {
+                    console.error('Validation errors:', data.errors);
+                    const firstError = Object.values(data.errors)[0][0];
+                    showToast(firstError, 'error');
+                }
             }
         }
     })
     .catch(error => {
         console.error('Full error object:', error);
-        showToast(error.message || 'Terjadi kesalahan saat mengupdate vendor', 'error');
+        
+        // Special handling for max_input_vars related errors
+        if (error.message && error.message.includes('Server returned non-JSON response')) {
+            showToast('Server mengalami masalah dalam memproses data. Kemungkinan terlalu banyak produk. Silakan coba dengan jumlah produk yang lebih sedikit.', 'error');
+            setTimeout(() => {
+                showToast('Tips: Maksimal 50 produk per vendor untuk performa terbaik.', 'info');
+            }, 3000);
+        } else {
+            showToast(error.message || 'Terjadi kesalahan saat mengupdate vendor', 'error');
+        }
     });
 }
 
@@ -1031,6 +1108,11 @@ function updateEditVendorProductList() {
         } else {
             counterElement.textContent = `${editVendorProducts.length} produk`;
         }
+    }
+    
+    // Update warning display if function exists
+    if (typeof updateEditProductCountDisplay === 'function') {
+        updateEditProductCountDisplay();
     }
     
     if (filteredProducts.length === 0) {

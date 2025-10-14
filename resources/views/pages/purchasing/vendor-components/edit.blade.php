@@ -191,6 +191,12 @@
                                 <div class="text-sm text-gray-500" id="editProductCount">
                                     0 produk
                                 </div>
+                                <div id="editProductCountWarning" class="hidden">
+                                    <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        Terlalu banyak produk
+                                    </span>
+                                </div>
                                 <button type="button" onclick="exportProductList()" class="px-3 py-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all duration-200" title="Export daftar produk">
                                     <i class="fas fa-download"></i>
                                 </button>
@@ -247,6 +253,31 @@
 </div>
 
 <script>
+// Function to update product count and show warning
+function updateEditProductCountDisplay() {
+    const countElement = document.getElementById('editProductCount');
+    const warningElement = document.getElementById('editProductCountWarning');
+    const count = editVendorProducts ? editVendorProducts.length : 0;
+    
+    if (countElement) {
+        countElement.textContent = `${count} produk`;
+    }
+    
+    if (warningElement) {
+        if (count > 50) {
+            warningElement.classList.remove('hidden');
+            warningElement.querySelector('span').textContent = `⚠️ ${count} produk (Terlalu banyak!)`;
+            warningElement.querySelector('span').className = 'text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full';
+        } else if (count > 30) {
+            warningElement.classList.remove('hidden');
+            warningElement.querySelector('span').textContent = `⚠️ ${count} produk (Mendekati limit)`;
+            warningElement.querySelector('span').className = 'text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full';
+        } else {
+            warningElement.classList.add('hidden');
+        }
+    }
+}
+
 // Fix untuk mencegah form submission yang tidak diinginkan
 function editProductInVendor(index) {
     if (event) {
