@@ -527,10 +527,16 @@
                                 @endphp
                                 
                                 @if($canAccessUpdate)
-                                    <button onclick="updateDokumentasi({{ $pengiriman->id_pengiriman }})" 
-                                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                                        <i class="fas fa-upload mr-1"></i>Update
-                                    </button>
+                                    <div class="flex space-x-2">
+                                        <button onclick="editPengiriman({{ $pengiriman->id_pengiriman }})" 
+                                                class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </button>
+                                        <button onclick="updateDokumentasi({{ $pengiriman->id_pengiriman }})" 
+                                                class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                                            <i class="fas fa-upload mr-1"></i>Update
+                                        </button>
+                                    </div>
                                 @else
                                     <button disabled
                                             class="bg-gray-300 text-gray-500 px-3 py-1 rounded text-sm cursor-not-allowed">
@@ -727,10 +733,22 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="lihatDetailSelesai({{ $pengiriman->id_pengiriman }})" 
-                                        class="text-blue-600 hover:text-blue-900">
-                                    <i class="fas fa-eye mr-1"></i> Lihat Detail
-                                </button>
+                                @php
+                                    $canAccessEditSelesai = ($currentUser->role === 'admin_purchasing' && $pengiriman->penawaran->proyek->id_admin_purchasing == $currentUser->id_user) || $currentUser->role === 'superadmin';
+                                @endphp
+                                
+                                <div class="flex space-x-2">
+                                    @if($pengiriman->status_verifikasi == 'Sampai_Tujuan' && $canAccessEditSelesai)
+                                        <button onclick="editPengiriman({{ $pengiriman->id_pengiriman }})" 
+                                                class="text-orange-600 hover:text-orange-900">
+                                            <i class="fas fa-edit mr-1"></i> Edit
+                                        </button>
+                                    @endif
+                                    <button onclick="lihatDetailSelesai({{ $pengiriman->id_pengiriman }})" 
+                                            class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-eye mr-1"></i> Lihat Detail
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         @endforeach
@@ -774,7 +792,7 @@
                     </button>
                 </div>
                 
-                <form action="{{ route('pengiriman.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('purchasing.pengiriman.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" id="id_penawaran" name="id_penawaran">
                     <input type="hidden" id="id_vendor" name="id_vendor">
@@ -1712,5 +1730,8 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
+
+<!-- Include Edit Pengiriman Component -->
+@include('pages.purchasing.pengiriman-components.edit')
 
 @endsection

@@ -168,12 +168,14 @@ Route::middleware('auth')->group(function () {
 
         // Pengiriman Routes
         Route::get('/pengiriman', [PengirimanController::class, 'index'])->name('purchasing.pengiriman');
-        Route::get('/pengiriman/{id}/detail', [PengirimanController::class, 'getDetailWithFiles'])->name('pengiriman.detail');
-        Route::post('/pengiriman', [PengirimanController::class, 'store'])->name('pengiriman.store');
-        Route::put('/pengiriman/{id}/update-dokumentasi', [PengirimanController::class, 'updateDokumentasi'])->name('pengiriman.update-dokumentasi');
-        Route::put('/pengiriman/{id}/verify', [PengirimanController::class, 'verify'])->name('pengiriman.verify');
-        Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy'])->name('pengiriman.destroy');
-        Route::post('/pengiriman/cleanup-files', [PengirimanController::class, 'cleanupOrphanedFiles'])->name('pengiriman.cleanup');
+        Route::get('/pengiriman/{id}/detail', [PengirimanController::class, 'getDetailWithFiles'])->name('purchasing.pengiriman.detail');
+        Route::post('/pengiriman', [PengirimanController::class, 'store'])->name('purchasing.pengiriman.store');
+        Route::get('/pengiriman/{id}/edit', [PengirimanController::class, 'edit'])->name('purchasing.pengiriman.edit');
+        Route::put('/pengiriman/{id}', [PengirimanController::class, 'update'])->name('purchasing.pengiriman.update');
+        Route::put('/pengiriman/{id}/update-dokumentasi', [PengirimanController::class, 'updateDokumentasi'])->name('purchasing.pengiriman.update-dokumentasi');
+        Route::put('/pengiriman/{id}/verify', [PengirimanController::class, 'verify'])->name('purchasing.pengiriman.verify');
+        Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy'])->name('purchasing.pengiriman.destroy');
+        Route::post('/pengiriman/cleanup-files', [PengirimanController::class, 'cleanupOrphanedFiles'])->name('purchasing.pengiriman.cleanup');
     });
 
     // Keuangan Routes

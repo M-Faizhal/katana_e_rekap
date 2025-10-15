@@ -361,6 +361,114 @@ class PengirimanController extends Controller
     }
 
     /**
+     * Show the form for editing pengiriman
+     */
+    public function edit($id)
+    {
+        Log::info('PengirimanController::edit called', ['id' => $id, 'user' => Auth::id()]);
+        
+        // Role-based access control: Allow admin_purchasing and superadmin
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_purchasing', 'superadmin'])) {
+            Log::warning('Access denied for pengiriman edit', ['user_role' => $user->role, 'user_id' => $user->id_user]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk mengedit pengiriman'
+            ], 403);
+        }
+
+        $pengiriman = Pengiriman::with(['penawaran.proyek', 'vendor'])->findOrFail($id);
+
+        // Additional check: Only admin_purchasing assigned to the project or superadmin can edit
+        if ($user->role === 'admin_purchasing' && $pengiriman->penawaran->proyek->id_admin_purchasing != $user->id_user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda hanya dapat mengedit pengiriman untuk proyek yang ditugaskan kepada Anda'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $pengiriman
+        ]);
+    }
+
+    /**
+     * Update pengiriman data
+     */
+    public function update(Request $request, $id)
+    {
+        // Role-based access control: Allow admin_purchasing and superadmin
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_purchasing', 'superadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki izin untuk mengupdate pengiriman'
+            ], 403);
+        }
+
+        $pengiriman = Pengiriman::with(['penawaran.proyek', 'vendor'])->findOrFail($id);
+
+        // Additional check: Only admin_purchasing assigned to the project or superadmin can update
+        if ($user->role === 'admin_purchasing' && $pengiriman->penawaran->proyek->id_admin_purchasing != $user->id_user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda hanya dapat mengupdate pengiriman untuk proyek yang ditugaskan kepada Anda'
+            ], 403);
+        }
+
+        // Validate input
+        $request->validate([
+            'no_surat_jalan' => 'required|string|max:255|unique:pengiriman,no_surat_jalan,' . $id . ',id_pengiriman',
+            'tanggal_kirim' => 'required|date',
+            'alamat_kirim' => 'required|string',
+            'file_surat_jalan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $updateData = [
+                'no_surat_jalan' => $request->no_surat_jalan,
+                'tanggal_kirim' => $request->tanggal_kirim,
+                'alamat_kirim' => $request->alamat_kirim
+            ];
+
+            // Handle file surat jalan update
+            if ($request->hasFile('file_surat_jalan')) {
+                // Delete old file if exists
+                if ($pengiriman->file_surat_jalan) {
+                    Storage::disk('public')->delete('pengiriman/surat_jalan/' . $pengiriman->file_surat_jalan);
+                }
+
+                // Upload new file
+                $file = $request->file('file_surat_jalan');
+                $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9.]/', '_', $file->getClientOriginalName());
+                $file->storeAs('pengiriman/surat_jalan', $fileName, 'public');
+                $updateData['file_surat_jalan'] = $fileName;
+            }
+
+            $pengiriman->update($updateData);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data pengiriman berhasil diperbarui',
+                'data' => $pengiriman->fresh(['penawaran.proyek', 'vendor'])
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui pengiriman: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Update dokumentasi pengiriman
      */
     public function updateDokumentasi(Request $request, $id)
