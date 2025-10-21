@@ -41,7 +41,7 @@ services:
       - "coolify.managed=true"
       - "traefik.enable=true"
       - "traefik.http.routers.katana.rule=Host(`jccksw48csk00okowwwc0ccc.a8008ggcskg4gco8ws80cgg4.31.97.107.207.sslip.io`)"
-      - "traefik.http.routers.katana.entrypoints=websecure"
+      - "traefik.http.routers.katana.entrypoints=https"
       - "traefik.http.routers.katana.tls.certresolver=letsencrypt"
       - "traefik.http.services.katana.loadbalancer.server.port=80"
 
