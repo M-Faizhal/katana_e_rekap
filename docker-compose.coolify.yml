@@ -11,28 +11,44 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
       - APP_KEY=${APP_KEY:-base64:YOUR_APP_KEY_HERE}
-      - APP_URL=https://cyber.ptkatana.com
+
+      # ✅ Change this to your Coolify-generated domain
+      - APP_URL=https://${COOLIFY_DOMAIN:-your-generated-domain.coolify.app}
+
+      # ✅ Laravel database config
       - DB_CONNECTION=mysql
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=${DB_DATABASE:-katana_db}
       - DB_USERNAME=${DB_USERNAME:-katana_user}
       - DB_PASSWORD=${DB_PASSWORD:-your_db_password}
+
+      # ✅ Runtime settings
       - CACHE_DRIVER=file
       - SESSION_DRIVER=file
       - QUEUE_CONNECTION=sync
       - MAIL_MAILER=log
       - FORCE_HTTPS=true
+
+      # ✅ Optional but good for start.sh script
+      - DB_WAIT_TIMEOUT=30
+
     volumes:
       - storage_data:/var/www/html/storage
+
     depends_on:
       - db
+
     networks:
       - katana-network
+
+    command: ["/usr/local/bin/start.sh"]   # ✅ make sure start.sh runs when container starts
+
     labels:
       - "coolify.managed=true"
       - "traefik.enable=true"
-      - "traefik.http.routers.katana.rule=Host(`https://cyber.ptkatana.com`)"
+      # ✅ Use domain variable so it auto-updates with Coolify
+      - "traefik.http.routers.katana.rule=Host(`${COOLIFY_DOMAIN:-your-generated-domain.coolify.app}`)"
       - "traefik.http.routers.katana.entrypoints=websecure"
       - "traefik.http.routers.katana.tls.certresolver=letsencrypt"
       - "traefik.http.services.katana.loadbalancer.server.port=80"
@@ -61,4 +77,3 @@ networks:
 volumes:
   db_data:
   storage_data:
-  public_storage:
