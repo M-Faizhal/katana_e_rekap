@@ -77,6 +77,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/proyek/{id}', [ProyekController::class, 'update'])->name('marketing.proyek.update');
         Route::delete('/proyek/{id}', [ProyekController::class, 'destroy'])->name('marketing.proyek.destroy');
         Route::put('/proyek/{id}/status', [ProyekController::class, 'updateStatus'])->name('marketing.proyek.status');
+        Route::put('/proyek/{id}/status-gagal', [ProyekController::class, 'updateStatusGagal'])->name('marketing.proyek.status.gagal');
         Route::get('/proyek/users', [ProyekController::class, 'getUsersForSelect'])->name('marketing.proyek.users');
         Route::get('/proyek/wilayah', [ProyekController::class, 'getWilayahForSelect'])->name('marketing.proyek.wilayah');
         Route::get('/proyek/next-kode', [ProyekController::class, 'getNextKodeProyek'])->name('marketing.proyek.next-kode');
