@@ -71,7 +71,7 @@ class PembayaranController extends Controller
             ->filter(function ($proyek) {
                 return $proyek->vendors_data->count() > 0; // Hanya proyek yang ada vendor belum lunas
             })
-            ->sortBy('nama_barang')
+            ->sortByDesc('created_at') // Sort by created_at instead of nama_barang
             ->values();
             
         // Convert collection to paginated result
@@ -90,8 +90,7 @@ class PembayaranController extends Controller
         $search = request()->get('search');
         $statusFilter = request()->get('status_filter'); // untuk pembayaran
         $proyekStatusFilter = request()->get('proyek_status_filter'); // untuk status proyek lunas/belum
-        $sortBy = request()->get('sort_by', 'created_at');
-        $sortOrder = request()->get('sort_order', 'desc');
+        $sortBy = request()->get('sort_by', 'desc');
         $activeTab = request()->get('tab', 'perlu-bayar'); // untuk tab navigation
 
         // Ambil semua proyek dengan status Pembayaran, Pengiriman, Selesai, atau Gagal untuk history
@@ -104,25 +103,16 @@ class PembayaranController extends Controller
         // Filter berdasarkan search
         if ($search) {
             $semuaProyekQuery->where(function ($query) use ($search) {
-                $query->where('nama_barang', 'like', "%{$search}%")
-                      ->orWhere('instansi', 'like', "%{$search}%")
-                      ->orWhere('nama_klien', 'like', "%{$search}%")
-                      ->orWhere('kota_kab', 'like', "%{$search}%")
-                      ->orWhereHas('penawaranAktif', function ($subQuery) use ($search) {
-                          $subQuery->where('no_penawaran', 'like', "%{$search}%");
-                      });
+                $query->where('instansi', 'like', "%{$search}%")
+                      ->orWhere('kode_proyek', 'like', "%{$search}%");
             });
         }
 
-        // Sorting
-        if ($sortBy === 'nama_barang') {
-            $semuaProyekQuery->orderBy('nama_barang', $sortOrder);
-        } elseif ($sortBy === 'instansi') {
-            $semuaProyekQuery->orderBy('instansi', $sortOrder);
-        } elseif ($sortBy === 'nama_klien') {
-            $semuaProyekQuery->orderBy('nama_klien', $sortOrder);
+        // Sorting - hanya berdasarkan tanggal
+        if ($sortBy === 'asc') {
+            $semuaProyekQuery->orderBy('created_at', 'asc');
         } else {
-            $semuaProyekQuery->orderBy('created_at', $sortOrder);
+            $semuaProyekQuery->orderBy('created_at', 'desc');
         }
 
         $semuaProyek = $semuaProyekQuery->paginate(10, ['*'], 'proyek_page');
@@ -217,9 +207,8 @@ class PembayaranController extends Controller
         if ($search) {
             $semuaPembayaranQuery->where(function ($query) use ($search) {
                 $query->whereHas('penawaran.proyek', function ($subQuery) use ($search) {
-                    $subQuery->where('nama_barang', 'like', "%{$search}%")
-                             ->orWhere('instansi', 'like', "%{$search}%")
-                             ->orWhere('nama_klien', 'like', "%{$search}%");
+                    $subQuery->where('instansi', 'like', "%{$search}%")
+                             ->orWhere('kode_proyek', 'like', "%{$search}%");
                 })->orWhereHas('vendor', function ($subQuery) use ($search) {
                     $subQuery->where('nama_vendor', 'like', "%{$search}%");
                 });
@@ -237,9 +226,8 @@ class PembayaranController extends Controller
             'statusFilter',
             'proyekStatusFilter',
             'sortBy',
-            'sortOrder',
             'activeTab'
-        ));
+        ))->with('currentUser', Auth::user());
     }
 
     /**

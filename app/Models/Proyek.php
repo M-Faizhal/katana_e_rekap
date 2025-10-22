@@ -193,4 +193,28 @@ class Proyek extends Model
         // Jika tidak ada penawaran, gunakan harga_total dari proyek
         return $this->harga_total;
     }
+    
+    /**
+     * Accessor untuk mendapatkan nama barang dari penawaran detail
+     */
+    public function getNamaBarangAttribute()
+    {
+        if ($this->penawaranAktif && $this->penawaranAktif->penawaranDetail) {
+            // Ambil nama barang pertama dari penawaran detail, atau gabungkan jika ada banyak
+            $namaBarang = $this->penawaranAktif->penawaranDetail
+                ->pluck('barang.nama_barang')
+                ->filter()
+                ->unique()
+                ->take(3) // Ambil maksimal 3 nama barang
+                ->implode(', ');
+                
+            if ($this->penawaranAktif->penawaranDetail->count() > 3) {
+                $namaBarang .= ', ...';
+            }
+            
+            return $namaBarang ?: 'Tidak ada barang';
+        }
+        
+        return 'Tidak ada barang';
+    }
 }
