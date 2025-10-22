@@ -258,11 +258,13 @@ async function loadEditData(data) {
     console.log('Loading edit data:', data);
     console.log('Penawaran data in loadEditData:', data.penawaran);
 
-    // Load user options first
+    // Load user options first and wait for them to complete
+    console.log('Loading user options...');
     await Promise.all([
         loadEditAdminMarketingOptions(),
         loadEditAdminPurchasingOptions()
     ]);
+    console.log('User options loaded successfully');
 
     // Load basic information with null checks
     const setElementValue = (id, value) => {
@@ -286,21 +288,33 @@ async function loadEditData(data) {
     setElementValue('editTahunPotensi', data.tahun_potensi);
     setElementValue('editStatus', data.status);
 
-    // Set PIC marketing dengan ID
-    const adminMarketingSelect = document.getElementById('editAdminMarketing');
-    if (adminMarketingSelect && data.id_admin_marketing) {
-        // Options should be loaded by now, set value directly
-        adminMarketingSelect.value = data.id_admin_marketing;
-        console.log('Set PIC marketing to:', data.id_admin_marketing);
-    }
+    // Set PIC marketing dengan ID - wait a bit to ensure options are loaded
+    setTimeout(() => {
+        const adminMarketingSelect = document.getElementById('editAdminMarketing');
+        if (adminMarketingSelect && data.id_admin_marketing) {
+            adminMarketingSelect.value = data.id_admin_marketing;
+            console.log('Set PIC marketing to:', data.id_admin_marketing);
+            console.log('Available options:', Array.from(adminMarketingSelect.options).map(o => ({value: o.value, text: o.text})));
+        } else {
+            console.warn('Cannot set PIC marketing:', {
+                elementFound: !!adminMarketingSelect,
+                idValue: data.id_admin_marketing
+            });
+        }
 
-    // Set PIC purchasing dengan ID
-    const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
-    if (adminPurchasingSelect && data.id_admin_purchasing) {
-        // Options should be loaded by now, set value directly
-        adminPurchasingSelect.value = data.id_admin_purchasing;
-        console.log('Set PIC purchasing to:', data.id_admin_purchasing);
-    }
+        // Set PIC purchasing dengan ID
+        const adminPurchasingSelect = document.getElementById('editAdminPurchasing');
+        if (adminPurchasingSelect && data.id_admin_purchasing) {
+            adminPurchasingSelect.value = data.id_admin_purchasing;
+            console.log('Set PIC purchasing to:', data.id_admin_purchasing);
+            console.log('Available options:', Array.from(adminPurchasingSelect.options).map(o => ({value: o.value, text: o.text})));
+        } else {
+            console.warn('Cannot set PIC purchasing:', {
+                elementFound: !!adminPurchasingSelect,
+                idValue: data.id_admin_purchasing
+            });
+        }
+    }, 500); // Wait 500ms for options to be populated
 
     // Load potensi (readonly display)
     if (data.potensi) {
@@ -898,35 +912,40 @@ function downloadFile(filename) {
 // Form submission for edit
 document.addEventListener('DOMContentLoaded', function() {
     const formEditProyek = document.getElementById('formEditProyek');
-    if (formEditProyek) {
-        formEditProyek.addEventListener('submit', async function(e) {
-            e.preventDefault();
 
-            // Get the project ID from hidden input
-            const projectId = document.getElementById('editId').value;
-            if (!projectId) {
-                showNotification('ID Proyek tidak ditemukan', 'error');
-                return;
-            }
+    // Handler function for form submission
+    async function handleEditFormSubmit(e) {
+        e.preventDefault();
 
-            // Collect form data
-            const formDataObject = collectEditFormData();
-            if (!formDataObject) {
-                return;
-            }
+        // Get the project ID from hidden input
+        const projectId = document.getElementById('editId').value;
+        if (!projectId) {
+            showNotification('ID Proyek tidak ditemukan', 'error');
+            return;
+        }
 
-            // Submit data
-            const submitButton = e.target.querySelector('button[type="submit"]') || document.querySelector('button[form="formEditPotensi"]');
+        // Collect form data
+        const formDataObject = collectEditFormData();
+        if (!formDataObject) {
+            return;
+        }
 
-            if (!submitButton) {
-                console.error('Submit button not found');
-                showNotification('Terjadi kesalahan: tombol submit tidak ditemukan', 'error');
-                return;
-            }
+        // Submit data - find the submit button correctly
+        const submitButton = document.querySelector('button[form="formEditProyek"]') ||
+                            document.querySelector('#formEditProyek button[type="submit"]') ||
+                            e.submitter;
 
-            const originalText = submitButton.innerHTML;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
-            submitButton.disabled = true;
+        if (!submitButton) {
+            console.error('Submit button not found');
+            console.log('Event:', e);
+            console.log('Event submitter:', e.submitter);
+            showNotification('Terjadi kesalahan: tombol submit tidak ditemukan', 'error');
+            return;
+        }
+
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengupdate...';
+        submitButton.disabled = true;
 
             // Create FormData for traditional form submission
             const formData = new FormData();
@@ -1021,6 +1040,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Restore button
                 submitButton.innerHTML = originalText;
                 submitButton.disabled = false;
+            }
+    }
+
+    // Add event listener to form
+    if (formEditProyek) {
+        formEditProyek.addEventListener('submit', handleEditFormSubmit);
+    }
+
+    // Also add event listener to the submit button (for cases where button is outside form)
+    const submitButton = document.querySelector('button[form="formEditProyek"]');
+    if (submitButton) {
+        submitButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = document.getElementById('formEditProyek');
+            if (form) {
+                // Create a synthetic submit event
+                const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                form.dispatchEvent(submitEvent);
             }
         });
     }
@@ -1126,8 +1163,10 @@ function showNotification(message, type = 'success') {
 // Function to load admin marketing options for edit form
 async function loadEditAdminMarketingOptions() {
     try {
-        const response = await fetch('/marketing/potensi/users');
+        const response = await fetch('/marketing/proyek/users');
         const data = await response.json();
+
+        console.log('PIC Marketing data received:', data);
 
         if (data.success) {
             const select = document.getElementById('editAdminMarketing');
@@ -1142,6 +1181,7 @@ async function loadEditAdminMarketingOptions() {
                         option.value = user.id_user;
                         option.textContent = user.nama;
                         select.appendChild(option);
+                        console.log('Added marketing option:', user.nama, user.id_user);
                     }
                 });
             }
@@ -1154,8 +1194,10 @@ async function loadEditAdminMarketingOptions() {
 // Function to load admin purchasing options for edit form
 async function loadEditAdminPurchasingOptions() {
     try {
-        const response = await fetch('/marketing/potensi/users');
+        const response = await fetch('/marketing/proyek/users');
         const data = await response.json();
+
+        console.log('PIC Purchasing data received:', data);
 
         if (data.success) {
             const select = document.getElementById('editAdminPurchasing');
@@ -1170,6 +1212,7 @@ async function loadEditAdminPurchasingOptions() {
                         option.value = user.id_user;
                         option.textContent = user.nama;
                         select.appendChild(option);
+                        console.log('Added purchasing option:', user.nama, user.id_user);
                     }
                 });
             }

@@ -1315,8 +1315,10 @@ function resetTambahModal() {
 // Function to load PIC marketing options
 async function loadAdminMarketingOptions() {
     try {
-        const response = await fetch('/marketing/potensi/users');
+        const response = await fetch('/marketing/proyek/users');
         const data = await response.json();
+
+        console.log('Loading PIC Marketing options:', data);
 
         if (data.success) {
             const select = document.getElementById('adminMarketingSelect');
@@ -1337,6 +1339,7 @@ async function loadAdminMarketingOptions() {
                         }
 
                         select.appendChild(option);
+                        console.log('Added marketing option:', user.nama, user.id_user);
                     }
                 });
             }
@@ -1349,8 +1352,10 @@ async function loadAdminMarketingOptions() {
 // Function to load PIC purchasing options
 async function loadAdminPurchasingOptions() {
     try {
-        const response = await fetch('/marketing/potensi/users');
+        const response = await fetch('/marketing/proyek/users');
         const data = await response.json();
+
+        console.log('Loading PIC Purchasing options:', data);
 
         if (data.success) {
             const select = document.getElementById('adminPurchasingSelect');
@@ -1365,6 +1370,7 @@ async function loadAdminPurchasingOptions() {
                         option.value = user.id_user;
                         option.textContent = user.nama;
                         select.appendChild(option);
+                        console.log('Added purchasing option:', user.nama, user.id_user);
                     }
                 });
             }

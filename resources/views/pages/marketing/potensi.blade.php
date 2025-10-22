@@ -142,14 +142,14 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
     <!-- Cards Layout -->
     <div class="p-3 sm:p-4 lg:p-6">
         <div id="proyekContainer" class="grid grid-cols-1 gap-4 sm:gap-6">
-            @foreach($proyekData as $index => $proyek)
+            @foreach($proyekData as $index => $potensi)
             <!-- Card {{ $index + 1 }} -->
             <div class="proyek-card bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 cursor-pointer relative"
-                 data-status="{{ $proyek['status'] }}"
-                 data-kabupaten="{{ strtolower($proyek['kabupaten']) }}"
-                 data-instansi="{{ strtolower($proyek['instansi']) }}"
-                 data-tanggal="{{ $proyek['tanggal'] }}"
-                 onclick="buatPenawaran({{ $proyek['id'] }})"
+                 data-status="{{ $potensi['status'] }}"
+                 data-kabupaten="{{ strtolower($potensi['kabupaten']) }}"
+                 data-instansi="{{ strtolower($potensi['instansi']) }}"
+                 data-tanggal="{{ $potensi['tanggal'] }}"
+                 onclick="buatPenawaran({{ $potensi['id'] }})"
                  title="Klik untuk membuat penawaran">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                     <div class="flex items-center space-x-3 mb-3 sm:mb-0">
@@ -158,19 +158,19 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2 mb-2">
-                                <h3 class="text-base sm:text-lg font-bold text-gray-800">{{ $proyek['kode'] }}</h3>
+                                <h3 class="text-base sm:text-lg font-bold text-gray-800">{{ $potensi['kode'] }}</h3>
                             </div>
 
                             <div class="flex items-center gap-2">
                                 <span class="inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full
-                                    @if($proyek['status'] === 'selesai') bg-green-100 text-green-800
-                                    @elseif($proyek['status'] === 'pengiriman') bg-orange-100 text-orange-800
-                                    @elseif($proyek['status'] === 'pembayaran') bg-purple-100 text-purple-800
-                                    @elseif($proyek['status'] === 'penawaran') bg-blue-100 text-blue-800
-                                    @elseif($proyek['status'] === 'menunggu') bg-gray-100 text-gray-800
+                                    @if($potensi['status'] === 'selesai') bg-green-100 text-green-800
+                                    @elseif($potensi['status'] === 'pengiriman') bg-orange-100 text-orange-800
+                                    @elseif($potensi['status'] === 'pembayaran') bg-purple-100 text-purple-800
+                                    @elseif($potensi['status'] === 'penawaran') bg-blue-100 text-blue-800
+                                    @elseif($potensi['status'] === 'menunggu') bg-gray-100 text-gray-800
                                     @else bg-red-100 text-red-800
                                     @endif">
-                                    {{ ucfirst($proyek['status']) }}
+                                    {{ ucfirst($potensi['status']) }}
                                 </span>
 
                             </div>
@@ -178,18 +178,18 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                     </div>
                     <div class="flex items-center space-x-1 sm:space-x-2 self-start" onclick="event.stopPropagation()">
                         @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
-                        <button onclick="buatPenawaran({{ $proyek['id'] }})" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200" title="Buat Penawaran">
+                        <button onclick="buatPenawaran({{ $potensi['id'] }})" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200" title="Buat Penawaran">
                             <i class="fas fa-file-invoice text-sm"></i>
                         </button>
                         @endif
-                        <button onclick="viewDetail({{ $proyek['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                        <button onclick="viewDetail({{ $potensi['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
                             <i class="fas fa-eye text-sm"></i>
                         </button>
                         @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
-                        <button onclick="editProyek({{ $proyek['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
+                        <button onclick="editProyek({{ $potensi['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
                             <i class="fas fa-edit text-sm"></i>
                         </button>
-                        <button onclick="deleteProyek({{ $proyek['id'] }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                        <button onclick="deleteProyek({{ $potensi['id'] }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
                             <i class="fas fa-trash text-sm"></i>
                         </button>
                         @endif
@@ -199,15 +199,15 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <div>
                         <p class="text-xs sm:text-sm text-gray-500 mb-1">Tanggal</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ \Carbon\Carbon::parse($proyek['tanggal'])->format('d M Y') }}</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ \Carbon\Carbon::parse($potensi['tanggal'])->format('d M Y') }}</p>
                     </div>
                     <div>
                         <p class="text-xs sm:text-sm text-gray-500 mb-1">Kabupaten/Kota</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $proyek['kabupaten'] }}</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $potensi['kabupaten'] }}</p>
                     </div>
                     <div>
                         <p class="text-xs sm:text-sm text-gray-500 mb-1">Nama Instansi</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $proyek['instansi'] }}</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $potensi['instansi'] }}</p>
                     </div>
                 </div>
 
@@ -218,7 +218,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                             <div class="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <i class="fas fa-user text-red-600 text-xs sm:text-sm"></i>
                             </div>
-                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ $proyek['admin_marketing'] }}</p>
+                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ $potensi['admin_marketing'] }}</p>
                         </div>
                     </div>
                     <div>
@@ -227,7 +227,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                             <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                                 <i class="fas fa-user text-blue-600 text-xs sm:text-sm"></i>
                             </div>
-                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ $proyek['admin_purchasing'] }}</p>
+                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ $potensi['admin_purchasing'] }}</p>
                         </div>
                     </div>
                 </div>
@@ -235,19 +235,19 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                 <!-- Total Nilai -->
                 <div class="mt-4 pt-4 border-t border-gray-100">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-gray-500">Total Nilai Proyek:</span>
-                        <span class="text-lg font-bold text-red-600">Rp {{ number_format($proyek['total_nilai'], 2, ',', '.') }}</span>
+                        <span class="text-sm text-gray-500">Total Nilai Potensi:</span>
+                        <span class="text-lg font-bold text-red-600">Rp {{ number_format($potensi['total_nilai'], 2, ',', '.') }}</span>
                     </div>
 
                     <!-- Penawaran Info -->
-                    @if(isset($proyek['penawaran']))
+                    @if(isset($potensi['penawaran']))
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-gray-500">No. Penawaran:</span>
-                        <span class="font-medium text-blue-600">{{ $proyek['penawaran']['no_penawaran'] }}</span>
+                        <span class="font-medium text-blue-600">{{ $potensi['penawaran']['no_penawaran'] }}</span>
                     </div>
                     <div class="flex justify-between items-center text-sm mt-1">
                         <span class="text-gray-500">Tanggal Penawaran:</span>
-                        <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($proyek['penawaran']['tanggal_penawaran'])->format('d M Y') }}</span>
+                        <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($potensi['penawaran']['tanggal_penawaran'])->format('d M Y') }}</span>
                     </div>
                     @endif
                 </div>
@@ -303,11 +303,11 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
 @endif
 
 <!-- Include Modal Components -->
-@include('pages.marketing.proyek-components.tambah')
-@include('pages.marketing.proyek-components.edit')
-@include('pages.marketing.proyek-components.detail')
-@include('pages.marketing.proyek-components.hapus')
-@include('pages.marketing.proyek-components.ubah-status')
+@include('pages.marketing.potensi-components.tambah')
+@include('pages.marketing.potensi-components.edit')
+@include('pages.marketing.potensi-components.detail')
+@include('pages.marketing.potensi-components.hapus')
+@include('pages.marketing.potensi-components.ubah-status')
 @include('components.success-modal')
 
 <!-- Include Modal Functions -->
@@ -586,9 +586,9 @@ select.status-dropdown {
 
 <script>
 // Data dari PHP untuk JavaScript
-const proyekData = @json($proyekData);
-let filteredData = [...proyekData];
-let currentData = [...proyekData];
+const potensiData = @json($proyekData);
+let filteredData = [...potensiData];
+let currentData = [...potensiData];
 
 // Pagination variables
 let currentPage = 1;
@@ -599,7 +599,7 @@ let totalPages = 1;
 const searchInput = document.getElementById('searchInput');
 const tahunFilter = document.getElementById('tahunFilter');
 const picMarketingFilter = document.getElementById('picMarketingFilter');
-const proyekContainer = document.getElementById('proyekContainer');
+const potensiContainer = document.getElementById('proyekContainer');
 const noResults = document.getElementById('noResults');
 const paginationInfo = document.getElementById('paginationInfo');
 
@@ -629,7 +629,7 @@ function debounce(func, wait) {
 
 // Filter dan sort function
 function filterAndSort() {
-    let filtered = [...proyekData];
+    let filtered = [...potensiData];
 
     console.log('=== FILTER AND SORT DEBUG ===');
     console.log('Starting filterAndSort with total data:', filtered.length);
@@ -730,8 +730,8 @@ function resetFilters() {
     }
 
     // Reset data to original
-    console.log('Resetting currentData from', currentData.length, 'to', proyekData.length, 'items');
-    currentData = [...proyekData];
+    console.log('Resetting currentData from', currentData.length, 'to', potensiData.length, 'items');
+    currentData = [...potensiData];
     currentPage = 1; // Reset to first page
 
     // Hide no results message
@@ -752,7 +752,7 @@ function resetFilters() {
     updatePaginationInfo();
     renderPagination();
 
-    console.log('Reset complete - showing first page of', proyekData.length, 'items');
+    console.log('Reset complete - showing first page of', potensiData.length, 'items');
     console.log('=== END RESET DEBUG ===');
 }
 
@@ -793,20 +793,20 @@ function displayResults() {
     console.log('Displaying items from', startIndex, 'to', endIndex);
     console.log('Items on current page:', currentPageData.length);
 
-    // Create a set of current page project IDs
-    const currentPageIds = new Set(currentPageData.map(proyek => proyek.id));
-    console.log('Current page project IDs:', Array.from(currentPageIds));
+    // Create a set of current page potensi IDs
+    const currentPageIds = new Set(currentPageData.map(potensi => potensi.id));
+    console.log('Current page potensi IDs:', Array.from(currentPageIds));
 
     // Show/hide cards based on current page data
     let visibleCount = 0;
 
     // Process each card
     cards.forEach((card, cardIndex) => {
-        const originalProyek = proyekData[cardIndex];
-        if (originalProyek && currentPageIds.has(originalProyek.id)) {
+        const originalPotensi = potensiData[cardIndex];
+        if (originalPotensi && currentPageIds.has(originalPotensi.id)) {
             card.style.display = 'block';
             visibleCount++;
-            console.log('Showing card for project:', originalProyek.kode, 'at index', cardIndex);
+            console.log('Showing card for potensi:', originalPotensi.kode, 'at index', cardIndex);
         } else {
             card.style.display = 'none';
         }
@@ -889,13 +889,13 @@ function reorderCards() {
     });
 
     // Set order for visible cards based on current page data only
-    currentPageData.forEach((sortedProyek, sortedIndex) => {
-        // Find the card that corresponds to this project
-        const cardIndex = proyekData.findIndex(p => p.id === sortedProyek.id);
+    currentPageData.forEach((sortedPotensi, sortedIndex) => {
+        // Find the card that corresponds to this potensi
+        const cardIndex = potensiData.findIndex(p => p.id === sortedPotensi.id);
         if (cardIndex !== -1 && allCards[cardIndex]) {
             allCards[cardIndex].style.order = sortedIndex.toString();
             allCards[cardIndex].style.display = 'block';
-            console.log('Set order', sortedIndex, 'for project:', sortedProyek.kode);
+            console.log('Set order', sortedIndex, 'for potensi:', sortedPotensi.kode);
         }
     });
 
@@ -907,7 +907,7 @@ function reorderCards() {
 function updatePaginationInfo() {
     if (paginationInfo) {
         const totalVisible = currentData.length;
-        const totalAll = proyekData.length;
+        const totalAll = potensiData.length;
         const startItem = totalVisible === 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
         const endItem = Math.min(currentPage * itemsPerPage, totalVisible);
 
@@ -1034,11 +1034,11 @@ function goToPage(page) {
     }
 }
 
-// Function to view detail proyek
+// Function to view detail potensi
 function viewDetail(id) {
     console.log('viewDetail called with ID:', id);
 
-    const data = proyekData.find(p => p.id == id);
+    const data = potensiData.find(p => p.id == id);
 
     if (!data) {
         console.error('Data proyek tidak ditemukan dengan ID:', id);
@@ -1163,18 +1163,18 @@ function viewDetail(id) {
 
             itemDiv.innerHTML = [
                 '<div class="flex justify-between items-start mb-2">',
-                    '<h5 class="font-medium text-gray-800">' + item.nama + '</h5>',
-                    '<span class="text-lg font-bold text-red-600">' + formatRupiah(item.harga_total) + '</span>',
+                    '<h5 class="font-medium text-gray-800">' + (item.nama_barang || item.nama || 'Nama barang tidak tersedia') + '</h5>',
+                    '<span class="text-lg font-bold text-red-600">' + formatRupiah(item.harga_total || (item.jumlah * item.harga_satuan)) + '</span>',
                 '</div>',
                 '<div class="grid grid-cols-3 gap-4 text-sm text-gray-600">',
                     '<div>',
-                        '<span class="font-medium">Qty:</span> ' + item.jumlah,
+                        '<span class="font-medium">Qty:</span> ' + (item.jumlah || item.qty || 0),
                     '</div>',
                     '<div>',
-                        '<span class="font-medium">Satuan:</span> ' + item.satuan,
+                        '<span class="font-medium">Satuan:</span> ' + (item.satuan || '-'),
                     '</div>',
                     '<div>',
-                        '<span class="font-medium">Harga Satuan:</span> ' + formatRupiah(item.harga_satuan),
+                        '<span class="font-medium">Harga Satuan:</span> ' + formatRupiah(item.harga_satuan || 0),
                     '</div>',
                 '</div>',
                 '<div class="mt-2 text-sm text-gray-600">',
@@ -1241,7 +1241,7 @@ function buatPenawaran(id) {
 
     console.log('buatPenawaran called with ID:', id);
 
-    const data = proyekData.find(p => p.id == id);
+    const data = potensiData.find(p => p.id == id);
 
     if (!data) {
         console.error('Data potensi tidak ditemukan dengan ID:', id);
@@ -1253,7 +1253,7 @@ function buatPenawaran(id) {
     window.location.href = `/marketing/penawaran/${id}`;
 }
 
-// Function to edit proyek
+// Function to edit potensi
 function editProyek(id) {
     // Check user role access
     @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
@@ -1263,7 +1263,7 @@ function editProyek(id) {
 
     console.log('editProyek called with ID:', id);
 
-    const data = proyekData.find(p => p.id == id);
+    const data = potensiData.find(p => p.id == id);
 
     if (!data) {
         console.error('Data potensi tidak ditemukan dengan ID:', id);
@@ -1346,7 +1346,7 @@ function editProyek(id) {
     openModal('modalEditProyek');
 }
 
-// Function to delete proyek
+// Function to delete potensi
 function deleteProyek(id) {
     // Check user role access
     @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
@@ -1356,7 +1356,7 @@ function deleteProyek(id) {
 
     console.log('deleteProyek called with ID:', id);
 
-    const data = proyekData.find(p => p.id == id);
+    const data = potensiData.find(p => p.id == id);
 
     if (!data) {
         console.error('Data potensi tidak ditemukan dengan ID:', id);
@@ -1413,7 +1413,7 @@ function deleteProyek(id) {
 }
 
 // Function to change status quickly via dropdown
-function changeStatusQuick(proyekId, newStatus, selectElement = null) {
+function changeStatusQuick(potensiId, newStatus, selectElement = null) {
     // Stop event propagation to prevent card click
     if (event) {
         event.stopPropagation();
@@ -1422,15 +1422,15 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
 
     if (!newStatus) return; // Jika tidak ada status yang dipilih
 
-    const proyek = proyekData.find(p => p.id == proyekId);
-    if (!proyek) {
+    const potensi = potensiData.find(p => p.id == potensiId);
+    if (!potensi) {
         showErrorMessage('Data potensi tidak ditemukan!');
         if (selectElement) selectElement.value = '';
         return;
     }
 
     // Validasi apakah status bisa diubah
-    if (!validateDropdownChange(selectElement, proyekId)) {
+    if (!validateDropdownChange(selectElement, potensiId)) {
         if (selectElement) selectElement.value = '';
         return;
     }
@@ -1444,7 +1444,7 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
         'gagal': 'Gagal'
     };
 
-    const confirmMessage = 'Apakah Anda yakin ingin mengubah status potensi "' + proyek.nama_proyek + '" menjadi "' + statusNames[newStatus] + '"?';
+    const confirmMessage = 'Apakah Anda yakin ingin mengubah status potensi "' + potensi.nama_proyek + '" menjadi "' + statusNames[newStatus] + '"?';
     if (!confirm(confirmMessage)) {
         // Reset dropdown ke nilai awal
         if (selectElement) selectElement.value = '';
@@ -1460,7 +1460,7 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
     }
 
     // Update status via API
-    fetch(`/marketing/proyek/${proyekId}/status`, {
+    fetch(`/marketing/proyek/${potensiId}/status`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -1495,10 +1495,10 @@ function changeStatusQuick(proyekId, newStatus, selectElement = null) {
     .then(data => {
         if (data.success) {
             // Update data
-            proyek.status = newStatus;
+            potensi.status = newStatus;
 
             // Update UI
-            updateProyekStatusInUI(proyekId, newStatus);
+            updatePotensiStatusInUI(potensiId, newStatus);
 
             // Reset dropdown
             if (selectElement) {
@@ -1563,14 +1563,14 @@ function showSuccessMessage(message) {
     }, 3000);
 }
 
-// Function to update proyek status in UI
-function updateProyekStatusInUI(proyekId, newStatus) {
+// Function to update potensi status in UI
+function updatePotensiStatusInUI(potensiId, newStatus) {
     // Find the card element
     const cards = document.querySelectorAll('.proyek-card');
     cards.forEach(card => {
-        const cardData = proyekData.find(p => p.id == proyekId);
+        const cardData = potensiData.find(p => p.id == potensiId);
         if (cardData) {
-            const cardIndex = proyekData.indexOf(cardData);
+            const cardIndex = potensiData.indexOf(cardData);
             if (card === cards[cardIndex]) {
                 // Update status badge
                 const statusBadge = card.querySelector('span[class*="bg-"]');
@@ -1615,13 +1615,13 @@ function updateProyekStatusInUI(proyekId, newStatus) {
 // Function to update statistics after status change
 function updateStatistics() {
     // Recalculate statistics from current data
-    const totalPotensi = proyekData.length;
-    const penawaranCount = proyekData.filter(p => p.status === 'penawaran').length;
-    const persetujuanCount = proyekData.filter(p => p.status === 'persetujuan').length;
-    const kontrakCount = proyekData.filter(p => p.status === 'kontrak').length;
-    const selesaiCount = proyekData.filter(p => p.status === 'selesai').length;
-    const prosesCount = proyekData.filter(p => p.status === 'proses').length;
-    const gagalCount = proyekData.filter(p => p.status === 'gagal').length;
+    const totalPotensi = potensiData.length;
+    const penawaranCount = potensiData.filter(p => p.status === 'penawaran').length;
+    const persetujuanCount = potensiData.filter(p => p.status === 'persetujuan').length;
+    const kontrakCount = potensiData.filter(p => p.status === 'kontrak').length;
+    const selesaiCount = potensiData.filter(p => p.status === 'selesai').length;
+    const prosesCount = potensiData.filter(p => p.status === 'proses').length;
+    const gagalCount = potensiData.filter(p => p.status === 'gagal').length;
 
     // Update stats cards by finding them more specifically
     const statsContainer = document.querySelector('.grid.grid-cols-2.lg\\:grid-cols-6');
@@ -1903,18 +1903,18 @@ function validateDropdownChange(selectElement, proyekId) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('=== DOM LOADED DEBUG ===');
     console.log('DOM loaded, initializing...');
-    console.log('Proyek data loaded:', proyekData.length, 'items');
+    console.log('Potensi data loaded:', potensiData.length, 'items');
 
     // Debug: Show first item structure
-    if (proyekData.length > 0) {
+    if (potensiData.length > 0) {
         console.log('Sample data structure:', {
-            id: proyekData[0].id,
-            kode: proyekData[0].kode,
-            instansi: proyekData[0].instansi,
-            kabupaten: proyekData[0].kabupaten,
-            status: proyekData[0].status,
-            tanggal: proyekData[0].tanggal,
-            nama_proyek: proyekData[0].nama_proyek
+            id: potensiData[0].id,
+            kode: potensiData[0].kode,
+            instansi: potensiData[0].instansi,
+            kabupaten: potensiData[0].kabupaten,
+            status: potensiData[0].status,
+            tanggal: potensiData[0].tanggal,
+            nama_proyek: potensiData[0].nama_proyek
         });
     }
 
@@ -1925,7 +1925,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('sortBy:', sortBy ? 'found' : 'NOT FOUND');
 
     // Initialize pagination
-    currentData = [...proyekData];
+    currentData = [...potensiData];
     totalPages = Math.ceil(currentData.length / itemsPerPage);
     console.log('Initial pagination - Total pages:', totalPages, 'Items per page:', itemsPerPage);
 
