@@ -200,7 +200,7 @@
                         <input type="hidden" name="potensi" value="ya">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Potensi</label>
-                            <input type="number" name="tahun_potensi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="2024" value="2024" min="2020" max="2030">
+                            <input type="number" name="tahun_potensi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="{{ date('Y') }}" value="{{ date('Y') }}" min="2020" max="2030">
                         </div>
                     </div>
 

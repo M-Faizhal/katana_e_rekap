@@ -99,19 +99,37 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <select id="statusFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                    <option value="">Semua Status</option>
-                    <option value="menunggu">Menunggu</option>
-                    <option value="penawaran">Penawaran</option>
-                    <option value="pembayaran">Pembayaran</option>
-                    <option value="pengiriman">Pengiriman</option>
-                    <option value="selesai">Selesai</option>
-                    <option value="gagal">Gagal</option>
+                <select id="tahunFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">Semua Tahun</option>
+                    @php
+                        $currentYear = date('Y');
+                        $futureYears = 5; // Tahun ke depan yang ditampilkan
+
+                        // Ambil tahun yang ada di data
+                        $availableYears = collect($proyekData)
+                            ->pluck('tahun_potensi')
+                            ->filter()
+                            ->unique()
+                            ->sort()
+                            ->values();
+
+                        // Filter hanya tahun dari tahun ini ke depan
+                        $filteredYears = $availableYears->filter(function($year) use ($currentYear, $futureYears) {
+                            return $year >= $currentYear && $year <= ($currentYear + $futureYears);
+                        })->sortDesc();
+                    @endphp
+                    @foreach($filteredYears as $year)
+                        <option value="{{ $year }}">{{ $year }}</option>
+                    @endforeach
                 </select>
-                <select id="sortBy" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                    <option value="">Urutkan</option>
-                    <option value="terbaru">Terbaru</option>
-                    <option value="terlama">Terlama</option>
+                <select id="picMarketingFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">Semua PIC Marketing</option>
+                    @php
+                        $uniqueMarketing = collect($proyekData)->pluck('admin_marketing')->unique()->sort()->values();
+                    @endphp
+                    @foreach($uniqueMarketing as $marketing)
+                        <option value="{{ $marketing }}">{{ $marketing }}</option>
+                    @endforeach
                 </select>
                 <button onclick="resetFilters()" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg sm:rounded-xl transition-colors duration-200">
                     <i class="fas fa-redo text-gray-600"></i>
@@ -579,8 +597,8 @@ let totalPages = 1;
 
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
-const statusFilter = document.getElementById('statusFilter');
-const sortBy = document.getElementById('sortBy');
+const tahunFilter = document.getElementById('tahunFilter');
+const picMarketingFilter = document.getElementById('picMarketingFilter');
 const proyekContainer = document.getElementById('proyekContainer');
 const noResults = document.getElementById('noResults');
 const paginationInfo = document.getElementById('paginationInfo');
@@ -589,11 +607,11 @@ const paginationInfo = document.getElementById('paginationInfo');
 if (searchInput) {
     searchInput.addEventListener('input', debounce(filterAndSort, 300));
 }
-if (statusFilter) {
-    statusFilter.addEventListener('change', filterAndSort);
+if (tahunFilter) {
+    tahunFilter.addEventListener('change', filterAndSort);
 }
-if (sortBy) {
-    sortBy.addEventListener('change', filterAndSort);
+if (picMarketingFilter) {
+    picMarketingFilter.addEventListener('change', filterAndSort);
 }
 
 // Debounce function untuk search
@@ -644,45 +662,41 @@ function filterAndSort() {
         console.log('After search filter:', filtered.length, 'items remaining (was', beforeSearch, ')');
     }
 
-    // Apply status filter
-    const selectedStatus = statusFilter ? statusFilter.value : '';
-    console.log('Selected status:', selectedStatus);
-    if (selectedStatus) {
-        console.log('Applying status filter for:', selectedStatus);
-        const beforeStatusFilter = filtered.length;
+    // Apply tahun filter
+    const selectedTahun = tahunFilter ? tahunFilter.value : '';
+    console.log('Selected tahun:', selectedTahun);
+    if (selectedTahun) {
+        console.log('Applying tahun filter for:', selectedTahun);
+        const beforeTahunFilter = filtered.length;
         filtered = filtered.filter(proyek => {
-            const match = proyek.status === selectedStatus;
-            console.log('Status check:', proyek.status, '===', selectedStatus, '=', match);
+            const tahunPotensi = proyek.tahun_potensi ? proyek.tahun_potensi.toString() : '';
+            const match = tahunPotensi === selectedTahun;
+            console.log('Tahun check:', tahunPotensi, '===', selectedTahun, '=', match);
             return match;
         });
-        console.log('After status filter:', filtered.length, 'items remaining (was', beforeStatusFilter, ')');
+        console.log('After tahun filter:', filtered.length, 'items remaining (was', beforeTahunFilter, ')');
     }
 
-    // Apply sorting
-    const selectedSort = sortBy ? sortBy.value : '';
-    console.log('Selected sort:', selectedSort);
-    if (selectedSort) {
-        console.log('Applying sort:', selectedSort);
-
-        switch (selectedSort) {
-            case 'terbaru':
-                filtered.sort((a, b) => {
-                    const dateA = new Date(a.tanggal);
-                    const dateB = new Date(b.tanggal);
-                    return dateB - dateA;
-                });
-                break;
-            case 'terlama':
-                filtered.sort((a, b) => {
-                    const dateA = new Date(a.tanggal);
-                    const dateB = new Date(b.tanggal);
-                    return dateA - dateB;
-                });
-                break;
-        }
-
-        console.log('After sort - first 3 items:', filtered.slice(0, 3).map(p => ({ id: p.id, tanggal: p.tanggal, instansi: p.instansi })));
+    // Apply PIC Marketing filter
+    const selectedPicMarketing = picMarketingFilter ? picMarketingFilter.value : '';
+    console.log('Selected PIC Marketing:', selectedPicMarketing);
+    if (selectedPicMarketing) {
+        console.log('Applying PIC Marketing filter for:', selectedPicMarketing);
+        const beforePicFilter = filtered.length;
+        filtered = filtered.filter(proyek => {
+            const match = proyek.admin_marketing === selectedPicMarketing;
+            console.log('PIC Marketing check:', proyek.admin_marketing, '===', selectedPicMarketing, '=', match);
+            return match;
+        });
+        console.log('After PIC Marketing filter:', filtered.length, 'items remaining (was', beforePicFilter, ')');
     }
+
+    // Sort by tanggal terbaru (default)
+    filtered.sort((a, b) => {
+        const dateA = new Date(a.tanggal);
+        const dateB = new Date(b.tanggal);
+        return dateB - dateA;
+    });
 
     console.log('Final filtered data:', filtered.length, 'items');
     console.log('Sample final data:', filtered.slice(0, 2).map(p => ({ kode: p.kode, instansi: p.instansi, status: p.status })));
@@ -706,13 +720,13 @@ function resetFilters() {
         console.log('Resetting search input from:', searchInput.value);
         searchInput.value = '';
     }
-    if (statusFilter) {
-        console.log('Resetting status filter from:', statusFilter.value);
-        statusFilter.value = '';
+    if (tahunFilter) {
+        console.log('Resetting tahun filter from:', tahunFilter.value);
+        tahunFilter.value = '';
     }
-    if (sortBy) {
-        console.log('Resetting sort by from:', sortBy.value);
-        sortBy.value = '';
+    if (picMarketingFilter) {
+        console.log('Resetting PIC Marketing filter from:', picMarketingFilter.value);
+        picMarketingFilter.value = '';
     }
 
     // Reset data to original
@@ -811,13 +825,13 @@ function displayResults() {
         console.log('Cards visible - hiding no results');
     }
 
-    // If we have sorted data, we need to reorder the cards in the container
-    if (currentData.length > 0 && sortBy && sortBy.value) {
-        console.log('Reordering cards based on sort order');
+    // Always reorder cards if we have filtered data (due to default date sorting)
+    if (currentData.length > 0) {
+        console.log('Reordering cards based on filter/sort');
         reorderCards();
     } else {
-        // Reset to original order if no sorting, but keep pagination
-        console.log('No sorting - keeping original order with pagination');
+        // Reset to original order if no data
+        console.log('No data - resetting card order');
         const container = document.getElementById('proyekContainer');
         if (container) {
             container.classList.remove('reordering');
