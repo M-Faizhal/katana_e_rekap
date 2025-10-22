@@ -65,6 +65,14 @@ function openTab(evt, tabName) {
     evt.currentTarget.classList.remove("border-transparent", "text-gray-500", "bg-gray-50");
     evt.currentTarget.classList.add("border-red-500", "text-red-600", "bg-white");
     
+    // Update URL parameter when tab is clicked manually
+    if (evt.isTrusted) {
+        const url = new URL(window.location);
+        const tabParam = tabName.replace('tab-', '');
+        url.searchParams.set('tab', tabParam);
+        window.history.pushState({}, '', url);
+    }
+    
     // Update badge colors for active tab
     const badges = evt.currentTarget.querySelectorAll('span');
     badges.forEach(badge => {
@@ -299,6 +307,45 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeProyekDetail();
+    }
+});
+
+// Auto-submit form when select options change
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('filter-form-semua-proyek');
+    if (form) {
+        const selects = form.querySelectorAll('select[name="proyek_status_filter"], select[name="sort_by"]');
+        selects.forEach(function(select) {
+            select.addEventListener('change', function() {
+                form.submit();
+            });
+        });
+    }
+    
+    // Set active tab based on URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    
+    if (activeTab) {
+        // Remove active state from all tabs
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('border-red-500', 'text-red-600', 'bg-white');
+            button.classList.add('border-transparent', 'text-gray-500', 'bg-gray-50');
+        });
+        
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.style.display = 'none';
+        });
+        
+        // Show active tab
+        if (activeTab === 'semua-proyek') {
+            openTab({target: document.querySelector('button[onclick="openTab(event, \'tab-semua-proyek\')"]')}, 'tab-semua-proyek');
+        } else if (activeTab === 'semua-pembayaran') {
+            openTab({target: document.querySelector('button[onclick="openTab(event, \'tab-semua-pembayaran\')"]')}, 'tab-semua-pembayaran');
+        } else {
+            openTab({target: document.querySelector('button[onclick="openTab(event, \'tab-perlu-bayar\')"]')}, 'tab-perlu-bayar');
+        }
     }
 });
 </script>
@@ -724,7 +771,7 @@ document.addEventListener('keydown', function(e) {
                         dari <span class="font-semibold text-gray-800">{{ $proyekPerluBayar->total() }}</span> proyek
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekPerluBayar->appends(['tab' => 'perlu-bayar'])->links() }}
+                        {{ $proyekPerluBayar->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -743,14 +790,14 @@ document.addEventListener('keydown', function(e) {
                 
                 <!-- Filter & Search Controls -->
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <form method="GET" class="flex flex-col sm:flex-row gap-2">
+                    <form method="GET" class="flex flex-col sm:flex-row gap-2" id="filter-form-semua-proyek">
                         <input type="hidden" name="tab" value="semua-proyek">
                         <!-- Search Input -->
                         <div class="relative">
                             <input type="text" 
                                    name="search" 
-                                   value="{{ $search }}" 
-                                   placeholder="Cari proyek, klien, atau instansi..."
+                                   value="{{ request('search') }}" 
+                                   placeholder="Cari instansi atau kode proyek..."
                                    class="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                 <i class="fas fa-search text-gray-400"></i>
@@ -759,23 +806,15 @@ document.addEventListener('keydown', function(e) {
                         
                         <!-- Status Proyek Filter -->
                         <select name="proyek_status_filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="all" {{ $proyekStatusFilter == 'all' || !$proyekStatusFilter ? 'selected' : '' }}>Semua Status</option>
-                            <option value="lunas" {{ $proyekStatusFilter == 'lunas' ? 'selected' : '' }}>Lunas</option>
-                            <option value="belum_lunas" {{ $proyekStatusFilter == 'belum_lunas' ? 'selected' : '' }}>Belum Lunas</option>
+                            <option value="all" {{ request('proyek_status_filter', 'all') == 'all' ? 'selected' : '' }}>Semua Status</option>
+                            <option value="lunas" {{ request('proyek_status_filter') == 'lunas' ? 'selected' : '' }}>Lunas</option>
+                            <option value="belum_lunas" {{ request('proyek_status_filter') == 'belum_lunas' ? 'selected' : '' }}>Belum Lunas</option>
                         </select>
                         
                         <!-- Sort By -->
                         <select name="sort_by" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="created_at" {{ $sortBy == 'created_at' ? 'selected' : '' }}>Terbaru</option>
-                            <option value="nama_barang" {{ $sortBy == 'nama_barang' ? 'selected' : '' }}>Nama Barang</option>
-                            <option value="instansi" {{ $sortBy == 'instansi' ? 'selected' : '' }}>Instansi</option>
-                            <option value="nama_klien" {{ $sortBy == 'nama_klien' ? 'selected' : '' }}>Klien</option>
-                        </select>
-                        
-                        <!-- Sort Order -->
-                        <select name="sort_order" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="desc" {{ $sortOrder == 'desc' ? 'selected' : '' }}>Z-A / Terbaru</option>
-                            <option value="asc" {{ $sortOrder == 'asc' ? 'selected' : '' }}>A-Z / Terlama</option>
+                            <option value="desc" {{ request('sort_by', 'desc') == 'desc' ? 'selected' : '' }}>Terbaru</option>
+                            <option value="asc" {{ request('sort_by') == 'asc' ? 'selected' : '' }}>Terlama</option>
                         </select>
                         
                         <!-- Submit Button -->
@@ -785,7 +824,7 @@ document.addEventListener('keydown', function(e) {
                         </button>
                         
                         <!-- Reset Button -->
-                        @if($search || ($proyekStatusFilter && $proyekStatusFilter != 'all') || $sortBy != 'created_at' || $sortOrder != 'desc')
+                        @if(request('search') || (request('proyek_status_filter') && request('proyek_status_filter') != 'all') || request('sort_by', 'desc') != 'desc')
                         <a href="{{ route('purchasing.pembayaran') }}?tab=semua-proyek" 
                            class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
                             <i class="fas fa-times mr-1"></i>
@@ -1120,16 +1159,16 @@ document.addEventListener('keydown', function(e) {
                         <i class="fas fa-clock text-yellow-600 mr-1"></i>
                         Belum Lunas: {{ $semuaProyek->where('status_lunas', false)->count() }}
                     </span>
-                    @if($search)
+                    @if(request('search'))
                     <span class="text-blue-700">
                         <i class="fas fa-search mr-1"></i>
-                        Pencarian: "{{ $search }}"
+                        Pencarian: "{{ request('search') }}"
                     </span>
                     @endif
-                    @if($proyekStatusFilter && $proyekStatusFilter !== 'all')
+                    @if(request('proyek_status_filter') && request('proyek_status_filter') !== 'all')
                     <span class="text-purple-700">
                         <i class="fas fa-filter mr-1"></i>
-                        Filter: {{ $proyekStatusFilter == 'lunas' ? 'Lunas' : 'Belum Lunas' }}
+                        Filter: {{ request('proyek_status_filter') == 'lunas' ? 'Lunas' : 'Belum Lunas' }}
                     </span>
                     @endif
                 </div>
@@ -1144,14 +1183,14 @@ document.addEventListener('keydown', function(e) {
                 <i class="fas fa-project-diagram text-4xl"></i>
             </div>
             <h3 class="mt-2 text-sm font-medium text-gray-900">
-                @if($search)
+                @if(request('search'))
                     Tidak ada proyek yang sesuai dengan pencarian
                 @else
                     Belum ada proyek pembayaran
                 @endif
             </h3>
             <p class="mt-1 text-sm text-gray-500">
-                @if($search)
+                @if(request('search'))
                     Coba gunakan kata kunci yang berbeda atau reset filter.
                 @else
                     Proyek akan muncul setelah penawaran di-ACC dan masuk tahap pembayaran.
@@ -1169,7 +1208,7 @@ document.addEventListener('keydown', function(e) {
                         dari <span class="font-semibold text-gray-800">{{ $semuaProyek->total() }}</span> proyek
                     </div>
                     <div class="flex justify-center">
-                        {{ $semuaProyek->appends(['tab' => 'semua-proyek'])->links() }}
+                        {{ $semuaProyek->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -1190,19 +1229,19 @@ document.addEventListener('keydown', function(e) {
                 <div class="flex flex-col sm:flex-row gap-3">
                     <form method="GET" class="flex flex-col sm:flex-row gap-2">
                         <input type="hidden" name="tab" value="semua-pembayaran">
-                        @if($search)
-                        <input type="hidden" name="search" value="{{ $search }}">
+                        @if(request('search'))
+                        <input type="hidden" name="search" value="{{ request('search') }}">
                         @endif
                         
                         <!-- Status Filter -->
                         <select name="status_filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="this.form.submit()">
-                            <option value="all" {{ $statusFilter == 'all' || !$statusFilter ? 'selected' : '' }}>Semua Status</option>
-                            <option value="Pending" {{ $statusFilter == 'Pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="Approved" {{ $statusFilter == 'Approved' ? 'selected' : '' }}>Approved</option>
-                            <option value="Ditolak" {{ $statusFilter == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
+                            <option value="all" {{ request('status_filter', 'all') == 'all' ? 'selected' : '' }}>Semua Status</option>
+                            <option value="Pending" {{ request('status_filter') == 'Pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="Approved" {{ request('status_filter') == 'Approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="Ditolak" {{ request('status_filter') == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
                         
-                        @if($statusFilter && $statusFilter !== 'all')
+                        @if(request('status_filter') && request('status_filter') !== 'all')
                         <a href="{{ route('purchasing.pembayaran') }}?tab=semua-pembayaran" 
                            class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600">
                             <i class="fas fa-times mr-1"></i>
@@ -1482,7 +1521,7 @@ document.addEventListener('keydown', function(e) {
                         dari <span class="font-semibold text-gray-800">{{ $semuaPembayaran->total() }}</span> pembayaran
                     </div>
                     <div class="flex justify-center">
-                        {{ $semuaPembayaran->appends(['tab' => 'semua-pembayaran'])->links() }}
+                        {{ $semuaPembayaran->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>

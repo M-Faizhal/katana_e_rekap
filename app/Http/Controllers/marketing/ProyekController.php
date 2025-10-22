@@ -526,6 +526,80 @@ class ProyekController extends Controller
         }
     }
 
+    public function updateStatusGagal(Request $request, $id)
+    {
+        try {
+            Log::info('updateStatusGagal called', [
+                'proyek_id' => $id,
+                'request_data' => $request->all(),
+                'user_id' => Auth::id()
+            ]);
+
+            // Role-based access control: Allow superadmin and admin_marketing
+            $user = Auth::user();
+            if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak memiliki akses untuk mengubah status proyek. Hanya superadmin dan PIC marketing yang dapat melakukan aksi ini.'
+                ], 403);
+            }
+
+            // Validate project exists
+            $proyek = Proyek::find($id);
+            if (!$proyek) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Proyek tidak ditemukan'
+                ], 404);
+            }
+
+            // Validate request data
+            $validator = Validator::make($request->all(), [
+                'catatan' => 'required|string|min:5|max:1000'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak valid: ' . $validator->errors()->first()
+                ], 422);
+            }
+
+            // Update status and catatan
+            $oldStatus = $proyek->status;
+            $proyek->update([
+                'status' => 'Gagal',
+                'catatan' => $request->catatan
+            ]);
+
+            Log::info('Status proyek berhasil diubah menjadi Gagal', [
+                'proyek_id' => $id,
+                'old_status' => $oldStatus,
+                'new_status' => 'Gagal',
+                'catatan' => $request->catatan,
+                'user_id' => $user->id_user
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status proyek berhasil diubah menjadi Gagal',
+                'data' => $proyek
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating proyek status to Gagal', [
+                'proyek_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengubah status proyek: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function testStatus(Request $request, $id)
     {
         Log::info('testStatus called', [
