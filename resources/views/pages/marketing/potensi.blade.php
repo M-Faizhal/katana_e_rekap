@@ -189,6 +189,9 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <button onclick="editProyek({{ $potensi['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
                             <i class="fas fa-edit text-sm"></i>
                         </button>
+                        <button onclick="ubahStatusGagal({{ $potensi['id'] }})" class="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200" title="Ubah ke Gagal">
+                            <i class="fas fa-times-circle text-sm"></i>
+                        </button>
                         <button onclick="deleteProyek({{ $potensi['id'] }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
                             <i class="fas fa-trash text-sm"></i>
                         </button>
@@ -308,6 +311,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
 @include('pages.marketing.potensi-components.detail')
 @include('pages.marketing.potensi-components.hapus')
 @include('pages.marketing.potensi-components.ubah-status')
+@include('pages.marketing.potensi-components.ubah-status-gagal')
 @include('components.success-modal')
 
 <!-- Include Modal Functions -->
@@ -1209,6 +1213,19 @@ function viewDetail(id) {
 function ucfirst(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+// Helper function untuk status color (for badges)
+function getStatusColor(status) {
+    switch(status.toLowerCase()) {
+        case 'selesai': return 'bg-green-100 text-green-800';
+        case 'pengiriman': return 'bg-orange-100 text-orange-800';
+        case 'pembayaran': return 'bg-purple-100 text-purple-800';
+        case 'penawaran': return 'bg-blue-100 text-blue-800';
+        case 'menunggu': return 'bg-gray-100 text-gray-800';
+        case 'gagal': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
 }
 
 // Helper function untuk class styling status

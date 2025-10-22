@@ -102,6 +102,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/potensi/{id}', [PotensiController::class, 'destroy'])->name('marketing.potensi.destroy');
         Route::get('/potensi/{id}/detail', [PotensiController::class, 'detail'])->name('marketing.potensi.detail');
         Route::put('/potensi/{id}/status', [PotensiController::class, 'updateStatus'])->name('marketing.potensi.updateStatus');
+        Route::put('/potensi/{id}/status-gagal', [PotensiController::class, 'updateStatusGagal'])->name('marketing.potensi.updateStatusGagal');
         Route::get('/potensi/users/select', [PotensiController::class, 'getUsersForSelect'])->name('marketing.potensi.users');
         Route::get('/potensi/wilayah/select', [PotensiController::class, 'getWilayahForSelect'])->name('marketing.potensi.wilayah');
         Route::get('/potensi/kode/next', [PotensiController::class, 'getNextKodeProyek'])->name('marketing.potensi.nextKode');

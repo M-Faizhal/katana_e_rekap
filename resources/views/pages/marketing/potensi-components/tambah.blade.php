@@ -1213,7 +1213,7 @@ function collectTambahFormData() {
         // Convert Indonesian formatted price to number (remove dots, replace comma with dot)
         let hargaSatuan = null;
         if (hargaSatuanRaw) {
-            const cleanValue = hargaSatuanRaw
+            const cleanValue = hargaSatuanRaw 
                 .replace(/\./g, '')    // Remove thousand separators (dots)
                 .replace(/,/g, '.');   // Replace decimal comma with dot
             hargaSatuan = parseFloat(cleanValue) || null;
