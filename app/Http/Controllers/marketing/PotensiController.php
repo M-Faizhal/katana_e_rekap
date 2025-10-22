@@ -4,97 +4,80 @@ namespace App\Http\Controllers\marketing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Proyek;
-use App\Models\User;
-use App\Models\Vendor;
 use App\Models\ProyekBarang;
+use App\Models\Penawaran;
+use App\Models\User;
+use App\Models\Wilayah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Exception;
 
 class PotensiController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        // Ambil parameter filter
-        $tahunFilter = $request->get('tahun');
-        $adminMarketingFilter = $request->get('admin_marketing');
-        $statusFilter = 'pending'; // Selalu tampilkan hanya status pending (menunggu)
-        $searchFilter = $request->get('search');
-
-        // Query untuk mengambil proyek yang memiliki potensi = 'ya' dan status = 'Menunggu'
-        // Hanya menampilkan proyek yang belum masuk ke proses penawaran/perhitungan
-        $query = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
+        // Ambil data proyek yang ditandai sebagai potensi dengan status menunggu
+        $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
             ->where('potensi', 'ya')
-            ->where('status', 'Menunggu') // Hanya ambil proyek dengan status Menunggu
-            ->whereDoesntHave('penawaran'); // Hanya ambil proyek yang belum punya penawaran
+            ->where('status', 'menunggu')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        // Filter berdasarkan tahun
-        if ($tahunFilter) {
-            $query->whereYear('tanggal', $tahunFilter);
-        }
+        // Transform data untuk view
+        $proyekData = $proyekData->map(function ($proyek) {
+            // Get latest penawaran for this project
+            $latestPenawaran = Penawaran::with('details')->where('id_proyek', $proyek->id_proyek)
+                                    ->orderBy('id_penawaran', 'desc')
+                                    ->first();
 
-        // Filter berdasarkan admin marketing
-        if ($adminMarketingFilter) {
-            $query->where('id_admin_marketing', $adminMarketingFilter);
-        }
-
-        // Filter berdasarkan search
-        if ($searchFilter) {
-            $query->where(function($q) use ($searchFilter) {
-                $q->where('nama_proyek', 'like', '%' . $searchFilter . '%')
-                  ->orWhere('instansi', 'like', '%' . $searchFilter . '%')
-                  ->orWhere('kab_kota', 'like', '%' . $searchFilter . '%');
-            });
-        }
-
-        $proyekData = $query->orderBy('tanggal', 'desc')->get();
-
-        // Transform data untuk view dengan struktur yang sama seperti ProyekController
-        $potensiData = $proyekData->map(function ($proyek, $index) {
-            // Karena query sudah filter proyek tanpa penawaran, tidak perlu cek penawaran lagi
-            // Semua proyek di sini pasti status "Menunggu" dan belum ada penawaran
-
-            // Generate vendor dummy berdasarkan index (for compatibility)
-            $vendors = [
-                ['id' => 'VND001', 'nama' => 'PT. Teknologi Maju', 'jenis' => 'Perusahaan'],
-                ['id' => 'VND002', 'nama' => 'CV. Mandiri Sejahtera', 'jenis' => 'CV'],
-                ['id' => 'VND003', 'nama' => 'PT. Global Industri', 'jenis' => 'Perusahaan'],
-                ['id' => 'VND004', 'nama' => 'CV. Sukses Bersama', 'jenis' => 'CV'],
-                ['id' => 'VND005', 'nama' => 'PT. Solusi Digital', 'jenis' => 'Perusahaan']
-            ];
-
-            $vendorIndex = $index % count($vendors);
-            $vendor = $vendors[$vendorIndex];
-
-            // Daftar barang hanya dari proyek_barang (karena belum ada penawaran)
+            // Hitung total nilai dari proyek_barang
+            $totalNilaiProyekBarang = 0;
             $daftarBarang = [];
-            $totalNilaiProyek = 0;
 
-            // Ambil dari proyek_barang (semua proyek di halaman potensi harus punya data barang)
+            // Prioritas 1: Dari proyek_barang (multiple barang per permintaan klien)
             if ($proyek->proyekBarang && $proyek->proyekBarang->count() > 0) {
                 foreach ($proyek->proyekBarang as $barang) {
-                    $hargaTotal = $barang->harga_total ?? ($barang->harga_satuan * $barang->jumlah);
-                    $totalNilaiProyek += $hargaTotal;
+                    $hargaTotal = $barang->harga_total ?? ($barang->harga_satuan ? $barang->harga_satuan * $barang->jumlah : 0);
+                    $totalNilaiProyekBarang += $hargaTotal;
 
                     $daftarBarang[] = [
-                        'nama_barang' => $barang->nama_barang ?? $barang->spesifikasi,
+                        'id' => $barang->id_proyek_barang,
+                        'nama_barang' => $barang->nama_barang,
                         'jumlah' => $barang->jumlah,
                         'satuan' => $barang->satuan,
                         'spesifikasi' => $barang->spesifikasi,
                         'harga_satuan' => $barang->harga_satuan,
+                        'harga_total' => $hargaTotal,
+                        'spesifikasi_files' => $barang->spesifikasi_files ?? []
+                    ];
+                }
+            }
+            // Prioritas 2: Dari penawaran detail jika ada
+            elseif ($latestPenawaran && $latestPenawaran->details && $latestPenawaran->details->count() > 0) {
+                foreach ($latestPenawaran->details as $detail) {
+                    $hargaTotal = $detail->harga_total ?? 0;
+                    $totalNilaiProyekBarang += $hargaTotal;
+
+                    $daftarBarang[] = [
+                        'nama_barang' => $detail->nama_produk ?? '-',
+                        'jumlah' => $detail->jumlah ?? 0,
+                        'satuan' => $detail->satuan ?? '-',
+                        'harga_satuan' => $detail->harga_satuan ?? 0,
                         'harga_total' => $hargaTotal
                     ];
                 }
             }
-            // Fallback jika tidak ada data barang
+            // Prioritas 3: Fallback
             else {
                 $daftarBarang[] = [
-                    'nama_barang' => 'Belum ada data barang',
+                    'nama_barang' => '-',
                     'jumlah' => 0,
                     'satuan' => '-',
-                    'spesifikasi' => '-',
                     'harga_satuan' => 0,
                     'harga_total' => 0
                 ];
@@ -103,104 +86,63 @@ class PotensiController extends Controller
             return [
                 'id' => $proyek->id_proyek,
                 'kode' => $proyek->kode_proyek ?: 'PRJ-' . str_pad($proyek->id_proyek, 5, '0', STR_PAD_LEFT),
-                'kode_proyek' => $proyek->kode_proyek ?? ('PNW-' . $proyek->tanggal->format('Ymd') . '-' . str_pad($proyek->id_proyek, 6, '0', STR_PAD_LEFT)),
-                'nama_proyek' => $proyek->kode_proyek ?: 'PRJ-' . str_pad($proyek->id_proyek, 5, '0', STR_PAD_LEFT), // Gunakan kode_proyek sebagai nama_proyek
+                'nama_proyek' => $proyek->kode_proyek ?: 'PRJ-' . str_pad($proyek->id_proyek, 5, '0', STR_PAD_LEFT),
                 'instansi' => $proyek->instansi,
                 'kabupaten' => $proyek->kab_kota,
-                'kabupaten_kota' => $proyek->kab_kota,
                 'wilayah' => $proyek->wilayah ? $proyek->wilayah->nama_lengkap : $proyek->kab_kota,
                 'provinsi' => $proyek->wilayah ? $proyek->wilayah->provinsi : '-',
                 'jenis_pengadaan' => $proyek->jenis_pengadaan,
                 'tanggal' => $proyek->tanggal->format('Y-m-d'),
                 'deadline' => $proyek->deadline ? $proyek->deadline->format('Y-m-d') : null,
-                'nilai_proyek' => $totalNilaiProyek > 0 ? $totalNilaiProyek : ($proyek->harga_total ?? 0),
                 'admin_marketing' => $proyek->adminMarketing ? $proyek->adminMarketing->nama : '-',
                 'admin_purchasing' => $proyek->adminPurchasing ? $proyek->adminPurchasing->nama : '-',
                 'id_admin_marketing' => $proyek->id_admin_marketing,
                 'id_admin_purchasing' => $proyek->id_admin_purchasing,
-                'status' => 'pending', // Selalu pending karena status proyek = Menunggu
-                'status_penawaran' => 'Menunggu', // Selalu Menunggu karena belum ada penawaran
-                'tahun' => $proyek->tanggal->year,
-                'total_nilai' => $totalNilaiProyek > 0 ? $totalNilaiProyek : ($proyek->harga_total ?? 0),
+                'status' => strtolower($proyek->status),
+                'total_nilai' => $totalNilaiProyekBarang,
                 'catatan' => $proyek->catatan,
-                'potensi' => $proyek->potensi ?? 'ya', // Always 'ya' for potensi page
+                'potensi' => $proyek->potensi ?? 'ya',
                 'tahun_potensi' => $proyek->tahun_potensi ?? Carbon::now()->year,
-                'tanggal_assign' => $proyek->created_at->format('d M Y'),
                 'daftar_barang' => $daftarBarang,
-                'penawaran' => null, // Tidak ada penawaran untuk proyek di halaman potensi
-                // Add vendor data for compatibility
-                'vendor_id' => $vendor['id'],
-                'vendor_nama' => $vendor['nama'],
-                'vendor_jenis' => $vendor['jenis']
+                'penawaran' => $latestPenawaran ? [
+                    'no_penawaran' => $latestPenawaran->no_penawaran,
+                    'tanggal_penawaran' => $latestPenawaran->tanggal_penawaran ? $latestPenawaran->tanggal_penawaran->format('Y-m-d') : null,
+                    'total_penawaran' => $latestPenawaran->total_penawaran,
+                    'surat_penawaran' => $latestPenawaran->surat_penawaran,
+                    'surat_pesanan' => $latestPenawaran->surat_pesanan,
+                    'status' => $latestPenawaran->status
+                ] : null
             ];
-        });
+        })->toArray();
 
-        // Selalu filter berdasarkan status "pending" (menunggu)
-        // Tidak menggunakan statusFilter dari request untuk memastikan hanya menampilkan status menunggu
-        $potensiData = $potensiData->filter(function($item) {
-            return $item['status'] === 'pending';
-        });
+        // Hitung total potensi
+        $totalProyek = count($proyekData);
 
-        $potensiData = $potensiData->values()->toArray();
-
-        // Hitung statistik berdasarkan status penawaran
-        $totalPotensi = count($potensiData);
-
-        // Pending = status penawaran "Menunggu"
-        $pendingCount = collect($potensiData)->filter(function($item) {
-            return isset($item['status_penawaran']) &&
-                   strtolower($item['status_penawaran']) === 'menunggu';
-        })->count();
-
-        // Sukses = status penawaran "ACC" atau "Sukses"
-        $suksesCount = collect($potensiData)->filter(function($item) {
-            $statusPenawaran = strtolower($item['status_penawaran'] ?? '');
-            return $statusPenawaran === 'acc' || $statusPenawaran === 'sukses';
-        })->count();
-
-        // Total Nilai = sum semua nilai proyek
-        $totalNilai = collect($potensiData)->sum('nilai_proyek');
-
-        // Ambil daftar admin marketing untuk filter
-        $adminMarketingList = User::whereIn('role', ['superadmin', 'admin_marketing'])
-            ->select('id_user', 'nama')
-            ->orderBy('nama')
-            ->get();
-
-        // Ambil daftar tahun yang tersedia
-        $tahunList = Proyek::selectRaw('YEAR(tanggal) as tahun')
-            ->distinct()
-            ->orderBy('tahun', 'desc')
-            ->pluck('tahun');
-
-        return view('pages.marketing.potensi', compact(
-            'potensiData',
-            'totalPotensi',
-            'pendingCount',
-            'suksesCount',
-            'totalNilai',
-            'adminMarketingList',
-            'tahunList',
-            'tahunFilter',
-            'adminMarketingFilter',
-            'statusFilter',
-            'searchFilter'
-        ));
+        return view('pages.marketing.potensi', compact('proyekData', 'totalProyek'));
     }
 
     public function store(Request $request)
     {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak memiliki akses untuk membuat potensi. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
         // Debug: Log data yang diterima
-        \Illuminate\Support\Facades\Log::info('Data potensi yang diterima:', $request->all());
+        Log::info('Data potensi yang diterima:', $request->all());
 
         // Parse daftar_barang jika berupa JSON string
         $daftarBarang = null;
         if ($request->has('daftar_barang') && is_string($request->daftar_barang)) {
             try {
                 $daftarBarang = json_decode($request->daftar_barang, true);
-                \Illuminate\Support\Facades\Log::info('Parsed daftar_barang:', $daftarBarang);
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Error parsing daftar_barang JSON:', ['error' => $e->getMessage()]);
+                Log::info('Parsed daftar_barang:', $daftarBarang);
+            } catch (Exception $e) {
+                Log::error('Error parsing daftar_barang JSON:', ['error' => $e->getMessage()]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Format data barang tidak valid'
@@ -234,19 +176,193 @@ class PotensiController extends Controller
                 if (empty($barang['nama_barang']) || empty($barang['jumlah']) || empty($barang['satuan'])) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Data barang ke-" . ($index + 1) . " tidak lengkap"
+                        'message' => "Data barang #{$index} tidak lengkap"
                     ], 400);
                 }
             }
         }
 
+        // Ambil nama proyek dari barang pertama
+        $namaProyek = $daftarBarang ? $daftarBarang[0]['nama_barang'] : $request->nama_barang;
+
+        $proyek = Proyek::create([
+            'tanggal' => $request->tanggal,
+            'kab_kota' => $request->kab_kota,
+            'instansi' => $request->instansi,
+            'jenis_pengadaan' => $request->jenis_pengadaan,
+            'deadline' => $request->deadline,
+            'id_admin_marketing' => $request->id_admin_marketing,
+            'id_admin_purchasing' => $request->id_admin_purchasing,
+            'catatan' => $request->catatan,
+            'potensi' => 'ya', // Set sebagai potensi
+            'tahun_potensi' => $request->tahun_potensi ?? Carbon::now()->year,
+            'status' => 'Menunggu'
+        ]);
+
+        // Jika ada daftar barang multiple, simpan ke tabel proyek_barang
+        if ($daftarBarang && is_array($daftarBarang)) {
+            Log::info('Menyimpan multiple barang:', ['jumlah' => count($daftarBarang), 'data' => $daftarBarang]);
+
+            foreach ($daftarBarang as $index => $barang) {
+                $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
+
+                // Handle file upload untuk item ini
+                $specFiles = [];
+                if ($request->hasFile("barang.{$index}.files")) {
+                    $specFiles = $this->handleSpecificationFiles($request->file("barang.{$index}.files"), $proyek->id_proyek, $index);
+                }
+
+                $proyekBarang = $proyek->proyekBarang()->create([
+                    'nama_barang' => $barang['nama_barang'],
+                    'jumlah' => $barang['jumlah'],
+                    'satuan' => $barang['satuan'],
+                    'spesifikasi' => $barang['spesifikasi'] ?? '',
+                    'spesifikasi_files' => $specFiles,
+                    'harga_satuan' => $barang['harga_satuan'] ?? null,
+                    'harga_total' => $harga_total
+                ]);
+
+                Log::info('Barang disimpan:', ['index' => $index + 1, 'id' => $proyekBarang->id_proyek_barang, 'nama' => $barang['nama_barang'], 'files' => count($specFiles)]);
+            }
+        }
+        // Jika single barang, simpan juga ke proyek_barang untuk konsistensi
+        else {
+            $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
+
+            // Handle file upload untuk single item
+            $specFiles = [];
+            if ($request->hasFile('barang.0.files')) {
+                $files = $request->file('barang.0.files');
+                $specFiles = $this->handleSpecificationFiles($files, $proyek->id_proyek, 0);
+            }
+
+            $proyek->proyekBarang()->create([
+                'nama_barang' => $request->nama_barang,
+                'jumlah' => $request->jumlah,
+                'satuan' => $request->satuan,
+                'spesifikasi' => $request->spesifikasi,
+                'spesifikasi_files' => $specFiles,
+                'harga_satuan' => $request->harga_satuan,
+                'harga_total' => $harga_total
+            ]);
+        }
+
+        // Refresh model untuk mendapatkan kode_proyek yang sudah di-generate
+        $proyek->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Potensi berhasil ditambahkan dengan kode: ' . $proyek->kode_proyek,
+            'data' => $proyek
+        ]);
+    }
+
+    public function show($id)
+    {
+        $proyek = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
+            ->where('potensi', 'ya')
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $proyek
+        ]);
+    }
+
+    public function detail($id)
+    {
+        $proyek = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
+            ->where('potensi', 'ya')
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $proyek
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak memiliki akses untuk mengupdate potensi. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
+        }
+
+        $proyek = Proyek::where('potensi', 'ya')->findOrFail($id);
+
+        // Debug: Log semua data yang diterima
+        Log::info('=== UPDATE POTENSI DEBUG ===');
+        Log::info('Project ID: ' . $id);
+        Log::info('Request method: ' . $request->method());
+        Log::info('All request data: ', $request->all());
+        Log::info('Files in request: ', $request->allFiles());
+
+        // Parse daftar_barang jika berupa JSON string
+        $daftarBarang = null;
+        if ($request->has('daftar_barang') && is_string($request->daftar_barang)) {
+            try {
+                $daftarBarang = json_decode($request->daftar_barang, true);
+                Log::info('Parsed daftar_barang for update:', $daftarBarang);
+                $request->merge(['daftar_barang' => $daftarBarang]);
+            } catch (Exception $e) {
+                Log::error('Error parsing daftar_barang JSON for update:', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format data barang tidak valid'
+                ], 400);
+            }
+        } else {
+            $daftarBarang = $request->daftar_barang;
+        }
+
+        try {
+            $request->validate([
+                'tanggal' => 'required|date',
+                'kab_kota' => 'required|string|max:255',
+                'instansi' => 'required|string|max:255',
+                'jenis_pengadaan' => 'required|string|max:255',
+                'deadline' => 'nullable|date',
+                'id_admin_marketing' => 'required|exists:users,id_user',
+                'id_admin_purchasing' => 'required|exists:users,id_user',
+                'catatan' => 'nullable|string',
+                'tahun_potensi' => 'nullable|integer|min:2020|max:2030',
+                // Support single atau multiple barang
+                'nama_barang' => 'required_without:daftar_barang|string|max:255',
+                'jumlah' => 'required_without:daftar_barang|integer|min:1',
+                'satuan' => 'required_without:daftar_barang|string|max:50',
+                'spesifikasi' => 'required_without:daftar_barang|string',
+                'harga_satuan' => 'nullable|numeric|min:0'
+            ]);
+
+            // Validasi daftar_barang secara manual jika sudah di-parse
+            if ($daftarBarang && is_array($daftarBarang)) {
+                foreach ($daftarBarang as $index => $barang) {
+                    if (empty($barang['nama_barang']) || empty($barang['jumlah']) || empty($barang['satuan'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Data barang #{$index} tidak lengkap"
+                        ], 400);
+                    }
+                }
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error updating potensi:', ['errors' => $e->errors()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid: ' . implode(', ', array_map(fn($errors) => implode(', ', $errors), $e->errors()))
+            ], 422);
+        }
+
         try {
             DB::beginTransaction();
 
-            // Ambil nama proyek dari barang pertama
-            $namaProyek = $daftarBarang ? $daftarBarang[0]['nama_barang'] : $request->nama_barang;
-
-            $proyek = Proyek::create([
+            // Update data proyek
+            $proyek->update([
                 'tanggal' => $request->tanggal,
                 'kab_kota' => $request->kab_kota,
                 'instansi' => $request->instansi,
@@ -255,368 +371,190 @@ class PotensiController extends Controller
                 'id_admin_marketing' => $request->id_admin_marketing,
                 'id_admin_purchasing' => $request->id_admin_purchasing,
                 'catatan' => $request->catatan,
-                'potensi' => 'ya', // Set potensi ke 'ya' karena ini halaman potensi
-                'tahun_potensi' => $request->tahun_potensi,
-                'status' => 'Menunggu'
+                'potensi' => 'ya', // Pastikan tetap sebagai potensi
+                'tahun_potensi' => $request->tahun_potensi ?? Carbon::now()->year
             ]);
+
+            // Hapus semua barang lama
+            $proyek->proyekBarang()->delete();
+            Log::info('Barang lama potensi dihapus untuk proyek ID: ' . $proyek->id_proyek);
 
             // Jika ada daftar barang multiple, simpan ke tabel proyek_barang
             if ($daftarBarang && is_array($daftarBarang)) {
-                \Illuminate\Support\Facades\Log::info('Menyimpan multiple barang:', ['jumlah' => count($daftarBarang), 'data' => $daftarBarang]);
+                Log::info('Menyimpan ulang multiple barang:', ['jumlah' => count($daftarBarang)]);
 
                 foreach ($daftarBarang as $index => $barang) {
                     $harga_total = isset($barang['harga_satuan']) && $barang['harga_satuan'] ? $barang['harga_satuan'] * $barang['jumlah'] : null;
 
-                    $proyekBarang = $proyek->proyekBarang()->create([
+                    $specFiles = [];
+                    if ($request->hasFile("barang.{$index}.files")) {
+                        $specFiles = $this->handleSpecificationFiles($request->file("barang.{$index}.files"), $proyek->id_proyek, $index);
+                    }
+
+                    $proyek->proyekBarang()->create([
                         'nama_barang' => $barang['nama_barang'],
                         'jumlah' => $barang['jumlah'],
                         'satuan' => $barang['satuan'],
-                        'spesifikasi' => $barang['spesifikasi'],
+                        'spesifikasi' => $barang['spesifikasi'] ?? '',
+                        'spesifikasi_files' => $specFiles,
                         'harga_satuan' => $barang['harga_satuan'] ?? null,
                         'harga_total' => $harga_total
                     ]);
-
-                    \Illuminate\Support\Facades\Log::info('Barang disimpan:', ['index' => $index + 1, 'id' => $proyekBarang->id_proyek_barang, 'nama' => $barang['nama_barang']]);
                 }
             }
-            // Jika single barang, simpan juga ke proyek_barang untuk konsistensi
+            // Jika single barang
             else {
                 $harga_total = $request->harga_satuan ? $request->harga_satuan * $request->jumlah : null;
+
+                $specFiles = [];
+                if ($request->hasFile('barang.0.files')) {
+                    $specFiles = $this->handleSpecificationFiles($request->file('barang.0.files'), $proyek->id_proyek, 0);
+                }
 
                 $proyek->proyekBarang()->create([
                     'nama_barang' => $request->nama_barang,
                     'jumlah' => $request->jumlah,
                     'satuan' => $request->satuan,
                     'spesifikasi' => $request->spesifikasi,
+                    'spesifikasi_files' => $specFiles,
                     'harga_satuan' => $request->harga_satuan,
                     'harga_total' => $harga_total
                 ]);
             }
 
-            // Handle file uploads
-            $this->handleFileUploads($request, $proyek);
-
-            // Refresh model untuk mendapatkan kode_proyek yang sudah di-generate
-            $proyek->refresh();
-
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Potensi proyek berhasil ditambahkan dengan kode: ' . $proyek->kode_proyek,
+                'message' => 'Potensi berhasil diupdate',
                 'data' => $proyek
             ]);
 
         } catch (\Exception $e) {
             DB::rollback();
-            \Illuminate\Support\Facades\Log::error('Error creating potensi: ' . $e->getMessage());
+            Log::error('Error updating potensi: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan saat mengupdate potensi: ' . $e->getMessage()
             ], 500);
         }
     }
 
-    public function show($id)
+    public function destroy($id)
     {
-        try {
-            $proyek = Proyek::with(['adminMarketing', 'adminPurchasing', 'proyekBarang'])
-                ->where('potensi', 'ya')
-                ->findOrFail($id);
-
-            // Get latest penawaran for status
-            $latestPenawaran = \App\Models\Penawaran::where('id_proyek', $proyek->id_proyek)
-                                      ->orderBy('id_penawaran', 'desc')
-                                      ->first();
-
-            $detailData = [
-                'id' => $proyek->id_proyek,
-                'kode' => $proyek->kode_proyek,
-                'nama_proyek' => $proyek->nama_proyek,
-                'instansi' => $proyek->instansi,
-                'kabupaten' => $proyek->kab_kota,
-                'jenis_pengadaan' => $proyek->jenis_pengadaan,
-                'tanggal' => $proyek->tanggal,
-                'deadline' => $proyek->deadline,
-                'admin_marketing' => $proyek->adminMarketing ? $proyek->adminMarketing->nama : '-',
-                'admin_purchasing' => $proyek->adminPurchasing ? $proyek->adminPurchasing->nama : '-',
-                'status' => $this->mapStatusToPotensi($latestPenawaran ? $latestPenawaran->status : 'menunggu'),
-                'status_penawaran' => $latestPenawaran ? $latestPenawaran->status : 'Menunggu',
-                'tahun_potensi' => $proyek->tahun_potensi,
-                'catatan' => $proyek->catatan,
-                'total_nilai' => $proyek->harga_total,
-                'daftar_barang' => $proyek->proyekBarang->map(function($barang) {
-                    return [
-                        'spesifikasi' => $barang->spesifikasi,
-                        'jumlah' => $barang->jumlah,
-                        'satuan' => $barang->satuan,
-                        'harga_satuan' => $barang->harga_satuan
-                    ];
-                })
-            ];
-
-            return response()->json([
-                'success' => true,
-                'data' => $detailData
-            ]);
-
-        } catch (\Exception $e) {
+        // Role-based access control: Allow superadmin and admin_marketing
+        $user = Auth::user();
+        if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data tidak ditemukan'
-            ], 404);
+                'message' => 'Tidak memiliki akses untuk menghapus potensi. Hanya superadmin dan admin marketing yang dapat melakukan aksi ini.'
+            ], 403);
         }
-    }
 
-    public function update(Request $request, $id)
-    {
-        try {
-            DB::beginTransaction();
+        $proyek = Proyek::where('potensi', 'ya')->findOrFail($id);
+        $proyek->delete();
 
-            $proyek = Proyek::where('potensi', 'ya')->findOrFail($id);
-
-            // Debug: Log data yang diterima
-            \Illuminate\Support\Facades\Log::info('Data update potensi yang diterima:', $request->all());
-            \Illuminate\Support\Facades\Log::info('Admin purchasing value: ' . $request->admin_purchasing);
-            \Illuminate\Support\Facades\Log::info('Tahun potensi value: ' . $request->tahun_potensi);
-
-            // Validasi input sesuai dengan ProyekController
-            $request->validate([
-                'tanggal' => 'required|date',
-                'kab_kota' => 'required|string|max:255',
-                'instansi' => 'required|string|max:255',
-                'jenis_pengadaan' => 'nullable|string|max:255',
-                'admin_purchasing' => 'nullable|exists:users,id_user',
-                'catatan' => 'nullable|string',
-                'tahun_potensi' => 'nullable|integer|min:2020|max:2030',
-                'nama_barang' => 'nullable|array',
-                'spesifikasi' => 'nullable|array',
-                'jumlah' => 'nullable|array',
-                'satuan' => 'nullable|array',
-                'harga_satuan' => 'nullable|array'
-            ]);
-
-            // Update data proyek sesuai dengan struktur ProyekController
-            $updateData = [
-                'tanggal' => $request->tanggal,
-                'kab_kota' => $request->kab_kota,
-                'instansi' => $request->instansi,
-                'jenis_pengadaan' => $request->jenis_pengadaan,
-                'id_admin_purchasing' => $request->admin_purchasing, // Fix mapping
-                'catatan' => $request->catatan,
-                'potensi' => 'ya', // Always 'ya' for potensi page
-                'tahun_potensi' => $request->tahun_potensi ?? null // Ensure null if empty
-            ];
-
-            \Illuminate\Support\Facades\Log::info('Update data akan disimpan:', $updateData);
-
-            $proyek->update($updateData);
-
-            // Update data barang - hapus semua barang lama
-            ProyekBarang::where('id_proyek', $proyek->id_proyek)->delete();
-
-            // Tambah barang baru jika ada
-            if ($request->has('nama_barang') && is_array($request->nama_barang)) {
-                foreach ($request->nama_barang as $index => $namaBarang) {
-                    if (!empty($namaBarang)) {
-                        $jumlah = (int)($request->jumlah[$index] ?? 0);
-                        $hargaSatuan = (int)($request->harga_satuan[$index] ?? 0);
-                        $hargaTotal = $jumlah * $hargaSatuan;
-
-                        ProyekBarang::create([
-                            'id_proyek' => $proyek->id_proyek,
-                            'nama_barang' => $namaBarang,
-                            'spesifikasi' => $request->spesifikasi[$index] ?? '',
-                            'jumlah' => $jumlah,
-                            'satuan' => $request->satuan[$index] ?? '',
-                            'harga_satuan' => $hargaSatuan,
-                            'harga_total' => $hargaTotal
-                        ]);
-                    }
-                }
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Potensi proyek berhasil diperbarui!'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function destroy(Request $request, $id)
-    {
-        try {
-            DB::beginTransaction();
-
-            $proyek = Proyek::where('potensi', 'ya')->findOrFail($id);
-
-            // Validasi alasan hapus
-            $request->validate([
-                'alasan' => 'required|string'
-            ]);
-
-            // Hapus file terkait jika ada
-            $this->deleteProjectFiles($proyek);
-
-            // Hapus data barang terkait
-            ProyekBarang::where('id_proyek', $proyek->id_proyek)->delete();
-
-            // Hapus proyek
-            $proyek->delete();
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Potensi proyek berhasil dihapus!'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function detail($id)
-    {
-        try {
-            // Ambil data proyek dengan relasi yang diperlukan
-            $proyek = Proyek::with(['adminMarketing', 'adminPurchasing', 'penawaranAktif'])
-                ->where('potensi', 'ya')
-                ->findOrFail($id);
-
-            // Get latest penawaran for status
-            $latestPenawaran = \App\Models\Penawaran::where('id_proyek', $proyek->id_proyek)
-                                      ->orderBy('id_penawaran', 'desc')
-                                      ->first();
-
-            // Generate vendor data (dummy data karena belum ada tabel vendor yang sesuai)
-            $vendorData = [
-                'id' => 'VND-' . str_pad($id, 4, '0', STR_PAD_LEFT),
-                'nama' => 'PT ' . ucfirst(strtolower($proyek->instansi)) . ' Solutions',
-                'jenis' => collect(['Korporasi', 'UMKM', 'Startup'])->random(),
-                'status' => collect(['Aktif', 'Pending', 'Suspended'])->random(),
-            ];
-
-            // Format data untuk response
-            $detailData = [
-                'id' => $proyek->id_proyek,
-                'nama_proyek' => $proyek->nama_proyek,
-                'instansi' => $proyek->instansi,
-                'kabupaten_kota' => $proyek->kab_kota,
-                'jenis_pengadaan' => $proyek->jenis_pengadaan,
-                'nilai_proyek' => 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.'),
-                'deadline' => $proyek->deadline ? Carbon::parse($proyek->deadline)->format('d M Y') : '-',
-                'admin_marketing' => $proyek->adminMarketing ? $proyek->adminMarketing->nama : 'Tidak ada',
-                'status' => $this->mapStatusToPotensi($latestPenawaran ? $latestPenawaran->status : 'menunggu'),
-                'status_penawaran' => $latestPenawaran ? $latestPenawaran->status : 'Menunggu',
-                'tanggal_assign' => Carbon::parse($proyek->tanggal)->format('d M Y'),
-                'catatan' => $proyek->catatan ?? 'Tidak ada catatan khusus',
-                'vendor' => $vendorData,
-                'timeline' => [
-                    [
-                        'tanggal' => Carbon::parse($proyek->tanggal)->format('d M Y'),
-                        'aktivitas' => 'Proyek dibuat',
-                        'detail' => 'Proyek ' . $proyek->nama_proyek . ' telah dibuat dan ditugaskan ke admin marketing'
-                    ],
-                    [
-                        'tanggal' => Carbon::parse($proyek->tanggal)->addDays(1)->format('d M Y'),
-                        'aktivitas' => 'Vendor ditugaskan',
-                        'detail' => 'Vendor ' . $vendorData['nama'] . ' telah ditugaskan untuk menangani proyek ini'
-                    ]
-                ]
-            ];
-
-            return response()->json([
-                'success' => true,
-                'data' => $detailData
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data tidak ditemukan'
-            ], 404);
-        }
-    }
-
-    private function handleFileUploads(Request $request, $proyek)
-    {
-        $fileFields = ['surat_penawaran', 'surat_pesanan'];
-
-        foreach ($fileFields as $field) {
-            if ($request->hasFile($field)) {
-                $file = $request->file($field);
-                $fileName = $proyek->kode_proyek . '_' . $field . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('proyek_documents', $fileName, 'public');
-
-                // Update database field jika ada
-                if (in_array($field, ['surat_penawaran', 'surat_pesanan'])) {
-                    $proyek->{$field} = $fileName;
-                    $proyek->save();
-                }
-            }
-        }
-    }
-
-    private function deleteProjectFiles($proyek)
-    {
-        $fileFields = ['surat_penawaran', 'surat_kontrak'];
-
-        foreach ($fileFields as $field) {
-            if ($proyek->{$field} && Storage::disk('public')->exists('proyek_documents/' . $proyek->{$field})) {
-                Storage::disk('public')->delete('proyek_documents/' . $proyek->{$field});
-            }
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Potensi berhasil dihapus'
+        ]);
     }
 
     public function updateStatus(Request $request, $id)
     {
-        $proyek = Proyek::where('potensi', 'ya')->findOrFail($id);
+        try {
+            Log::info('updateStatus potensi called', [
+                'potensi_id' => $id,
+                'status' => $request->status,
+                'user_id' => Auth::id()
+            ]);
 
-        $request->validate([
-            'status' => 'required|in:menunggu,penawaran,pembayaran,pengiriman,selesai,gagal'
-        ]);
+            // Role-based access control: Allow superadmin and admin_marketing
+            $user = Auth::user();
+            if (!in_array($user->role, ['superadmin', 'admin_marketing'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak memiliki akses untuk mengubah status potensi'
+                ], 403);
+            }
 
-        $proyek->update([
-            'status' => $request->status
-        ]);
+            // Validate potensi exists
+            $proyek = Proyek::where('potensi', 'ya')->find($id);
+            if (!$proyek) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Potensi tidak ditemukan'
+                ], 404);
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Status proyek berhasil diperbarui',
-            'data' => $proyek
-        ]);
+            // Validate request data
+            $validator = Validator::make($request->all(), [
+                'status' => 'required|in:menunggu,penawaran,pembayaran,pengiriman,selesai,gagal'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status tidak valid'
+                ], 422);
+            }
+
+            // Update status
+            $proyek->update([
+                'status' => $request->status
+            ]);
+
+            Log::info('Status potensi berhasil diubah', [
+                'potensi_id' => $id,
+                'old_status' => $proyek->getOriginal('status'),
+                'new_status' => $request->status
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status potensi berhasil diubah',
+                'data' => $proyek
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating potensi status', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengubah status potensi: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getUsersForSelect()
     {
+        $currentUserId = Auth::id();
+
         $users = User::select('id_user', 'nama', 'role')
             ->whereIn('role', ['superadmin', 'admin_marketing', 'admin_purchasing', 'admin_keuangan'])
             ->orderBy('nama')
             ->get();
 
+        // Add current user flag to each user
+        $usersWithCurrentFlag = $users->map(function ($user) use ($currentUserId) {
+            $user->is_current_user = $user->id_user == $currentUserId;
+            return $user;
+        });
+
         return response()->json([
             'success' => true,
-            'data' => $users
+            'data' => $usersWithCurrentFlag
         ]);
     }
 
     public function getWilayahForSelect()
     {
-        $wilayahData = \App\Models\Wilayah::with('adminMarketing:id_user,nama')->get();
+        $wilayahData = Wilayah::with('adminMarketing:id_user,nama')->get();
         return response()->json([
             'success' => true,
             'data' => $wilayahData
@@ -647,7 +585,7 @@ class PotensiController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'User tidak ditemukan'
-                ], 401);
+                ], 404);
             }
 
             return response()->json([
@@ -666,35 +604,105 @@ class PotensiController extends Controller
         }
     }
 
-    private function getPotensiValue($harga_total)
+    /**
+     * Handle file upload untuk spesifikasi barang
+     */
+    private function handleSpecificationFiles($files, $proyekId, $itemIndex)
     {
-        if (!$harga_total) {
-            return 'rendah';
+        $fileData = [];
+
+        if (!$files || !is_array($files)) {
+            return $fileData;
         }
 
-        if ($harga_total >= 1000000000) { // 1 miliar
-            return 'tinggi';
-        } elseif ($harga_total >= 100000000) { // 100 juta
-            return 'sedang';
-        } else {
-            return 'rendah';
+        foreach ($files as $file) {
+            if ($file && $file->isValid()) {
+                // Generate unique filename
+                $originalName = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $filename = 'proj_' . $proyekId . '_item_' . $itemIndex . '_' . time() . '_' . uniqid() . '.' . $extension;
+
+                // Store file
+                $path = $file->storeAs('public/specifications', $filename);
+
+                // Get file size
+                $fileSize = $file->getSize();
+
+                // Store file info
+                $fileData[] = [
+                    'original_name' => $originalName,
+                    'stored_name' => $filename,
+                    'size' => $fileSize,
+                    'mime_type' => $file->getMimeType(),
+                    'uploaded_at' => now()->toDateTimeString()
+                ];
+
+                Log::info('File spesifikasi diupload:', [
+                    'proyek_id' => $proyekId,
+                    'item_index' => $itemIndex,
+                    'filename' => $filename,
+                    'original_name' => $originalName,
+                    'size' => $fileSize
+                ]);
+            }
         }
+
+        return $fileData;
     }
 
-    private function mapStatusToPotensi($statusPenawaran)
+    /**
+     * Download specification file
+     */
+    public function downloadFile($filename)
     {
-        // Map berdasarkan status penawaran, bukan status proyek
-        $status = strtolower($statusPenawaran ?? 'menunggu');
+        $filePath = storage_path('app/public/specifications/' . $filename);
 
-        switch ($status) {
-            case 'acc':
-            case 'sukses':
-                return 'sukses';
-            case 'menunggu':
-            case 'pending':
-                return 'pending';
-            default:
-                return 'pending';
+        if (!file_exists($filePath)) {
+            abort(404, 'File tidak ditemukan');
         }
+
+        // Security check - pastikan filename valid
+        if (!preg_match('/^proj_\d+_item_\d+_\d+_.+$/', $filename)) {
+            abort(403, 'Akses ditolak');
+        }
+
+        return response()->download($filePath);
+    }
+
+    /**
+     * Preview specification file (untuk PDF dan gambar)
+     */
+    public function previewFile($filename)
+    {
+        $filePath = storage_path('app/public/specifications/' . $filename);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File tidak ditemukan');
+        }
+
+        // Security check - pastikan filename valid
+        if (!preg_match('/^proj_\d+_item_\d+_\d+_.+$/', $filename)) {
+            abort(403, 'Akses ditolak');
+        }
+
+        $mimeType = mime_content_type($filePath);
+
+        // Hanya allow preview untuk PDF dan gambar
+        $allowedMimes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif'
+        ];
+
+        if (!in_array($mimeType, $allowedMimes)) {
+            return response()->json(['error' => 'File tidak bisa di-preview'], 400);
+        }
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"'
+        ]);
     }
 }

@@ -7,8 +7,8 @@
                 <div class="p-4 sm:p-6 bg-gradient-to-r from-red-600 to-red-700 text-white">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-lg sm:text-xl font-bold">Ubah Status Proyek</h3>
-                            <p class="text-red-100 text-sm mt-1">Ubah status proyek sesuai perkembangan terkini</p>
+                            <h3 class="text-lg sm:text-xl font-bold">Ubah Status Potensi</h3>
+                            <p class="text-red-100 text-sm mt-1">Ubah status potensi sesuai perkembangan terkini</p>
                         </div>
                         <button onclick="closeModal('modalUbahStatus')" class="text-white hover:text-red-200 transition-colors">
                             <i class="fas fa-times text-xl"></i>
@@ -23,14 +23,14 @@
 
                         <!-- Current Project Info -->
                         <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="font-semibold text-gray-800 mb-3">Informasi Proyek</h4>
+                            <h4 class="font-semibold text-gray-800 mb-3">Informasi Potensi</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                                 <div>
-                                    <span class="text-gray-500">Kode Proyek:</span>
+                                    <span class="text-gray-500">Kode Potensi:</span>
                                     <span id="statusKodeProyek" class="font-medium text-gray-800 ml-2">-</span>
                                 </div>
                                 <div>
-                                    <span class="text-gray-500">Nama Proyek:</span>
+                                    <span class="text-gray-500">Nama Potensi:</span>
                                     <span id="statusNamaProyek" class="font-medium text-gray-800 ml-2">-</span>
                                 </div>
                                 <div>
@@ -139,14 +139,14 @@ function openStatusModal(proyekId) {
     currentProyekId = proyekId;
 
     // Find project data
-    const proyek = potensiData.find(p => p.id == proyekId);
+    const proyek = proyekData.find(p => p.id == proyekId);
     if (!proyek) {
         alert('Data proyek tidak ditemukan!');
         return;
     }
 
     // Populate project info
-    document.getElementById('statusKodeProyek').textContent = proyek.kode_proyek;
+    document.getElementById('statusKodeProyek').textContent = proyek.kode;
     document.getElementById('statusNamaProyek').textContent = proyek.nama_proyek;
 
     // Set current status with proper styling
@@ -189,12 +189,10 @@ function selectStatus(status) {
 
 function getStatusColor(status) {
     switch(status) {
-        case 'sukses': return 'bg-green-100 text-green-800';
         case 'selesai': return 'bg-green-100 text-green-800';
         case 'kontrak': return 'bg-orange-100 text-orange-800';
         case 'persetujuan': return 'bg-purple-100 text-purple-800';
         case 'penawaran': return 'bg-blue-100 text-blue-800';
-        case 'pending': return 'bg-yellow-100 text-yellow-800';
         case 'proses': return 'bg-yellow-100 text-yellow-800';
         case 'gagal': return 'bg-red-100 text-red-800';
         default: return 'bg-gray-100 text-gray-800';
@@ -203,12 +201,10 @@ function getStatusColor(status) {
 
 function getStatusColorClass(status) {
     switch(status) {
-        case 'sukses': return 'green';
         case 'selesai': return 'green';
         case 'kontrak': return 'orange';
         case 'persetujuan': return 'purple';
         case 'penawaran': return 'blue';
-        case 'pending': return 'yellow';
         case 'proses': return 'yellow';
         case 'gagal': return 'red';
         default: return 'gray';
@@ -245,42 +241,25 @@ function submitStatusChange() {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
 
-    // Submit to potensi update endpoint
-    fetch(`/marketing/potensi/${currentProyekId}`, {
-        method: 'PUT',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            status: selectedStatusValue === 'selesai' ? 'sukses' : 'pending'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Close modal
-            closeModal('modalUbahStatus');
-
-            // Show success message
-            showSuccessModal('Status proyek berhasil diubah!');
-
-            // Refresh the page to show updated data
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        } else {
-            throw new Error(data.message || 'Terjadi kesalahan');
+    // Simulate API call (replace with actual endpoint)
+    setTimeout(() => {
+        // Update the project status in the UI
+        const proyek = proyekData.find(p => p.id == currentProyekId);
+        if (proyek) {
+            proyek.status = selectedStatusValue;
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan: ' + error.message);
 
-        // Re-enable submit button
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Simpan Perubahan';
-    });
+        // Close modal
+        closeModal('modalUbahStatus');
+
+        // Show success message
+        showSuccessModal('Status potensi berhasil diubah!');
+
+        // Refresh the page to show updated data
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+
+    }, 1000);
 }
 </script>
