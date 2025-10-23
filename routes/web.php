@@ -164,6 +164,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/pembayaran/{id_pembayaran}', [PembayaranController::class, 'show'])->name('purchasing.pembayaran.show');
         Route::get('/pembayaran/{id_pembayaran}/edit', [PembayaranController::class, 'edit'])->name('purchasing.pembayaran.edit');
         Route::put('/pembayaran/{id_pembayaran}', [PembayaranController::class, 'update'])->name('purchasing.pembayaran.update');
+        Route::put('/pembayaran/{id_pembayaran}/reopen', [PembayaranController::class, 'reopenForEdit'])->name('purchasing.pembayaran.reopen');
         Route::delete('/pembayaran/{id_pembayaran}', [PembayaranController::class, 'destroy'])->name('purchasing.pembayaran.destroy');
         Route::get('/pembayaran/history/{id_proyek}', [PembayaranController::class, 'history'])->name('purchasing.pembayaran.history');
         Route::get('/pembayaran/suggestion/{id_proyek}', [PembayaranController::class, 'calculateSuggestion'])->name('purchasing.pembayaran.suggestion');

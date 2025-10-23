@@ -581,7 +581,7 @@
     <div id="contentSelesai" class="tab-content hidden">
         <div class="mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Pengiriman Selesai</h3>
-            <p class="text-sm text-gray-600">Pengiriman dengan dokumentasi lengkap atau yang sudah verified (untuk proyek status "Selesai")</p>
+            <p class="text-sm text-gray-600">Pengiriman dengan dokumentasi lengkap atau yang sudah verified</p>
         </div>
         
         @if(count($pengirimanSelesai) > 0)
@@ -738,7 +738,7 @@
                                 @endphp
                                 
                                 <div class="flex space-x-2">
-                                    @if($pengiriman->status_verifikasi == 'Sampai_Tujuan' && $canAccessEditSelesai)
+                                    @if($pengiriman->status_verifikasi == 'Sampai_Tujuan' && $canAccessEditSelesai && $pengiriman->penawaran->proyek->status != 'Selesai' && $pengiriman->penawaran->proyek->status != 'Gagal')
                                         <button onclick="editPengiriman({{ $pengiriman->id_pengiriman }})" 
                                                 class="text-orange-600 hover:text-orange-900">
                                             <i class="fas fa-edit mr-1"></i> Edit

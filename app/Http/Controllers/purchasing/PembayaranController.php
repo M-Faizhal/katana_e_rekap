@@ -669,9 +669,12 @@ class PembayaranController extends Controller
             ->sum('nominal_bayar');
 
         $sisaBayar = $totalModalVendor - $totalDibayar;
+        $maxNominal = $sisaBayar + $pembayaran->nominal_bayar;
 
-        if ($request->nominal_bayar > $sisaBayar) {
-            return back()->with('error', 'Nominal pembayaran melebihi sisa tagihan');
+        if ($request->nominal_bayar > $maxNominal) {
+            return back()
+                ->withInput()
+                ->with('error', 'Nominal pembayaran melebihi batas maksimal. Maksimal: Rp ' . number_format($maxNominal, 0, ',', '.') . '. Anda memasukkan: Rp ' . number_format($request->nominal_bayar, 0, ',', '.'));
         }
 
         DB::beginTransaction();
@@ -777,6 +780,58 @@ class PembayaranController extends Controller
             }
         } catch (\Exception $e) {
             // Silent fail untuk cleanup
+        }
+    }
+
+    /**
+     * Reopen approved payment for editing (change status back to Pending)
+     */
+    public function reopenForEdit($id_pembayaran)
+    {
+        // Check if user is admin_purchasing and assigned to this project
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Hanya admin purchasing/superadmin yang dapat mengedit pembayaran.');
+        }
+
+        $pembayaran = Pembayaran::with(['penawaran.proyek'])->findOrFail($id_pembayaran);
+        
+        // Check access rights
+        if ($user->role !== 'superadmin' && $pembayaran->penawaran->proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk mengedit pembayaran pada proyek ini.');
+        }
+        
+        // Check if status is Approved
+        if ($pembayaran->status_verifikasi !== 'Approved') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Pembayaran harus berstatus Approved untuk dapat diedit ulang.');
+        }
+
+        // Check if project status is not Selesai or Gagal
+        $proyekStatus = $pembayaran->penawaran->proyek->status ?? '';
+        if ($proyekStatus === 'Selesai' || $proyekStatus === 'Gagal') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Pembayaran tidak dapat diedit karena proyek sudah berstatus ' . $proyekStatus . '.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Change status back to Pending
+            $pembayaran->status_verifikasi = 'Pending';
+            $pembayaran->diverifikasi_oleh = null;
+            $pembayaran->tanggal_verifikasi = null;
+            $pembayaran->save();
+
+            DB::commit();
+
+            return redirect()->route('purchasing.pembayaran.edit', $id_pembayaran)
+                ->with('success', 'Status pembayaran berhasil diubah menjadi Pending. Anda sekarang dapat mengedit pembayaran ini.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Terjadi kesalahan saat mengubah status pembayaran: ' . $e->getMessage());
         }
     }
 

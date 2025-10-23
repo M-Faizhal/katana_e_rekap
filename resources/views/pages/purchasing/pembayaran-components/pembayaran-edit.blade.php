@@ -38,19 +38,37 @@
 
 <!-- Alert Messages -->
 @if(session('success'))
-<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+<div class="bg-green-100 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded-r mb-4 shadow-md">
     <div class="flex items-center">
-        <i class="fas fa-check-circle mr-2"></i>
-        {{ session('success') }}
+        <i class="fas fa-check-circle mr-2 text-lg"></i>
+        <div>
+            <p class="font-semibold">{{ session('success') }}</p>
+            @if(strpos(session('success'), 'Pending') !== false)
+            <p class="text-sm mt-1">Silakan edit data pembayaran sesuai kebutuhan, kemudian simpan untuk mengirim ulang ke verifikasi.</p>
+            @endif
+        </div>
     </div>
 </div>
 @endif
 
 @if(session('error'))
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+<div class="bg-red-100 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-r mb-4 shadow-md">
     <div class="flex items-center">
-        <i class="fas fa-exclamation-circle mr-2"></i>
+        <i class="fas fa-exclamation-circle mr-2 text-lg"></i>
         {{ session('error') }}
+    </div>
+</div>
+@endif
+
+<!-- Info Badge jika status baru diubah ke Pending -->
+@if($pembayaran->status_verifikasi == 'Pending' && $pembayaran->updated_at->diffInMinutes(now()) < 5)
+<div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 px-4 py-3 rounded-r mb-4 shadow-md">
+    <div class="flex items-center">
+        <i class="fas fa-info-circle mr-2 text-lg"></i>
+        <div>
+            <p class="font-semibold">Pembayaran telah dibuka untuk pengeditan</p>
+            <p class="text-sm mt-1">Status berubah menjadi Pending. Setelah selesai edit, simpan untuk mengirim ulang ke verifikasi.</p>
+        </div>
     </div>
 </div>
 @endif
@@ -240,7 +258,26 @@
                            value="{{ old('nominal_bayar', $pembayaran->nominal_bayar) }}"
                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                            placeholder="Masukkan nominal pembayaran">
-                    <p class="mt-1 text-sm text-gray-500">Maksimal: Rp {{ number_format($sisaBayar + $pembayaran->nominal_bayar, 0, ',', '.') }}</p>
+                    <p class="mt-1 text-sm text-gray-500">Maksimal: Rp {{ number_format($sisaBayar , 0, ',', '.') }}</p>
+                    
+                    <!-- Warning Message -->
+                    <div id="nominal-warning" class="hidden mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center text-red-700">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span class="text-sm font-medium">Nominal melebihi maksimal pembayaran!</span>
+                        </div>
+                        <p class="text-xs text-red-600 mt-1 ml-6">
+                            Maksimal yang dapat dibayar: <span class="font-bold">Rp {{ number_format($sisaBayar , 0, ',', '.') }}</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Info Message -->
+                    <div id="nominal-info" class="hidden mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center text-blue-700">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <span class="text-sm">Sisa pembayaran setelah ini: <span id="sisa-setelah-bayar" class="font-bold"></span></span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Metode Pembayaran -->

@@ -1341,12 +1341,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             </a>
                             @endif
                             
+                            @php
+                                $canAccessPembayaran = $currentUser->role === 'admin_purchasing' && $pembayaran->penawaran->proyek->id_admin_purchasing == $currentUser->id_user;
+                                $isSuperAdmin = $currentUser->role === 'superadmin';
+                                $proyekStatus = $pembayaran->penawaran->proyek->status ?? '';
+                                $showEditButton = ($proyekStatus !== 'Selesai' && $proyekStatus !== 'Gagal');
+                            @endphp
+                            
                             @if($pembayaran->status_verifikasi == 'Pending')
-                                @php
-                                    $canAccessPembayaran = $currentUser->role === 'admin_purchasing' && $pembayaran->penawaran->proyek->id_admin_purchasing == $currentUser->id_user;
-                                    $isSuperAdmin = $currentUser->role === 'superadmin';
-                                @endphp
-                                
                                 @if($canAccessPembayaran || $isSuperAdmin)
                                 <a href="{{ route('purchasing.pembayaran.edit', $pembayaran->id_pembayaran) }}" 
                                    class="inline-flex items-center px-2 py-1 border border-yellow-300 text-xs leading-4 font-medium rounded text-yellow-700 bg-yellow-50 hover:bg-yellow-100">
@@ -1376,7 +1378,21 @@ document.addEventListener('DOMContentLoaded', function() {
                                     @endif
                                 </span>
                                 @endif
-                            
+                            @elseif($pembayaran->status_verifikasi == 'Approved' && $showEditButton)
+                                @if($canAccessPembayaran || $isSuperAdmin)
+                                <form action="{{ route('purchasing.pembayaran.reopen', $pembayaran->id_pembayaran) }}" 
+                                      method="POST" 
+                                      class="inline"
+                                      onsubmit="return confirm('Apakah Anda yakin ingin mengedit pembayaran yang sudah di-approve? Status akan berubah kembali ke Pending.')">
+                                @csrf
+                                @method('PUT')
+                                <button type="submit"
+                                        class="inline-flex items-center px-2 py-1 border border-orange-300 text-xs leading-4 font-medium rounded text-orange-700 bg-orange-50 hover:bg-orange-100">
+                                    <i class="fas fa-redo mr-1"></i>
+                                    Edit Ulang
+                                </button>
+                                </form>
+                                @endif
                             @endif
                         </div>
                     </td>
@@ -1442,11 +1458,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         Bukti
                     </a>
                     @endif
+                    @php
+                        $canAccessPembayaran = $currentUser->role === 'admin_purchasing' && $pembayaran->penawaran->proyek->id_admin_purchasing == $currentUser->id_user;
+                        $isSuperAdmin = $currentUser->role === 'superadmin';
+                        $proyekStatus = $pembayaran->penawaran->proyek->status ?? '';
+                        $showEditButton = ($proyekStatus !== 'Selesai' && $proyekStatus !== 'Gagal');
+                    @endphp
+                    
                     @if($pembayaran->status_verifikasi == 'Pending')
-                        @php
-                            $canAccessPembayaran = $currentUser->role === 'admin_purchasing' && $pembayaran->penawaran->proyek->id_admin_purchasing == $currentUser->id_user;
-                        @endphp
-                        @if($canAccessPembayaran)
+                        @if($canAccessPembayaran || $isSuperAdmin)
                         <a href="{{ route('purchasing.pembayaran.edit', $pembayaran->id_pembayaran) }}" 
                            class="inline-flex items-center px-2 py-1 border border-yellow-300 text-xs leading-4 font-medium rounded text-yellow-700 bg-yellow-50 hover:bg-yellow-100">
                             <i class="fas fa-edit mr-1"></i>
@@ -1467,12 +1487,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         @else
                         <span class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-100 cursor-not-allowed">
                             <i class="fas fa-lock mr-1"></i>
-                            @if($currentUser->role !== 'admin_purchasing')
+                            @if($currentUser->role !== 'admin_purchasing' && $currentUser->role !== 'superadmin')
                                 Hanya Admin Purchasing
                             @else
                                 Tidak Memiliki Akses
                             @endif
                         </span>
+                        @endif
+                    @elseif($pembayaran->status_verifikasi == 'Approved' && $showEditButton)
+                        @if($canAccessPembayaran || $isSuperAdmin)
+                        <form action="{{ route('purchasing.pembayaran.reopen', $pembayaran->id_pembayaran) }}" 
+                              method="POST" 
+                              class="inline"
+                              onsubmit="return confirm('Apakah Anda yakin ingin mengedit pembayaran yang sudah di-approve? Status akan berubah kembali ke Pending.')">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit"
+                                class="inline-flex items-center px-2 py-1 border border-orange-300 text-xs leading-4 font-medium rounded text-orange-700 bg-orange-50 hover:bg-orange-100">
+                            <i class="fas fa-redo mr-1"></i>
+                            Edit Ulang
+                        </button>
+                        </form>
                         @endif
                     @endif
                 </div>
