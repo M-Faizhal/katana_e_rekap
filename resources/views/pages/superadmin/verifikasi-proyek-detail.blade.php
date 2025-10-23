@@ -592,15 +592,10 @@
                                 <div class="text-center">
                                     <h5 class="font-medium text-gray-900 mb-2 text-sm">Foto Berangkat</h5>
                                     @if($pengiriman->foto_berangkat)
-                                        <div class="relative group">
-                                            <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_berangkat) }}" 
-                                                 alt="Foto Berangkat" 
-                                                 class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
-                                                 onclick="window.open('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_berangkat) }}', '_blank')">
-                                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-external-link-alt text-white opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                            </div>
-                                        </div>
+                                        <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_berangkat) }}" 
+                                             alt="Foto Berangkat" 
+                                             class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                                             onclick="openImageModal('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_berangkat) }}', 'Foto Berangkat - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">>
                                     @else
                                         <div class="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400"></i>
@@ -612,15 +607,10 @@
                                 <div class="text-center">
                                     <h5 class="font-medium text-gray-900 mb-2 text-sm">Foto Perjalanan</h5>
                                     @if($pengiriman->foto_perjalanan)
-                                        <div class="relative group">
-                                            <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_perjalanan) }}" 
-                                                 alt="Foto Perjalanan" 
-                                                 class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
-                                                 onclick="window.open('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_perjalanan) }}', '_blank')">
-                                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-external-link-alt text-white opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                            </div>
-                                        </div>
+                                        <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_perjalanan) }}" 
+                                             alt="Foto Perjalanan" 
+                                             class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                                             onclick="openImageModal('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_perjalanan) }}', 'Foto Perjalanan - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">>
                                     @else
                                         <div class="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400"></i>
@@ -632,15 +622,10 @@
                                 <div class="text-center">
                                     <h5 class="font-medium text-gray-900 mb-2 text-sm">Foto Sampai</h5>
                                     @if($pengiriman->foto_sampai)
-                                        <div class="relative group">
-                                            <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_sampai) }}" 
-                                                 alt="Foto Sampai" 
-                                                 class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
-                                                 onclick="window.open('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_sampai) }}', '_blank')">
-                                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-external-link-alt text-white opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                            </div>
-                                        </div>
+                                        <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_sampai) }}" 
+                                             alt="Foto Sampai" 
+                                             class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                                             onclick="openImageModal('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->foto_sampai) }}', 'Foto Sampai - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">>
                                     @else
                                         <div class="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400"></i>
@@ -652,15 +637,10 @@
                                 <div class="text-center">
                                     <h5 class="font-medium text-gray-900 mb-2 text-sm">Tanda Terima</h5>
                                     @if($pengiriman->tanda_terima)
-                                        <div class="relative group">
-                                            <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->tanda_terima) }}" 
-                                                 alt="Tanda Terima" 
-                                                 class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
-                                                 onclick="window.open('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->tanda_terima) }}', '_blank')">
-                                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-external-link-alt text-white opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                            </div>
-                                        </div>
+                                        <img src="{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->tanda_terima) }}" 
+                                             alt="Tanda Terima" 
+                                             class="w-full h-24 object-cover rounded-lg border border-gray-300 cursor-pointer"
+                                             onclick="openImageModal('{{ asset('storage/pengiriman/dokumentasi/' . $pengiriman->tanda_terima) }}', 'Tanda Terima - {{ $pengiriman->vendor->nama_vendor ?? 'Vendor' }}')">>
                                     @else
                                         <div class="w-full h-24 bg-gray-100 rounded-lg border border-gray-300 flex items-center justify-center">
                                             <i class="fas fa-image text-gray-400"></i>
@@ -765,6 +745,22 @@
     @endif
 </div>
 
+<!-- Modal untuk preview gambar -->
+<div id="imageModal" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-4xl max-h-full overflow-auto">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="modalTitle" class="text-lg font-semibold text-gray-900"></h3>
+                <button onclick="closeImageModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <img id="modalImage" src="" alt="" class="max-w-full h-auto">
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal Verifikasi -->
 <div id="verificationModal" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-50 hidden">
@@ -825,6 +821,16 @@
 </div>
 
 <script>
+function openImageModal(imageSrc, title) {
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('imageModal').classList.remove('hidden');
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+}
+
 function openVerificationModal(action) {
     const modal = document.getElementById('verificationModal');
     const form = document.getElementById('verificationForm');
@@ -865,7 +871,13 @@ function closeVerificationModal() {
     document.querySelector('textarea[name="catatan_verifikasi"]').value = '';
 }
 
-// Close verification modal when clicking outside
+// Close modals when clicking outside
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
 document.getElementById('verificationModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeVerificationModal();
