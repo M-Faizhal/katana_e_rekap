@@ -30,13 +30,14 @@
                 Informasi Proyek
             </h3>
             <div class="space-y-3">
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Nama Proyek:</span>
-                    <span class="font-medium text-gray-900">{{ $proyek->nama_barang }}</span>
-                </div>
+             
                 <div class="flex justify-between">
                     <span class="text-gray-600">Kode Proyek:</span>
                     <span class="font-medium text-gray-900">{{ $proyek->kode_proyek ?? 'PRJ-' . str_pad($proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Jenis Pengadaan:</span>
+                    <span class="font-medium text-gray-900">{{ $proyek->jenis_pengadaan ?? 'PRJ-' . str_pad($proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600">Tanggal Proyek:</span>
@@ -72,10 +73,7 @@
                 Data Klien
             </h3>
             <div class="space-y-3">
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Nama Klien:</span>
-                    <span class="font-medium text-gray-900">{{ $proyek->nama_klien }}</span>
-                </div>
+                
                 <div class="flex justify-between">
                     <span class="text-gray-600">Instansi:</span>
                     <span class="font-medium text-gray-900">{{ $proyek->instansi }}</span>
@@ -83,10 +81,6 @@
                 <div class="flex justify-between">
                     <span class="text-gray-600">Kota/Kabupaten:</span>
                     <span class="font-medium text-gray-900">{{ $proyek->kab_kota }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Kontak:</span>
-                    <span class="font-medium text-gray-900">{{ $proyek->kontak_klien ?? '-' }}</span>
                 </div>
             </div>
         </div>
@@ -100,21 +94,21 @@
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="border border-gray-200 rounded-lg p-4">
-                <h4 class="font-medium text-gray-900 mb-2">Admin Marketing</h4>
+                <h4 class="font-medium text-gray-900 mb-2">PIC Marketing</h4>
                 @if($proyek->adminMarketing)
                     <p class="text-gray-600">{{ $proyek->adminMarketing->nama }}</p>
                     <p class="text-sm text-gray-500">{{ $proyek->adminMarketing->email }}</p>
                 @else
-                    <p class="text-gray-500 italic">Tidak ada admin marketing</p>
+                    <p class="text-gray-500 italic">Tidak ada PIC Marketing</p>
                 @endif
             </div>
             <div class="border border-gray-200 rounded-lg p-4">
-                <h4 class="font-medium text-gray-900 mb-2">Admin Purchasing</h4>
+                <h4 class="font-medium text-gray-900 mb-2">PIC Purchasing</h4>
                 @if($proyek->adminPurchasing)
                     <p class="text-gray-600">{{ $proyek->adminPurchasing->nama }}</p>
                     <p class="text-sm text-gray-500">{{ $proyek->adminPurchasing->email }}</p>
                 @else
-                    <p class="text-gray-500 italic">Tidak ada admin purchasing</p>
+                    <p class="text-gray-500 italic">Tidak ada PIC Purchasing</p>
                 @endif
             </div>
         </div>
