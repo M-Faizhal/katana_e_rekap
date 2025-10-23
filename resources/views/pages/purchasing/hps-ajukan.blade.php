@@ -360,10 +360,22 @@
                 <i class="fas fa-save mr-2"></i>
                 Simpan Kalkulasi
             </button>
-            <button onclick="ajukanPembayaran()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                <i class="fas fa-paper-plane mr-2"></i>
-                Ajukan Menjadi Pembayaran
-            </button>
+            
+            @php
+                $sudahAjukanPembayaran = $sudahAjukanPembayaran ?? false;
+            @endphp
+            
+            @if(!$sudahAjukanPembayaran && $proyek->status =='Penawaran')
+                <button onclick="ajukanPembayaran()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Ajukan Menjadi Pembayaran
+                </button>
+            @else
+                <div class="px-4 py-2 bg-green-100 text-green-700 rounded-lg border border-green-300 text-sm">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Pembayaran Sudah Diajukan
+                </div>
+            @endif
         
         </div>
         @else

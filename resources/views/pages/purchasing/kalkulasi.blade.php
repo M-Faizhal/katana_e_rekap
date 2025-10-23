@@ -847,12 +847,33 @@
                                             title="Lihat Detail Penawaran">
                                         <i class="fas fa-eye"></i> Detail
                                     </button>
-                                    @if($p->penawaranAktif && $p->penawaranAktif->status === 'ACC' && $p->status === 'Penawaran')
-                                        <a href="{{ route('purchasing.kalkulasi.hps.ajukan', $p->id_proyek) }}"
-                                           class="text-blue-600 hover:text-blue-900"
-                                           title="Edit Kalkulasi & Ajukan Pembayaran">
-                                            <i class="fas fa-calculator"></i> Ajukan Pembayaran
-                                        </a>
+                                    
+                                    @php
+                                        // Check if pembayaran already exists for this project
+                                        $sudahAjukanPembayaran = \App\Models\Pembayaran::whereHas('penawaran', function($q) use ($p) {
+                                            $q->where('id_proyek', $p->id_proyek);
+                                        })->exists();
+                                        $showButtons = $p->status !== 'Gagal' && $p->status !== 'Selesai';
+                                    @endphp
+                                    
+                                    @if($p->penawaranAktif && $p->penawaranAktif->status === 'ACC')
+                                        @if(!$sudahAjukanPembayaran && $p->status == 'Penawaran')
+                                            {{-- Belum ajukan pembayaran, tampilkan tombol Ajukan Pembayaran --}}
+                                            <a href="{{ route('purchasing.kalkulasi.hps.ajukan', $p->id_proyek) }}"
+                                               class="text-blue-600 hover:text-blue-900"
+                                               title="Edit Kalkulasi & Ajukan Pembayaran">
+                                                <i class="fas fa-calculator"></i> Ajukan Pembayaran
+                                            </a>
+                                        @else
+                                            {{-- Sudah ajukan pembayaran, tampilkan tombol Edit jika status bukan Gagal/Selesai --}}
+                                            @if($showButtons)
+                                                <a href="{{ route('purchasing.kalkulasi.hps.ajukan', $p->id_proyek) }}"
+                                                   class="text-orange-600 hover:text-orange-900"
+                                                   title="Edit Kalkulasi">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            @endif
+                                        @endif
                                     @endif
                                 </div>
                             </td>
@@ -948,18 +969,44 @@
                     </div>
 
                     <div class="pt-2 border-t border-gray-100">
-                        @if($p->penawaranAktif && $p->penawaranAktif->status === 'ACC' && $p->status === 'Penawaran')
-                            <div class="flex gap-2">
-                                <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
-                                        class="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
-                                    <i class="fas fa-eye mr-1"></i> Detail
-                                </button>
-                                <a href="{{ route('purchasing.kalkulasi.hps.ajukan', $p->id_proyek) }}"
-                                   class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors duration-200 text-center">
-                                    <i class="fas fa-calculator mr-1"></i> Ajukan Pembayaran
-                                </a>
-                            </div>
+                        @php
+                            // Check if pembayaran already exists for this project
+                            $sudahAjukanPembayaran = \App\Models\Pembayaran::whereHas('penawaran', function($q) use ($p) {
+                                $q->where('id_proyek', $p->id_proyek);
+                            })->exists();
+                            $showButtons = $p->status !== 'Gagal' && $p->status !== 'Selesai';
+                        @endphp
+                        
+                        @if($p->penawaranAktif && $p->penawaranAktif->status === 'ACC')
+                            @if(!$sudahAjukanPembayaran)
+                                {{-- Belum ajukan pembayaran, tampilkan tombol Detail dan Ajukan Pembayaran --}}
+                                <div class="flex gap-2">
+                                    <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
+                                            class="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
+                                        <i class="fas fa-eye mr-1"></i> Detail
+                                    </button>
+                                    <a href="{{ route('purchasing.kalkulasi.hps.ajukan', $p->id_proyek) }}"
+                                       class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors duration-200 text-center">
+                                        <i class="fas fa-calculator mr-1"></i> Ajukan
+                                    </a>
+                                </div>
+                            @else
+                                {{-- Sudah ajukan pembayaran, tampilkan tombol Detail dan Edit (jika bukan Gagal/Selesai) --}}
+                                <div class="flex gap-2">
+                                    <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
+                                            class="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
+                                        <i class="fas fa-eye mr-1"></i> Detail
+                                    </button>
+                                    @if($showButtons)
+                                        <a href="{{ route('purchasing.kalkulasi.hps.ajukan', $p->id_proyek) }}"
+                                           class="flex-1 bg-orange-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-700 transition-colors duration-200 text-center">
+                                            <i class="fas fa-edit mr-1"></i> Edit
+                                        </a>
+                                    @endif
+                                </div>
+                            @endif
                         @else
+                            {{-- Default: hanya tombol detail --}}
                             <button onclick="viewPenawaranDetail({{ $p->id_proyek }})"
                                     class="w-full bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors duration-200">
                                 <i class="fas fa-eye mr-1"></i> Lihat Detail

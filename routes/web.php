@@ -144,6 +144,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/kalkulasi/{id}/riwayat', [KalkulasiController::class, 'getRiwayatHps'])->name('kalkulasi.riwayat');
         Route::get('/kalkulasi/{id}/riwayat-detail', [KalkulasiController::class, 'showRiwayatDetail'])->name('kalkulasi.riwayat.detail');
         Route::get('/kalkulasi/{id}/hps-ajukan', [KalkulasiController::class, 'hpsAjukan'])->name('purchasing.kalkulasi.hps.ajukan');
+        Route::get('/kalkulasi/{id}/view', [KalkulasiController::class, 'viewKalkulasi'])->name('purchasing.kalkulasi.view');
         Route::post('/kalkulasi/penawaran', [KalkulasiController::class, 'createPenawaran'])->name('kalkulasi.penawaran');
         Route::post('/kalkulasi/penawaran/preview', [KalkulasiController::class, 'previewPenawaran'])->name('kalkulasi.penawaran.preview');
         Route::get('/kalkulasi/penawaran/{proyekId}/detail', [KalkulasiController::class, 'detailPenawaran'])->name('kalkulasi.penawaran.detail');

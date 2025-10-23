@@ -1900,7 +1900,12 @@ class KalkulasiController extends Controller
                 }
             }
 
-            return view('pages.purchasing.hps-ajukan', compact('proyek', 'kalkulasiData', 'canEdit', 'currentApprovalFile'));
+            // Check if pembayaran already submitted for this project
+            $sudahAjukanPembayaran = \App\Models\Pembayaran::whereHas('penawaran', function($q) use ($id) {
+                $q->where('id_proyek', $id);
+            })->exists();
+
+            return view('pages.purchasing.hps-ajukan', compact('proyek', 'kalkulasiData', 'canEdit', 'currentApprovalFile', 'sudahAjukanPembayaran'));
         } catch (\Exception $e) {
             return redirect()->route('purchasing.kalkulasi')->with('error', 'Proyek tidak ditemukan');
         }
