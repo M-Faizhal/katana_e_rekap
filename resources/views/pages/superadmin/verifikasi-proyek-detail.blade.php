@@ -737,6 +737,57 @@
         </div>
     </div>
     @endif
+
+    <!-- Aksi Revisi -->
+    @if(auth()->check() && (auth()->user()->role === 'superadmin' || (auth()->user()->role === 'admin_marketing' && auth()->user()->jabatan === 'manager_marketing')))
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-edit mr-2 text-orange-500"></i>
+            Permintaan Revisi
+        </h3>
+        <p class="text-gray-600 mb-4">
+            Jika terdapat kesalahan atau perubahan yang diperlukan, Anda dapat membuat permintaan revisi untuk berbagai komponen proyek.
+        </p>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <a href="{{ route('revisi.create', [$proyek->id_proyek, 'proyek']) }}" 
+               class="inline-flex flex-col items-center justify-center p-3 border-2 border-dashed border-blue-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group">
+                <i class="fas fa-project-diagram text-2xl text-blue-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-blue-700">Data Proyek</span>
+            </a>
+            
+            <a href="{{ route('revisi.create', [$proyek->id_proyek, 'hps_penawaran']) }}" 
+               class="inline-flex flex-col items-center justify-center p-3 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all group">
+                <i class="fas fa-calculator text-2xl text-purple-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-purple-700">HPS & Penawaran</span>
+            </a>
+            
+            <a href="{{ route('revisi.create', [$proyek->id_proyek, 'penawaran']) }}" 
+               class="inline-flex flex-col items-center justify-center p-3 border-2 border-dashed border-green-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all group">
+                <i class="fas fa-file-signature text-2xl text-green-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-green-700">Dokumen Penawaran</span>
+            </a>
+            
+            <a href="{{ route('revisi.create', [$proyek->id_proyek, 'penagihan_dinas']) }}" 
+               class="inline-flex flex-col items-center justify-center p-3 border-2 border-dashed border-yellow-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all group">
+                <i class="fas fa-file-invoice-dollar text-2xl text-yellow-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-yellow-700">Penagihan Dinas</span>
+            </a>
+            
+            <a href="{{ route('revisi.create', [$proyek->id_proyek, 'pembayaran']) }}" 
+               class="inline-flex flex-col items-center justify-center p-3 border-2 border-dashed border-orange-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all group">
+                <i class="fas fa-credit-card text-2xl text-orange-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-orange-700">Riwayat Pembayaran</span>
+            </a>
+            
+            <a href="{{ route('revisi.create', [$proyek->id_proyek, 'pengiriman']) }}" 
+               class="inline-flex flex-col items-center justify-center p-3 border-2 border-dashed border-red-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all group">
+                <i class="fas fa-shipping-fast text-2xl text-red-500 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-red-700">Info Pengiriman</span>
+            </a>
+        </div>
+    </div>
+    @endif
 </div>
 
 <!-- Modal untuk preview gambar -->

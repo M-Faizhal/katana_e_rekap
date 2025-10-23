@@ -8,6 +8,8 @@ use App\Models\Penawaran;
 use App\Models\User;
 use App\Models\Wilayah;
 use App\Models\KalkulasiHps;
+use App\Models\Revisi;
+use App\Models\PenagihanDinas;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -216,5 +218,11 @@ class Proyek extends Model
         }
         
         return 'Tidak ada barang';
+    }
+
+    // Relasi ke revisi
+    public function revisi()
+    {
+        return $this->hasMany(Revisi::class, 'id_proyek', 'id_proyek');
     }
 }

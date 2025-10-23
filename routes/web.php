@@ -18,6 +18,7 @@ use App\Http\Controllers\marketing\PotensiController;
 use App\Http\Controllers\marketing\PenawaranController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RevisiController;
 
 // Health check endpoint for Docker
 Route::get('/health', function () {
@@ -236,5 +237,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/verifikasi-proyek/{id}', [VerifikasiProyekController::class, 'show'])->name('superadmin.verifikasi-proyek.detail');
         Route::put('/verifikasi-proyek/{id}/verify', [VerifikasiProyekController::class, 'verify'])->name('superadmin.verifikasi-proyek.verify');
         Route::get('/verifikasi-proyek-history', [VerifikasiProyekController::class, 'history'])->name('superadmin.verifikasi-proyek.history');
+    });
+
+    // Revisi Routes - Accessible by all roles with proper permission
+    Route::middleware('auth')->group(function () {
+        Route::get('/revisi', [RevisiController::class, 'index'])->name('revisi.index');
+        Route::get('/revisi/create/{proyekId}/{tipeRevisi}', [RevisiController::class, 'create'])->name('revisi.create');
+        Route::post('/revisi', [RevisiController::class, 'store'])->name('revisi.store');
+        Route::get('/revisi/{id}', [RevisiController::class, 'show'])->name('revisi.show');
+        Route::post('/revisi/{id}/take', [RevisiController::class, 'takeRevision'])->name('revisi.take');
+        Route::post('/revisi/{id}/complete', [RevisiController::class, 'complete'])->name('revisi.complete');
+        Route::post('/revisi/{id}/reject', [RevisiController::class, 'reject'])->name('revisi.reject');
     });
 });

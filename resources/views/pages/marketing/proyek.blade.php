@@ -215,18 +215,20 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                     </div>
                     <div class="flex items-center space-x-1 sm:space-x-2 self-start" onclick="event.stopPropagation()">
                         @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
+                        @if($proyek['status'] === 'menunggu')
                         <button onclick="buatPenawaran({{ $proyek['id'] }})" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200" title="Buat Penawaran">
                             <i class="fas fa-file-invoice text-sm"></i>
                         </button>
+                        @endif
                         @endif
                         <button onclick="viewDetail({{ $proyek['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
                             <i class="fas fa-eye text-sm"></i>
                         </button>
                         @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
+                        @if($proyek['status'] !== 'gagal' && $proyek['status'] !== 'selesai')
                         <button onclick="editProyek({{ $proyek['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
                             <i class="fas fa-edit text-sm"></i>
                         </button>
-                        @if($proyek['status'] !== 'gagal')
                         <button onclick="ubahStatusGagal({{ $proyek['id'] }})" class="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200" title="Ubah ke Gagal">
                             <i class="fas fa-times-circle text-sm"></i>
                         </button>

@@ -204,6 +204,26 @@
                 </a>
             </li>
             @endif
+
+            <!-- Revisi -->
+            <li>
+                <a href="{{ route('revisi.index') }}"
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('revisi*') ? 'bg-red-200 text-red-800' : '' }}">
+                    <i class="fas fa-edit w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="font-medium">Manajemen Revisi</span>
+                    @php
+                        try {
+                            // Semua role bisa melihat semua revisi pending
+                            $countPendingRevisi = \App\Models\Revisi::where('status', 'pending')->count();
+                        } catch (\Exception $e) {
+                            $countPendingRevisi = 0;
+                        }
+                    @endphp
+                    @if($countPendingRevisi > 0)
+                        <span class="bg-orange-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">{{ $countPendingRevisi }}</span>
+                    @endif
+                </a>
+            </li>
         </ul>
     </nav>
 
@@ -421,6 +441,26 @@
                 </a>
             </li>
             @endif
+
+            <!-- Revisi -->
+            <li>
+                <a href="{{ route('revisi.index') }}" onclick="closeMobileMenu()"
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('revisi*') ? 'bg-red-200 text-red-800' : '' }}">
+                    <i class="fas fa-edit w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="font-medium">Manajemen Revisi</span>
+                    @php
+                        try {
+                            // Semua role bisa melihat semua revisi pending
+                            $countPendingRevisi = \App\Models\Revisi::where('status', 'pending')->count();
+                        } catch (\Exception $e) {
+                            $countPendingRevisi = 0;
+                        }
+                    @endphp
+                    @if($countPendingRevisi > 0)
+                        <span class="bg-orange-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">{{ $countPendingRevisi }}</span>
+                    @endif
+                </a>
+            </li>
         </ul>
 
         <!-- Mobile Bottom Menu -->
