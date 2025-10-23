@@ -434,11 +434,23 @@
                                         History
                                     </a>
                                     @if($isAdminKeuangan)
-                                        <a href="{{ route('penagihan-dinas.edit', $penagihan->id) }}" 
-                                           class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-yellow-600 bg-yellow-100 hover:bg-yellow-200 transition-colors duration-200">
-                                            <i class="fas fa-edit mr-1"></i>
-                                            Edit
-                                        </a>
+                                        @php
+                                            $statusProyek = $penagihan->proyek->status ?? '';
+                                            $canEdit = !in_array($statusProyek, ['Gagal', 'Selesai']);
+                                        @endphp
+                                        @if($canEdit)
+                                            <a href="{{ route('penagihan-dinas.edit', $penagihan->id) }}" 
+                                               class="inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-yellow-600 bg-yellow-100 hover:bg-yellow-200 transition-colors duration-200">
+                                                <i class="fas fa-edit mr-1"></i>
+                                                Edit
+                                            </a>
+                                        @else
+                                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded text-gray-600 bg-gray-100 border border-gray-200"
+                                                  title="Tidak dapat edit penagihan dengan status proyek {{ $statusProyek }}">
+                                                <i class="fas fa-ban mr-1 text-gray-400"></i>
+                                                Proyek {{ $statusProyek }}
+                                            </span>
+                                        @endif
                                     @else
                                         <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded text-gray-600 bg-gray-100 border border-gray-200"
                                               title="Hanya Admin Keuangan yang dapat melakukan edit">

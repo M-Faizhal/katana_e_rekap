@@ -250,6 +250,9 @@ class PenagihanDinasController extends Controller
 
         $request->validate([
             'nomor_invoice' => 'required|string|unique:penagihan_dinas,nomor_invoice,' . $id,
+            'total_harga' => 'required|numeric|min:0',
+            'status_pembayaran' => 'required|in:belum_bayar,dp,lunas',
+            'persentase_dp' => 'required_if:status_pembayaran,dp|nullable|numeric|min:0|max:100',
             'tanggal_jatuh_tempo' => 'required|date',
             'berita_acara_serah_terima' => 'nullable|file|mimes:pdf|max:2048',
             'invoice' => 'nullable|file|mimes:pdf|max:2048',
@@ -279,9 +282,56 @@ class PenagihanDinasController extends Controller
                 }
             }
 
+            // Calculate DP values based on status
+            $totalHarga = $request->total_harga;
+            $statusPembayaran = $request->status_pembayaran;
+            $persentaseDp = null;
+            $jumlahDp = null;
+
+            if ($statusPembayaran === 'dp') {
+                $persentaseDp = $request->persentase_dp;
+                $jumlahDp = ($persentaseDp / 100) * $totalHarga;
+                
+                // Update jumlah_bayar di bukti pembayaran DP yang sudah ada
+                $buktiPembayaranDp = BuktiPembayaran::where('penagihan_dinas_id', $id)
+                    ->where('jenis_pembayaran', 'dp')
+                    ->first();
+                
+                if ($buktiPembayaranDp) {
+                    $buktiPembayaranDp->update([
+                        'jumlah_bayar' => $jumlahDp
+                    ]);
+                }
+            } elseif ($statusPembayaran === 'lunas') {
+                // For lunas, keep existing DP values if they exist, or set to null
+                $persentaseDp = $penagihanDinas->persentase_dp;
+                $jumlahDp = $penagihanDinas->jumlah_dp;
+                
+                // Update jumlah_bayar di bukti pembayaran lunas yang sudah ada (jika ada)
+                $buktiPembayaranLunas = BuktiPembayaran::where('penagihan_dinas_id', $id)
+                    ->where('jenis_pembayaran', 'lunas')
+                    ->first();
+                
+                if ($buktiPembayaranLunas) {
+                    // Hitung sisa pembayaran untuk pelunasan
+                    $sisaPembayaran = $totalHarga - ($jumlahDp ?? 0);
+                    $buktiPembayaranLunas->update([
+                        'jumlah_bayar' => $sisaPembayaran
+                    ]);
+                }
+            } else {
+                // For belum_bayar, reset DP values
+                $persentaseDp = null;
+                $jumlahDp = null;
+            }
+
             // Update penagihan dinas
             $penagihanDinas->update([
                 'nomor_invoice' => $request->nomor_invoice,
+                'total_harga' => $totalHarga,
+                'status_pembayaran' => $statusPembayaran,
+                'persentase_dp' => $persentaseDp,
+                'jumlah_dp' => $jumlahDp,
                 'tanggal_jatuh_tempo' => $request->tanggal_jatuh_tempo,
                 'keterangan' => $request->keterangan,
             ] + $uploadedDokumen);

@@ -30,6 +30,7 @@
     <form action="{{ route('penagihan-dinas.update', $penagihanDinas->id) }}" method="POST" enctype="multipart/form-data" class="p-6">
         @csrf
         @method('PUT')
+        <input type="hidden" name="total_harga" id="total_harga_hidden" value="{{ $penagihanDinas->proyek->harga_total }}">
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Left Column -->
@@ -177,54 +178,6 @@
                     </div>
                 </div>
 
-                <!-- Status Pembayaran -->
-                <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200 shadow-sm">
-                    <div class="px-6 py-4 border-b border-purple-200 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-t-lg">
-                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                            <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
-                                <i class="fas fa-credit-card text-white text-sm"></i>
-                            </div>
-                            Status Pembayaran
-                        </h3>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm font-medium text-gray-600">Status Saat Ini:</span>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold
-                                @if($penagihanDinas->status_pembayaran === 'belum_bayar') bg-yellow-100 text-yellow-800
-                                @elseif($penagihanDinas->status_pembayaran === 'dp') bg-blue-100 text-blue-800
-                                @else bg-green-100 text-green-800 @endif">
-                                @if($penagihanDinas->status_pembayaran === 'belum_bayar')
-                                    <i class="fas fa-clock mr-1"></i>Belum Bayar
-                                @elseif($penagihanDinas->status_pembayaran === 'dp')
-                                    <i class="fas fa-hand-holding-usd mr-1"></i>Down Payment
-                                @else
-                                    <i class="fas fa-check-circle mr-1"></i>Lunas
-                                @endif
-                            </span>
-                        </div>
-                        @php
-                            $totalBayar = $penagihanDinas->buktiPembayaran->sum('jumlah_bayar');
-                            $sisaPembayaran = ($penagihanDinas->proyek->harga_total ?? 0) - $totalBayar;
-                        @endphp
-                        @if($penagihanDinas->status_pembayaran === 'dp')
-                        <div class="grid grid-cols-2 gap-4 pt-3 border-t border-purple-200">
-                            <div>
-                                <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Jumlah DP ({{ $penagihanDinas->persentase_dp }}%)</span>
-                                <div class="text-sm font-semibold text-green-600">Rp {{ number_format((float)$penagihanDinas->jumlah_dp, 0, ',', '.') }}</div>
-                            </div>
-                            <div>
-                                <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Sisa Pembayaran</span>
-                                <div class="text-sm font-semibold text-red-600">Rp {{ number_format($sisaPembayaran, 0, ',', '.') }}</div>
-                            </div>
-                        </div>
-                        @endif
-                        <div class="pt-3 border-t border-purple-200">
-                            <span class="text-xs text-gray-500 uppercase tracking-wider font-medium">Total Terbayar</span>
-                            <div class="text-lg font-bold text-blue-600">Rp {{ number_format((float)$totalBayar, 0, ',', '.') }}</div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Form Edit Fields -->
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -285,6 +238,80 @@
                                     {{ $message }}
                                 </p>
                             @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update Status Pembayaran & Input Pembayaran Baru -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-lg">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-credit-card text-white text-sm"></i>
+                            </div>
+                            Update Status Pembayaran
+                        </h3>
+                        <p class="text-sm text-gray-600 mt-1">Ubah status pembayaran atau tambah pembayaran baru</p>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- Status Pembayaran -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <i class="fas fa-toggle-on text-purple-600 mr-2"></i>
+                                Status Pembayaran *
+                            </label>
+                            <select name="status_pembayaran" id="status_pembayaran" required onchange="toggleDpPercentageEdit()"
+                                    class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 @error('status_pembayaran') border-red-300 @enderror px-4 py-3">
+                                <option value="belum_bayar" {{ old('status_pembayaran', $penagihanDinas->status_pembayaran) == 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
+                                <option value="dp" {{ old('status_pembayaran', $penagihanDinas->status_pembayaran) == 'dp' ? 'selected' : '' }}>Down Payment (DP)</option>
+                                <option value="lunas" {{ old('status_pembayaran', $penagihanDinas->status_pembayaran) == 'lunas' ? 'selected' : '' }}>Lunas</option>
+                            </select>
+                            @error('status_pembayaran')
+                                <p class="mt-2 text-sm text-red-600 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <!-- Persentase DP (jika DP) -->
+                        <div id="dp_percentage_section_edit" class="{{ $penagihanDinas->status_pembayaran == 'dp' ? '' : 'hidden' }}">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <i class="fas fa-percentage text-orange-600 mr-2"></i>
+                                Persentase DP (%)
+                            </label>
+                            <input type="number" name="persentase_dp" id="persentase_dp_edit" 
+                                   value="{{ old('persentase_dp', $penagihanDinas->persentase_dp) }}" 
+                                   min="0" max="100" step="0.01" onchange="calculateDpEdit()" onwheel="return false;"
+                                   class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 @error('persentase_dp') border-red-300 @enderror px-4 py-3"
+                                   placeholder="Masukkan persentase DP">
+                            @error('persentase_dp')
+                                <p class="mt-2 text-sm text-red-600 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                            
+                            <div id="dp_calculation_edit" class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                                <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                    <i class="fas fa-calculator text-blue-600 mr-2"></i>
+                                    Kalkulasi Pembayaran
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Total Harga:</span>
+                                        <span id="total_harga_edit" class="text-sm font-semibold text-gray-800">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 0, ',', '.') }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Jumlah DP:</span>
+                                        <span id="jumlah_dp_edit" class="text-sm font-semibold text-blue-600">Rp {{ number_format((float)$penagihanDinas->jumlah_dp ?? 0, 0, ',', '.') }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2 border-t border-blue-200">
+                                        <span class="text-sm text-gray-600">Sisa Pembayaran:</span>
+                                        <span id="sisa_pembayaran_edit" class="text-sm font-semibold text-red-600">Rp {{ number_format(($penagihanDinas->proyek->harga_total ?? 0) - ($penagihanDinas->jumlah_dp ?? 0), 0, ',', '.') }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -475,3 +502,83 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize on page load
+    toggleDpPercentageEdit();
+    calculateDpEdit();
+    
+    // Add form submit handler for debugging
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submitting...');
+            console.log('Status Pembayaran:', document.getElementById('status_pembayaran').value);
+            console.log('Total Harga:', document.getElementById('total_harga_hidden').value);
+            console.log('Persentase DP:', document.getElementById('persentase_dp_edit').value);
+            console.log('Persentase DP disabled:', document.getElementById('persentase_dp_edit').disabled);
+            console.log('Persentase DP required:', document.getElementById('persentase_dp_edit').required);
+            
+            // Check form validity
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                console.error('Form validation failed');
+                form.reportValidity();
+                return false;
+            }
+        });
+    }
+});
+
+function toggleDpPercentageEdit() {
+    const statusPembayaran = document.getElementById('status_pembayaran').value;
+    const dpSection = document.getElementById('dp_percentage_section_edit');
+    const persentaseDpInput = document.getElementById('persentase_dp_edit');
+    
+    console.log('Toggle DP section, status:', statusPembayaran);
+    
+    if (statusPembayaran === 'dp') {
+        dpSection.classList.remove('hidden');
+        persentaseDpInput.required = true;
+        persentaseDpInput.disabled = false;
+        calculateDpEdit();
+    } else {
+        dpSection.classList.add('hidden');
+        persentaseDpInput.required = false;
+        persentaseDpInput.disabled = true;
+        // Clear the value when not DP to avoid validation issues
+        persentaseDpInput.value = '';
+    }
+}
+
+function calculateDpEdit() {
+    const totalHarga = {{ (float)$penagihanDinas->proyek->harga_total ?? 0 }};
+    const persentaseDp = parseFloat(document.getElementById('persentase_dp_edit').value) || 0;
+    
+    const jumlahDp = (totalHarga * persentaseDp) / 100;
+    const sisaPembayaran = totalHarga - jumlahDp;
+    
+    // Update display
+    document.getElementById('jumlah_dp_edit').textContent = formatRupiah(jumlahDp);
+    document.getElementById('sisa_pembayaran_edit').textContent = formatRupiah(sisaPembayaran);
+}
+
+function formatRupiah(angka) {
+    const numberString = angka.toString().replace(/[^,\d]/g, '');
+    const split = numberString.split(',');
+    const sisa = split[0].length % 3;
+    let rupiah = split[0].substr(0, sisa);
+    const ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+    
+    if (ribuan) {
+        const separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+    
+    rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+    return 'Rp ' + rupiah;
+}
+</script>
+@endpush

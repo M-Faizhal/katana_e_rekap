@@ -20,7 +20,6 @@ class PenagihanDinas extends Model
         'status_pembayaran',
         'persentase_dp',
         'jumlah_dp',
-        'sisa_pembayaran',
         'tanggal_jatuh_tempo',
         'keterangan',
         'berita_acara_serah_terima',
@@ -34,7 +33,6 @@ class PenagihanDinas extends Model
         'total_harga' => 'decimal:2',
         'persentase_dp' => 'decimal:2',
         'jumlah_dp' => 'decimal:2',
-        'sisa_pembayaran' => 'decimal:2',
         'tanggal_jatuh_tempo' => 'date',
     ];
 
@@ -61,11 +59,6 @@ class PenagihanDinas extends Model
     public function getFormattedJumlahDpAttribute()
     {
         return $this->jumlah_dp ? 'Rp ' . number_format((float)$this->jumlah_dp, 0, ',', '.') : null;
-    }
-
-    public function getFormattedSisaPembayaranAttribute()
-    {
-        return $this->sisa_pembayaran ? 'Rp ' . number_format((float)$this->sisa_pembayaran, 0, ',', '.') : null;
     }
 
     public function getStatusPembayaranLabelAttribute()
