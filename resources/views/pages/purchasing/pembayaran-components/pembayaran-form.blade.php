@@ -624,15 +624,70 @@ document.addEventListener('DOMContentLoaded', function() {
     
     fileInput.addEventListener('change', function() {
         if (this.files && this.files[0]) {
-            fileName.textContent = this.files[0].name;
+            const file = this.files[0];
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            
+            // Check file size
+            if (file.size > maxSize) {
+                // Show error message
+                showFileError('Ukuran file terlalu besar! Maksimal 5MB. Ukuran file saat ini: ' + formatFileSize(file.size));
+                
+                // Clear the input
+                this.value = '';
+                fileInfo.classList.add('hidden');
+                return;
+            }
+            
+            // If file size is OK, show file info
+            fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
             fileInfo.classList.remove('hidden');
+            hideFileError();
         }
     });
     
     removeFile.addEventListener('click', function() {
         fileInput.value = '';
         fileInfo.classList.add('hidden');
+        hideFileError();
     });
+    
+    // Helper function to format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Helper function to show file error
+    function showFileError(message) {
+        // Remove existing error if any
+        hideFileError();
+        
+        // Create error element
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'file-error';
+        errorDiv.className = 'mt-3 p-3 bg-red-50 rounded-lg border border-red-200';
+        errorDiv.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                <span class="text-sm text-red-800">${message}</span>
+            </div>
+        `;
+        
+        // Insert after file input container
+        const fileContainer = document.querySelector('#bukti_bayar').closest('.border-2');
+        fileContainer.parentNode.insertBefore(errorDiv, fileContainer.nextSibling);
+    }
+    
+    // Helper function to hide file error
+    function hideFileError() {
+        const existingError = document.getElementById('file-error');
+        if (existingError) {
+            existingError.remove();
+        }
+    }
     
     // Vendor selection handling
     const vendorSelect = document.getElementById('vendor_select');
