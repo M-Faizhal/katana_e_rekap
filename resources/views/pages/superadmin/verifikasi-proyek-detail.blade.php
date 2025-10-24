@@ -670,7 +670,21 @@
             }
         }
         
-        $canVerify = $hasValidPengiriman && $allPengirimanSampai && !in_array($proyek->status, ['Selesai', 'Gagal']);
+        // Check revisi status - hanya bisa verifikasi jika tidak ada revisi atau semua revisi sudah completed/rejected
+        $hasRevisi = $proyek->revisi && $proyek->revisi->isNotEmpty();
+        $allRevisiCompleted = true;
+        $pendingRevisi = [];
+        
+        if ($hasRevisi) {
+            foreach ($proyek->revisi as $revisi) {
+                if (!in_array($revisi->status, ['completed', 'rejected'])) {
+                    $allRevisiCompleted = false;
+                    $pendingRevisi[] = $revisi;
+                }
+            }
+        }
+        
+        $canVerify = $hasValidPengiriman && $allPengirimanSampai && $allRevisiCompleted && !in_array($proyek->status, ['Selesai', 'Gagal']);
     @endphp
     
     @if($canVerify)
@@ -725,14 +739,45 @@
             <i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>
             <h3 class="text-lg font-semibold text-yellow-800">Proyek Belum Siap untuk Diverifikasi</h3>
         </div>
-        <div class="text-yellow-700 text-sm space-y-1">
+        <div class="text-yellow-700 text-sm space-y-2">
             @if(!$hasValidPengiriman)
-            <p>• Belum ada pengiriman yang valid untuk proyek ini</p>
+            <p class="flex items-start">
+                <i class="fas fa-circle text-xs mr-2 mt-1"></i>
+                <span>Belum ada pengiriman yang valid untuk proyek ini</span>
+            </p>
             @elseif(!$allPengirimanSampai)
-            <p>• Masih ada pengiriman yang belum selesai atau terverifikasi</p>
+            <p class="flex items-start">
+                <i class="fas fa-circle text-xs mr-2 mt-1"></i>
+                <span>Masih ada pengiriman yang belum selesai atau terverifikasi</span>
+            </p>
             @endif
+            
+            @if(!$allRevisiCompleted)
+            <p class="flex items-start">
+                <i class="fas fa-circle text-xs mr-2 mt-1"></i>
+                <span>Masih ada {{ count($pendingRevisi) }} revisi yang belum diselesaikan</span>
+            </p>
+            @if(count($pendingRevisi) > 0)
+            <div class="ml-5 mt-2 space-y-1">
+                @foreach($pendingRevisi as $revisi)
+                <div class="flex items-center text-xs bg-yellow-100 rounded px-2 py-1">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                        {{ $revisi->status === 'Pending' ? 'bg-yellow-200 text-yellow-800' : 
+                           ($revisi->status === 'In Progress' ? 'bg-blue-200 text-blue-800' : 'bg-gray-200 text-gray-800') }}">
+                        {{ $revisi->status }}
+                    </span>
+                    <span class="ml-2">{{ ucfirst(str_replace('_', ' ', $revisi->tipe_revisi)) }}</span>
+                </div>
+                @endforeach
+            </div>
+            @endif
+            @endif
+            
             @if($proyek->penagihanDinas->isEmpty() || $proyek->penagihanDinas->first()->status_pembayaran !== 'lunas')
-            <p>• Pembayaran dinas belum lunas</p>
+            <p class="flex items-start">
+                <i class="fas fa-circle text-xs mr-2 mt-1"></i>
+                <span>Pembayaran dinas belum lunas</span>
+            </p>
             @endif
         </div>
     </div>
