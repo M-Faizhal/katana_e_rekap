@@ -3,9 +3,169 @@
 @section('title', 'Ringkasan HPS - ' . ($proyek->kode_proyek ?? 'Unknown') . ' - Cyber KATANA')
 
 @section('content')
+<style>
+    /* CSS ini HANYA untuk print - tampilan web tidak berubah */
+    @media print {
+        /* Reset margin dan padding */
+        @page {
+            size: A4 landscape;
+            margin: 8mm;
+        }
+        
+        * {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+        
+        /* Sembunyikan elemen yang tidak perlu */
+        nav, .no-print, button, .sidebar, header, footer {
+            display: none !important;
+        }
+        
+        /* Container full width saat print */
+        body, .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Header compact */
+        .page-header {
+            margin-bottom: 8px !important;
+            padding: 6px 8px !important;
+        }
+        
+        .page-header h1 {
+            font-size: 14px !important;
+            margin: 0 !important;
+        }
+        
+        .page-header .text-sm {
+            font-size: 9px !important;
+        }
+        
+        /* Section headers */
+        h2, h3 {
+            font-size: 11px !important;
+            margin: 4px 0 !important;
+            padding: 4px 6px !important;
+        }
+        
+        /* Tabel super compact */
+        table {
+            width: 100% !important;
+            font-size: 7px !important;
+            border-collapse: collapse !important;
+            page-break-inside: auto;
+            margin: 0 !important;
+        }
+        
+        table thead {
+            display: table-header-group;
+            background-color: #f9fafb !important;
+        }
+        
+        table th {
+            padding: 3px 2px !important;
+            font-size: 7px !important;
+            border: 1px solid #e5e7eb !important;
+            background-color: #f9fafb !important;
+        }
+        
+        table td {
+            padding: 2px 3px !important;
+            font-size: 7px !important;
+            border: 1px solid #e5e7eb !important;
+        }
+        
+        table tfoot td {
+            font-weight: bold !important;
+            background-color: #f9fafb !important;
+        }
+        
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        
+        /* Summary cards ultra compact */
+        .summary-section {
+            margin: 6px 0 !important;
+            padding: 4px !important;
+            page-break-inside: avoid;
+        }
+        
+        .grid {
+            display: grid !important;
+            gap: 4px !important;
+        }
+        
+        .grid > div {
+            padding: 4px 6px !important;
+        }
+        
+        .grid .text-sm {
+            font-size: 7px !important;
+        }
+        
+        .grid .text-lg {
+            font-size: 9px !important;
+        }
+        
+        .grid .text-xs {
+            font-size: 6px !important;
+        }
+        
+        /* Remove shadows and adjust borders for print */
+        .rounded-lg, .shadow-sm {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+        
+        /* Compact spacing */
+        .mb-6 {
+            margin-bottom: 4px !important;
+        }
+        
+        .mb-4 {
+            margin-bottom: 4px !important;
+        }
+        
+        .mb-2 {
+            margin-bottom: 4px !important;
+        }
+        
+        .p-4 {
+            padding: 4px !important;
+        }
+        
+        .p-3 {
+            padding: 4px !important;
+        }
+        
+        .p-2 {
+            padding: 4px !important;
+        }
+        
+        /* Hide overflow scroll */
+        .overflow-x-auto {
+            overflow: visible !important;
+        }
+        
+        /* Ensure colors print */
+        .text-green-600, .text-blue-600, .text-orange-600, 
+        .text-purple-600, .text-red-700, .text-yellow-700,
+        .bg-gray-50, .bg-white, .bg-red-50 {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+    }
+</style>
+
 <div class="container mx-auto px-4 py-6 max-w-7xl">
     <!-- Header -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 page-header">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
             <div class="flex-1 min-w-0">
                 <h1 class="text-xl font-semibold text-gray-900 truncate">Ringkasan Item HPS</h1>
@@ -94,7 +254,7 @@
         </div>
     </div>
             <!-- Biaya Tidak Langsung Section -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-2">
+            <div class="bg-gray-50 rounded-lg p-4 mb-2 summary-section">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Biaya Tidak Langsung</h3>
                 
                 <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 text-center">
@@ -156,7 +316,7 @@
         </div>
         
     </div>
-    <div class="bg-gray-50 rounded-lg p-4 mb-2">
+    <div class="bg-gray-50 rounded-lg p-4 mb-2 summary-section">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Rincian Proyek</h3>
         <!-- Additional Summary Details -->
         <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 text-center">
@@ -188,7 +348,7 @@
         </h3>
         </div>
     <!-- Summary Cards Section -->
-    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+    <div class="bg-gray-50 rounded-lg p-4 mb-6 summary-section">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Ringkasan Total Kalkulasi HPS</h3>
         
         <!-- Main Summary Row -->
