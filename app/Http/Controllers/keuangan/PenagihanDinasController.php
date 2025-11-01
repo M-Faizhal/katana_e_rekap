@@ -16,12 +16,51 @@ use Carbon\Carbon;
 
 class PenagihanDinasController extends Controller
 {
+    /**
+     * Helper method untuk mengecek apakah semua vendor sudah mengirim dengan status "Sampai_Tujuan"
+     * 
+     * @param Penawaran $penawaran
+     * @return bool
+     */
+    private function checkAllVendorsDelivered($penawaran)
+    {
+        // Ambil semua vendor yang terlibat dalam penawaran ini
+        $vendorIds = $penawaran->penawaranDetail()
+            ->with('barang.vendor')
+            ->get()
+            ->pluck('barang.id_vendor')
+            ->filter()
+            ->unique()
+            ->values();
+
+        // Jika tidak ada vendor, return false (tidak bisa ditagih)
+        if ($vendorIds->isEmpty()) {
+            return false;
+        }
+
+        // Cek pengiriman untuk setiap vendor
+        foreach ($vendorIds as $vendorId) {
+            $pengiriman = $penawaran->pengiriman()
+                ->where('id_vendor', $vendorId)
+                ->latest()
+                ->first();
+
+            // Jika vendor belum ada pengiriman atau status bukan "Sampai_Tujuan", return false
+            if (!$pengiriman || $pengiriman->status_verifikasi !== 'Sampai_Tujuan') {
+                return false;
+            }
+        }
+
+        // Semua vendor sudah mengirim dengan status "Sampai_Tujuan"
+        return true;
+    }
+
     public function index()
     {
         // Ambil proyek yang sudah di ACC oleh klien
         $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
             $query->where('status', 'ACC');
-        }])
+        }, 'semuaPenawaran.pengiriman.vendor', 'semuaPenawaran.penawaranDetail.barang.vendor'])
         ->whereHas('semuaPenawaran', function($query) {
             $query->where('status', 'ACC');
         })
@@ -35,10 +74,18 @@ class PenagihanDinasController extends Controller
             $hasUnpaidPenawaran = false;
             
             foreach ($penawaranAcc as $penawaran) {
+                // Cek apakah penawaran sudah ditagih
                 $existingPenagihan = PenagihanDinas::where('penawaran_id', $penawaran->id_penawaran)->first();
+                
                 if (!$existingPenagihan) {
-                    $hasUnpaidPenawaran = true;
-                    break; // Jika ada satu penawaran yang belum ditagih, proyek masuk kategori belum bayar
+                    // Cek apakah semua vendor sudah mengirim dengan status "Sampai_Tujuan"
+                    $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
+                    
+                    // Hanya masukkan ke belum bayar jika belum ditagih DAN semua vendor sudah sampai tujuan
+                    if ($allVendorsDelivered) {
+                        $hasUnpaidPenawaran = true;
+                        break;
+                    }
                 }
             }
             

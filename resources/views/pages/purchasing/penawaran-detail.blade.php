@@ -70,6 +70,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">No</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Nama Barang</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Spesifikasi</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Qty</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Satuan</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Harga Satuan</th>
@@ -82,6 +83,92 @@
                         <tr class="hover:bg-blue-50">
                             <td class="px-4 py-3 text-sm text-blue-800">{{ $index + 1 }}</td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ $item->nama_barang }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">
+                                <div class="max-w-xs">
+                                    @if($item->spesifikasi)
+                                        <div class="mb-1">{{ Str::limit($item->spesifikasi, 80) }}</div>
+                                    @else
+                                        <span class="text-gray-400 italic">Tidak ada spesifikasi</span>
+                                    @endif
+                                    
+                                    @php
+                                        $spesifikasiFiles = [];
+                                        if ($item->spesifikasi_files) {
+                                            if (is_string($item->spesifikasi_files)) {
+                                                $decoded = json_decode($item->spesifikasi_files, true);
+                                                if (is_array($decoded)) {
+                                                    $spesifikasiFiles = $decoded;
+                                                }
+                                            } elseif (is_array($item->spesifikasi_files)) {
+                                                $spesifikasiFiles = $item->spesifikasi_files;
+                                            }
+                                        }
+                                    @endphp
+                                    
+                                    @if(!empty($spesifikasiFiles) && is_array($spesifikasiFiles))
+                                        <div class="mt-2 space-y-1">
+                                            <div class="text-xs font-medium text-blue-600 mb-1">
+                                                <i class="fas fa-paperclip mr-1"></i>File Lampiran:
+                                            </div>
+                                            @foreach($spesifikasiFiles as $fileIndex => $file)
+                                                @php
+                                                    // Handle both array of objects and array of strings
+                                                    if (is_array($file) && isset($file['original_name']) && isset($file['stored_name'])) {
+                                                        $fileName = $file['original_name'];
+                                                        $storedName = $file['stored_name'];
+                                                        $filePath = 'spesifikasi/' . $storedName;
+                                                    } elseif (is_string($file)) {
+                                                        $fileName = basename($file);
+                                                        $filePath = $file;
+                                                    } else {
+                                                        continue;
+                                                    }
+                                                    
+                                                    $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                                                    $iconClass = 'fas fa-file';
+                                                    $iconColor = 'text-gray-500';
+                                                    $bgColor = 'bg-gray-100';
+                                                    
+                                                    if (in_array($extension, ['pdf'])) {
+                                                        $iconClass = 'fas fa-file-pdf';
+                                                        $iconColor = 'text-red-500';
+                                                        $bgColor = 'bg-red-50';
+                                                    } elseif (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'])) {
+                                                        $iconClass = 'fas fa-file-image';
+                                                        $iconColor = 'text-green-500';
+                                                        $bgColor = 'bg-green-50';
+                                                    } elseif (in_array($extension, ['doc', 'docx'])) {
+                                                        $iconClass = 'fas fa-file-word';
+                                                        $iconColor = 'text-blue-600';
+                                                        $bgColor = 'bg-blue-50';
+                                                    } elseif (in_array($extension, ['xls', 'xlsx'])) {
+                                                        $iconClass = 'fas fa-file-excel';
+                                                        $iconColor = 'text-green-600';
+                                                        $bgColor = 'bg-green-50';
+                                                    } elseif (in_array($extension, ['zip', 'rar', '7z'])) {
+                                                        $iconClass = 'fas fa-file-archive';
+                                                        $iconColor = 'text-yellow-600';
+                                                        $bgColor = 'bg-yellow-50';
+                                                    }
+                                                @endphp
+                                                
+                                                <div class="flex items-center justify-between {{ $bgColor }} px-2 py-1 rounded text-xs">
+                                                    <div class="flex items-center space-x-1 flex-1 min-w-0">
+                                                        <i class="{{ $iconClass }} {{ $iconColor }}"></i>
+                                                        <span class="truncate" title="{{ $fileName }}">{{ Str::limit($fileName, 25) }}</span>
+                                                    </div>
+                                                    <a href="{{ asset('storage/' . $filePath) }}" 
+                                                       target="_blank" 
+                                                       class="ml-2 text-blue-600 hover:text-blue-800"
+                                                       title="Lihat file">
+                                                        <i class="fas fa-external-link-alt"></i>
+                                                    </a>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            </td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ number_format($item->jumlah, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ $item->satuan }}</td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ 'Rp ' . number_format($item->harga_satuan, 0, ',', '.') }}</td>
@@ -90,7 +177,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">Tidak ada data permintaan klien</td>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada data permintaan klien</td>
                         </tr>
                     @endif
                 </tbody>

@@ -77,6 +77,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">No</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Nama Barang</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Spesifikasi</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Qty</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Satuan</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Harga Satuan</th>
@@ -89,6 +90,80 @@
                         <tr class="hover:bg-blue-50">
                             <td class="px-4 py-3 text-sm text-blue-800">{{ $index + 1 }}</td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ $item->nama_barang }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">
+                                @if($item->spesifikasi)
+                                    <div class="max-w-md">
+                                        <!-- Teks Spesifikasi -->
+                                        <div class="text-xs text-blue-700 leading-relaxed whitespace-pre-line">
+                                            {{ $item->spesifikasi }}
+                                        </div>
+                                        
+                                        @php
+                                            $files = $item->spesifikasi_files;
+                                            // Pastikan format array
+                                            if (is_string($files)) {
+                                                $files = json_decode($files, true) ?? [];
+                                            } elseif (!is_array($files)) {
+                                                $files = [];
+                                            }
+                                            
+                                            // Proses file untuk handle berbagai format
+                                            $processedFiles = [];
+                                            foreach ($files as $file) {
+                                                if (is_array($file)) {
+                                                    // Format baru: {"original_name":"...", "stored_name":"..."}
+                                                    if (isset($file['stored_name']) && !empty($file['stored_name'])) {
+                                                        $processedFiles[] = [
+                                                            'path' => $file['stored_name'],
+                                                            'name' => $file['original_name'] ?? basename($file['stored_name'])
+                                                        ];
+                                                    }
+                                                } elseif (is_string($file) && !empty($file)) {
+                                                    // Format lama: hanya path file
+                                                    $processedFiles[] = [
+                                                        'path' => $file,
+                                                        'name' => basename($file)
+                                                    ];
+                                                }
+                                            }
+                                            
+                                            $hasFiles = !empty($processedFiles);
+                                        @endphp
+                                        
+                                        <!-- File Spesifikasi -->
+                                        @if($hasFiles)
+                                            <div class="mt-2 pt-2 border-t border-blue-200">
+                                                <div class="text-xs text-blue-600 font-medium mb-1">
+                                                    <i class="fas fa-paperclip mr-1"></i>
+                                                    File Lampiran ({{ count($processedFiles) }})
+                                                </div>
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach($processedFiles as $fileIndex => $fileData)
+                                                        <a href="{{ asset('storage/' . $fileData['path']) }}" 
+                                                           target="_blank"
+                                                           class="inline-flex items-center text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors shadow-sm"
+                                                           title="{{ $fileData['name'] }}">
+                                                            <i class="fas fa-file-alt mr-1"></i>
+                                                            {{ Str::limit($fileData['name'], 15) }}
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="mt-2 pt-2 border-t border-blue-200">
+                                                <div class="text-xs text-gray-400 italic">
+                                                    <i class="fas fa-info-circle mr-1"></i>
+                                                    Tidak ada file lampiran
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="text-center">
+                                        <span class="text-xs text-gray-400 italic">Tidak ada spesifikasi</span>
+                                    </div>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ number_format($item->jumlah, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ $item->satuan }}</td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ 'Rp ' . number_format($item->harga_satuan, 0, ',', '.') }}</td>
@@ -97,7 +172,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">Tidak ada data permintaan klien</td>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">Tidak ada data permintaan klien</td>
                         </tr>
                     @endif
                 </tbody>
