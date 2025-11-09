@@ -297,6 +297,18 @@
             </div>
         </div>
         
+        <!-- Secondary Summary Row - Selisih Pagu -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-center mb-4">
+            <div class="bg-white rounded-lg p-3 border">
+                <div class="text-sm text-gray-600">Selisih Pagu dan HPS</div>
+                <div class="text-lg font-bold text-purple-700" id="grand-selisih-pagu-hps">-</div>
+            </div>
+            <div class="bg-white rounded-lg p-3 border">
+                <div class="text-sm text-gray-600">Persentase Selisih</div>
+                <div class="text-lg font-bold text-indigo-700" id="grand-persen-selisih">-</div>
+            </div>
+        </div>
+        
         <!-- Additional Summary Details -->
         <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 text-center">
             <div class="bg-white rounded-lg p-2 border">
@@ -921,6 +933,7 @@ let canEdit = {{ ($canEdit ?? false) ? 'true' : 'false' }};
 let barangList = [];
 let vendorList = [];
 let kalkulasiData = @json($kalkulasiData ?? []);
+const totalPermintaanKlien = {{ $totalPermintaanKlien ?? 0 }};
 
 // Initialize default values for new fields and ensure compatibility
 kalkulasiData = kalkulasiData.map(item => ({
@@ -1730,6 +1743,24 @@ function calculateTotals() {
     document.getElementById('grand-total-hps').textContent = summary.totalHps > 0 ? formatRupiah(summary.totalHps) : '-';
     document.getElementById('grand-total-nett').textContent = summary.totalNett > 0 ? formatRupiah(summary.totalNett) : '-';
     document.getElementById('grand-avg-nett').textContent = summary.rataRataNet ? formatPercent(summary.rataRataNet) : '-';
+    
+    // Calculate Selisih Pagu dan HPS
+    const selisihPaguHps = totalPermintaanKlien - summary.totalHps;
+    const persenSelisih = totalPermintaanKlien > 0 ? (selisihPaguHps / totalPermintaanKlien * 100) : 0;
+    
+    // Update Selisih cards
+    if (document.getElementById('grand-selisih-pagu-hps')) {
+        const selisihElement = document.getElementById('grand-selisih-pagu-hps');
+        selisihElement.textContent = formatRupiah(selisihPaguHps);
+        // Change color based on positive/negative
+        selisihElement.className = selisihPaguHps >= 0 ? 'text-lg font-bold text-green-700' : 'text-lg font-bold text-red-700';
+    }
+    if (document.getElementById('grand-persen-selisih')) {
+        const persenElement = document.getElementById('grand-persen-selisih');
+        persenElement.textContent = formatPercent(persenSelisih);
+        // Change color based on positive/negative
+        persenElement.className = persenSelisih >= 0 ? 'text-lg font-bold text-green-700' : 'text-lg font-bold text-red-700';
+    }
     
     // Additional summary details - format with proper zero handling
     if (document.getElementById('total-items')) {

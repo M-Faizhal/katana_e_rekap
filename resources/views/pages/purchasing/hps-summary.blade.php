@@ -385,6 +385,28 @@
             </div>
         </div>
         
+        <!-- Secondary Summary Row - Selisih Pagu -->
+        @php
+            $totalPermintaanKlien = $proyek->proyekBarang ? $proyek->proyekBarang->sum('harga_total') : 0;
+            $totalHps = $kalkulasiData->sum('hps');
+            $selisihPaguHps = $totalPermintaanKlien - $totalHps;
+            $persenSelisih = $totalPermintaanKlien > 0 ? ($selisihPaguHps / $totalPermintaanKlien * 100) : 0;
+        @endphp
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-center mb-4">
+            <div class="bg-white rounded-lg p-3 border">
+                <div class="text-sm text-gray-600">Selisih Pagu dan HPS</div>
+                <div class="text-lg font-bold {{ $selisihPaguHps >= 0 ? 'text-green-700' : 'text-red-700' }}">
+                    {{ 'Rp ' . number_format($selisihPaguHps, 0, ',', '.') }}
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-3 border">
+                <div class="text-sm text-gray-600">Persentase Selisih</div>
+                <div class="text-lg font-bold {{ $persenSelisih >= 0 ? 'text-green-700' : 'text-red-700' }}">
+                    {{ number_format($persenSelisih, 2) }}%
+                </div>
+            </div>
+        </div>
+        
         
     </div>
 
