@@ -176,6 +176,8 @@
                     <span class="hidden sm:inline">|</span>
                     <span class="font-medium">Instansi:</span> <span class="truncate">{{ $proyek->instansi ?? '-' }}</span>
                     <span class="hidden sm:inline">|</span>
+                    <span class="font-medium">Wilayah:</span> <span class="truncate">{{ $proyek->kab_kota ?? '-' }}</span>
+                    <span class="hidden sm:inline">|</span>
                     <span class="font-medium">Total:</span> <span class="truncate text-green-600">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
                 </div>
             </div>
