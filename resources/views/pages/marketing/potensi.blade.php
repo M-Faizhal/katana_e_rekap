@@ -55,8 +55,8 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             </div>
             <div class="flex-1">
                 <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-600 mb-1">Total Potensi</h3>
-                <p class="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-600">{{ $totalPotensi }}</p>
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">Potensi yang sedang menunggu</p>
+                <p id="totalPotensiCount" class="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-600">{{ $totalPotensi }}</p>
+                <p id="totalPotensiLabel" class="text-xs sm:text-sm text-gray-500 mt-1">Potensi yang sedang menunggu</p>
             </div>
         </div>
     </div>
@@ -69,8 +69,8 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             </div>
             <div class="flex-1">
                 <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-600 mb-1">Total Nilai Potensi</h3>
-                <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">Rp {{ number_format($totalNilaiPotensi, 0, ',', '.') }}</p>
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">Estimasi nilai keseluruhan</p>
+                <p id="totalNilaiPotensi" class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">Rp {{ number_format($totalNilaiPotensi, 0, ',', '.') }}</p>
+                <p id="totalNilaiLabel" class="text-xs sm:text-sm text-gray-500 mt-1">Estimasi nilai keseluruhan</p>
             </div>
         </div>
     </div>
@@ -205,7 +205,17 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <p class="font-medium text-gray-800 text-sm sm:text-base">{{ \Carbon\Carbon::parse($potensi['tanggal'])->format('d M Y') }}</p>
                     </div>
                     <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Kabupaten/Kota</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Tahun Potensi</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">
+                            @if(isset($potensi['tahun_potensi']) && $potensi['tahun_potensi'])
+                                {{ $potensi['tahun_potensi'] }}
+                            @else
+                                <span class="text-gray-400 italic">Belum diisi</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Provinsi atau Kabupaten/Kota</p>
                         <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $potensi['kabupaten'] }}</p>
                     </div>
                     <div>
@@ -707,6 +717,7 @@ function filterAndSort() {
 
     currentData = filtered;
     currentPage = 1; // Reset to first page when filtering
+    updateStatistics(); // Update summary statistics
     displayResults();
     updatePaginationInfo();
     renderPagination();
@@ -752,6 +763,7 @@ function resetFilters() {
     }
 
     // Update pagination info and render - this will handle showing/hiding cards
+    updateStatistics(); // Update summary statistics
     displayResults();
     updatePaginationInfo();
     renderPagination();
@@ -1682,6 +1694,68 @@ function updateStatistics() {
     });
 }
 
+// Function to update statistics based on current filtered data
+function updateStatistics() {
+    console.log('=== UPDATE STATISTICS DEBUG ===');
+    
+    // Calculate statistics from current filtered data
+    const totalCount = currentData.length;
+    const totalNilai = currentData.reduce((sum, item) => {
+        return sum + (item.total_nilai || 0);
+    }, 0);
+    
+    console.log('Filtered data count:', totalCount);
+    console.log('Filtered total nilai:', totalNilai);
+    
+    // Update Total Potensi card
+    const totalPotensiElement = document.getElementById('totalPotensiCount');
+    if (totalPotensiElement) {
+        // Add animation effect
+        totalPotensiElement.classList.add('animate-pulse');
+        totalPotensiElement.textContent = totalCount;
+        setTimeout(() => {
+            totalPotensiElement.classList.remove('animate-pulse');
+        }, 500);
+    }
+    
+    // Update label based on filter status
+    const totalPotensiLabel = document.getElementById('totalPotensiLabel');
+    const tahunFilter = document.getElementById('tahunFilter');
+    const selectedTahun = tahunFilter ? tahunFilter.value : '';
+    
+    if (totalPotensiLabel) {
+        if (selectedTahun) {
+            totalPotensiLabel.textContent = `Potensi tahun ${selectedTahun}`;
+        } else {
+            totalPotensiLabel.textContent = 'Potensi yang sedang menunggu';
+        }
+    }
+    
+    // Update Total Nilai card
+    const totalNilaiElement = document.getElementById('totalNilaiPotensi');
+    if (totalNilaiElement) {
+        // Add animation effect
+        totalNilaiElement.classList.add('animate-pulse');
+        totalNilaiElement.textContent = formatRupiah(totalNilai);
+        setTimeout(() => {
+            totalNilaiElement.classList.remove('animate-pulse');
+        }, 500);
+    }
+    
+    // Update nilai label
+    const totalNilaiLabel = document.getElementById('totalNilaiLabel');
+    if (totalNilaiLabel) {
+        if (selectedTahun) {
+            totalNilaiLabel.textContent = `Estimasi nilai tahun ${selectedTahun}`;
+        } else {
+            totalNilaiLabel.textContent = 'Estimasi nilai keseluruhan';
+        }
+    }
+    
+    console.log('Statistics updated successfully');
+    console.log('=== END UPDATE STATISTICS DEBUG ===');
+}
+
 // Utility Functions
 function formatRupiah(angka) {
     if (!angka && angka !== 0) return 'Rp 0,00';
@@ -1947,6 +2021,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Initial pagination - Total pages:', totalPages, 'Items per page:', itemsPerPage);
 
     // Initialize display
+    updateStatistics(); // Initialize statistics
     displayResults();
     updatePaginationInfo();
     renderPagination();

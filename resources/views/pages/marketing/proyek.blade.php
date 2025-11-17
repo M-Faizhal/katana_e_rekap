@@ -244,7 +244,17 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <p class="font-medium text-gray-800 text-sm sm:text-base">{{ \Carbon\Carbon::parse($proyek['tanggal'])->format('d M Y') }}</p>
                     </div>
                     <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Kabupaten/Kota</p>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Tahun Potensi</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">
+                            @if(isset($proyek['tahun_potensi']) && $proyek['tahun_potensi'])
+                                {{ $proyek['tahun_potensi'] }}
+                            @else
+                                <span class="text-gray-400 italic">Belum diisi</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Provinsi atau Kabupaten/Kota</p>
                         <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $proyek['kabupaten'] }}</p>
                     </div>
                     <div>
