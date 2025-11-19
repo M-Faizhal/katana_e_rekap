@@ -42,63 +42,62 @@
 
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-folder text-blue-600 text-sm sm:text-lg lg:text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
+        <div class="flex flex-col text-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-100 mb-3 w-fit mx-auto">
+                <i class="fas fa-folder text-blue-600 text-lg sm:text-xl lg:text-2xl"></i>
             </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Proyek</h3>
+            <div>
+                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1">Total Proyek</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{{ $stats['total_proyek'] }}</p>
             </div>
         </div>
     </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-indigo-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-handshake text-indigo-600 text-sm sm:text-lg lg:text-xl"></i>
+    
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
+        <div class="flex flex-col text-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-indigo-100 mb-3 w-fit mx-auto">
+                <i class="fas fa-handshake text-indigo-600 text-lg sm:text-xl lg:text-2xl"></i>
             </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Proyek Sudah SP</h3>
+            <div>
+                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1">Proyek Sudah SP</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-indigo-600">{{ $stats['proyek_sp'] }}</p>
             </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-check-circle text-green-600 text-sm sm:text-lg lg:text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
+        <div class="flex flex-col text-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-3 w-fit mx-auto">
+                <i class="fas fa-check-circle text-green-600 text-lg sm:text-xl lg:text-2xl"></i>
             </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Proyek Selesai</h3>
+            <div>
+                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1">Proyek Selesai</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{{ $stats['proyek_selesai'] }}</p>
             </div>
         </div>
     </div>
 
-    
-
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-clock text-yellow-600 text-sm sm:text-lg lg:text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
+        <div class="flex flex-col text-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 mb-3 w-fit mx-auto">
+                <i class="fas fa-clock text-yellow-600 text-lg sm:text-xl lg:text-2xl"></i>
             </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Proyek Berjalan</h3>
+            <div>
+                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1">Proyek Berjalan</h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">{{ $stats['proyek_berjalan'] }}</p>
             </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-money-bill-wave text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
+        <div class="flex flex-col text-center">
+            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-3 w-fit mx-auto">
+                <i class="fas fa-money-bill-wave text-purple-600 text-lg sm:text-xl lg:text-2xl"></i>
             </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Nilai</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">
+            <div>
+                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1">Total Nilai</h3>
+                <p class="text-sm sm:text-base lg:text-lg font-bold text-purple-600">
                     @php
                         $totalNilai = $stats['total_nilai_proyek'] ?? 0;
                         if ($totalNilai >= 1000000000) {
