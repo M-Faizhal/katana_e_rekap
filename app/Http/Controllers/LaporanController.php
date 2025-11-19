@@ -154,10 +154,22 @@ class LaporanController extends Controller
             ->whereNotNull('harga_total')
             ->sum('harga_total');
 
+        // Hitung proyek yang sudah SP (proyek dengan penawaran status ACC)
+        $proyekSP = Proyek::whereHas('semuaPenawaran', function($query) {
+            $query->where('status', 'ACC');
+        })->where('status', '!=', 'Gagal')->count();
+
+        // Hitung proyek selesai
+        $proyekSelesai = Proyek::where('status', 'Selesai')->count();
+
+        // Hitung proyek berjalan (selisih proyek SP dan proyek selesai)
+        $proyekBerjalan = $proyekSP - $proyekSelesai;
+
         $stats = [
             'total_proyek' => Proyek::where('status', '!=', 'Gagal')->count(),
-            'proyek_selesai' => Proyek::where('status', 'Selesai')->count(),
-            'proyek_berjalan' => Proyek::whereNotIn('status', ['Selesai', 'Gagal'])->count(),
+            'proyek_selesai' => $proyekSelesai,
+            'proyek_sp' => $proyekSP,
+            'proyek_berjalan' => max(0, $proyekBerjalan), // Pastikan tidak negatif
             'total_nilai_proyek' => $totalNilai ?? 0,
             'vendor_aktif' => Vendor::whereHas('barang')->count(),
             'jenis_produk' => Barang::distinct('nama_barang')->count(),
