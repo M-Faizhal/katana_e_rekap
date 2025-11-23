@@ -1848,10 +1848,11 @@ async function saveKalkulasi() {
 
     // --- Batasi nilai persentase agar tidak out of range database ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi persentase dalam range yang aman untuk database (-999.99 sampai 999.99)
+        // Batasi persentase dalam range yang aman untuk database (-99999.99 sampai 99999.99)
+        // Mengizinkan nilai minus besar seperti -28000%
         const safePercentRange = (value) => {
             const numValue = parseFloat(value || 0);
-            return Math.max(-999.99, Math.min(999.99, numValue));
+            return Math.max(-99999.99, Math.min(99999.99, numValue));
         };
         
         const grossIncomePercent = safePercentRange(item.gross_income_persentase);
@@ -2241,10 +2242,11 @@ async function saveKalkulasiWithHistory() {
 
     // --- Batasi nilai persentase agar tidak out of range database ---
     const sanitizedKalkulasi = kalkulasiData.map(item => {
-        // Batasi persentase dalam range yang aman untuk database (-999.99 sampai 999.99)
+        // Batasi persentase dalam range yang aman untuk database (-99999.99 sampai 99999.99)
+        // Mengizinkan nilai minus besar seperti -28000%
         const safePercentRange = (value) => {
             const numValue = parseFloat(value || 0);
-            return Math.max(-999.99, Math.min(999.99, numValue));
+            return Math.max(-99999.99, Math.min(99999.99, numValue));
         };
         
         const grossIncomePercent = safePercentRange(item.gross_income_persentase);
