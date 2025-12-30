@@ -493,6 +493,14 @@ class DashboardController extends Controller
 
         foreach ($proyekAcc as $proyek) {
             foreach ($proyek->semuaPenawaran as $penawaran) {
+                // Cek apakah semua vendor sudah mengirim barang (Sampai_Tujuan)
+                $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
+                
+                // Skip jika barang belum sampai semua
+                if (!$allVendorsDelivered) {
+                    continue;
+                }
+                
                 // Cek apakah ada penagihan untuk penawaran ini
                 $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
 
@@ -554,6 +562,14 @@ class DashboardController extends Controller
 
         foreach ($proyekAcc as $proyek) {
             foreach ($proyek->semuaPenawaran as $penawaran) {
+                // Cek apakah semua vendor sudah mengirim barang (Sampai_Tujuan)
+                $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
+                
+                // Skip jika barang belum sampai semua
+                if (!$allVendorsDelivered) {
+                    continue;
+                }
+                
                 $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
 
                 $shouldInclude = false;
@@ -891,6 +907,14 @@ class DashboardController extends Controller
 
         foreach ($proyekAcc as $proyek) {
             foreach ($proyek->semuaPenawaran as $penawaran) {
+                // Cek apakah semua vendor sudah mengirim barang (Sampai_Tujuan)
+                $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
+                
+                // Skip jika barang belum sampai semua
+                if (!$allVendorsDelivered) {
+                    continue;
+                }
+                
                 $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
 
                 $shouldInclude = false;
@@ -988,6 +1012,37 @@ class DashboardController extends Controller
 
         // Sort by outstanding amount (descending) and limit to top 8
         return $debtAgeList->sortByDesc('outstanding_amount')->take(8);
+    }
+
+    /**
+     * Check if all vendors have delivered their items for a penawaran
+     */
+    private function checkAllVendorsDelivered($penawaran)
+    {
+        // Get all unique vendor IDs from penawaran details
+        $vendorIds = $penawaran->penawaranDetail()
+            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
+            ->pluck('barang.id_vendor')
+            ->unique();
+
+        // If no vendors found, return false
+        if ($vendorIds->isEmpty()) {
+            return false;
+        }
+
+        // Check each vendor has delivered (status_verifikasi = Sampai_Tujuan)
+        foreach ($vendorIds as $vendorId) {
+            $pengiriman = $penawaran->pengiriman()
+                ->where('id_vendor', $vendorId)
+                ->where('status_verifikasi', 'Sampai_Tujuan')
+                ->exists();
+
+            if (!$pengiriman) {
+                return false; // At least one vendor hasn't delivered yet
+            }
+        }
+
+        return true; // All vendors have delivered
     }
 
     /**

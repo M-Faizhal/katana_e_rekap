@@ -1295,6 +1295,45 @@ public function exportTSV(Request $request)
     }
 
     /**
+     * Helper method untuk mengecek apakah semua vendor sudah mengirim dengan status "Sampai_Tujuan"
+     * 
+     * @param Penawaran $penawaran
+     * @return bool
+     */
+    private function checkAllVendorsDelivered($penawaran)
+    {
+        // Ambil semua vendor yang terlibat dalam penawaran ini
+        $vendorIds = $penawaran->penawaranDetail()
+            ->with('barang.vendor')
+            ->get()
+            ->pluck('barang.id_vendor')
+            ->filter()
+            ->unique()
+            ->values();
+
+        // Jika tidak ada vendor, return false (tidak bisa ditagih)
+        if ($vendorIds->isEmpty()) {
+            return false;
+        }
+
+        // Cek pengiriman untuk setiap vendor
+        foreach ($vendorIds as $vendorId) {
+            $pengiriman = $penawaran->pengiriman()
+                ->where('id_vendor', $vendorId)
+                ->latest()
+                ->first();
+
+            // Jika vendor belum ada pengiriman atau status bukan "Sampai_Tujuan", return false
+            if (!$pengiriman || $pengiriman->status_verifikasi !== 'Sampai_Tujuan') {
+                return false;
+            }
+        }
+
+        // Semua vendor sudah mengirim dengan status "Sampai_Tujuan"
+        return true;
+    }
+
+    /**
      * Get piutang dinas statistics
      */
     private function getPiutangDinasStatistics()
@@ -1302,7 +1341,7 @@ public function exportTSV(Request $request)
         // Ambil semua proyek yang sudah di ACC dan hitung piutangnya
         $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
             $query->where('status', 'ACC');
-        }, 'penagihanDinas.buktiPembayaran'])
+        }, 'semuaPenawaran.pengiriman.vendor', 'semuaPenawaran.penawaranDetail.barang.vendor', 'penagihanDinas.buktiPembayaran'])
         ->whereHas('semuaPenawaran', function($query) {
             $query->where('status', 'ACC');
         })
@@ -1314,6 +1353,14 @@ public function exportTSV(Request $request)
 
         foreach ($proyekAcc as $proyek) {
             foreach ($proyek->semuaPenawaran as $penawaran) {
+                // Cek apakah semua vendor sudah mengirim dengan status "Sampai_Tujuan"
+                $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
+                
+                // Skip jika vendor belum mengirim semua barang
+                if (!$allVendorsDelivered) {
+                    continue;
+                }
+                
                 // Cek apakah ada penagihan untuk penawaran ini
                 $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
                 
@@ -1361,7 +1408,7 @@ public function exportTSV(Request $request)
         // Ambil semua proyek yang sudah di ACC
         $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
             $query->where('status', 'ACC');
-        }, 'penagihanDinas.buktiPembayaran'])
+        }, 'semuaPenawaran.pengiriman.vendor', 'semuaPenawaran.penawaranDetail.barang.vendor', 'penagihanDinas.buktiPembayaran'])
         ->whereHas('semuaPenawaran', function($query) {
             $query->where('status', 'ACC');
         });
@@ -1398,6 +1445,19 @@ public function exportTSV(Request $request)
 
         foreach ($proyekAcc as $proyek) {
             foreach ($proyek->semuaPenawaran as $penawaran) {
+                // Cek apakah semua vendor sudah mengirim dengan status "Sampai_Tujuan"
+                $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
+                
+                // Skip jika vendor belum mengirim semua barang
+                if (!$allVendorsDelivered) {
+                    Log::info('Skip penawaran - vendor belum kirim semua:', [
+                        'proyek' => $proyek->kode_proyek,
+                        'penawaran_id' => $penawaran->id_penawaran,
+                        'all_vendors_delivered' => false
+                    ]);
+                    continue;
+                }
+                
                 $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
                 
                 $shouldInclude = false;
