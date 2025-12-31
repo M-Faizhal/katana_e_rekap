@@ -63,7 +63,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Total Hutang</h3>
-                <p class="text-xl sm:text-2xl font-bold text-red-600 mb-1">Rp {{ $stats['total_hutang_formatted'] ?? '0' }}</p>
+                <p class="text-xl sm:text-2xl font-bold text-red-600 mb-1">Rp {{ number_format($stats['total_hutang'] ?? 0, 0, ',', '.') }}</p>
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-exclamation-triangle text-orange-500 text-sm"></i>
                     <span class="text-sm font-medium text-orange-500">{{ $stats['jumlah_vendor_hutang'] ?? 0 }}</span>
@@ -81,7 +81,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Total Piutang</h3>
-                <p class="text-xl sm:text-2xl font-bold text-yellow-600 mb-1">Rp {{ $stats['total_piutang_formatted'] ?? '0' }}</p>
+                <p class="text-xl sm:text-2xl font-bold text-yellow-600 mb-1">Rp {{ number_format($stats['total_piutang'] ?? 0, 0, ',', '.') }}</p>
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-exclamation-triangle text-red-500 text-sm"></i>
                     <span class="text-sm font-medium text-red-500">{{ $stats['jumlah_proyek_piutang'] ?? 0 }}</span>

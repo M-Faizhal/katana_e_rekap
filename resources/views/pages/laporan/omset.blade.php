@@ -55,18 +55,7 @@
                         Total Omset Sampai Saat Ini
                     @endif
                 </h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">
-                    @php
-                        $totalOmset = $stats['total_omset'] ?? 0;
-                        if ($totalOmset >= 1000000000) {
-                            echo 'Rp ' . number_format($totalOmset / 1000000000, 1) . ' Miliar';
-                        } elseif ($totalOmset >= 1000000) {
-                            echo 'Rp ' . number_format($totalOmset / 1000000, 1) . ' Juta';
-                        } else {
-                            echo 'Rp ' . number_format($totalOmset, 0, ',', '.');
-                        }
-                    @endphp
-                </p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">Rp {{ number_format($stats['total_omset'] ?? 0, 0, ',', '.') }}</p>
             </div>
         </div>
     </div>
@@ -84,18 +73,7 @@
                         Omset Tahun Ini
                     @endif
                 </h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">
-                    @php
-                        $omsetTahunIni = $stats['omset_tahun_ini'] ?? 0;
-                        if ($omsetTahunIni >= 1000000000) {
-                            echo 'Rp ' . number_format($omsetTahunIni / 1000000000, 1) . ' Miliar';
-                        } elseif ($omsetTahunIni >= 1000000) {
-                            echo 'Rp ' . number_format($omsetTahunIni / 1000000, 1) . ' Juta';
-                        } else {
-                            echo 'Rp ' . number_format($omsetTahunIni, 0, ',', '.');
-                        }
-                    @endphp
-                </p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ number_format($stats['omset_tahun_ini'] ?? 0, 0, ',', '.') }}</p>
             </div>
         </div>
     </div>
@@ -113,18 +91,7 @@
                         Omset Bulan Ini
                     @endif
                 </h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">
-                    @php
-                        $omsetBulanIni = $stats['omset_bulan_ini'] ?? 0;
-                        if ($omsetBulanIni >= 1000000000) {
-                            echo 'Rp ' . number_format($omsetBulanIni / 1000000000, 1) . ' Miliar';
-                        } elseif ($omsetBulanIni >= 1000000) {
-                            echo 'Rp ' . number_format($omsetBulanIni / 1000000, 1) . ' Juta';
-                        } else {
-                            echo 'Rp ' . number_format($omsetBulanIni, 0, ',', '.');
-                        }
-                    @endphp
-                </p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">Rp {{ number_format($stats['omset_bulan_ini'] ?? 0, 0, ',', '.') }}</p>
             </div>
         </div>
     </div>
