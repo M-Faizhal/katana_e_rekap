@@ -149,62 +149,11 @@ class DashboardController extends Controller
             ->whereYear('created_at', $currentYear)
             ->count();
 
-        // Calculate total hutang (belum dibayar ke vendor) - menggunakan logika PERSIS SAMA dengan LaporanController
-        $hutangVendorData = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
-            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
-            ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
-            ->leftJoin('kalkulasi_hps', function($join) {
-                $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-                     ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
-            })
-            ->leftJoin(DB::raw('(SELECT 
-                p.id_vendor, 
-                pn.id_proyek, 
-                COALESCE(SUM(CASE WHEN p.status_verifikasi = "Approved" THEN p.nominal_bayar ELSE 0 END), 0) as total_dibayar_approved
-                FROM pembayaran p 
-                JOIN penawaran pn ON p.id_penawaran = pn.id_penawaran 
-                GROUP BY p.id_vendor, pn.id_proyek
-            ) as pb'), function($join) {
-                $join->on('vendor.id_vendor', '=', 'pb.id_vendor')
-                     ->on('proyek.id_proyek', '=', 'pb.id_proyek');
-            })
-            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->where('penawaran.status', 'ACC')
-            ->select([
-                'proyek.id_proyek',
-                'vendor.id_vendor',
-                DB::raw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) as total_vendor'),
-                DB::raw('COALESCE(MAX(pb.total_dibayar_approved), 0) as total_dibayar_approved'),
-                DB::raw('CASE 
-                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0 THEN "Data kalkulasi HPS belum diisi"
-                    ELSE NULL 
-                END as warning_hps')
-            ])
-            ->groupBy(['proyek.id_proyek', 'vendor.id_vendor'])
-            ->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(MAX(pb.total_dibayar_approved), 0) > 0) OR warning_hps IS NOT NULL')
-            ->get();
-
+        // Total hutang and piutang will be calculated in separate methods and overridden in index()
         $totalHutang = 0;
         $vendorPending = 0;
-
-        foreach ($hutangVendorData as $data) {
-            $sisaBayar = $data->total_vendor - $data->total_dibayar_approved;
-            if ($sisaBayar > 0 || $data->warning_hps) {
-                $totalHutang += $sisaBayar;
-                $vendorPending++;
-            }
-        }        // Calculate total piutang (belum dibayar dari klien)
-        // Using penagihan_dinas table - outstanding invoices
-        $totalPiutang = DB::table('penagihan_dinas')
-            ->leftJoin('bukti_pembayaran', 'penagihan_dinas.id', '=', 'bukti_pembayaran.penagihan_dinas_id')
-            ->where('penagihan_dinas.status_pembayaran', '!=', 'lunas')
-            ->sum(DB::raw('penagihan_dinas.total_harga - COALESCE(bukti_pembayaran.jumlah_bayar, 0)')) ?? 0;
-
-        $dinasPending = DB::table('penagihan_dinas')
-            ->where('status_pembayaran', '!=', 'lunas')
-            ->count();
+        $totalPiutang = 0;
+        $dinasPending = 0;
 
         return [
             'omset_tahun_ini' => $omsetTahunIni,
@@ -299,62 +248,74 @@ class DashboardController extends Controller
      */
     private function getHutangVendorStats()
     {
-        // Query untuk mendapatkan semua hutang vendor (100% konsisten dengan LaporanController)
-        $hutangVendorData = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
-            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
-            ->join('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
-            ->leftJoin('kalkulasi_hps', function($join) {
-                $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-                     ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
-            })
-            ->leftJoin(DB::raw('(SELECT 
-                p.id_vendor, 
-                pn.id_proyek, 
-                COALESCE(SUM(CASE WHEN p.status_verifikasi = "Approved" THEN p.nominal_bayar ELSE 0 END), 0) as total_dibayar_approved
-                FROM pembayaran p 
-                JOIN penawaran pn ON p.id_penawaran = pn.id_penawaran 
-                GROUP BY p.id_vendor, pn.id_proyek
-            ) as pb'), function($join) {
-                $join->on('vendor.id_vendor', '=', 'pb.id_vendor')
-                     ->on('proyek.id_proyek', '=', 'pb.id_proyek');
-            })
-            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->where('penawaran.status', 'ACC')
-            ->select([
-                'proyek.id_proyek',
-                'proyek.kode_proyek',
-                'vendor.id_vendor',
-                'vendor.nama_vendor',
-                DB::raw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) as total_vendor'),
-                DB::raw('COALESCE(MAX(pb.total_dibayar_approved), 0) as total_dibayar_approved'),
-                DB::raw('CASE 
-                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0 THEN "Data kalkulasi HPS belum diisi"
-                    ELSE NULL 
-                END as warning_hps')
-            ])
-            ->groupBy(['proyek.id_proyek', 'proyek.kode_proyek', 'vendor.id_vendor', 'vendor.nama_vendor'])
-            ->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(MAX(pb.total_dibayar_approved), 0) > 0) OR warning_hps IS NOT NULL')
-            ->get();
-
+        // Menggunakan logika PERSIS SAMA dengan LaporanController
         $totalHutang = 0;
-        $jumlahVendor = 0;
+        $jumlahHutangVendor = 0;
+        
+        // Ambil proyek yang perlu bayar dengan cara yang sama seperti LaporanController
+        $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->whereHas('penawaranAktif', function ($query) {
+                $query->where('status', 'ACC');
+            })
+            ->get()
+            ->map(function ($proyek) {
+                // Ambil vendor yang terlibat dalam proyek ini
+                $vendors = $proyek->penawaranAktif->penawaranDetail
+                    ->pluck('barang.vendor')
+                    ->unique('id_vendor')
+                    ->filter(); // Remove null values
 
-        foreach ($hutangVendorData as $data) {
-            $sisaBayar = $data->total_vendor - $data->total_dibayar_approved;
-            // Count all records that have sisa_bayar > 0 OR have warning_hps
-            if ($sisaBayar > 0 || $data->warning_hps) {
-                $totalHutang += $sisaBayar;
-                $jumlahVendor++;
+                $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
+                    $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->sum('total_harga_hpp');
+
+                    $totalDibayarApproved = $proyek->pembayaran
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->where('status_verifikasi', 'Approved')
+                        ->sum('nominal_bayar');
+
+                    $sisaBayar = $totalVendor - $totalDibayarApproved;
+
+                    // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
+                    $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+
+                    return (object) [
+                        'vendor' => $vendor,
+                        'total_vendor' => $totalVendor,
+                        'total_dibayar_approved' => $totalDibayarApproved,
+                        'sisa_bayar' => $sisaBayar,
+                        'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
+                        'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
+                        'warning_hps' => $warning_hps,
+                        'proyek' => $proyek
+                    ];
+                })
+                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
+                ->filter(function ($vendorData) {
+                    return $vendorData->sisa_bayar > 0 || $vendorData->warning_hps;
+                });
+
+                return $proyek;
+            })
+            ->filter(function ($proyek) {
+                return $proyek->vendors_data->count() > 0; // Hanya proyek yang ada vendor belum lunas
+            });
+
+        // Hitung total hutang dan jumlah record
+        foreach ($proyekPerluBayar as $proyek) {
+            foreach ($proyek->vendors_data as $vendorData) {
+                $totalHutang += $vendorData->sisa_bayar;
+                $jumlahHutangVendor++;
             }
         }
 
-        $rataRataHutang = $jumlahVendor > 0 ? $totalHutang / $jumlahVendor : 0;
+        $rataRataHutang = $jumlahHutangVendor > 0 ? $totalHutang / $jumlahHutangVendor : 0;
 
         return [
             'total_hutang' => $totalHutang,
-            'jumlah_vendor' => $jumlahVendor,
+            'jumlah_vendor' => $jumlahHutangVendor,
             'rata_rata_hutang' => $rataRataHutang,
             'total_hutang_formatted' => $this->formatRupiah($totalHutang),
             'rata_rata_hutang_formatted' => $this->formatRupiah($rataRataHutang),
@@ -366,64 +327,78 @@ class DashboardController extends Controller
      */
     private function getVendorDebts()
     {
-        // Query langsung dengan join untuk menghindari N+1 queries
-        // Menggunakan logika yang sama dengan LaporanController
-        $vendorDebts = DB::table('proyek')
-            ->join('penawaran', 'proyek.id_penawaran', '=', 'penawaran.id_penawaran')
-            ->join('penawaran_detail', 'penawaran.id_penawaran', '=', 'penawaran_detail.id_penawaran')
-            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
-            ->leftJoin('vendor', 'barang.id_vendor', '=', 'vendor.id_vendor')
-            ->leftJoin('kalkulasi_hps', function($join) {
-                $join->on('proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-                     ->on('vendor.id_vendor', '=', 'kalkulasi_hps.id_vendor');
+        // Menggunakan logika PERSIS SAMA dengan LaporanController
+        $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->whereHas('penawaranAktif', function ($query) {
+                $query->where('status', 'ACC');
             })
-            ->leftJoin(DB::raw('(SELECT
-                p.id_vendor,
-                pn.id_proyek,
-                COALESCE(SUM(CASE WHEN p.status_verifikasi = "Approved" THEN p.nominal_bayar ELSE 0 END), 0) as total_dibayar_approved
-                FROM pembayaran p
-                JOIN penawaran pn ON p.id_penawaran = pn.id_penawaran
-                GROUP BY p.id_vendor, pn.id_proyek
-            ) as pb'), function($join) {
-                $join->on('vendor.id_vendor', '=', 'pb.id_vendor')
-                     ->on('proyek.id_proyek', '=', 'pb.id_proyek');
+            ->get()
+            ->map(function ($proyek) {
+                // Ambil vendor yang terlibat dalam proyek ini
+                $vendors = $proyek->penawaranAktif->penawaranDetail
+                    ->pluck('barang.vendor')
+                    ->unique('id_vendor')
+                    ->filter(); // Remove null values
+
+                $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
+                    $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->sum('total_harga_hpp');
+
+                    $totalDibayarApproved = $proyek->pembayaran
+                        ->where('id_vendor', $vendor->id_vendor)
+                        ->where('status_verifikasi', 'Approved')
+                        ->sum('nominal_bayar');
+
+                    $sisaBayar = $totalVendor - $totalDibayarApproved;
+
+                    // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
+                    $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+                    
+                    $persenBayar = $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0;
+                    $statusLunas = $totalVendor > 0 ? $sisaBayar <= 0 : false;
+
+                    return (object) [
+                        'vendor' => $vendor,
+                        'proyek' => $proyek,
+                        'total_vendor' => $totalVendor,
+                        'total_dibayar_approved' => $totalDibayarApproved,
+                        'sisa_bayar' => $sisaBayar,
+                        'persen_bayar' => $persenBayar,
+                        'status_lunas' => $statusLunas,
+                        'warning_hps' => $warning_hps,
+                        'oldest_date' => $proyek->penawaranAktif->tanggal_penawaran ?? null
+                    ];
+                })
+                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
+                ->filter(function ($vendorData) {
+                    return $vendorData->sisa_bayar > 0 || $vendorData->warning_hps;
+                });
+
+                return $proyek;
             })
-            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->where('penawaran.status', 'ACC')
-            ->select([
-                'proyek.id_proyek',
-                'proyek.kode_proyek',
-                'proyek.nama_klien',
-                'proyek.instansi',
-                'vendor.id_vendor',
-                DB::raw('COALESCE(vendor.nama_vendor, "Vendor Tidak Ditemukan") as nama_vendor'),
-                DB::raw('vendor.jenis_perusahaan as jenis_perusahaan'),
-                DB::raw('vendor.email as email'),
-                DB::raw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) as total_vendor'),
-                DB::raw('COALESCE(MAX(pb.total_dibayar_approved), 0) as total_dibayar_approved'),
-                DB::raw('CASE
-                    WHEN COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) = 0 THEN "Data kalkulasi HPS belum diisi"
-                    ELSE NULL
-                END as warning_hps'),
-                DB::raw('MAX(penawaran.tanggal_penawaran) as oldest_date')
-            ])
-            ->groupBy([
-                'proyek.id_proyek', 'proyek.kode_proyek', 'proyek.nama_klien', 'proyek.instansi',
-                'vendor.id_vendor', 'vendor.nama_vendor', 'vendor.jenis_perusahaan', 'vendor.email'
-            ])
-            ->havingRaw('(COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(MAX(pb.total_dibayar_approved), 0) > 0) OR warning_hps IS NOT NULL')
-            ->orderByRaw('COALESCE(SUM(kalkulasi_hps.total_harga_hpp), 0) - COALESCE(MAX(pb.total_dibayar_approved), 0) DESC')
-            ->limit(4)
-            ->get();
+            ->filter(function ($proyek) {
+                return $proyek->vendors_data->count() > 0; // Hanya proyek yang ada vendor belum lunas
+            });
+
+        // Flatten menjadi list vendor per proyek
+        $results = collect();
+        foreach ($proyekPerluBayar as $proyek) {
+            foreach ($proyek->vendors_data as $vendorData) {
+                $results->push($vendorData);
+            }
+        }
+
+        // Sort by sisa_bayar descending and limit to top 4
+        $vendorDebts = $results->sortByDesc('sisa_bayar')->take(4);
 
         // Jika tidak ada hutang vendor aktual, tampilkan data untuk display saja
         if ($vendorDebts->isEmpty()) {
             return collect([
                 (object) [
-                    'nama_vendor' => 'Tidak ada hutang vendor',
-                    'jenis_perusahaan' => null,
-                    'kode_proyek' => '-',
-                    'instansi' => '-',
+                    'vendor' => (object) ['nama_vendor' => 'Tidak ada hutang vendor', 'jenis_perusahaan' => null],
+                    'proyek' => (object) ['kode_proyek' => '-', 'instansi' => '-'],
                     'total_vendor' => 0,
                     'total_dibayar_approved' => 0,
                     'sisa_bayar' => 0,
@@ -437,17 +412,13 @@ class DashboardController extends Controller
         }
 
         return $vendorDebts->map(function($item) {
-            $sisaBayar = $item->total_vendor - $item->total_dibayar_approved;
-            $persenBayar = $item->total_vendor > 0 ? ($item->total_dibayar_approved / $item->total_vendor) * 100 : 0;
-            $statusLunas = $item->total_vendor > 0 ? $sisaBayar <= 0 : false;
-
             // Calculate days overdue
             $daysOverdue = $item->oldest_date ? Carbon::parse($item->oldest_date)->diffInDays(Carbon::now()) : 0;
 
             // Determine status
             if ($item->warning_hps) {
                 $status = 'warning'; // HPS belum diisi
-            } elseif ($statusLunas) {
+            } elseif ($item->status_lunas) {
                 $status = 'Lunas';
             } elseif ($daysOverdue > 30) {
                 $status = 'overdue';
@@ -458,18 +429,18 @@ class DashboardController extends Controller
             }
 
             return (object) [
-                'nama_vendor' => $item->nama_vendor,
-                'kode_proyek' => $item->kode_proyek,
-                'instansi' => $item->instansi,
-                'nama_klien' => $item->nama_klien,
-                'jenis_perusahaan' => $item->jenis_perusahaan,
-                'email' => $item->email,
+                'nama_vendor' => $item->vendor->nama_vendor ?? 'Unknown',
+                'kode_proyek' => $item->proyek->kode_proyek ?? '-',
+                'instansi' => $item->proyek->instansi ?? '-',
+                'nama_klien' => $item->proyek->nama_klien ?? '-',
+                'jenis_perusahaan' => $item->vendor->jenis_perusahaan ?? null,
+                'email' => $item->vendor->email ?? null,
                 'total_vendor' => $item->total_vendor,
                 'total_dibayar_approved' => $item->total_dibayar_approved,
-                'sisa_bayar' => $sisaBayar,
-                'persen_bayar' => $persenBayar,
+                'sisa_bayar' => $item->sisa_bayar,
+                'persen_bayar' => $item->persen_bayar,
                 'warning_hps' => $item->warning_hps,
-                'status_lunas' => $statusLunas,
+                'status_lunas' => $item->status_lunas,
                 'status' => $status,
                 'days_overdue' => $daysOverdue,
                 'oldest_date' => $item->oldest_date
@@ -949,8 +920,17 @@ class DashboardController extends Controller
                         $nomorInvoice = $penagihan->nomor_invoice;
 
                         // Calculate days overdue
-                        if ($tanggalJatuhTempo && $tanggalJatuhTempo < now()) {
-                            $daysOverdue = now()->diffInDays($tanggalJatuhTempo);
+                        if ($tanggalJatuhTempo) {
+                            try {
+                                $jatuhTempoDate = Carbon::createFromFormat('Y-m-d', (string)$tanggalJatuhTempo);
+                                if ($jatuhTempoDate->isPast()) {
+                                    $daysOverdue = abs($jatuhTempoDate->diffInDays(now()));
+                                } else {
+                                    $daysOverdue = 0;
+                                }
+                            } catch (\Exception $e) {
+                                $daysOverdue = 0;
+                            }
                         } else {
                             $daysOverdue = 0;
                         }
