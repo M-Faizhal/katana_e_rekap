@@ -121,22 +121,22 @@ class DashboardController extends Controller
         $currentYear = Carbon::now()->year;
         $lastYear = Carbon::now()->subYear();
 
-        // Calculate omset tahun ini (revenue this year) - using same method as LaporanController
-        // Using harga_total from proyek with ACC penawaran status
-        $omsetTahunIni = Proyek::whereHas('semuaPenawaran', function($query) {
-                $query->where('status', 'ACC');
-            })
-            ->whereNotNull('harga_total')
-            ->whereYear('tanggal', $currentYear)
-            ->sum('harga_total') ?? 0;
+        // Calculate omset tahun ini (revenue this year) - using kalkulasi_hps.hps
+        // Using SUM(hps) from kalkulasi_hps with ACC penawaran status
+        $omsetTahunIni = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->where('penawaran.status', 'ACC')
+            ->whereYear('proyek.tanggal', $currentYear)
+            ->sum('kalkulasi_hps.hps') ?? 0;
 
         // Calculate omset tahun lalu untuk perbandingan
-        $omsetTahunLalu = Proyek::whereHas('semuaPenawaran', function($query) {
-                $query->where('status', 'ACC');
-            })
-            ->whereNotNull('harga_total')
-            ->whereYear('tanggal', $lastYear->year)
-            ->sum('harga_total') ?? 0;
+        $omsetTahunLalu = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->where('penawaran.status', 'ACC')
+            ->whereYear('proyek.tanggal', $lastYear->year)
+            ->sum('kalkulasi_hps.hps') ?? 0;
 
         // Calculate growth percentage
         $omsetGrowth = $omsetTahunLalu > 0 ?
@@ -177,13 +177,13 @@ class DashboardController extends Controller
 
         // If specific month is requested, only return that month's data
         if ($specificMonth) {
-            $revenue = DB::table('proyek')
+            $revenue = DB::table('kalkulasi_hps')
+                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
                 ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
                 ->where('penawaran.status', 'ACC')
-                ->whereNotNull('proyek.harga_total')
                 ->whereMonth('proyek.tanggal', $specificMonth)
                 ->whereYear('proyek.tanggal', $year)
-                ->sum('proyek.harga_total') ?? 0;
+                ->sum('kalkulasi_hps.hps') ?? 0;
 
             // Still return 12 months but highlight the selected month
             for ($month = 1; $month <= 12; $month++) {
@@ -196,13 +196,13 @@ class DashboardController extends Controller
         } else {
             // Return all months
             for ($month = 1; $month <= 12; $month++) {
-                $revenue = DB::table('proyek')
+                $revenue = DB::table('kalkulasi_hps')
+                    ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
                     ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
                     ->where('penawaran.status', 'ACC')
-                    ->whereNotNull('proyek.harga_total')
                     ->whereMonth('proyek.tanggal', $month)
                     ->whereYear('proyek.tanggal', $year)
-                    ->sum('proyek.harga_total') ?? 0;
+                    ->sum('kalkulasi_hps.hps') ?? 0;
 
                 $monthlyData[] = [
                     'month' => $month,
@@ -220,19 +220,19 @@ class DashboardController extends Controller
      */
     private function getRevenuePerPerson()
     {
-        // Get marketing admins only - using same method as LaporanController
+        // Get marketing admins only - using kalkulasi_hps.hps
         $marketingAdmins = DB::table('users')
             ->select(
                 'users.nama',
                 'users.id_user',
-                DB::raw('SUM(proyek.harga_total) as total_revenue'),
+                DB::raw('SUM(kalkulasi_hps.hps) as total_revenue'),
                 DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
                 DB::raw("'Marketing' as role")
             )
             ->join('proyek', 'proyek.id_admin_marketing', '=', 'users.id_user')
             ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->join('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
             ->where('penawaran.status', 'ACC')
-            ->whereNotNull('proyek.harga_total')
             ->whereYear('proyek.tanggal', Carbon::now()->year)
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_revenue', 'desc')
@@ -620,19 +620,19 @@ class DashboardController extends Controller
                 return collect([]);
             }
 
-            // Use harga_total from proyek with ACC penawaran for consistency with dashboard omset calculation
+            // Use kalkulasi_hps.hps for consistency with dashboard omset calculation
             $wilayahData = DB::table('proyek')
                 ->select(
                     DB::raw("TRIM(proyek.kab_kota) as city_name"),
-                    DB::raw('SUM(proyek.harga_total) as total_sales'),
+                    DB::raw('SUM(kalkulasi_hps.hps) as total_sales'),
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as total_projects'),
-                    DB::raw('AVG(proyek.harga_total) as avg_sales')
+                    DB::raw('AVG(kalkulasi_hps.hps) as avg_sales')
                 )
                 ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                ->join('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
                 ->where('penawaran.status', 'ACC')
                 ->whereNotNull('proyek.kab_kota')
                 ->where('proyek.kab_kota', '!=', '')
-                ->whereNotNull('proyek.harga_total')
                 ->groupBy('proyek.kab_kota')
                 ->orderBy('total_sales', 'desc')
                 ->get();

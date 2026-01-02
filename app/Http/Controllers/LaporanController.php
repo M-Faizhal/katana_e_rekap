@@ -630,67 +630,67 @@ public function exportTSV(Request $request)
             // For specific year
             $year = (int) $selectedYear;
             
-            // Total Omset = Omset kumulatif dari awal sampai tahun terpilih dari proyek dengan penawaran ACC
-            $totalOmset = Proyek::whereHas('semuaPenawaran', function($query) {
-                    $query->where('status', 'ACC');
-                })
-                ->whereNotNull('harga_total')
-                ->whereYear('tanggal', '<=', $year)
-                ->sum('harga_total');
+            // Total Omset = Omset kumulatif dari awal sampai tahun terpilih dari kalkulasi HPS
+            $totalOmset = DB::table('kalkulasi_hps')
+                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                ->where('penawaran.status', 'ACC')
+                ->whereYear('proyek.tanggal', '<=', $year)
+                ->sum('kalkulasi_hps.hps');
                 
-            // Omset Tahun = Omset hanya di tahun terpilih saja dari proyek dengan penawaran ACC
-            $omsetTahunIni = Proyek::whereHas('semuaPenawaran', function($query) {
-                    $query->where('status', 'ACC');
-                })
-                ->whereNotNull('harga_total')
-                ->whereYear('tanggal', $year)
-                ->sum('harga_total');
+            // Omset Tahun = Omset hanya di tahun terpilih saja dari kalkulasi HPS
+            $omsetTahunIni = DB::table('kalkulasi_hps')
+                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                ->where('penawaran.status', 'ACC')
+                ->whereYear('proyek.tanggal', $year)
+                ->sum('kalkulasi_hps.hps');
             
             // Omset bulan ini (jika tahun terpilih adalah tahun sekarang)
             if ($year == $currentYear) {
-                $omsetBulanIni = Proyek::whereHas('semuaPenawaran', function($query) {
-                        $query->where('status', 'ACC');
-                    })
-                    ->whereNotNull('harga_total')
-                    ->whereYear('tanggal', $year)
-                    ->whereMonth('tanggal', $currentMonth->month)
-                    ->sum('harga_total');
+                $omsetBulanIni = DB::table('kalkulasi_hps')
+                    ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+                    ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                    ->where('penawaran.status', 'ACC')
+                    ->whereYear('proyek.tanggal', $year)
+                    ->whereMonth('proyek.tanggal', $currentMonth->month)
+                    ->sum('kalkulasi_hps.hps');
             } else {
                 // Jika bukan tahun sekarang, ambil bulan terakhir dari tahun itu
-                $omsetBulanIni = Proyek::whereHas('semuaPenawaran', function($query) {
-                        $query->where('status', 'ACC');
-                    })
-                    ->whereNotNull('harga_total')
-                    ->whereYear('tanggal', $year)
-                    ->whereMonth('tanggal', 12) // Desember
-                    ->sum('harga_total');
+                $omsetBulanIni = DB::table('kalkulasi_hps')
+                    ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+                    ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                    ->where('penawaran.status', 'ACC')
+                    ->whereYear('proyek.tanggal', $year)
+                    ->whereMonth('proyek.tanggal', 12) // Desember
+                    ->sum('kalkulasi_hps.hps');
             }
         } else {
             // For "Semua Tahun" option, show cumulative data
             
             // Total Omset - semua proyek dengan penawaran ACC dari awal sampai akhir
-            $totalOmset = Proyek::whereHas('semuaPenawaran', function($query) {
-                    $query->where('status', 'ACC');
-                })
-                ->whereNotNull('harga_total')
-                ->sum('harga_total');
+            $totalOmset = DB::table('kalkulasi_hps')
+                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                ->where('penawaran.status', 'ACC')
+                ->sum('kalkulasi_hps.hps');
 
             // Omset Tahun Ini - proyek dengan penawaran ACC tahun ini
-            $omsetTahunIni = Proyek::whereHas('semuaPenawaran', function($query) {
-                    $query->where('status', 'ACC');
-                })
-                ->whereNotNull('harga_total')
-                ->whereYear('tanggal', $currentYear)
-                ->sum('harga_total');
+            $omsetTahunIni = DB::table('kalkulasi_hps')
+                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                ->where('penawaran.status', 'ACC')
+                ->whereYear('proyek.tanggal', $currentYear)
+                ->sum('kalkulasi_hps.hps');
 
             // Omset Bulan Ini - proyek dengan penawaran ACC bulan ini
-            $omsetBulanIni = Proyek::whereHas('semuaPenawaran', function($query) {
-                    $query->where('status', 'ACC');
-                })
-                ->whereNotNull('harga_total')
-                ->whereYear('tanggal', $currentYear)
-                ->whereMonth('tanggal', $currentMonth->month)
-                ->sum('harga_total');
+            $omsetBulanIni = DB::table('kalkulasi_hps')
+                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+                ->where('penawaran.status', 'ACC')
+                ->whereYear('proyek.tanggal', $currentYear)
+                ->whereMonth('proyek.tanggal', $currentMonth->month)
+                ->sum('kalkulasi_hps.hps');
         }
 
         return [
@@ -709,13 +709,13 @@ public function exportTSV(Request $request)
         
         if ($selectedYear && $selectedYear === 'all') {
             // For "Semua Tahun", show yearly data instead of monthly
-            return DB::table('proyek')
+            return DB::table('kalkulasi_hps')
+                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
                 ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
                 ->where('penawaran.status', 'ACC')
-                ->whereNotNull('proyek.harga_total')
                 ->select(
                     DB::raw('YEAR(proyek.tanggal) as year'),
-                    DB::raw('SUM(proyek.harga_total) as total_omset'),
+                    DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
                 )
                 ->groupBy('year')
@@ -725,14 +725,14 @@ public function exportTSV(Request $request)
             // For specific year or default (current year), show monthly data
             $year = $selectedYear ? (int) $selectedYear : Carbon::now()->year;
             
-            return DB::table('proyek')
+            return DB::table('kalkulasi_hps')
+                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
                 ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
                 ->where('penawaran.status', 'ACC')
-                ->whereNotNull('proyek.harga_total')
                 ->whereYear('proyek.tanggal', $year)
                 ->select(
                     DB::raw('MONTH(proyek.tanggal) as month'),
-                    DB::raw('SUM(proyek.harga_total) as total_omset'),
+                    DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
                 )
                 ->groupBy('month')
@@ -776,8 +776,8 @@ public function exportTSV(Request $request)
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
             ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-            ->where('penawaran.status', 'ACC')
-            ->whereNotNull('proyek.harga_total');
+            ->join('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
+            ->where('penawaran.status', 'ACC');
             
         // Apply year filter
         $selectedYear = $request ? $request->get('year') : null;
@@ -791,9 +791,9 @@ public function exportTSV(Request $request)
         
         $result = $query->select(
                 'users.nama as name',
-                DB::raw('SUM(proyek.harga_total) as total_omset'),
+                DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
                 DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                DB::raw('AVG(proyek.harga_total) as rata_rata_omset_per_proyek')
+                DB::raw('AVG(kalkulasi_hps.hps) as rata_rata_omset_per_proyek')
             )
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_omset', 'desc')
@@ -829,8 +829,8 @@ public function exportTSV(Request $request)
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_purchasing')
             ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-            ->where('penawaran.status', 'ACC')
-            ->whereNotNull('proyek.harga_total');
+            ->join('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
+            ->where('penawaran.status', 'ACC');
             
         // Apply year filter
         $selectedYear = $request ? $request->get('year') : null;
@@ -844,9 +844,9 @@ public function exportTSV(Request $request)
         
         $result = $query->select(
                 'users.nama as name',
-                DB::raw('SUM(proyek.harga_total) as total_omset'),
+                DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
                 DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                DB::raw('AVG(proyek.harga_total) as rata_rata_omset_per_proyek')
+                DB::raw('AVG(kalkulasi_hps.hps) as rata_rata_omset_per_proyek')
             )
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_omset', 'desc')
@@ -906,16 +906,16 @@ public function exportTSV(Request $request)
      */
     private function getFilteredMonthlyOmset($year, $month = null, $period = 'monthly')
     {
-        $query = DB::table('proyek')
+        $query = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
             ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-            ->where('penawaran.status', 'ACC')
-            ->whereNotNull('proyek.harga_total');
+            ->where('penawaran.status', 'ACC');
 
         if ($period === 'yearly') {
             // For yearly view, group by year
             return $query->select(
                     DB::raw('YEAR(proyek.tanggal) as year'),
-                    DB::raw('SUM(proyek.harga_total) as total_omset'),
+                    DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
                 )
                 ->groupBy('year')
@@ -931,7 +931,7 @@ public function exportTSV(Request $request)
             
             return $query->select(
                     DB::raw('MONTH(proyek.tanggal) as month'),
-                    DB::raw('SUM(proyek.harga_total) as total_omset'),
+                    DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
                 )
                 ->groupBy('month')
@@ -945,23 +945,23 @@ public function exportTSV(Request $request)
      */
     private function getFilteredOmsetStatistics($year, $month = null)
     {
-        $currentQuery = Proyek::whereHas('semuaPenawaran', function($query) {
-                $query->where('status', 'ACC');
-            })
-            ->whereNotNull('harga_total')
-            ->whereYear('tanggal', $year);
+        $currentQuery = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->where('penawaran.status', 'ACC')
+            ->whereYear('proyek.tanggal', $year);
             
         if ($month) {
-            $currentQuery->whereMonth('tanggal', $month);
+            $currentQuery->whereMonth('proyek.tanggal', $month);
         }
 
-        $currentOmset = $currentQuery->sum('harga_total');
+        $currentOmset = $currentQuery->sum('kalkulasi_hps.hps');
         
         // For comparison, get previous period data
-        $previousQuery = Proyek::whereHas('semuaPenawaran', function($query) {
-                $query->where('status', 'ACC');
-            })
-            ->whereNotNull('harga_total');
+        $previousQuery = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->where('penawaran.status', 'ACC');
             
         if ($month) {
             // Previous month
@@ -971,13 +971,13 @@ public function exportTSV(Request $request)
                 $prevMonth = 12;
                 $prevYear = $year - 1;
             }
-            $previousQuery->whereMonth('tanggal', $prevMonth)->whereYear('tanggal', $prevYear);
+            $previousQuery->whereMonth('proyek.tanggal', $prevMonth)->whereYear('proyek.tanggal', $prevYear);
         } else {
             // Previous year
-            $previousQuery->whereYear('tanggal', $year - 1);
+            $previousQuery->whereYear('proyek.tanggal', $year - 1);
         }
 
-        $previousOmset = $previousQuery->sum('harga_total');
+        $previousOmset = $previousQuery->sum('kalkulasi_hps.hps');
         $pertumbuhan = $previousOmset > 0 ? (($currentOmset - $previousOmset) / $previousOmset) * 100 : 0;
 
         return [
