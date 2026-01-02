@@ -73,6 +73,19 @@ class KalkulasiController extends Controller
         $proyekProses = $proyekProses->orderBy('created_at', 'desc')->paginate(10, ['*'], 'proses');
         $proyekBerhasil = $proyekBerhasil->orderBy('created_at', 'desc')->paginate(10, ['*'], 'berhasil');
 
+        // Hitung total HPS dari kalkulasi_hps untuk setiap proyek
+        foreach ($proyekMenunggu as $proyek) {
+            $proyek->total_hps = KalkulasiHps::where('id_proyek', $proyek->id_proyek)->sum('hps') ?? 0;
+        }
+
+        foreach ($proyekProses as $proyek) {
+            $proyek->total_hps = KalkulasiHps::where('id_proyek', $proyek->id_proyek)->sum('hps') ?? 0;
+        }
+
+        foreach ($proyekBerhasil as $proyek) {
+            $proyek->total_hps = KalkulasiHps::where('id_proyek', $proyek->id_proyek)->sum('hps') ?? 0;
+        }
+
         return view('pages.purchasing.kalkulasi', compact('proyekMenunggu', 'proyekProses', 'proyekBerhasil'));
     }
 

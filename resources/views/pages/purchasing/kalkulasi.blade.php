@@ -169,7 +169,7 @@
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-red-600">{{ 'Rp ' . number_format($p->harga_total, 0, ',', '.') }}</div>
+                                <div class="text-sm font-bold text-red-600">{{ 'Rp ' . number_format($p->total_hps ?? 0, 0, ',', '.') }}</div>
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
@@ -285,7 +285,7 @@
                                         0 Unit
                                     @endif
                                 </p>
-                                <p class="text-sm font-bold text-red-600">{{ 'Rp ' . number_format($p->harga_total, 0, ',', '.') }}</p>
+                                <p class="text-sm font-bold text-red-600">{{ 'Rp ' . number_format($p->total_hps ?? 0, 0, ',', '.') }}</p>
                             </div>
                         </div>
                     </div>
@@ -512,7 +512,7 @@
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-blue-600">{{ 'Rp ' . number_format($p->harga_total ?? 0, 0, ',', '.') }}</div>
+                                <div class="text-sm font-bold text-blue-600">{{ 'Rp ' . number_format($p->total_hps ?? 0, 0, ',', '.') }}</div>
                                 <div class="text-sm text-gray-500">
                                     @if($p->proyekBarang && $p->proyekBarang->count() > 0)
                                         {{ number_format($p->proyekBarang->sum('jumlah')) }} {{ $p->proyekBarang->first()->satuan }}
@@ -608,7 +608,7 @@
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500">Total Penawaran</span>
                             <div class="text-right">
-                                <p class="text-sm font-bold text-blue-600">{{ 'Rp ' . number_format($p->harga_total ?? 0, 0, ',', '.') }}</p>
+                                <p class="text-sm font-bold text-blue-600">{{ 'Rp ' . number_format($p->total_hps ?? 0, 0, ',', '.') }}</p>
                                 <p class="text-xs text-gray-500">
                                     @if($p->proyekBarang && $p->proyekBarang->count() > 0)
                                         {{ number_format($p->proyekBarang->sum('jumlah')) }} {{ $p->proyekBarang->first()->satuan }}
@@ -830,7 +830,7 @@
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-green-600">{{ 'Rp ' . number_format($p->harga_total ?? 0, 0, ',', '.') }}</div>
+                                <div class="text-sm font-bold text-green-600">{{ 'Rp ' . number_format($p->total_hps ?? 0, 0, ',', '.') }}</div>
                                 <div class="text-sm text-gray-500">
                                     @if($p->proyekBarang && $p->proyekBarang->count() > 0)
                                         {{ number_format($p->proyekBarang->sum('jumlah')) }} {{ $p->proyekBarang->first()->satuan }}
@@ -935,7 +935,7 @@
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500">Total Penawaran</span>
                             <div class="text-right">
-                                <p class="text-sm font-bold text-green-600">{{ 'Rp ' . number_format($p->harga_total ?? 0, 0, ',', '.') }}</p>
+                                <p class="text-sm font-bold text-green-600">{{ 'Rp ' . number_format($p->total_hps ?? 0, 0, ',', '.') }}</p>
                                 <p class="text-xs text-gray-500">
                                     @if($p->proyekBarang && $p->proyekBarang->count() > 0)
                                         {{ number_format($p->proyekBarang->sum('jumlah')) }} {{ $p->proyekBarang->first()->satuan }}
