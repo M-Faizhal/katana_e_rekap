@@ -115,11 +115,12 @@ class DashboardController extends Controller
 
         // Calculate omset tahun ini (revenue this year) - using kalkulasi_hps.hps
         // Using SUM(hps) from kalkulasi_hps with ACC penawaran status
+        // TIME BASIS: penawaran.tanggal_penawaran (when deal was accepted)
         $omsetTahunIni = DB::table('kalkulasi_hps')
             ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
             ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
             ->where('penawaran.status', 'ACC')
-            ->whereYear('proyek.tanggal', $currentYear)
+            ->whereYear('penawaran.tanggal_penawaran', $currentYear)
             ->sum('kalkulasi_hps.hps') ?? 0;
 
         // Calculate omset tahun lalu untuk perbandingan
@@ -127,7 +128,7 @@ class DashboardController extends Controller
             ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
             ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
             ->where('penawaran.status', 'ACC')
-            ->whereYear('proyek.tanggal', $lastYear->year)
+            ->whereYear('penawaran.tanggal_penawaran', $lastYear->year)
             ->sum('kalkulasi_hps.hps') ?? 0;
 
         // Calculate growth percentage
@@ -135,8 +136,16 @@ class DashboardController extends Controller
             (($omsetTahunIni - $omsetTahunLalu) / $omsetTahunLalu) * 100 :
             ($omsetTahunIni > 0 ? 100 : 0);
 
-        // Count active projects
-        $proyekAktif = Proyek::whereNotIn('status', ['selesai', 'gagal'])->count();
+        // Count Proyek Sudah SP (Tahun Ini)
+        // Proyek yang punya penawaran ACC di tahun ini berdasarkan tanggal_penawaran
+        $proyekSPTahunIni = Proyek::where('status', '!=', 'Gagal')
+            ->whereHas('semuaPenawaran', function($query) use ($currentYear) {
+                $query->where('status', 'ACC')
+                      ->whereYear('tanggal_penawaran', $currentYear);
+            })
+            ->count();
+        
+        // Count new projects this month (for backward compatibility if needed elsewhere)
         $proyekBaru = Proyek::whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
             ->count();
@@ -150,7 +159,7 @@ class DashboardController extends Controller
         return [
             'omset_tahun_ini' => $omsetTahunIni,
             'omset_growth' => round($omsetGrowth, 1),
-            'proyek_aktif' => $proyekAktif,
+            'proyek_sp_tahun_ini' => $proyekSPTahunIni,
             'proyek_baru' => $proyekBaru,
             'total_hutang' => $totalHutang,
             'vendor_pending' => $vendorPending,
@@ -161,6 +170,7 @@ class DashboardController extends Controller
 
     /**
      * Get monthly revenue data for chart
+     * TIME BASIS: penawaran.tanggal_penawaran (when deal was accepted)
      */
     private function getMonthlyRevenue($year = null, $specificMonth = null)
     {
@@ -173,8 +183,8 @@ class DashboardController extends Controller
                 ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
                 ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
                 ->where('penawaran.status', 'ACC')
-                ->whereMonth('proyek.tanggal', $specificMonth)
-                ->whereYear('proyek.tanggal', $year)
+                ->whereMonth('penawaran.tanggal_penawaran', $specificMonth)
+                ->whereYear('penawaran.tanggal_penawaran', $year)
                 ->sum('kalkulasi_hps.hps') ?? 0;
 
             // Still return 12 months but highlight the selected month
@@ -192,8 +202,8 @@ class DashboardController extends Controller
                     ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
                     ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
                     ->where('penawaran.status', 'ACC')
-                    ->whereMonth('proyek.tanggal', $month)
-                    ->whereYear('proyek.tanggal', $year)
+                    ->whereMonth('penawaran.tanggal_penawaran', $month)
+                    ->whereYear('penawaran.tanggal_penawaran', $year)
                     ->sum('kalkulasi_hps.hps') ?? 0;
 
                 $monthlyData[] = [
@@ -209,6 +219,7 @@ class DashboardController extends Controller
 
     /**
      * Get revenue leaderboard for marketing admins only
+     * TIME BASIS: penawaran.tanggal_penawaran (when deal was accepted)
      */
     private function getRevenuePerPerson()
     {
@@ -225,7 +236,7 @@ class DashboardController extends Controller
             ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
             ->join('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
             ->where('penawaran.status', 'ACC')
-            ->whereYear('proyek.tanggal', Carbon::now()->year)
+            ->whereYear('penawaran.tanggal_penawaran', Carbon::now()->year)
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_revenue', 'desc')
             ->take(10)
@@ -798,12 +809,15 @@ class DashboardController extends Controller
 
     /**
      * Get year range from project data - same logic as LaporanController
+     * TIME BASIS: penawaran.tanggal_penawaran (when deal was accepted)
      */
     private function getYearRange()
     {
-        $yearRange = DB::table('proyek')
-            ->selectRaw('MIN(YEAR(tanggal)) as min_year, MAX(YEAR(tanggal)) as max_year')
-            ->where('status', '!=', 'Gagal') // Exclude failed projects
+        $yearRange = DB::table('penawaran')
+            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+            ->selectRaw('MIN(YEAR(penawaran.tanggal_penawaran)) as min_year, MAX(YEAR(penawaran.tanggal_penawaran)) as max_year')
+            ->where('penawaran.status', 'ACC')
+            ->where('proyek.status', '!=', 'Gagal') // Exclude failed projects
             ->first();
 
         // Set defaults if no projects exist

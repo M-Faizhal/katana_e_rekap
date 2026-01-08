@@ -40,6 +40,42 @@
     </div>
 </div>
 
+<!-- Year Filter Section -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-100 mb-6">
+    <div class="p-4 sm:p-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-calendar-alt text-red-600 text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Filter Tahun</h3>
+                    <p class="text-sm text-gray-600">Pilih tahun untuk melihat statistik dan data proyek</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="changeGlobalYear(-1)" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-red-500 transition-colors">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <input type="number" id="globalYear" value="{{ request('year', date('Y')) }}" 
+                       min="{{ $yearRange['min_year'] }}" 
+                       max="{{ $yearRange['max_year'] }}"
+                       class="w-24 text-center text-lg font-semibold border-2 border-gray-300 rounded-lg py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+                       onchange="updateGlobalYear()" 
+                       readonly
+                       title="Range: {{ $yearRange['min_year'] }} - {{ $yearRange['max_year'] }}">
+                <button onclick="changeGlobalYear(1)" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-red-500 transition-colors">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button onclick="showAllYears()" class="ml-2 px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
+                    <i class="fas fa-infinity mr-1"></i>
+                    Semua Tahun
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
@@ -137,30 +173,13 @@
     <!-- Monthly Projects Chart -->
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
         <div class="p-4 sm:p-6 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-chart-bar text-green-600 text-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">Proyek Per Bulan</h3>
-                        <p class="text-sm text-gray-600">Distribusi bulanan per tahun</p>
-                    </div>
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-chart-bar text-green-600 text-lg"></i>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <label class="text-sm font-medium text-gray-700">Tahun:</label>
-                    <div class="flex items-center space-x-1">
-                        <button onclick="changeYear('monthly', -1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
-                            <i class="fas fa-chevron-left text-xs"></i>
-                        </button>
-                        <input type="number" id="monthlyChartYear" value="{{ date('Y') }}" min="{{ $yearRange['min_year'] }}" max="{{ $yearRange['max_year'] }}"
-                               class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                               onchange="updateMonthlyChart()" onkeyup="handleYearInput(this, 'monthly')"
-                               title="Range: {{ $yearRange['min_year'] }} - {{ $yearRange['max_year'] }}">
-                        <button onclick="changeYear('monthly', 1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500">
-                            <i class="fas fa-chevron-right text-xs"></i>
-                        </button>
-                    </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Proyek Per Bulan</h3>
+                    <p class="text-sm text-gray-600" id="monthlyChartSubtitle">Distribusi bulanan tahun {{ request('year', date('Y')) }}</p>
                 </div>
             </div>
         </div>
@@ -173,30 +192,13 @@
 <!-- Monthly Value Chart -->
 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
     <div class="p-4 sm:p-6 border-b border-gray-200">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-chart-line text-purple-600 text-lg"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800">Nilai Proyek Per Bulan</h3>
-                    <p class="text-sm text-gray-600">Total nilai proyek per tahun</p>
-                </div>
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-chart-line text-purple-600 text-lg"></i>
             </div>
-            <div class="flex items-center space-x-2">
-                <label class="text-sm font-medium text-gray-700">Tahun:</label>
-                <div class="flex items-center space-x-1">
-                    <button onclick="changeYear('value', -1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:ring-2 focus:ring-purple-500">
-                        <i class="fas fa-chevron-left text-xs"></i>
-                    </button>
-                    <input type="number" id="valueChartYear" value="{{ date('Y') }}" min="{{ $yearRange['min_year'] }}" max="{{ $yearRange['max_year'] }}"
-                           class="w-20 text-sm text-center border-t border-b border-gray-300 py-1 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                           onchange="updateValueChart()" onkeyup="handleYearInput(this, 'value')"
-                           title="Range: {{ $yearRange['min_year'] }} - {{ $yearRange['max_year'] }}">
-                    <button onclick="changeYear('value', 1)" class="w-8 h-8 flex items-center justify-center text-sm border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:ring-2 focus:ring-purple-500">
-                        <i class="fas fa-chevron-right text-xs"></i>
-                    </button>
-                </div>
+            <div>
+                <h3 class="text-lg font-bold text-gray-800">Nilai Proyek Per Bulan</h3>
+                <p class="text-sm text-gray-600" id="valueChartSubtitle">Total nilai proyek tahun {{ request('year', date('Y')) }}</p>
             </div>
         </div>
     </div>
@@ -568,172 +570,54 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Update monthly chart based on selected year
-async function updateMonthlyChart() {
-    const selectedYear = document.getElementById('monthlyChartYear').value;
-
-    try {
-        // Show loading indicator
-        const canvas = document.getElementById('monthlyChart');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#6b7280';
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Memuat data...', canvas.width / 2, canvas.height / 2);
-
-        // Fetch new data for selected year
-        const response = await fetch(`{{ route('laporan.proyek') }}?ajax=1&chart_year=${selectedYear}`, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.success && data.chartData) {
-            // Update chart data
-            monthlyChart.data.labels = data.chartData.monthly_projects.map(item => item.month);
-            monthlyChart.data.datasets[0].data = data.chartData.monthly_projects.map(item => item.count);
-            monthlyChart.update();
-        } else {
-            throw new Error('Invalid response data');
-        }
-    } catch (error) {
-        console.error('Error updating monthly chart:', error);
-        showNotification('Gagal memuat data chart: ' + error.message, 'error');
-
-        // Restore chart
-        monthlyChart.update();
-    }
-}
-
-// Update value chart based on selected year
-async function updateValueChart() {
-    const selectedYear = document.getElementById('valueChartYear').value;
-
-    try {
-        // Show loading indicator
-        const canvas = document.getElementById('valueChart');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#6b7280';
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Memuat data...', canvas.width / 2, canvas.height / 2);
-
-        // Fetch new data for selected year
-        const response = await fetch(`{{ route('laporan.proyek') }}?ajax=1&chart_year=${selectedYear}`, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.success && data.chartData) {
-            // Update chart data
-            valueChart.data.labels = data.chartData.monthly_values.map(item => item.month);
-            valueChart.data.datasets[0].data = data.chartData.monthly_values.map(item => item.value);
-            valueChart.update();
-        } else {
-            throw new Error('Invalid response data');
-        }
-    } catch (error) {
-        console.error('Error updating value chart:', error);
-        showNotification('Gagal memuat data chart: ' + error.message, 'error');
-
-        // Restore chart
-        valueChart.update();
-    }
-}
-
-// Sync year filters for both charts
-function syncChartYears() {
-    const monthlyYear = document.getElementById('monthlyChartYear').value;
-    const valueYear = document.getElementById('valueChartYear').value;
-
-    // Sync both dropdowns to use same year
-    if (monthlyYear !== valueYear) {
-        document.getElementById('valueChartYear').value = monthlyYear;
-        updateValueChart();
-    }
-}
-
 // Dynamic year range from PHP
 const yearRange = @json($yearRange);
 
-// Handle year input changes with validation
-function handleYearInput(input, chartType) {
-    const year = parseInt(input.value);
-
-    // Validate year range using dynamic data
-    if (year < yearRange.min_year) {
-        input.value = yearRange.min_year;
-        showNotification(`Tahun minimum adalah ${yearRange.min_year}`, 'warning');
-    } else if (year > yearRange.max_year) {
-        input.value = yearRange.max_year;
-        showNotification(`Tahun maksimum adalah ${yearRange.max_year}`, 'warning');
-    }
-
-    // Auto update chart after short delay to avoid rapid API calls
-    clearTimeout(window.yearInputTimeout);
-    window.yearInputTimeout = setTimeout(() => {
-        if (chartType === 'monthly') {
-            document.getElementById('valueChartYear').value = input.value;
-            updateMonthlyChart();
-            updateValueChart();
-        } else {
-            document.getElementById('monthlyChartYear').value = input.value;
-            updateValueChart();
-            updateMonthlyChart();
-        }
-    }, 800);
-}
-
-// Change year with +/- buttons
-function changeYear(chartType, direction) {
-    const input = document.getElementById(chartType === 'monthly' ? 'monthlyChartYear' : 'valueChartYear');
-    const otherInput = document.getElementById(chartType === 'monthly' ? 'valueChartYear' : 'monthlyChartYear');
+// Global Year Filter Functions
+function changeGlobalYear(direction) {
+    const input = document.getElementById('globalYear');
     const currentYear = parseInt(input.value);
     const newYear = currentYear + direction;
 
     if (newYear >= yearRange.min_year && newYear <= yearRange.max_year) {
         input.value = newYear;
-        otherInput.value = newYear;
-
-        // Update both charts
-        updateMonthlyChart();
-        updateValueChart();
+        updateGlobalYear();
     } else {
         const limitText = newYear < yearRange.min_year ? `minimum (${yearRange.min_year})` : `maksimum (${yearRange.max_year})`;
         showNotification(`Tahun ${limitText} tercapai`, 'warning');
     }
 }
 
-// Add event listener to sync years
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('monthlyChartYear').addEventListener('change', function() {
-        document.getElementById('valueChartYear').value = this.value;
-        updateValueChart();
-    });
+function updateGlobalYear() {
+    const selectedYear = document.getElementById('globalYear').value;
+    
+    // Reload page with selected year parameter
+    const params = new URLSearchParams(window.location.search);
+    params.set('year', selectedYear);
+    
+    window.location.href = '{{ route("laporan.proyek") }}?' + params.toString();
+}
 
-    document.getElementById('valueChartYear').addEventListener('change', function() {
-        document.getElementById('monthlyChartYear').value = this.value;
-        updateMonthlyChart();
-    });
+function showAllYears() {
+    // Reload page without year parameter (show all data)
+    const params = new URLSearchParams(window.location.search);
+    params.delete('year');
+    
+    window.location.href = '{{ route("laporan.proyek") }}' + (params.toString() ? '?' + params.toString() : '');
+}
+
+// Update chart subtitles based on current year
+document.addEventListener('DOMContentLoaded', function() {
+    const currentYear = document.getElementById('globalYear').value;
+    const monthlySubtitle = document.getElementById('monthlyChartSubtitle');
+    const valueSubtitle = document.getElementById('valueChartSubtitle');
+    
+    if (monthlySubtitle) {
+        monthlySubtitle.textContent = `Distribusi bulanan tahun ${currentYear}`;
+    }
+    if (valueSubtitle) {
+        valueSubtitle.textContent = `Total nilai proyek tahun ${currentYear}`;
+    }
 });
 </script>
 

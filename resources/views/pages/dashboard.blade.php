@@ -37,19 +37,18 @@
         </div>
     </div>
 
-    <!-- Card 2 - Total Proyek Aktif -->
+    <!-- Card 2 - Proyek Sudah SP (Tahun Ini) -->
     <div class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 w-full">
         <div class="flex items-center space-x-3 sm:space-x-4">
             <div class="p-2 sm:p-3 rounded-xl bg-blue-600 shadow-md">
-                <i class="fas fa-project-diagram text-white text-lg sm:text-xl"></i>
+                <i class="fas fa-handshake text-white text-lg sm:text-xl"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Proyek Aktif</h3>
-                <p class="text-xl sm:text-2xl font-bold text-blue-600 mb-1">{{ $stats['proyek_aktif'] }}</p>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Proyek Sudah SP</h3>
+                <p class="text-xl sm:text-2xl font-bold text-blue-600 mb-1">{{ $stats['proyek_sp_tahun_ini'] }}</p>
                 <div class="flex items-center space-x-1">
-                    <i class="fas fa-arrow-up text-green-500 text-sm"></i>
-                    <span class="text-sm font-medium text-green-500">+{{ $stats['proyek_baru'] }}</span>
-                    <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">proyek baru</span>
+                    <i class="fas fa-calendar-alt text-gray-500 text-sm"></i>
+                    <span class="text-xs sm:text-sm text-gray-500">tahun {{ date('Y') }}</span>
                 </div>
             </div>
         </div>

@@ -56,8 +56,8 @@ class LaporanController extends Controller
             ]);
         }
 
-        // Get basic statistics
-        $stats = $this->getStatistics();
+        // Get basic statistics with year filter
+        $stats = $this->getStatistics($request);
 
         // Get projects with filters applied
         $projects = $this->getFilteredProjects($request);
@@ -65,7 +65,7 @@ class LaporanController extends Controller
         // Get filter options
         $filterOptions = $this->getFilterOptions();
 
-        // Get chart data
+        // Get chart data with year filter
         $chartData = $this->getChartData($request);
 
         // Get year range from project data
@@ -141,26 +141,51 @@ class LaporanController extends Controller
     /**
      * Get basic statistics for the dashboard
      */
-    private function getStatistics()
+    private function getStatistics(Request $request = null)
     {
+        // Get year filter if provided
+        $selectedYear = $request ? $request->get('year') : null;
+        
+        // Base query for projects
+        $proyekQuery = Proyek::where('status', '!=', 'Gagal');
+        
+        // Apply year filter if specified
+        if ($selectedYear) {
+            $proyekQuery->whereYear('tanggal', $selectedYear);
+        }
+        
         // Hitung total nilai dari harga_total proyek yang status tidak 'Gagal'
-        $totalNilai = Proyek::where('status', '!=', 'Gagal')
+        $totalNilai = (clone $proyekQuery)
             ->whereNotNull('harga_total')
             ->sum('harga_total');
 
         // Hitung proyek yang sudah SP (proyek dengan penawaran status ACC)
-        $proyekSP = Proyek::whereHas('semuaPenawaran', function($query) {
-            $query->where('status', 'ACC');
-        })->where('status', '!=', 'Gagal')->count();
+        // Filter berdasarkan tanggal_penawaran jika ada year filter
+        if ($selectedYear) {
+            $proyekSP = Proyek::where('status', '!=', 'Gagal')
+                ->whereHas('semuaPenawaran', function($query) use ($selectedYear) {
+                    $query->where('status', 'ACC')
+                          ->whereYear('tanggal_penawaran', $selectedYear);
+                })
+                ->count();
+        } else {
+            $proyekSP = Proyek::where('status', '!=', 'Gagal')
+                ->whereHas('semuaPenawaran', function($query) {
+                    $query->where('status', 'ACC');
+                })
+                ->count();
+        }
 
         // Hitung proyek selesai
-        $proyekSelesai = Proyek::where('status', 'Selesai')->count();
+        $proyekSelesai = (clone $proyekQuery)
+            ->where('status', 'Selesai')
+            ->count();
 
         // Hitung proyek berjalan (selisih proyek SP dan proyek selesai)
         $proyekBerjalan = $proyekSP - $proyekSelesai;
 
         $stats = [
-            'total_proyek' => Proyek::where('status', '!=', 'Gagal')->count(),
+            'total_proyek' => $proyekQuery->count(),
             'proyek_selesai' => $proyekSelesai,
             'proyek_sp' => $proyekSP,
             'proyek_berjalan' => max(0, $proyekBerjalan), // Pastikan tidak negatif
