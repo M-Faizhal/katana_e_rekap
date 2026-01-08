@@ -77,6 +77,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Proyek</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tahun Potensi</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marketing</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purchasing</th>
@@ -117,6 +118,12 @@
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
+                            </td>
+
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    {{ $p->tahun_potensi ?? 'N/A' }}
+                                </span>
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -197,7 +204,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center py-6 text-gray-500">Tidak ada proyek menunggu kalkulasi</td>
+                            <td colspan="10" class="text-center py-6 text-gray-500">Tidak ada proyek menunggu kalkulasi</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -240,12 +247,18 @@
                             <p class="text-xs text-gray-500">{{ $p->instansi }}</p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500">Tanggal</p>
-                            <p class="text-sm font-medium text-gray-900">{{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</p>
+                            <p class="text-xs text-gray-500">Tahun Potensi</p>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {{ $p->tahun_potensi ?? 'N/A' }}
+                            </span>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                        <div>
+                            <p class="text-xs text-gray-500">Tanggal</p>
+                            <p class="text-sm font-medium text-gray-900">{{ \Carbon\Carbon::parse($p->tanggal)->format('d M Y') }}</p>
+                        </div>
                         <div>
                             <p class="text-xs text-gray-500">Marketing</p>
                             @php
@@ -437,6 +450,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Proyek</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tahun Potensi</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Penawaran</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Penawaran</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marketing</th>
@@ -470,6 +484,12 @@
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
+                            </td>
+
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    {{ $p->tahun_potensi ?? 'N/A' }}
+                                </span>
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap">
@@ -532,7 +552,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center py-6 text-gray-500">Tidak ada proyek dalam proses penawaran</td>
+                            <td colspan="10" class="text-center py-6 text-gray-500">Tidak ada proyek dalam proses penawaran</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -569,13 +589,19 @@
                             <p class="text-xs text-gray-500">{{ $p->instansi }}</p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500">No. Penawaran</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $p->penawaran->no_penawaran ?? 'N/A' }}</p>
-                            <p class="text-xs text-gray-500">{{ $p->penawaran ? \Carbon\Carbon::parse($p->penawaran->tanggal_penawaran)->format('d M Y') : 'N/A' }}</p>
+                            <p class="text-xs text-gray-500">Tahun Potensi</p>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {{ $p->tahun_potensi ?? 'N/A' }}
+                            </span>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                        <div>
+                            <p class="text-xs text-gray-500">No. Penawaran</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $p->penawaran->no_penawaran ?? 'N/A' }}</p>
+                            <p class="text-xs text-gray-500">{{ $p->penawaran ? \Carbon\Carbon::parse($p->penawaran->tanggal_penawaran)->format('d M Y') : 'N/A' }}</p>
+                        </div>
                         <div>
                             <p class="text-xs text-gray-500">Marketing</p>
                             @php
@@ -755,6 +781,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Proyek</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Klien</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tahun Potensi</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Penawaran</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal ACC</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marketing</th>
@@ -788,6 +815,12 @@
                             <td class="px-4 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $p->kode_proyek }}</div>
                                 <div class="text-sm text-gray-500">{{ $p->instansi }}</div>
+                            </td>
+
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    {{ $p->tahun_potensi ?? 'N/A' }}
+                                </span>
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap">
@@ -859,7 +892,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center py-6 text-gray-500">Belum ada penawaran yang berhasil (ACC)</td>
+                            <td colspan="10" class="text-center py-6 text-gray-500">Belum ada penawaran yang berhasil (ACC)</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -896,13 +929,19 @@
                             <p class="text-xs text-gray-500">{{ $p->instansi }}</p>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-500">No. Penawaran</p>
-                            <p class="text-sm font-medium text-gray-900">{{ $p->penawaran->no_penawaran ?? 'N/A' }}</p>
-                            <p class="text-xs text-gray-500">ACC: {{ $p->penawaran ? \Carbon\Carbon::parse($p->penawaran->updated_at)->format('d M Y') : 'N/A' }}</p>
+                            <p class="text-xs text-gray-500">Tahun Potensi</p>
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {{ $p->tahun_potensi ?? 'N/A' }}
+                            </span>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                        <div>
+                            <p class="text-xs text-gray-500">No. Penawaran</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $p->penawaran->no_penawaran ?? 'N/A' }}</p>
+                            <p class="text-xs text-gray-500">ACC: {{ $p->penawaran ? \Carbon\Carbon::parse($p->penawaran->updated_at)->format('d M Y') : 'N/A' }}</p>
+                        </div>
                         <div>
                             <p class="text-xs text-gray-500">Marketing</p>
                             @php
