@@ -97,69 +97,168 @@
 
     <!-- Filter & Search -->
     <div class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50">
+        <!-- Active Filters Display -->
+        @if(request()->hasAny(['search', 'jenis', 'pkp', 'online_shop']))
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+            <span class="text-sm font-medium text-gray-600">Filter Aktif:</span>
+            @if(request('search'))
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    <i class="fas fa-search mr-1"></i>{{ request('search') }}
+                </span>
+            @endif
+            @if(request('jenis'))
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <i class="fas fa-building mr-1"></i>{{ request('jenis') }}
+                </span>
+            @endif
+            @if(request('pkp'))
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i>{{ request('pkp') == 'ya' ? 'PKP' : 'Non-PKP' }}
+                </span>
+            @endif
+            @if(request('online_shop'))
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    <i class="fas fa-store mr-1"></i>{{ request('online_shop') == 'ya' ? 'Ada Online Shop' : 'Tidak Ada Online Shop' }}
+                </span>
+            @endif
+        </div>
+        @endif
+        
         <div class="flex flex-col lg:flex-row gap-4">
             <div class="flex-1">
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="searchVendor" placeholder="Cari vendor..."
-                           class="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
+                    <input type="text" id="searchVendor" placeholder="Cari vendor..." value="{{ request('search') }}"
+                           class="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base"
+                           onkeyup="debounceSearch()">
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
-                <select id="filterJenis" class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
+                <select id="filterJenis" onchange="filterVendors()" class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm sm:text-base">
                     <option value="">Semua Jenis</option>
-                    <option value="Principle">Principle</option>
-                    <option value="Distributor">Distributor</option>
-                    <option value="Retail">Retail</option>
-                    <option value="Lain-lain">Lain-lain</option>
+                    <option value="Principle" {{ request('jenis') == 'Principle' ? 'selected' : '' }}>Principle</option>
+                    <option value="Distributor" {{ request('jenis') == 'Distributor' ? 'selected' : '' }}>Distributor</option>
+                    <option value="Retail" {{ request('jenis') == 'Retail' ? 'selected' : '' }}>Retail</option>
+                    <option value="Lain-lain" {{ request('jenis') == 'Lain-lain' ? 'selected' : '' }}>Lain-lain</option>
                 </select>
+                <select id="filterPkp" onchange="filterVendors()" class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base">
+                    <option value="">Semua Status PKP</option>
+                    <option value="ya" {{ request('pkp') == 'ya' ? 'selected' : '' }}>PKP</option>
+                    <option value="tidak" {{ request('pkp') == 'tidak' ? 'selected' : '' }}>Non-PKP</option>
+                </select>
+                <select id="filterOnlineShop" onchange="filterVendors()" class="px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base">
+                    <option value="">Semua Online Shop</option>
+                    <option value="ya" {{ request('online_shop') == 'ya' ? 'selected' : '' }}>Ada Online Shop</option>
+                    <option value="tidak" {{ request('online_shop') == 'tidak' ? 'selected' : '' }}>Tidak Ada</option>
+                </select>
+                <button onclick="clearFilters()" class="px-4 py-2.5 sm:px-5 sm:py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base font-medium">
+                    <i class="fas fa-times mr-2"></i>Clear
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Desktop Table View -->
     <div class="hidden md:block overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">No</th>
-                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">Nama Vendor</th>
-                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">Jenis</th>
-                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">Email</th>
-                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">No HP</th>
-                    <th class="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs lg:text-sm font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="bg-gradient-to-r from-gray-100 to-gray-50">
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-800 uppercase tracking-wider border border-gray-300" rowspan="2" style="width: 50px;">
+                        No
+                    </th>
+                    <th class="px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider border border-gray-300">
+                        Nama Vendor
+                    </th>
+                    <th class="px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider border border-gray-300">
+                        Jenis
+                    </th>
+                    <th class="px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider border border-gray-300">
+                        Lainnya
+                    </th>
+                    <th class="px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider border border-gray-300">
+                        Kontak
+                    </th>
+                    <th class="px-4 py-3 text-center text-sm font-bold text-gray-800 uppercase tracking-wider border border-gray-300" rowspan="2" style="width: 120px;">
+                        Aksi
+                    </th>
                 </tr>
+                
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200" id="vendorTableBody">
+            <tbody class="bg-white" id="vendorTableBody">
                 @foreach($vendors as $index => $vendor)
-                <tr>
-                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm text-gray-900">{{ ($vendors->currentPage() - 1) * $vendors->perPage() + $index + 1 }}</td>
-                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="w-8 h-8 lg:w-10 lg:h-10 bg-red-100 rounded-xl flex items-center justify-center mr-3">
-                                <i class="fas fa-building text-red-600 text-sm lg:text-base"></i>
-                            </div>
+                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="px-4 py-4 text-center text-sm text-gray-900 font-semibold border border-gray-200">
+                        {{ ($vendors->currentPage() - 1) * $vendors->perPage() + $index + 1 }}
+                    </td>
+                    <td class="px-4 py-3 border border-gray-200">
+                        <div class="space-y-1">
+                            <div class="text-sm font-bold text-gray-900">{{ $vendor->nama_vendor }}</div>
+                            <div class="text-xs text-gray-600">{{ $vendor->keterangan ?: '-' }}</div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 border border-gray-200">
+                        <div class="space-y-2">
+                            <div class="text-sm font-medium text-gray-900">{{ $vendor->jenis_perusahaan }}</div>
                             <div>
-                                <p class="text-sm lg:text-base font-semibold text-gray-900">{{ $vendor->nama_vendor }}</p>
-                                <p class="text-xs lg:text-sm text-gray-500">{{ Str::limit($vendor->alamat, 30) }}</p>
+                                @if($vendor->pkp === 'ya')
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i>PKP
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                        -
+                                    </span>
+                                @endif
                             </div>
                         </div>
                     </td>
-                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm text-gray-600">{{ $vendor->jenis_perusahaan }}</td>
-                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm text-gray-600">{{ $vendor->email }}</td>
-                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm text-gray-600">{{ $vendor->kontak }}</td>
-                    <td class="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm font-medium">
-                        <div class="flex space-x-1 lg:space-x-2">
-                            <button onclick="detailVendor({{ $vendor->id_vendor }})" class="text-blue-600 hover:text-blue-800 transition-colors p-1.5 lg:p-2" title="Lihat Detail">
-                                <i class="fas fa-eye text-sm lg:text-base"></i>
+                    <td class="px-4 py-3 border border-gray-200">
+                        <div class="space-y-2">
+                            <div>
+                                @if($vendor->online_shop === 'ya')
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                        <i class="fas fa-check mr-1"></i>Ya
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                        -
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="text-xs text-gray-700">{{ $vendor->nama_online_shop ?: '-' }}</div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 border border-gray-200">
+                        <div class="space-y-1">
+                            <div class="text-sm text-gray-900">
+                                <i class="fas fa-phone text-green-600 mr-1"></i>{{ $vendor->kontak ?: '-' }}
+                            </div>
+                            <div class="text-xs text-gray-700">
+                                <i class="fas fa-envelope text-blue-600 mr-1"></i>{{ $vendor->email ?: '-' }}
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                <i class="fas fa-map-marker-alt text-red-600 mr-1"></i>{{ Str::limit($vendor->alamat, 40) ?: '-' }}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 text-center border border-gray-200">
+                        <div class="flex items-center justify-center space-x-1">
+                            <button onclick="detailVendor({{ $vendor->id_vendor }})" 
+                                    class="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" 
+                                    title="Lihat Detail">
+                                <i class="fas fa-eye text-sm"></i>
                             </button>
                             @auth
                                 @if(auth()->user()->role === 'admin_purchasing' || auth()->user()->role === 'superadmin')
-                                    <button onclick="editVendor({{ $vendor->id_vendor }})" class="text-yellow-600 hover:text-yellow-800 transition-colors p-1.5 lg:p-2" title="Edit Vendor">
-                                        <i class="fas fa-edit text-sm lg:text-base"></i>
+                                    <button onclick="editVendor({{ $vendor->id_vendor }})" 
+                                            class="inline-flex items-center justify-center w-8 h-8 text-yellow-600 hover:bg-yellow-100 rounded-lg transition-colors" 
+                                            title="Edit Vendor">
+                                        <i class="fas fa-edit text-sm"></i>
                                     </button>
-                                    <button onclick="hapusVendor({{ $vendor->id_vendor }})" class="text-red-600 hover:text-red-800 transition-colors p-1.5 lg:p-2" title="Hapus Vendor">
-                                        <i class="fas fa-trash text-sm lg:text-base"></i>
+                                    <button onclick="hapusVendor({{ $vendor->id_vendor }})" 
+                                            class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:bg-red-100 rounded-lg transition-colors" 
+                                            title="Hapus Vendor">
+                                        <i class="fas fa-trash text-sm"></i>
                                     </button>
                                 @endif
                             @endauth
@@ -381,6 +480,20 @@ function editVendor(id) {
                 document.getElementById('editKontakVendor').value = vendor.kontak;
                 document.getElementById('editAlamatVendor').value = vendor.alamat || '';
                 
+                // Populate new fields
+                const pkpCheckbox = document.getElementById('editPkpVendor');
+                if (pkpCheckbox) pkpCheckbox.checked = vendor.pkp === 'ya';
+                
+                document.getElementById('editKeteranganVendor').value = vendor.keterangan || '';
+                
+                const onlineShopCheckbox = document.getElementById('editOnlineShopVendor');
+                if (onlineShopCheckbox) {
+                    onlineShopCheckbox.checked = vendor.online_shop === 'ya';
+                    toggleEditOnlineShopInput();
+                }
+                
+                document.getElementById('editNamaOnlineShop').value = vendor.nama_online_shop || '';
+                
                 // Load existing barang
                 editVendorProducts = vendor.barang.map(barang => ({
                     id_barang: barang.id_barang,
@@ -417,6 +530,27 @@ function detailVendor(id) {
                 document.getElementById('detailEmailVendor').textContent = vendor.email;
                 document.getElementById('detailKontakVendor').textContent = vendor.kontak;
                 document.getElementById('detailAlamatVendor').textContent = vendor.alamat || '-';
+                
+                // Populate new fields with badges
+                const pkpElement = document.getElementById('detailPkpVendor');
+                if (vendor.pkp === 'ya') {
+                    pkpElement.innerHTML = '<span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold"><i class="fas fa-check-circle mr-1"></i>Ya, PKP</span>';
+                } else {
+                    pkpElement.innerHTML = '<span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"><i class="fas fa-times-circle mr-1"></i>Bukan PKP</span>';
+                }
+                
+                const onlineShopElement = document.getElementById('detailOnlineShopVendor');
+                const namaOnlineShopContainer = document.getElementById('detailNamaOnlineShopContainer');
+                if (vendor.online_shop === 'ya') {
+                    onlineShopElement.innerHTML = '<span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold"><i class="fas fa-store mr-1"></i>Ya, ada online shop</span>';
+                    namaOnlineShopContainer.style.display = 'block';
+                    document.getElementById('detailNamaOnlineShop').textContent = vendor.nama_online_shop || '-';
+                } else {
+                    onlineShopElement.innerHTML = '<span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"><i class="fas fa-times-circle mr-1"></i>Tidak ada</span>';
+                    namaOnlineShopContainer.style.display = 'none';
+                }
+                
+                document.getElementById('detailKeteranganVendor').textContent = vendor.keterangan || '-';
                 
                 // Show products
                 const productListHtml = vendor.barang.map(barang => `
@@ -508,6 +642,14 @@ function submitTambahVendor() {
     
     const form = document.getElementById('formTambahVendor');
     const formData = new FormData(form);
+    
+    // Handle PKP checkbox
+    const pkpCheckbox = document.getElementById('pkpVendor');
+    formData.set('pkp', pkpCheckbox && pkpCheckbox.checked ? 'ya' : 'tidak');
+    
+    // Handle Online Shop checkbox
+    const onlineShopCheckbox = document.getElementById('onlineShopVendor');
+    formData.set('online_shop', onlineShopCheckbox && onlineShopCheckbox.checked ? 'ya' : 'tidak');
     
     // Add barang data
     vendorProducts.forEach((product, index) => {
@@ -631,6 +773,10 @@ function submitEditVendor() {
         jenis_perusahaan: document.getElementById('editJenisPerusahaan').value || '',
         kontak: document.getElementById('editKontakVendor').value || '',
         alamat: document.getElementById('editAlamatVendor').value || '',
+        pkp: document.getElementById('editPkpVendor').checked ? 'ya' : 'tidak',
+        keterangan: document.getElementById('editKeteranganVendor').value || '',
+        online_shop: document.getElementById('editOnlineShopVendor').checked ? 'ya' : 'tidak',
+        nama_online_shop: document.getElementById('editNamaOnlineShop').value || '',
         barang: []
     };
     
@@ -908,6 +1054,8 @@ function closeSuccessModal() {
 function filterVendors() {
     const searchTerm = document.getElementById('searchVendor').value;
     const jenisFilter = document.getElementById('filterJenis').value;
+    const pkpFilter = document.getElementById('filterPkp').value;
+    const onlineShopFilter = document.getElementById('filterOnlineShop').value;
     
     // Create URL with search parameters
     const url = new URL(window.location.href);
@@ -925,7 +1073,32 @@ function filterVendors() {
         url.searchParams.delete('jenis');
     }
     
+    if (pkpFilter && pkpFilter !== '') {
+        url.searchParams.set('pkp', pkpFilter);
+    } else {
+        url.searchParams.delete('pkp');
+    }
+    
+    if (onlineShopFilter && onlineShopFilter !== '') {
+        url.searchParams.set('online_shop', onlineShopFilter);
+    } else {
+        url.searchParams.delete('online_shop');
+    }
+    
     // Redirect to new URL with filters
+    window.location.href = url.toString();
+}
+
+function clearFilters() {
+    // Clear all filter values
+    document.getElementById('searchVendor').value = '';
+    document.getElementById('filterJenis').value = '';
+    document.getElementById('filterPkp').value = '';
+    document.getElementById('filterOnlineShop').value = '';
+    
+    // Redirect to base URL without any filters
+    const url = new URL(window.location.href);
+    url.search = ''; // Clear all query parameters
     window.location.href = url.toString();
 }
 

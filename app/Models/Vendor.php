@@ -15,6 +15,10 @@ class Vendor extends Model
         'email',
         'alamat',
         'kontak',
+        'pkp',
+        'keterangan',
+        'online_shop',
+        'nama_online_shop',
     ];
 
     // Accessor untuk nama

@@ -36,13 +36,24 @@ class VendorController extends Controller
             $vendorsQuery->where(function($query) use ($search) {
                 $query->where('nama_vendor', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('kontak', 'like', "%{$search}%");
+                      ->orWhere('kontak', 'like', "%{$search}%")
+                      ->orWhere('keterangan', 'like', "%{$search}%");
             });
         }
         
         // Apply jenis filter if exists
         if ($request->has('jenis') && $request->jenis != '') {
             $vendorsQuery->where('jenis_perusahaan', $request->jenis);
+        }
+        
+        // Apply PKP filter if exists
+        if ($request->has('pkp') && $request->pkp != '') {
+            $vendorsQuery->where('pkp', $request->pkp);
+        }
+        
+        // Apply Online Shop filter if exists
+        if ($request->has('online_shop') && $request->online_shop != '') {
+            $vendorsQuery->where('online_shop', $request->online_shop);
         }
         
         // Paginate results - 10 vendors per page
@@ -91,6 +102,10 @@ class VendorController extends Controller
                 'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
                 'kontak' => 'nullable|string|max:255',
                 'alamat' => 'nullable|string',
+                'pkp' => 'nullable|in:ya,tidak',
+                'keterangan' => 'nullable|string',
+                'online_shop' => 'nullable|in:ya,tidak',
+                'nama_online_shop' => 'nullable|string|max:255',
             ]);
             
             // Handle empty email - set to null if empty
@@ -146,6 +161,10 @@ class VendorController extends Controller
                 'jenis_perusahaan' => $request->jenis_perusahaan,
                 'kontak' => $request->kontak,
                 'alamat' => $request->alamat,
+                'pkp' => $request->pkp ?? 'tidak',
+                'keterangan' => $request->keterangan,
+                'online_shop' => $request->online_shop ?? 'tidak',
+                'nama_online_shop' => $request->online_shop === 'ya' ? $request->nama_online_shop : null,
             ]);
 
             // Create barang if provided
@@ -296,6 +315,10 @@ class VendorController extends Controller
             'jenis_perusahaan' => 'required|in:Principle,Distributor,Retail,Lain-lain',
             'kontak' => 'nullable|string|max:255',
             'alamat' => 'nullable|string',
+            'pkp' => 'nullable|in:ya,tidak',
+            'keterangan' => 'nullable|string',
+            'online_shop' => 'nullable|in:ya,tidak',
+            'nama_online_shop' => 'nullable|string|max:255',
             'barang' => 'nullable|array',
             'barang.*.nama_barang' => 'required_with:barang|string|max:255',
             'barang.*.brand' => 'required_with:barang|string|max:255',
@@ -328,6 +351,10 @@ class VendorController extends Controller
                 'jenis_perusahaan' => $request->jenis_perusahaan,
                 'kontak' => $request->kontak,
                 'alamat' => $request->alamat,
+                'pkp' => $request->pkp ?? 'tidak',
+                'keterangan' => $request->keterangan,
+                'online_shop' => $request->online_shop ?? 'tidak',
+                'nama_online_shop' => $request->online_shop === 'ya' ? $request->nama_online_shop : null,
             ]);
 
             // Handle barang updates

@@ -19,11 +19,11 @@
         
         <!-- Modal Body -->
         <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(100vh - 200px);">
-            <!-- Informasi Vendor -->
+            <!-- Informasi Umum -->
             <div class="bg-gray-50 rounded-xl p-6 mb-6">
                 <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                     <i class="fas fa-building text-red-600 mr-2"></i>
-                    Informasi Vendor
+                    Informasi Umum
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="md:col-span-2">
@@ -33,9 +33,45 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Perusahaan</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Vendor</label>
                         <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
                             <span id="detailJenisPerusahaan">-</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">PKP</label>
+                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
+                            <span id="detailPkpVendor" class="inline-flex items-center">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keterangan -->
+            <div class="bg-purple-50 rounded-xl p-6 mb-6 border border-purple-200">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-red-600 mr-2"></i>
+                    Keterangan
+                </h4>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Distributor Resmi Brand / Authorized Seller / Produk Spesifik Yang Dijual</label>
+                    <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800 min-h-[100px]">
+                        <span id="detailKeteranganVendor">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kontak -->
+            <div class="bg-blue-50 rounded-xl p-6 mb-6 border border-blue-200">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-phone text-blue-600 mr-2"></i>
+                    Kontak
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">No. HP</label>
+                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
+                            <span id="detailKontakVendor">-</span>
                         </div>
                     </div>
                     <div>
@@ -44,16 +80,33 @@
                             <span id="detailEmailVendor">-</span>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Kontak/No HP</label>
-                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
-                            <span id="detailKontakVendor">-</span>
-                        </div>
-                    </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
                         <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800 min-h-[100px]">
                             <span id="detailAlamatVendor">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lainnya -->
+            <div class="bg-green-50 rounded-xl p-6 mb-6 border border-green-200">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-ellipsis-h text-green-600 mr-2"></i>
+                    Lainnya
+                </h4>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Online Shop</label>
+                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
+                            <span id="detailOnlineShopVendor" class="inline-flex items-center">-</span>
+                        </div>
+                    </div>
+                    <div id="detailNamaOnlineShopContainer" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Online Shop</label>
+                        <div class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-800">
+                            <i class="fas fa-store text-blue-600 mr-2"></i>
+                            <span id="detailNamaOnlineShop">-</span>
                         </div>
                     </div>
                 </div>

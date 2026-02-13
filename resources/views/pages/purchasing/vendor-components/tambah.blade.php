@@ -23,15 +23,15 @@
                 <div class="bg-gray-50 rounded-xl p-6">
                     <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                         <i class="fas fa-building text-red-600 mr-2"></i>
-                        Informasi Vendor
+                        Informasi Umum
                     </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nama Vendor <span class="text-red-500">*</span></label>
                             <input type="text" id="namaVendor" name="nama_vendor" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama vendor" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Perusahaan <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Vendor <span class="text-red-500">*</span></label>
                             <select id="jenisPerusahaan" name="jenis_perusahaan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
                                 <option value="">Pilih jenis perusahaan</option>
                                 <option value="Principle">Principle</option>
@@ -40,17 +40,72 @@
                                 <option value="Lain-lain">Lain-lain</option>
                             </select>
                         </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                                <span class="mr-3">PKP</span>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" id="pkpVendor" name="pkp" value="ya" class="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                                    <span class="ml-2 text-sm text-gray-600">Ya</span>
+                                </label>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keterangan -->
+                <div class="bg-purple-50 rounded-xl p-6 border border-purple-200">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-red-600 mr-2"></i>
+                        Keterangan
+                    </h4>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Distributor Resmi Brand / Authorized Seller / Produk Spesifik Yang Dijual</label>
+                        <textarea id="keteranganVendor" name="keterangan" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Contoh: Distributor Resmi Epson, Authorized Seller Canon, dll"></textarea>
+                    </div>
+                </div>
+
+                <!-- Kontak -->
+                <div class="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-phone text-blue-600 mr-2"></i>
+                        Kontak
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                            <input type="email" id="emailVendor" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="vendor@email.com">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">No. HP</label>
+                            <input type="tel" id="kontakVendor" name="kontak" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0812-3456-7890">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Kontak/No HP</label>
-                            <input type="tel" id="kontakVendor" name="kontak" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="0812-3456-7890">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="emailVendor" name="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="vendor@email.com">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
-                            <textarea id="alamatVendor" name="alamat" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan alamat lengkap vendor"></textarea>
+                            <textarea id="alamatVendor" name="alamat" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan alamat lengkap vendor"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lainnya -->
+                <div class="bg-green-50 rounded-xl p-6 border border-green-200">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-ellipsis-h text-green-600 mr-2"></i>
+                        Lainnya
+                    </h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                                <span class="mr-3">Online Shop</span>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" id="onlineShopVendor" name="online_shop" value="ya" class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-2" onchange="toggleOnlineShopInput()">
+                                    <span class="ml-2 text-sm text-gray-600">Ya</span>
+                                </label>
+                            </label>
+                        </div>
+                        <div id="namaOnlineShopContainer" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Online Shop</label>
+                            <input type="text" id="namaOnlineShop" name="nama_online_shop" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="[A.8] Menu Muncul Jika 'Ya'">
+                            <p class="text-xs text-gray-500 mt-1"><i class="fas fa-info-circle mr-1"></i>Masukkan nama platform atau link toko online (Tokopedia, Shopee, Bukalapak, dll)</p>
                         </div>
                     </div>
                 </div>
@@ -209,6 +264,22 @@
 </div>
 
 <script>
+// Function untuk toggle online shop input
+function toggleOnlineShopInput() {
+    const checkbox = document.getElementById('onlineShopVendor');
+    const container = document.getElementById('namaOnlineShopContainer');
+    const input = document.getElementById('namaOnlineShop');
+    
+    if (checkbox.checked) {
+        container.classList.remove('hidden');
+        input.required = true;
+    } else {
+        container.classList.add('hidden');
+        input.required = false;
+        input.value = '';
+    }
+}
+
 // Function untuk toggle antara input teks dan file untuk spesifikasi
 function toggleSpesifikasiInput(type) {
     const textInput = document.getElementById('spesifikasiTextInput');

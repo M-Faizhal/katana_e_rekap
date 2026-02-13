@@ -22,21 +22,21 @@
             <form id="formEditVendor" class="space-y-6">
                 <input type="hidden" id="editVendorId" name="vendor_id">
 
-                <!-- Informasi Vendor -->
+                <!-- Informasi Umum -->
                 <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
                     <h4 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                         <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center mr-3">
                             <i class="fas fa-building text-white text-sm"></i>
                         </div>
-                        Informasi Vendor
+                        Informasi Umum
                     </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Vendor <span class="text-red-500">*</span></label>
                             <input type="text" name="nama_vendor" id="editNamaVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="Masukkan nama vendor" required>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Perusahaan <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jenis Vendor <span class="text-red-500">*</span></label>
                             <select name="jenis_perusahaan" id="editJenisPerusahaan" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" required>
                                 <option value="">Pilih jenis perusahaan</option>
                                 <option value="Principle">Principle</option>
@@ -45,17 +45,78 @@
                                 <option value="Lain-lain">Lain-lain</option>
                             </select>
                         </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <span class="mr-3">PKP</span>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" id="editPkpVendor" name="pkp" value="ya" class="w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                                    <span class="ml-2 text-sm text-gray-600">Ya</span>
+                                </label>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keterangan -->
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
+                    <h4 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-info-circle text-white text-sm"></i>
+                        </div>
+                        Keterangan
+                    </h4>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Distributor Resmi Brand / Authorized Seller / Produk Spesifik Yang Dijual</label>
+                        <textarea id="editKeteranganVendor" name="keterangan" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="Contoh: Distributor Resmi Epson, Authorized Seller Canon, dll"></textarea>
+                    </div>
+                </div>
+
+                <!-- Kontak -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200">
+                    <h4 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-phone text-white text-sm"></i>
+                        </div>
+                        Kontak
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                            <input type="email" name="email" id="editEmailVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="vendor@email.com">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">No. HP</label>
+                            <input type="tel" name="kontak" id="editKontakVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="0812-3456-7890">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Kontak/No HP</label>
-                            <input type="tel" name="kontak" id="editKontakVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="0812-3456-7890">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                            <input type="email" name="email" id="editEmailVendor" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="vendor@email.com">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Alamat</label>
-                            <textarea name="alamat" id="editAlamatVendor" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all" placeholder="Masukkan alamat lengkap vendor"></textarea>
+                            <textarea name="alamat" id="editAlamatVendor" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Masukkan alamat lengkap vendor"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lainnya -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200">
+                    <h4 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-ellipsis-h text-white text-sm"></i>
+                        </div>
+                        Lainnya
+                    </h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <span class="mr-3">Online Shop</span>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" id="editOnlineShopVendor" name="online_shop" value="ya" class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-2" onchange="toggleEditOnlineShopInput()">
+                                    <span class="ml-2 text-sm text-gray-600">Ya</span>
+                                </label>
+                            </label>
+                        </div>
+                        <div id="editNamaOnlineShopContainer" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Online Shop</label>
+                            <input type="text" id="editNamaOnlineShop" name="nama_online_shop" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all" placeholder="[A.8] Menu Muncul Jika 'Ya'">
+                            <p class="text-xs text-gray-500 mt-1"><i class="fas fa-info-circle mr-1"></i>Masukkan nama platform atau link toko online (Tokopedia, Shopee, Bukalapak, dll)</p>
                         </div>
                     </div>
                 </div>
@@ -253,6 +314,22 @@
 </div>
 
 <script>
+// Function untuk toggle online shop input di edit modal
+function toggleEditOnlineShopInput() {
+    const checkbox = document.getElementById('editOnlineShopVendor');
+    const container = document.getElementById('editNamaOnlineShopContainer');
+    const input = document.getElementById('editNamaOnlineShop');
+    
+    if (checkbox.checked) {
+        container.classList.remove('hidden');
+        input.required = true;
+    } else {
+        container.classList.add('hidden');
+        input.required = false;
+        input.value = '';
+    }
+}
+
 // Function to update product count and show warning
 function updateEditProductCountDisplay() {
     const countElement = document.getElementById('editProductCount');
