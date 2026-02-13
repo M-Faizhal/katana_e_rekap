@@ -9,55 +9,72 @@ use App\Models\Proyek;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class WilayahController extends Controller
 {
     public function index()
     {
-        // Ambil semua data wilayah dan grup berdasarkan nama_wilayah
-        $wilayahData = Wilayah::with(['proyeks.adminMarketing'])
+        // Ambil semua data wilayah
+        $allWilayah = Wilayah::with(['proyeks.adminMarketing', 'updatedBy'])
             ->active()
-            ->get()
-            ->groupBy('nama_wilayah')
-            ->map(function ($wilayahGroup, $namaWilayah) {
-                // Ambil data wilayah pertama untuk info umum
-                $firstWilayah = $wilayahGroup->first();
+            ->get();
 
-                // Kumpulkan semua instansi dalam wilayah ini
-                $instansiList = $wilayahGroup->map(function ($wilayah) {
-                    $proyekCount = $wilayah->proyeks->count();
-                    // Gunakan admin_marketing_text yang diinput manual atau fallback ke relasi
-                    $adminMarketingFromRelasi = $wilayah->proyeks->pluck('adminMarketing.nama')->filter()->unique();
+        // Buat array untuk menyimpan instansi dengan PIC-nya
+        $instansiWithPIC = $allWilayah->map(function ($wilayah) {
+            $proyekCount = $wilayah->proyeks->count();
+            $adminMarketingFromRelasi = $wilayah->proyeks->pluck('adminMarketing.nama')->filter()->unique();
+            $adminMarketing = $wilayah->admin_marketing_text ?: ($adminMarketingFromRelasi->implode(', ') ?: '-');
 
-                    return [
-                        'id' => $wilayah->id_wilayah,
-                        'instansi' => $wilayah->instansi ?: '-',
-                        'kode_wilayah' => $wilayah->kode_wilayah, // Tambahkan kode_wilayah per instansi
-                        'nama_pejabat' => $wilayah->nama_pejabat ?: $this->generateNamaPejabat($wilayah->instansi),
-                        'jabatan' => $wilayah->jabatan ?: $this->generateJabatan($wilayah->instansi ?: ''),
-                        'no_telp' => $wilayah->no_telp ?: $this->generateNoTelp($wilayah->nama_wilayah),
-                        'email' => $wilayah->email ?: $this->generateEmail($wilayah->nama_pejabat ?: $this->generateNamaPejabat($wilayah->instansi), $wilayah->instansi ?: ''),
-                        'admin_marketing_text' => $wilayah->admin_marketing_text, // Field untuk edit
-                        'jumlah_proyek' => $proyekCount,
-                        'admin_marketing' => $wilayah->admin_marketing_text ?: ($adminMarketingFromRelasi->implode(', ') ?: '-'),
-                        'updated_at' => $wilayah->updated_at->format('d M Y'),
-                    ];
-                })->toArray();
+            // Cek apakah data valid atau kosong
+            $noTelp = $wilayah->no_telp && trim($wilayah->no_telp) !== '' ? $wilayah->no_telp : '-';
+            $email = $wilayah->email && trim($wilayah->email) !== '' ? $wilayah->email : '-';
 
-                return [
-                    'id' => $firstWilayah->id_wilayah,
-                    'wilayah' => $namaWilayah,
-                    'provinsi' => $firstWilayah->provinsi,
-                    'kode_wilayah' => $firstWilayah->kode_wilayah,
-                    'deskripsi' => $firstWilayah->deskripsi,
-                    'instansi_list' => $instansiList,
-                    'jumlah_instansi' => count($instansiList),
-                    'total_proyek' => array_sum(array_column($instansiList, 'jumlah_proyek')),
-                    'updated_at' => $firstWilayah->updated_at->format('d M Y'),
-                    'created_at' => $firstWilayah->created_at->format('d M Y')
-                ];
-            })->values()->toArray();
+            return [
+                'id' => $wilayah->id_wilayah,
+                'nama_wilayah' => $wilayah->nama_wilayah,
+                'provinsi' => $wilayah->provinsi,
+                'kode_wilayah' => $wilayah->kode_wilayah,
+                'deskripsi' => $wilayah->deskripsi,
+                'instansi' => $wilayah->instansi ?: '-',
+                'nama_pejabat' => $wilayah->nama_pejabat ?: '-',
+                'jabatan' => $wilayah->jabatan ?: '-',
+                'no_telp' => $noTelp,
+                'email' => $email,
+                'admin_marketing_text' => $wilayah->admin_marketing_text,
+                'jumlah_proyek' => $proyekCount,
+                'admin_marketing' => $adminMarketing,
+                'updated_at' => $wilayah->updated_at->format('d M Y'),
+                'updated_at_timestamp' => $wilayah->updated_at->timestamp,
+                'updated_by_name' => $wilayah->updatedBy ? $wilayah->updatedBy->nama : 'System',
+                'created_at' => $wilayah->created_at->format('d M Y')
+            ];
+        });
+
+        // Group berdasarkan kombinasi nama_wilayah + admin_marketing
+        $wilayahData = $instansiWithPIC->groupBy(function($item) {
+            return $item['nama_wilayah'] . '|||' . $item['admin_marketing'];
+        })->map(function ($group, $groupKey) {
+            list($namaWilayah, $adminMarketing) = explode('|||', $groupKey);
+            $firstItem = $group->first();
+
+            return [
+                'id' => $firstItem['id'],
+                'wilayah' => $namaWilayah,
+                'provinsi' => $firstItem['provinsi'],
+                'kode_wilayah' => $firstItem['kode_wilayah'],
+                'deskripsi' => $firstItem['deskripsi'],
+                'pic_wilayah' => $adminMarketing, // PIC untuk card ini
+                'instansi_list' => $group->toArray(),
+                'jumlah_instansi' => $group->count(),
+                'total_proyek' => $group->sum('jumlah_proyek'),
+                'updated_at' => $firstItem['updated_at'],
+                'updated_at_timestamp' => $firstItem['updated_at_timestamp'],
+                'updated_by_name' => $firstItem['updated_by_name'],
+                'created_at' => $firstItem['created_at']
+            ];
+        })->values()->toArray();
 
         // Hitung statistik
         $totalWilayah = count($wilayahData);
@@ -110,7 +127,8 @@ class WilayahController extends Controller
                 'alamat' => $request->alamat,
                 'admin_marketing_text' => $request->admin_marketing_text,
                 'deskripsi' => $request->deskripsi,
-                'is_active' => true
+                'is_active' => true,
+                'updated_by' => Auth::id()
             ]);
 
             return response()->json([
@@ -196,7 +214,8 @@ class WilayahController extends Controller
                 'email' => $request->email,
                 'alamat' => $request->alamat,
                 'admin_marketing_text' => $request->admin_marketing_text,
-                'deskripsi' => $request->deskripsi
+                'deskripsi' => $request->deskripsi,
+                'updated_by' => Auth::id()
             ]);
 
             return response()->json([
