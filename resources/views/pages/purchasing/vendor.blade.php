@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('title', 'Manajemen Vendor - Cyber KATANA')
@@ -503,7 +502,16 @@ function editVendor(id) {
                     satuan: barang.satuan,
                     spesifikasi: barang.spesifikasi,
                     harga_vendor: barang.harga_vendor,
-                    foto_barang: barang.foto_barang
+                    harga_pasaran_inaproc: barang.harga_pasaran_inaproc,
+                    spesifikasi_kunci: barang.spesifikasi_kunci,
+                    garansi: barang.garansi,
+                    pdn_tkdn_impor: barang.pdn_tkdn_impor,
+                    skor_tkdn: barang.skor_tkdn,
+                    link_tkdn: barang.link_tkdn,
+                    estimasi_ketersediaan: barang.estimasi_ketersediaan,
+                    link_produk: barang.link_produk,
+                    foto_barang: barang.foto_barang,
+                    spesifikasi_file: barang.spesifikasi_file
                 }));
                 
                 updateEditVendorProductList();
@@ -660,6 +668,32 @@ function submitTambahVendor() {
         formData.append(`barang[${index}][satuan]`, product.satuan);
         formData.append(`barang[${index}][spesifikasi]`, product.spesifikasi);
         formData.append(`barang[${index}][harga_vendor]`, product.harga_vendor);
+        
+        // Add new fields
+        if (product.harga_pasaran_inaproc) {
+            formData.append(`barang[${index}][harga_pasaran_inaproc]`, product.harga_pasaran_inaproc);
+        }
+        if (product.spesifikasi_kunci) {
+            formData.append(`barang[${index}][spesifikasi_kunci]`, product.spesifikasi_kunci);
+        }
+        if (product.garansi) {
+            formData.append(`barang[${index}][garansi]`, product.garansi);
+        }
+        if (product.pdn_tkdn_impor) {
+            formData.append(`barang[${index}][pdn_tkdn_impor]`, product.pdn_tkdn_impor);
+        }
+        if (product.skor_tkdn) {
+            formData.append(`barang[${index}][skor_tkdn]`, product.skor_tkdn);
+        }
+        if (product.link_tkdn) {
+            formData.append(`barang[${index}][link_tkdn]`, product.link_tkdn);
+        }
+        if (product.estimasi_ketersediaan) {
+            formData.append(`barang[${index}][estimasi_ketersediaan]`, product.estimasi_ketersediaan);
+        }
+        if (product.link_produk) {
+            formData.append(`barang[${index}][link_produk]`, product.link_produk);
+        }
         
         if (product.foto_barang && product.foto_barang instanceof File) {
             console.log(`Adding photo for product ${index}:`, product.foto_barang.name);
@@ -822,7 +856,15 @@ function submitEditVendor() {
                 kategori: product.kategori,
                 satuan: product.satuan,
                 spesifikasi: product.spesifikasi || '',
-                harga_vendor: product.harga_vendor
+                harga_vendor: product.harga_vendor,
+                harga_pasaran_inaproc: product.harga_pasaran_inaproc || null,
+                spesifikasi_kunci: product.spesifikasi_kunci || '',
+                garansi: product.garansi || '',
+                pdn_tkdn_impor: product.pdn_tkdn_impor || '',
+                skor_tkdn: product.skor_tkdn || '',
+                link_tkdn: product.link_tkdn || '',
+                estimasi_ketersediaan: product.estimasi_ketersediaan || '',
+                link_produk: product.link_produk || ''
             };
             
             if (product.id_barang) {
@@ -893,6 +935,32 @@ function submitEditVendor() {
             formData.append(`barang[${index}][satuan]`, product.satuan);
             formData.append(`barang[${index}][spesifikasi]`, product.spesifikasi);
             formData.append(`barang[${index}][harga_vendor]`, product.harga_vendor);
+            
+            // Add new fields
+            if (product.harga_pasaran_inaproc) {
+                formData.append(`barang[${index}][harga_pasaran_inaproc]`, product.harga_pasaran_inaproc);
+            }
+            if (product.spesifikasi_kunci) {
+                formData.append(`barang[${index}][spesifikasi_kunci]`, product.spesifikasi_kunci);
+            }
+            if (product.garansi) {
+                formData.append(`barang[${index}][garansi]`, product.garansi);
+            }
+            if (product.pdn_tkdn_impor) {
+                formData.append(`barang[${index}][pdn_tkdn_impor]`, product.pdn_tkdn_impor);
+            }
+            if (product.skor_tkdn) {
+                formData.append(`barang[${index}][skor_tkdn]`, product.skor_tkdn);
+            }
+            if (product.link_tkdn) {
+                formData.append(`barang[${index}][link_tkdn]`, product.link_tkdn);
+            }
+            if (product.estimasi_ketersediaan) {
+                formData.append(`barang[${index}][estimasi_ketersediaan]`, product.estimasi_ketersediaan);
+            }
+            if (product.link_produk) {
+                formData.append(`barang[${index}][link_produk]`, product.link_produk);
+            }
             
             // Add files from original products array
             const originalProduct = editVendorProducts[index];
@@ -1117,6 +1185,14 @@ function addProductToVendor() {
     const satuan = document.getElementById('newProductSatuan')?.value.trim();
     const spesifikasi = document.getElementById('newProductSpesifikasi')?.value.trim();
     const hargaVendor = document.getElementById('newProductHarga')?.value;
+    const hargaPasaran = document.getElementById('newProductHargaPasaran')?.value;
+    const spesifikasiKunci = document.getElementById('newProductSpesifikasiKunci')?.value.trim();
+    const garansi = document.getElementById('newProductGaransi')?.value.trim();
+    const pdnTkdnImpor = document.getElementById('newProductPdnTkdnImpor')?.value;
+    const skorTkdn = document.getElementById('newProductSkorTkdn')?.value.trim();
+    const linkTkdn = document.getElementById('newProductLinkTkdn')?.value.trim();
+    const estimasiKetersediaan = document.getElementById('newProductEstimasiKetersediaan')?.value.trim();
+    const linkProduk = document.getElementById('newProductLinkProduk')?.value.trim();
     const fotoInput = document.getElementById('newProductFoto');
     const spesifikasiFileInput = document.getElementById('newProductSpesifikasiFile');
     
@@ -1132,6 +1208,14 @@ function addProductToVendor() {
         satuan: satuan,
         spesifikasi: spesifikasi || '',
         harga_vendor: parseFloat(hargaVendor),
+        harga_pasaran_inaproc: hargaPasaran ? parseFloat(hargaPasaran) : null,
+        spesifikasi_kunci: spesifikasiKunci || '',
+        garansi: garansi || '',
+        pdn_tkdn_impor: pdnTkdnImpor || '',
+        skor_tkdn: skorTkdn || '',
+        link_tkdn: linkTkdn || '',
+        estimasi_ketersediaan: estimasiKetersediaan || '',
+        link_produk: linkProduk || '',
         foto_barang: fotoInput.files[0] || null,
         spesifikasi_file: spesifikasiFileInput.files[0] || null
     };
@@ -1151,6 +1235,14 @@ function addProductToEditVendor() {
     const satuan = document.getElementById('editNewProductSatuan')?.value.trim();
     const spesifikasi = document.getElementById('editNewProductSpesifikasi')?.value.trim();
     const hargaVendor = document.getElementById('editNewProductHarga')?.value;
+    const hargaPasaran = document.getElementById('editNewProductHargaPasaran')?.value;
+    const spesifikasiKunci = document.getElementById('editNewProductSpesifikasiKunci')?.value.trim();
+    const garansi = document.getElementById('editNewProductGaransi')?.value.trim();
+    const pdnTkdnImpor = document.getElementById('editNewProductPdnTkdnImpor')?.value;
+    const skorTkdn = document.getElementById('editNewProductSkorTkdn')?.value.trim();
+    const linkTkdn = document.getElementById('editNewProductLinkTkdn')?.value.trim();
+    const estimasiKetersediaan = document.getElementById('editNewProductEstimasiKetersediaan')?.value.trim();
+    const linkProduk = document.getElementById('editNewProductLinkProduk')?.value.trim();
     const fotoInput = document.getElementById('editNewProductFoto');
     const spesifikasiFileInput = document.getElementById('editNewProductSpesifikasiFile');
     
@@ -1166,6 +1258,14 @@ function addProductToEditVendor() {
         satuan: satuan,
         spesifikasi: spesifikasi || '',
         harga_vendor: parseFloat(hargaVendor),
+        harga_pasaran_inaproc: hargaPasaran ? parseFloat(hargaPasaran) : null,
+        spesifikasi_kunci: spesifikasiKunci || '',
+        garansi: garansi || '',
+        pdn_tkdn_impor: pdnTkdnImpor || '',
+        skor_tkdn: skorTkdn || '',
+        link_tkdn: linkTkdn || '',
+        estimasi_ketersediaan: estimasiKetersediaan || '',
+        link_produk: linkProduk || '',
         foto_barang: fotoInput.files[0] || null,
         spesifikasi_file: spesifikasiFileInput.files[0] || null
     };
@@ -1424,6 +1524,17 @@ function editProductInVendor(index) {
     document.getElementById('editNewProductSatuan').value = product.satuan || '';
     document.getElementById('editNewProductSpesifikasi').value = product.spesifikasi || '';
     document.getElementById('editNewProductHarga').value = product.harga_vendor || '';
+    document.getElementById('editNewProductHargaPasaran').value = product.harga_pasaran_inaproc || '';
+    document.getElementById('editNewProductSpesifikasiKunci').value = product.spesifikasi_kunci || '';
+    document.getElementById('editNewProductGaransi').value = product.garansi || '';
+    document.getElementById('editNewProductPdnTkdnImpor').value = product.pdn_tkdn_impor || '';
+    document.getElementById('editNewProductSkorTkdn').value = product.skor_tkdn || '';
+    document.getElementById('editNewProductLinkTkdn').value = product.link_tkdn || '';
+    document.getElementById('editNewProductEstimasiKetersediaan').value = product.estimasi_ketersediaan || '';
+    document.getElementById('editNewProductLinkProduk').value = product.link_produk || '';
+    
+    // Toggle TKDN fields based on PDN/TKDN/Impor selection in edit form
+    toggleEditTkdnFields();
     
     // Update form title and hint
     const formTitle = document.getElementById('productFormTitle');
@@ -1465,6 +1576,14 @@ function updateProductInVendor() {
     const satuan = document.getElementById('editNewProductSatuan')?.value.trim();
     const spesifikasi = document.getElementById('editNewProductSpesifikasi')?.value.trim();
     const hargaVendor = document.getElementById('editNewProductHarga')?.value;
+    const hargaPasaran = document.getElementById('editNewProductHargaPasaran')?.value;
+    const spesifikasiKunci = document.getElementById('editNewProductSpesifikasiKunci')?.value.trim();
+    const garansi = document.getElementById('editNewProductGaransi')?.value.trim();
+    const pdnTkdnImpor = document.getElementById('editNewProductPdnTkdnImpor')?.value;
+    const skorTkdn = document.getElementById('editNewProductSkorTkdn')?.value.trim();
+    const linkTkdn = document.getElementById('editNewProductLinkTkdn')?.value.trim();
+    const estimasiKetersediaan = document.getElementById('editNewProductEstimasiKetersediaan')?.value.trim();
+    const linkProduk = document.getElementById('editNewProductLinkProduk')?.value.trim();
     const fotoInput = document.getElementById('editNewProductFoto');
     
     if (!namaBarang || !brand || !kategori || !satuan || !hargaVendor) {
@@ -1481,6 +1600,14 @@ function updateProductInVendor() {
         satuan: satuan,
         spesifikasi: spesifikasi || '',
         harga_vendor: parseFloat(hargaVendor),
+        harga_pasaran_inaproc: hargaPasaran ? parseFloat(hargaPasaran) : null,
+        spesifikasi_kunci: spesifikasiKunci || '',
+        garansi: garansi || '',
+        pdn_tkdn_impor: pdnTkdnImpor || '',
+        skor_tkdn: skorTkdn || '',
+        link_tkdn: linkTkdn || '',
+        estimasi_ketersediaan: estimasiKetersediaan || '',
+        link_produk: linkProduk || '',
         foto_barang: fotoInput.files[0] || editVendorProducts[editProductIndex].foto_barang || null
     };
     
@@ -1608,7 +1735,7 @@ function exportProductList() {
 }
 
 function clearProductForm() {
-    const fields = ['newProductName', 'newProductBrand', 'newProductKategori', 'newProductSatuan', 'newProductSpesifikasi', 'newProductHarga', 'newProductFoto', 'newProductSpesifikasiFile'];
+    const fields = ['newProductName', 'newProductBrand', 'newProductKategori', 'newProductSatuan', 'newProductSpesifikasi', 'newProductHarga', 'newProductHargaPasaran', 'newProductSpesifikasiKunci', 'newProductGaransi', 'newProductPdnTkdnImpor', 'newProductSkorTkdn', 'newProductLinkTkdn', 'newProductEstimasiKetersediaan', 'newProductLinkProduk', 'newProductFoto', 'newProductSpesifikasiFile'];
     fields.forEach(field => {
         const element = document.getElementById(field);
         if (element) element.value = '';
@@ -1627,7 +1754,7 @@ function clearProductForm() {
 }
 
 function clearEditProductForm() {
-    const fields = ['editNewProductName', 'editNewProductBrand', 'editNewProductKategori', 'editNewProductSatuan', 'editNewProductSpesifikasi', 'editNewProductHarga', 'editNewProductFoto', 'editNewProductSpesifikasiFile'];
+    const fields = ['editNewProductName', 'editNewProductBrand', 'editNewProductKategori', 'editNewProductSatuan', 'editNewProductSpesifikasi', 'editNewProductHarga', 'editNewProductHargaPasaran', 'editNewProductSpesifikasiKunci', 'editNewProductGaransi', 'editNewProductPdnTkdnImpor', 'editNewProductSkorTkdn', 'editNewProductLinkTkdn', 'editNewProductEstimasiKetersediaan', 'editNewProductLinkProduk', 'editNewProductFoto', 'editNewProductSpesifikasiFile'];
     fields.forEach(field => {
         const element = document.getElementById(field);
         if (element) element.value = '';
@@ -1647,6 +1774,41 @@ function clearEditProductForm() {
     // Reset edit mode if active
     if (editProductIndex >= 0) {
         resetProductEditMode();
+    }
+}
+
+// Toggle TKDN fields based on PDN/TKDN/Impor selection in edit form
+function toggleEditTkdnFields() {
+    const pdnTkdnImpor = document.getElementById('editNewProductPdnTkdnImpor')?.value;
+    const skorTkdnInput = document.getElementById('editNewProductSkorTkdn');
+    const linkTkdnInput = document.getElementById('editNewProductLinkTkdn');
+    
+    if (pdnTkdnImpor === 'TKDN') {
+        // Enable TKDN fields
+        if (skorTkdnInput) {
+            skorTkdnInput.disabled = false;
+            skorTkdnInput.placeholder = 'Masukkan skor TKDN (contoh: 25%, 40%)';
+            skorTkdnInput.parentElement.classList.remove('opacity-50');
+        }
+        if (linkTkdnInput) {
+            linkTkdnInput.disabled = false;
+            linkTkdnInput.placeholder = 'https://...';
+            linkTkdnInput.parentElement.classList.remove('opacity-50');
+        }
+    } else {
+        // Disable TKDN fields
+        if (skorTkdnInput) {
+            skorTkdnInput.disabled = true;
+            skorTkdnInput.value = '';
+            skorTkdnInput.placeholder = '~Menu Muncul Jika "TKDN"~';
+            skorTkdnInput.parentElement.classList.add('opacity-50');
+        }
+        if (linkTkdnInput) {
+            linkTkdnInput.disabled = true;
+            linkTkdnInput.value = '';
+            linkTkdnInput.placeholder = '~Menu Muncul Jika "TKDN"~';
+            linkTkdnInput.parentElement.classList.add('opacity-50');
+        }
     }
 }
 

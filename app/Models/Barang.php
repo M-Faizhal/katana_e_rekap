@@ -20,10 +20,19 @@ class Barang extends Model
         'kategori',
         'satuan',
         'harga_vendor',
+        'harga_pasaran_inaproc',
+        'spesifikasi_kunci',
+        'garansi',
+        'pdn_tkdn_impor',
+        'skor_tkdn',
+        'link_tkdn',
+        'estimasi_ketersediaan',
+        'link_produk',
     ];
 
     protected $casts = [
         'harga_vendor' => 'decimal:2',
+        'harga_pasaran_inaproc' => 'decimal:2',
     ];
 
     /**

@@ -126,6 +126,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('purchasing')->group(function () {
         // Produk Routes
         Route::get('/produk', [ProdukController::class, 'index_produk_purchasing'])->name('purchasing.produk');
+        Route::get('/produk/export', [ProdukController::class, 'export'])->name('purchasing.produk.export');
         Route::get('/produk/{id}', [ProdukController::class, 'show'])->name('produk.show');
 
         // Vendor Routes
@@ -222,6 +223,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/produk', [ProdukController::class, 'index_produk'])->name('produk');
+    Route::get('/produk/export', [ProdukController::class, 'export'])->name('produk.export');
 
 
     Route::get('/pengaturan', [App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan');

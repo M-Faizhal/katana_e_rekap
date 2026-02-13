@@ -167,10 +167,17 @@
                                 <input type="text" id="editNewProductSatuan" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="pcs, kg, box, dll">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Vendor <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Beli <span class="text-red-500">*</span></label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span>
                                     <input type="number" id="editNewProductHarga" class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="0" min="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Pasaran Inaproc <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rp</span>
+                                    <input type="number" id="editNewProductHargaPasaran" class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="0" min="0">
                                 </div>
                             </div>
                             <div>
@@ -228,6 +235,41 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spesifikasi Kunci / Penting</label>
+                                <textarea id="editNewProductSpesifikasiKunci" rows="2" 
+                                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
+                                          placeholder="Spesifikasi penting atau kunci dari produk..."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Garansi <span class="text-red-500">*</span></label>
+                                <input type="text" id="editNewProductGaransi" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Contoh: 1 Tahun, 2 Tahun, dll">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">PDN / TKDN / Impor <span class="text-red-500">*</span></label>
+                                <select id="editNewProductPdnTkdnImpor" onchange="toggleEditTkdnFields()" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                    <option value="">Drop Down</option>
+                                    <option value="PDN">PDN</option>
+                                    <option value="TKDN">TKDN</option>
+                                    <option value="Impor">Impor</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Skor TKDN <span class="text-red-500">*</span></label>
+                                <input type="text" id="editNewProductSkorTkdn" disabled class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-100" placeholder='~Menu Muncul Jika "TKDN"~'>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Link TKDN</label>
+                                <input type="url" id="editNewProductLinkTkdn" disabled class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-100" placeholder='~Menu Muncul Jika "TKDN"~'>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Estimasi Ketersediaan <span class="text-red-500">*</span></label>
+                                <input type="text" id="editNewProductEstimasiKetersediaan" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Contoh: Ready Stock, 3-5 hari, dll">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Link Produk</label>
+                                <input type="url" id="editNewProductLinkProduk" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="https://...">
                             </div>
                         </div>
                         
@@ -327,6 +369,31 @@ function toggleEditOnlineShopInput() {
         container.classList.add('hidden');
         input.required = false;
         input.value = '';
+    }
+}
+
+// Function untuk toggle TKDN fields di edit modal
+function toggleEditTkdnFields() {
+    const select = document.getElementById('editNewProductPdnTkdnImpor');
+    const skorTkdnInput = document.getElementById('editNewProductSkorTkdn');
+    const linkTkdnInput = document.getElementById('editNewProductLinkTkdn');
+    
+    if (select.value === 'TKDN') {
+        skorTkdnInput.disabled = false;
+        linkTkdnInput.disabled = false;
+        skorTkdnInput.classList.remove('bg-gray-100');
+        linkTkdnInput.classList.remove('bg-gray-100');
+        skorTkdnInput.placeholder = 'Masukkan skor TKDN (contoh: 25%, 40%, dll)';
+        linkTkdnInput.placeholder = 'Masukkan link TKDN';
+    } else {
+        skorTkdnInput.disabled = true;
+        linkTkdnInput.disabled = true;
+        skorTkdnInput.classList.add('bg-gray-100');
+        linkTkdnInput.classList.add('bg-gray-100');
+        skorTkdnInput.value = '';
+        linkTkdnInput.value = '';
+        skorTkdnInput.placeholder = '~Menu Muncul Jika "TKDN"~';
+        linkTkdnInput.placeholder = '~Menu Muncul Jika "TKDN"~';
     }
 }
 

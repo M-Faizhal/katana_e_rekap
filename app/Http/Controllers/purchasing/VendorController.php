@@ -127,6 +127,14 @@ class VendorController extends Controller
                     'barang.*.spesifikasi' => 'nullable|string',
                     'barang.*.spesifikasi_file' => 'nullable|file|mimes:pdf,doc,docx,txt,xls,xlsx|max:5120',
                     'barang.*.harga_vendor' => 'required|numeric|min:0',
+                    'barang.*.harga_pasaran_inaproc' => 'nullable|numeric|min:0',
+                    'barang.*.spesifikasi_kunci' => 'nullable|string',
+                    'barang.*.garansi' => 'nullable|string|max:255',
+                    'barang.*.pdn_tkdn_impor' => 'nullable|in:PDN,TKDN,Impor',
+                    'barang.*.skor_tkdn' => 'nullable|string|max:255',
+                    'barang.*.link_tkdn' => 'nullable|string|max:500',
+                    'barang.*.estimasi_ketersediaan' => 'nullable|string|max:255',
+                    'barang.*.link_produk' => 'nullable|string|max:500',
                     'barang.*.foto_barang' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
                 ]);
                 Log::info('Barang validation passed');
@@ -215,6 +223,14 @@ class VendorController extends Controller
                         'spesifikasi' => $barangData['spesifikasi'] ?? '',
                         'spesifikasi_file' => $spesifikasiFilePath,
                         'harga_vendor' => $barangData['harga_vendor'],
+                        'harga_pasaran_inaproc' => $barangData['harga_pasaran_inaproc'] ?? null,
+                        'spesifikasi_kunci' => $barangData['spesifikasi_kunci'] ?? null,
+                        'garansi' => $barangData['garansi'] ?? null,
+                        'pdn_tkdn_impor' => $barangData['pdn_tkdn_impor'] ?? null,
+                        'skor_tkdn' => $barangData['skor_tkdn'] ?? null,
+                        'link_tkdn' => $barangData['link_tkdn'] ?? null,
+                        'estimasi_ketersediaan' => $barangData['estimasi_ketersediaan'] ?? null,
+                        'link_produk' => $barangData['link_produk'] ?? null,
                         'foto_barang' => $fotoPath,
                     ]);
                 }
@@ -326,6 +342,14 @@ class VendorController extends Controller
             'barang.*.satuan' => 'required_with:barang|string|max:255',
             'barang.*.spesifikasi' => 'nullable|string',
             'barang.*.harga_vendor' => 'required_with:barang|numeric|min:0',
+            'barang.*.harga_pasaran_inaproc' => 'nullable|numeric|min:0',
+            'barang.*.spesifikasi_kunci' => 'nullable|string',
+            'barang.*.garansi' => 'nullable|string|max:255',
+            'barang.*.pdn_tkdn_impor' => 'nullable|in:PDN,TKDN,Impor',
+            'barang.*.skor_tkdn' => 'nullable|string|max:255',
+            'barang.*.link_tkdn' => 'nullable|string|max:500',
+            'barang.*.estimasi_ketersediaan' => 'nullable|string|max:255',
+            'barang.*.link_produk' => 'nullable|string|max:500',
         ];
         
         // Only validate file fields for FormData requests
@@ -394,6 +418,14 @@ class VendorController extends Controller
                             'satuan' => $barangData['satuan'],
                             'spesifikasi' => $barangData['spesifikasi'] ?? '',
                             'harga_vendor' => $barangData['harga_vendor'],
+                            'harga_pasaran_inaproc' => $barangData['harga_pasaran_inaproc'] ?? null,
+                            'spesifikasi_kunci' => $barangData['spesifikasi_kunci'] ?? null,
+                            'garansi' => $barangData['garansi'] ?? null,
+                            'pdn_tkdn_impor' => $barangData['pdn_tkdn_impor'] ?? null,
+                            'skor_tkdn' => $barangData['skor_tkdn'] ?? null,
+                            'link_tkdn' => $barangData['link_tkdn'] ?? null,
+                            'estimasi_ketersediaan' => $barangData['estimasi_ketersediaan'] ?? null,
+                            'link_produk' => $barangData['link_produk'] ?? null,
                         ];
 
                         if ($fotoPath) {
@@ -425,6 +457,15 @@ class VendorController extends Controller
                             'spesifikasi' => $barangData['spesifikasi'] ?? '',
                             'spesifikasi_file' => $spesifikasiFilePath,
                             'harga_vendor' => $barangData['harga_vendor'],
+                            'harga_beli' => $barangData['harga_beli'] ?? null,
+                            'harga_pasaran_inaproc' => $barangData['harga_pasaran_inaproc'] ?? null,
+                            'spesifikasi_kunci' => $barangData['spesifikasi_kunci'] ?? null,
+                            'garansi' => $barangData['garansi'] ?? null,
+                            'pdn_tkdn_impor' => $barangData['pdn_tkdn_impor'] ?? null,
+                            'skor_tkdn' => $barangData['skor_tkdn'] ?? null,
+                            'link_tkdn' => $barangData['link_tkdn'] ?? null,
+                            'estimasi_ketersediaan' => $barangData['estimasi_ketersediaan'] ?? null,
+                            'link_produk' => $barangData['link_produk'] ?? null,
                             'foto_barang' => $fotoPath,
                         ]);
                         $updatedBarangIds[] = $newBarang->id_barang;
