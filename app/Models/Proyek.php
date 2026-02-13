@@ -162,7 +162,7 @@ class Proyek extends Model
     public function proyekBarang()
     {
         return $this->hasMany(ProyekBarang::class, 'id_proyek', 'id_proyek');
-    }
+    }   
 
     // Method untuk menghitung total harga dari proyek_barang
     public function calculateHargaTotal()

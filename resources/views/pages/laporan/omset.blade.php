@@ -34,8 +34,14 @@
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Laporan Omset</h1>
             <p class="text-green-100 text-sm sm:text-base lg:text-lg">Analisis omset dan performa keuangan perusahaan</p>
         </div>
-        <div class="hidden sm:block lg:block">
-            <i class="fas fa-chart-line text-3xl sm:text-4xl lg:text-6xl"></i>
+        <div class="flex items-center space-x-4">
+            <button onclick="exportOmset()" class="bg-white text-green-800 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors duration-200 flex items-center space-x-2 shadow-md">
+                <i class="fas fa-file-excel text-lg"></i>
+                <span class="font-semibold">Export Excel</span>
+            </button>
+            <div class="hidden lg:block">
+                <i class="fas fa-chart-line text-3xl sm:text-4xl lg:text-6xl"></i>
+            </div>
         </div>
     </div>
 </div>
@@ -561,5 +567,20 @@ function initializeOmsetChart(monthlyData) {
         }
     });
 }
+
+// Function to export omset to Excel
+function exportOmset() {
+    const selectedYear = document.getElementById('omsetChartYear').value;
+    const yearParam = selectedYear !== 'all' ? selectedYear : new Date().getFullYear();
+    
+    showNotification('Mengunduh laporan omset tahun ' + yearParam + '...', 'info');
+    
+    // Build URL with year parameter
+    const url = '{{ route("laporan.export-omset") }}?year=' + yearParam;
+    
+    // Open in new window to trigger download
+    window.location.href = url;
+}
 </script>
 @endsection
+

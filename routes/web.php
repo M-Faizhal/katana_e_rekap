@@ -16,6 +16,8 @@ use App\Http\Controllers\marketing\ProyekController;
 use App\Http\Controllers\marketing\WilayahController;
 use App\Http\Controllers\marketing\PotensiController;
 use App\Http\Controllers\marketing\PenawaranController;
+use App\Http\Controllers\marketing\Export\PotensiExportController;
+use App\Http\Controllers\marketing\Export\OmsetExportController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 
@@ -65,7 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/hutang-vendor', [LaporanController::class, 'hutangVendor'])->name('laporan.hutang-vendor');
     Route::get('/laporan/piutang-dinas', [LaporanController::class, 'piutangDinas'])->name('laporan.piutang-dinas');
     Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
-    Route::get('/laporan/export-omset', [LaporanController::class, 'exportOmset'])->name('laporan.export-omset');
+    Route::get('/laporan/export-omset', [OmsetExportController::class, 'exportExcel'])->name('laporan.export-omset');
     Route::get('/laporan/project/{id}', [LaporanController::class, 'getProjectDetail'])->name('laporan.project.detail');
     Route::get('/laporan/data', [LaporanController::class, 'getFilteredData'])->name('laporan.data');
 
@@ -107,6 +109,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/potensi/wilayah/select', [PotensiController::class, 'getWilayahForSelect'])->name('marketing.potensi.wilayah');
         Route::get('/potensi/kode/next', [PotensiController::class, 'getNextKodeProyek'])->name('marketing.potensi.nextKode');
         Route::get('/potensi/user/current', [PotensiController::class, 'getCurrentUser'])->name('marketing.potensi.currentUser');
+        
+        // Export Potensi
+        Route::get('/potensi/export/excel', [PotensiExportController::class, 'exportExcel'])->name('marketing.potensi.export.excel');
 
         // Penawaran Routes
         Route::get('/penawaran', [PenawaranController::class, 'index'])->name('marketing.penawaran');

@@ -85,6 +85,13 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                 <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Daftar Potensi</h2>
                 <p class="text-gray-600 mt-1 text-sm sm:text-base">Kelola semua potensi proyek dan prospek bisnis</p>
             </div>
+            <div class="flex gap-2">
+                <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-colors duration-200 flex items-center text-sm sm:text-base">
+                    <i class="fas fa-file-excel mr-2"></i>
+                    <span class="hidden sm:inline">Export Excel</span>
+                    <span class="sm:hidden">Export</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2034,6 +2041,38 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Initialization complete');
     console.log('=== END DOM LOADED DEBUG ===');
 });
+
+// Function to export data to Excel based on current filters
+function exportToExcel() {
+    // Get current filter values
+    const tahun = tahunFilter ? tahunFilter.value : '';
+    const picMarketing = picMarketingFilter ? picMarketingFilter.value : '';
+    const search = searchInput ? searchInput.value : '';
+
+    // Build URL with query parameters
+    const params = new URLSearchParams();
+    if (tahun) params.append('tahun', tahun);
+    if (picMarketing) params.append('pic_marketing', picMarketing);
+    if (search) params.append('search', search);
+
+    // Create export URL
+    const exportUrl = '{{ route("marketing.potensi.export.excel") }}' + (params.toString() ? '?' + params.toString() : '');
+
+    // Show loading message
+    const originalBtn = event.target.closest('button');
+    const originalHTML = originalBtn.innerHTML;
+    originalBtn.disabled = true;
+    originalBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengekspor...';
+
+    // Open URL in new window to trigger download
+    window.location.href = exportUrl;
+
+    // Reset button after delay
+    setTimeout(() => {
+        originalBtn.disabled = false;
+        originalBtn.innerHTML = originalHTML;
+    }, 2000);
+}
 </script>
 
 @endsection
