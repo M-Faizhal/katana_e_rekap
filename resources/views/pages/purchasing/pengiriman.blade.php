@@ -90,19 +90,6 @@
     </div>
 </div>
 
-<!-- Alert Info -->
-<div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">
-    <div class="flex">
-        <div class="flex-shrink-0">
-            <i class="fas fa-info-circle text-blue-400"></i>
-        </div>
-        <div class="ml-3">
-            <p class="text-sm text-blue-700">
-                <strong>Info:</strong> Vendor yang sudah memiliki pembayaran dengan status "Approved" dapat melakukan pengiriman, tidak harus lunas 100%. Pengiriman dilakukan per vendor.
-            </p>
-        </div>
-    </div>
-</div>
 
 <!-- Content Card -->
 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
@@ -169,9 +156,35 @@
 
     <!-- Tab Content: Ready Kirim -->
     <div id="contentReady" class="tab-content">
-        <div class="mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Vendor Ready untuk Dikirim</h3>
-            <p class="text-sm text-gray-600">Vendor yang sudah memiliki pembayaran dengan status "Approved" dan siap untuk pengiriman</p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Vendor Ready untuk Dikirim</h3>
+                <p class="text-sm text-gray-600">Vendor yang sudah memiliki pembayaran dengan status "Approved" dan siap untuk pengiriman</p>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="flex gap-2">
+                <form method="GET" class="flex gap-2">
+                    <input type="hidden" name="tab" value="ready">
+                    <div class="relative">
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Cari pengiriman..." 
+                               class="px-4 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                        <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    @if(request('search'))
+                    <a href="{{ route('purchasing.pengiriman') }}?tab=ready" 
+                       class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 whitespace-nowrap">
+                        <i class="fas fa-times mr-1"></i>
+                        Reset
+                    </a>
+                    @endif
+                </form>
+            </div>
         </div>
         
         @if($proyekReadyPaginated->count() > 0)
@@ -374,7 +387,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $proyekReadyPaginated->total() }}</span> vendor siap kirim
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekReadyPaginated->links() }}
+                        {{ $proyekReadyPaginated->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -390,9 +403,35 @@
 
     <!-- Tab Content: Dalam Proses -->
     <div id="contentProses" class="tab-content hidden">
-        <div class="mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Pengiriman Dalam Proses</h3>
-            <p class="text-sm text-gray-600">Pengiriman yang sedang berlangsung</p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Pengiriman Dalam Proses</h3>
+                <p class="text-sm text-gray-600">Pengiriman yang sedang berlangsung</p>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="flex gap-2">
+                <form method="GET" class="flex gap-2">
+                    <input type="hidden" name="tab" value="proses">
+                    <div class="relative">
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Cari pengiriman..." 
+                               class="px-4 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                        <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    @if(request('search'))
+                    <a href="{{ route('purchasing.pengiriman') }}?tab=proses" 
+                       class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 whitespace-nowrap">
+                        <i class="fas fa-times mr-1"></i>
+                        Reset
+                    </a>
+                    @endif
+                </form>
+            </div>
         </div>
         
         @if($pengirimanBerjalan->count() > 0)
@@ -564,7 +603,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $pengirimanBerjalan->total() }}</span> pengiriman dalam proses
                     </div>
                     <div class="flex justify-center">
-                        {{ $pengirimanBerjalan->appends(['tab' => 'proses'])->links() }}
+                        {{ $pengirimanBerjalan->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -579,9 +618,35 @@
 
     <!-- Tab Content: Selesai -->
     <div id="contentSelesai" class="tab-content hidden">
-        <div class="mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Pengiriman Selesai</h3>
-            <p class="text-sm text-gray-600">Pengiriman dengan dokumentasi lengkap atau yang sudah verified (untuk proyek status "Selesai")</p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Pengiriman Selesai</h3>
+                <p class="text-sm text-gray-600">Pengiriman dengan dokumentasi lengkap atau yang sudah verified (untuk proyek status "Selesai")</p>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="flex gap-2">
+                <form method="GET" class="flex gap-2">
+                    <input type="hidden" name="tab" value="selesai">
+                    <div class="relative">
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Cari pengiriman..." 
+                               class="px-4 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                        <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    @if(request('search'))
+                    <a href="{{ route('purchasing.pengiriman') }}?tab=selesai" 
+                       class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 whitespace-nowrap">
+                        <i class="fas fa-times mr-1"></i>
+                        Reset
+                    </a>
+                    @endif
+                </form>
+            </div>
         </div>
         
         @if(count($pengirimanSelesai) > 0)
@@ -765,7 +830,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $pengirimanSelesai->total() }}</span> pengiriman selesai
                     </div>
                     <div class="flex justify-center">
-                        {{ $pengirimanSelesai->appends(['tab' => 'selesai'])->links() }}
+                        {{ $pengirimanSelesai->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -1727,6 +1792,16 @@ document.addEventListener('keydown', function(e) {
         e.preventDefault();
         document.getElementById('searchBarang').focus();
         document.getElementById('searchBarang').select();
+    }
+});
+
+// Handle tab navigation on page load based on URL parameter
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab') || '{{ $activeTab ?? "ready" }}';
+    
+    if (activeTab) {
+        switchTab(activeTab);
     }
 });
 </script>

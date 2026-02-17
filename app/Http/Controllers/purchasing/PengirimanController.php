@@ -21,9 +21,13 @@ class PengirimanController extends Controller
      */
     public function index()
     {
+        // Ambil parameter search
+        $search = request()->get('search');
+        $activeTab = request()->get('tab', 'ready');
+        
         // Ambil proyek yang statusnya 'Pengiriman' atau 'Selesai'
         // Dan vendor yang sudah lunas pembayarannya
-        $proyekReady = Proyek::with([
+        $proyekReadyQuery = Proyek::with([
                 'penawaranAktif.penawaranDetail.barang.vendor', 
                 'adminMarketing', 
                 'pembayaran', 
@@ -34,8 +38,20 @@ class PengirimanController extends Controller
             ->whereIn('status', ['Pengiriman', 'Selesai'])
             ->whereHas('penawaranAktif', function ($query) {
                 $query->where('status', 'ACC');
-            })
-            ->get()
+            });
+        
+        // Filter berdasarkan search untuk tab ready
+        if ($search) {
+            $proyekReadyQuery->where(function ($query) use ($search) {
+                $query->where('instansi', 'like', "%{$search}%")
+                      ->orWhere('kode_proyek', 'like', "%{$search}%")
+                      ->orWhereHas('proyekBarang', function ($subQuery) use ($search) {
+                          $subQuery->where('nama_barang', 'like', "%{$search}%");
+                      });
+            });
+        }
+        
+        $proyekReady = $proyekReadyQuery->get()
             ->map(function ($proyek) {
                 // Ambil vendor yang terlibat dalam proyek ini
                 $vendors = $proyek->penawaranAktif->penawaranDetail
@@ -166,12 +182,29 @@ class PengirimanController extends Controller
         );
 
         // Ambil pengiriman yang sedang berjalan (per vendor) dengan pagination
-        $pengirimanBerjalan = Pengiriman::with([
+        $pengirimanBerjalanQuery = Pengiriman::with([
                 'penawaran.proyek.kalkulasiHps.barang', 
                 'penawaran.proyek.kalkulasiHps.vendor',
                 'vendor'
             ])
-            ->whereIn('status_verifikasi', ['Pending', 'Dalam_Proses'])
+            ->whereIn('status_verifikasi', ['Pending', 'Dalam_Proses']);
+        
+        // Filter berdasarkan search untuk tab proses
+        if ($search) {
+            $pengirimanBerjalanQuery->where(function ($query) use ($search) {
+                $query->whereHas('penawaran.proyek', function ($subQuery) use ($search) {
+                    $subQuery->where('instansi', 'like', "%{$search}%")
+                             ->orWhere('kode_proyek', 'like', "%{$search}%")
+                             ->orWhereHas('proyekBarang', function ($subSubQuery) use ($search) {
+                                 $subSubQuery->where('nama_barang', 'like', "%{$search}%");
+                             });
+                })->orWhereHas('vendor', function ($subQuery) use ($search) {
+                    $subQuery->where('nama_vendor', 'like', "%{$search}%");
+                });
+            });
+        }
+        
+        $pengirimanBerjalan = $pengirimanBerjalanQuery
             ->orderBy('created_at', 'desc')
             ->paginate(10, ['*'], 'proses_page');
 
@@ -200,7 +233,7 @@ class PengirimanController extends Controller
         // Kriteria selesai: 
         // 1. Status Verified (untuk proyek yang sudah Selesai)
         // 2. Atau dokumen lengkap (foto_sampai + tanda_terima) tapi proyek belum Selesai
-        $pengirimanSelesai = Pengiriman::with([
+        $pengirimanSelesaiQuery = Pengiriman::with([
                 'penawaran.proyek.kalkulasiHps.barang', 
                 'penawaran.proyek.kalkulasiHps.vendor',
                 'vendor', 
@@ -220,7 +253,24 @@ class PengirimanController extends Controller
                       ->where('foto_sampai', '!=', '')
                       ->where('tanda_terima', '!=', '')
                       ->where('status_verifikasi', '!=', 'Verified');
-            })
+            });
+        
+        // Filter berdasarkan search untuk tab selesai
+        if ($search) {
+            $pengirimanSelesaiQuery->where(function ($query) use ($search) {
+                $query->whereHas('penawaran.proyek', function ($subQuery) use ($search) {
+                    $subQuery->where('instansi', 'like', "%{$search}%")
+                             ->orWhere('kode_proyek', 'like', "%{$search}%")
+                             ->orWhereHas('proyekBarang', function ($subSubQuery) use ($search) {
+                                 $subSubQuery->where('nama_barang', 'like', "%{$search}%");
+                             });
+                })->orWhereHas('vendor', function ($subQuery) use ($search) {
+                    $subQuery->where('nama_vendor', 'like', "%{$search}%");
+                });
+            });
+        }
+        
+        $pengirimanSelesai = $pengirimanSelesaiQuery
             ->orderBy('updated_at', 'desc')
             ->paginate(10, ['*'], 'selesai_page');
 
@@ -265,7 +315,9 @@ class PengirimanController extends Controller
             'proyekReady',
             'proyekReadyPaginated',
             'pengirimanBerjalan', 
-            'pengirimanSelesai'
+            'pengirimanSelesai',
+            'search',
+            'activeTab'
         ));
     }
 

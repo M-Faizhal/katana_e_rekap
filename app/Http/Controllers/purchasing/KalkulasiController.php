@@ -46,6 +46,7 @@ class KalkulasiController extends Controller
             $proyekMenunggu->where(function($q) use ($search) {
                 $q->where('nama_klien', 'like', "%{$search}%")
                   ->orWhere('instansi', 'like', "%{$search}%")
+                  ->orWhere('kode_proyek', 'like', "%{$search}%")
                   ->orWhereHas('proyekBarang', function($subQ) use ($search) {
                       $subQ->where('nama_barang', 'like', "%{$search}%");
                   });
@@ -54,6 +55,7 @@ class KalkulasiController extends Controller
             $proyekProses->where(function($q) use ($search) {
                 $q->where('nama_klien', 'like', "%{$search}%")
                   ->orWhere('instansi', 'like', "%{$search}%")
+                  ->orWhere('kode_proyek', 'like', "%{$search}%")
                   ->orWhereHas('proyekBarang', function($subQ) use ($search) {
                       $subQ->where('nama_barang', 'like', "%{$search}%");
                   });
@@ -62,6 +64,7 @@ class KalkulasiController extends Controller
             $proyekBerhasil->where(function($q) use ($search) {
                 $q->where('nama_klien', 'like', "%{$search}%")
                   ->orWhere('instansi', 'like', "%{$search}%")
+                  ->orWhere('kode_proyek', 'like', "%{$search}%")
                   ->orWhereHas('proyekBarang', function($subQ) use ($search) {
                       $subQ->where('nama_barang', 'like', "%{$search}%");
                   });

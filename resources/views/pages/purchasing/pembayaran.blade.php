@@ -523,10 +523,34 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Tab Content 1: Proyek Perlu Pembayaran -->
     <div id="tab-perlu-bayar" class="tab-content">
         <div class="p-3 sm:p-6">
-            <div class="flex items-center justify-between mb-4 sm:mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
                 <div>
                     <h2 class="text-base sm:text-xl md:text-2xl font-semibold text-gray-800">Proyek Perlu Pembayaran</h2>
                     <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Daftar proyek yang sudah di-ACC dan menunggu pembayaran dari klien, termasuk proyek dalam tahap pengiriman, selesai, dan gagal yang perlu pelunasan atau pengembalian dana</p>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex gap-2">
+                    <form method="GET" class="flex gap-2">
+                        <input type="hidden" name="tab" value="perlu-bayar">
+                        <div class="relative">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ request('search') }}" 
+                                   placeholder="Cari proyek..." 
+                                   class="px-4 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-64">
+                            <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        @if(request('search'))
+                        <a href="{{ route('purchasing.pembayaran') }}?tab=perlu-bayar" 
+                           class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600">
+                            <i class="fas fa-times mr-1"></i>
+                            Reset
+                        </a>
+                        @endif
+                    </form>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -587,10 +611,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 <i class="fas fa-file-contract text-gray-400 mr-2"></i>
                                                 No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}
                                             </p>
-                                            <p class="text-gray-600">
-                                                <i class="fas fa-user text-gray-400 mr-2"></i>
-                                                Klien: {{ $proyek->nama_klien }}
-                                            </p>
+                                          
                                         </div>
                                         <div class="space-y-1">
                                             <p class="text-gray-600">
@@ -797,11 +818,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <input type="text" 
                                    name="search" 
                                    value="{{ request('search') }}" 
-                                   placeholder="Cari instansi atau kode proyek..."
-                                   class="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <i class="fas fa-search text-gray-400"></i>
-                            </div>
+                                   placeholder="Cari proyek..."
+                                   class="block w-full sm:w-64 px-3 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <button type="submit" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-search"></i>
+                            </button>
                         </div>
                         
                         <!-- Status Proyek Filter -->
@@ -893,10 +914,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <i class="fas fa-file-contract text-gray-400 mr-2"></i>
                                         No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran }}
                                     </p>
-                                    <p class="text-gray-600">
-                                        <i class="fas fa-user text-gray-400 mr-2"></i>
-                                        Klien: {{ $proyek->nama_klien }}
-                                    </p>
+                                 
                                 </div>
                                 <div class="space-y-1">
                                     <p class="text-gray-600">
@@ -1225,9 +1243,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="text-gray-600 mt-1">Daftar lengkap pembayaran dari proyek dengan status pembayaran, pengiriman, selesai, atau gagal (Pending, Approved, Ditolak)</p>
                 </div>
                 
-                <!-- Filter Controls untuk Pembayaran -->
+                <!-- Filter & Search Controls untuk Pembayaran -->
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <form method="GET" class="flex flex-col sm:flex-row gap-2">
+                    <!-- Search Form -->
+                    <form method="GET" class="flex gap-2">
+                        <input type="hidden" name="tab" value="semua-pembayaran">
+                        @if(request('status_filter'))
+                        <input type="hidden" name="status_filter" value="{{ request('status_filter') }}">
+                        @endif
+                        
+                        <div class="relative">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ request('search') }}" 
+                                   placeholder="Cari pembayaran..." 
+                                   class="px-4 py-2 pr-10 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                            <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Filter Form -->
+                    <form method="GET" class="flex gap-2">
                         <input type="hidden" name="tab" value="semua-pembayaran">
                         @if(request('search'))
                         <input type="hidden" name="search" value="{{ request('search') }}">
@@ -1241,11 +1279,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <option value="Ditolak" {{ request('status_filter') == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
                         
-                        @if(request('status_filter') && request('status_filter') !== 'all')
+                        @if(request('search') || (request('status_filter') && request('status_filter') !== 'all'))
                         <a href="{{ route('purchasing.pembayaran') }}?tab=semua-pembayaran" 
-                           class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600">
+                           class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 whitespace-nowrap">
                             <i class="fas fa-times mr-1"></i>
-                            Reset Filter
+                            Reset
                         </a>
                         @endif
                     </form>

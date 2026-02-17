@@ -4,7 +4,6 @@ namespace App\Http\Controllers\keuangan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pembayaran;
-use App\Models\Penawaran;
 use App\Models\Proyek;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,10 +31,29 @@ class ApprovalController extends Controller
     /**
      * Display pending payments for approval
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+
         $pendingPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
             ->where('status_verifikasi', 'Pending')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    // Search by kode_proyek
+                    $q->whereHas('penawaran.proyek', function ($pq) use ($search) {
+                        $pq->where('kode_proyek', 'like', '%' . $search . '%')
+                           ->orWhere('instansi', 'like', '%' . $search . '%');
+                    })
+                    // Search by proyekBarang nama_barang
+                    ->orWhereHas('penawaran.proyek.proyekBarang', function ($pbq) use ($search) {
+                        $pbq->where('nama_barang', 'like', '%' . $search . '%');
+                    })
+                    // Search by vendor name
+                    ->orWhereHas('vendor', function ($vq) use ($search) {
+                        $vq->where('nama_vendor', 'like', '%' . $search . '%');
+                    });
+                });
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -57,10 +75,29 @@ class ApprovalController extends Controller
     /**
      * Display approved payments
      */
-    public function approved()
+    public function approved(Request $request)
     {
+        $search = $request->input('search');
+
         $approvedPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
             ->where('status_verifikasi', 'Approved')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    // Search by kode_proyek
+                    $q->whereHas('penawaran.proyek', function ($pq) use ($search) {
+                        $pq->where('kode_proyek', 'like', '%' . $search . '%')
+                           ->orWhere('instansi', 'like', '%' . $search . '%');
+                    })
+                    // Search by proyekBarang nama_barang
+                    ->orWhereHas('penawaran.proyek.proyekBarang', function ($pbq) use ($search) {
+                        $pbq->where('nama_barang', 'like', '%' . $search . '%');
+                    })
+                    // Search by vendor name
+                    ->orWhereHas('vendor', function ($vq) use ($search) {
+                        $vq->where('nama_vendor', 'like', '%' . $search . '%');
+                    });
+                });
+            })
             ->orderBy('updated_at', 'desc')
             ->paginate(10);
 
@@ -70,10 +107,29 @@ class ApprovalController extends Controller
     /**
      * Display rejected payments
      */
-    public function rejected()
+    public function rejected(Request $request)
     {
+        $search = $request->input('search');
+
         $rejectedPayments = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor', 'verifikator'])
             ->where('status_verifikasi', 'Ditolak')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    // Search by kode_proyek
+                    $q->whereHas('penawaran.proyek', function ($pq) use ($search) {
+                        $pq->where('kode_proyek', 'like', '%' . $search . '%')
+                           ->orWhere('instansi', 'like', '%' . $search . '%');
+                    })
+                    // Search by proyekBarang nama_barang
+                    ->orWhereHas('penawaran.proyek.proyekBarang', function ($pbq) use ($search) {
+                        $pbq->where('nama_barang', 'like', '%' . $search . '%');
+                    })
+                    // Search by vendor name
+                    ->orWhereHas('vendor', function ($vq) use ($search) {
+                        $vq->where('nama_vendor', 'like', '%' . $search . '%');
+                    });
+                });
+            })
             ->orderBy('updated_at', 'desc')
             ->paginate(10);
 
