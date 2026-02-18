@@ -116,13 +116,13 @@
                     <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Nominal:</dt>
                         <dd class="text-lg font-bold text-green-600">
-                            Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
+                            Rp {{ number_format($pembayaran->nominal_bayar, 2, ',', '.') }}
                         </dd>
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Total Modal Vendor:</dt>
                         <dd class="text-sm font-semibold text-gray-900">
-                            Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
+                            Rp {{ number_format($totalModalVendor, 2, ',', '.') }}
                         </dd>
                     </div>
                     <div class="flex justify-between">
@@ -174,19 +174,19 @@
                     <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Total Penawaran:</dt>
                         <dd class="text-sm font-bold text-gray-900">
-                            Rp {{ number_format($totalPenawaran, 0, ',', '.') }}
+                            Rp {{ number_format($totalPenawaran, 2, ',', '.') }}
                         </dd>
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-sm font-medium text-gray-500">Sudah Dibayar Vendor:</dt>
                         <dd class="text-sm text-blue-600">
-                            Rp {{ number_format($totalApproved, 0, ',', '.') }}
+                            Rp {{ number_format($totalApproved, 2, ',', '.') }}
                         </dd>
                     </div>
                     <div class="flex justify-between border-t pt-2">
                         <dt class="text-sm font-medium text-gray-500">Sisa Vendor Setelah Approve:</dt>
                         <dd class="text-sm font-bold {{ ($sisaBayar - $pembayaran->nominal_bayar) > 0 ? 'text-red-600' : 'text-green-600' }}">
-                            Rp {{ number_format($sisaBayar - $pembayaran->nominal_bayar, 0, ',', '.') }}
+                            Rp {{ number_format($sisaBayar - $pembayaran->nominal_bayar, 2, ',', '.') }}
                         </dd>
                     </div>
                 </dl>
@@ -379,7 +379,7 @@
                             <i class="fas fa-info-circle text-green-600 mt-1 mr-2"></i>
                             <div class="text-sm text-green-800">
                                 <strong>Konfirmasi:</strong> Pembayaran sebesar 
-                                <span class="font-bold">Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}</span>
+                                <span class="font-bold">Rp {{ number_format($pembayaran->nominal_bayar, 2, ',', '.') }}</span>
                                 akan disetujui.
                             </div>
                         </div>
@@ -444,7 +444,7 @@
                             <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-2"></i>
                             <div class="text-sm text-red-800">
                                 <strong>Peringatan:</strong> Pembayaran sebesar 
-                                <span class="font-bold">Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}</span>
+                                <span class="font-bold">Rp {{ number_format($pembayaran->nominal_bayar, 2, ',', '.') }}</span>
                                 akan ditolak dan dikembalikan ke purchasing.
                             </div>
                         </div>

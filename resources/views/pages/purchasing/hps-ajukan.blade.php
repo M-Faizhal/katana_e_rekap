@@ -16,7 +16,7 @@
                     <span class="hidden sm:inline">|</span>
                     <span class="font-medium">Instansi:</span> <span class="truncate">{{ $proyek->instansi ?? '-' }}</span>
                     <span class="hidden sm:inline">|</span>
-                    <span class="font-medium">Total:</span> <span class="truncate text-green-600">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
+                    <span class="font-medium">Total:</span> <span class="truncate text-green-600">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 2, ',', '.') }}</span>
                 </div>
             </div>
             <div class="flex gap-2">
@@ -164,10 +164,10 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-sm text-blue-800">{{ number_format($item->jumlah, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ number_format($item->jumlah, 2, ',', '.') }}</td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ $item->satuan }}</td>
-                            <td class="px-4 py-3 text-sm text-blue-800">{{ 'Rp ' . number_format($item->harga_satuan, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-sm text-blue-800 font-semibold">{{ 'Rp ' . number_format($item->harga_total, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ 'Rp ' . number_format($item->harga_satuan, 2, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800 font-semibold">{{ 'Rp ' . number_format($item->harga_total, 2, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     @else
@@ -185,7 +185,7 @@
                 @php
                     $totalPermintaanKlien = $proyek->proyekBarang ? $proyek->proyekBarang->sum('harga_total') : 0;
                 @endphp
-                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($totalPermintaanKlien, 0, ',', '.') }}</span>
+                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($totalPermintaanKlien, 2, ',', '.') }}</span>
             </div>
         </div>
     </div>

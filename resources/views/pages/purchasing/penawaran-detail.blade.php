@@ -27,7 +27,7 @@
                         {{ $penawaran->status }}
                     </span>
                     <span class="hidden sm:inline">|</span>
-                    <span class="font-medium">Total:</span> <span class="truncate text-green-600">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
+                    <span class="font-medium">Total:</span> <span class="truncate text-green-600">{{ 'Rp ' . number_format($proyek->harga_total ?? 0, 2, ',', '.') }}</span>
                 </div>
             </div>
             <div class="flex gap-2">
@@ -169,10 +169,10 @@
                                     @endif
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-sm text-blue-800">{{ number_format($item->jumlah, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ number_format($item->jumlah, 2, ',', '.') }}</td>
                             <td class="px-4 py-3 text-sm text-blue-800">{{ $item->satuan }}</td>
-                            <td class="px-4 py-3 text-sm text-blue-800">{{ 'Rp ' . number_format($item->harga_satuan, 0, ',', '.') }}</td>
-                            <td class="px-4 py-3 text-sm text-blue-800 font-semibold">{{ 'Rp ' . number_format($item->harga_total, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800">{{ 'Rp ' . number_format($item->harga_satuan, 2, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm text-blue-800 font-semibold">{{ 'Rp ' . number_format($item->harga_total, 2, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     @else
@@ -190,7 +190,7 @@
                 @php
                     $totalPermintaanKlien = $proyek->proyekBarang ? $proyek->proyekBarang->sum('harga_total') : 0;
                 @endphp
-                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($totalPermintaanKlien, 0, ',', '.') }}</span>
+                <span class="text-lg font-bold text-blue-800">{{ 'Rp ' . number_format($totalPermintaanKlien, 2, ',', '.') }}</span>
             </div>
         </div>
     </div>
@@ -220,7 +220,7 @@
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-500">Total Penawaran</label>
-                    <p class="text-green-600 font-bold text-lg">{{ 'Rp ' . number_format($proyek->harga_total, 0, ',', '.') }}</p>
+                    <p class="text-green-600 font-bold text-lg">{{ 'Rp ' . number_format($proyek->harga_total, 2, ',', '.') }}</p>
                 </div>
             </div>
             
@@ -358,14 +358,14 @@
                             @endif
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-green-900 text-center">
-                            {{ number_format($detail->qty, 0, ',', '.') }}
+                            {{ number_format($detail->qty, 2, ',', '.') }}
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-green-900">{{ $detail->satuan }}</td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-green-900 text-right">
-                            {{ 'Rp ' . number_format($detail->harga_satuan, 0, ',', '.') }}
+                            {{ 'Rp ' . number_format($detail->harga_satuan, 2, ',', '.') }}
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-900 text-right">
-                            {{ 'Rp ' . number_format($detail->subtotal, 0, ',', '.') }}
+                            {{ 'Rp ' . number_format($detail->subtotal, 2, ',', '.') }}
                         </td>
                     </tr>
                     @empty
@@ -384,7 +384,7 @@
                             <strong>Total Penawaran:</strong>
                         </td>
                         <td class="px-4 py-4 text-right text-lg font-bold text-green-700">
-                            {{ 'Rp ' . number_format($proyek->harga_total ?? 0, 0, ',', '.') }}
+                            {{ 'Rp ' . number_format($proyek->harga_total ?? 0, 2, ',', '.') }}
                         </td>
                     </tr>
                 </tfoot>
@@ -430,17 +430,17 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center mb-4">
             <div class="bg-white rounded-lg p-3 border">
                 <div class="text-sm text-gray-600">Total HPP (Modal)</div>
-                <div class="text-lg font-bold text-yellow-700">{{ 'Rp ' . number_format($totalHppModal, 0, ',', '.') }}</div>
+                <div class="text-lg font-bold text-yellow-700">{{ 'Rp ' . number_format($totalHppModal, 2, ',', '.') }}</div>
                 <div class="text-xs text-gray-500">Harga beli dari vendor</div>
             </div>
             <div class="bg-white rounded-lg p-3 border">
                 <div class="text-sm text-gray-600">Total HPS</div>
-                <div class="text-lg font-bold text-blue-700">{{ 'Rp ' . number_format($totalHps, 0, ',', '.') }}</div>
+                <div class="text-lg font-bold text-blue-700">{{ 'Rp ' . number_format($totalHps, 2, ',', '.') }}</div>
                 <div class="text-xs text-gray-500">Harga penawaran ke klien</div>
             </div>
             <div class="bg-white rounded-lg p-3 border">
                 <div class="text-sm text-gray-600">Total Nett</div>
-                <div class="text-lg font-bold text-green-700">{{ 'Rp ' . number_format($totalNett, 0, ',', '.') }}</div>
+                <div class="text-lg font-bold text-green-700">{{ 'Rp ' . number_format($totalNett, 2, ',', '.') }}</div>
                 <div class="text-xs text-gray-500">Pendapatan bersih</div>
             </div>
             <div class="bg-white rounded-lg p-3 border">
@@ -459,7 +459,7 @@
             <div class="bg-white rounded-lg p-3 border">
                 <div class="text-sm text-gray-600">Selisih Pagu dan HPS</div>
                 <div class="text-lg font-bold {{ $selisihPaguHps >= 0 ? 'text-green-700' : 'text-red-700' }}">
-                    {{ 'Rp ' . number_format($selisihPaguHps, 0, ',', '.') }}
+                    {{ 'Rp ' . number_format($selisihPaguHps, 2, ',', '.') }}
                 </div>
             </div>
             <div class="bg-white rounded-lg p-3 border">
@@ -474,27 +474,27 @@
         <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 text-center">
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Items</div>
-                <div class="text-sm font-semibold">{{ number_format($totalItems, 0, ',', '.') }}</div>
+                <div class="text-sm font-semibold">{{ number_format($totalItems, 2, ',', '.') }}</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Diskon</div>
-                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalDiskon, 0, ',', '.') }}</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalDiskon, 2, ',', '.') }}</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Volume</div>
-                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalVolume, 0, ',', '.') }}</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalVolume, 2, ',', '.') }}</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total DPP</div>
-                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalDpp, 0, ',', '.') }}</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalDpp, 2, ',', '.') }}</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Asumsi Cair</div>
-                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalAsumsiCair, 0, ',', '.') }}</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalAsumsiCair, 2, ',', '.') }}</div>
             </div>
             <div class="bg-white rounded-lg p-2 border">
                 <div class="text-xs text-gray-600">Total Ongkir</div>
-                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalAsumsiOngkir, 0, ',', '.') }}</div>
+                <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalAsumsiOngkir, 2, ',', '.') }}</div>
             </div>
         </div>
         
@@ -504,23 +504,23 @@
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 text-center text-sm">
                 <div class="bg-gray-50 rounded p-2">
                     <div class="text-gray-600">Dinas</div>
-                    <div class="font-medium">{{ 'Rp ' . number_format($totalOmzetDinas, 0, ',', '.') }}</div>
+                    <div class="font-medium">{{ 'Rp ' . number_format($totalOmzetDinas, 2, ',', '.') }}</div>
                 </div>
                 <div class="bg-gray-50 rounded p-2">
                     <div class="text-gray-600">Bendera</div>
-                    <div class="font-medium">{{ 'Rp ' . number_format($totalBendera, 0, ',', '.') }}</div>
+                    <div class="font-medium">{{ 'Rp ' . number_format($totalBendera, 2, ',', '.') }}</div>
                 </div>
                 <div class="bg-gray-50 rounded p-2">
                     <div class="text-gray-600">Bank Cost</div>
-                    <div class="font-medium">{{ 'Rp ' . number_format($totalBankCost, 0, ',', '.') }}</div>
+                    <div class="font-medium">{{ 'Rp ' . number_format($totalBankCost, 2, ',', '.') }}</div>
                 </div>
                 <div class="bg-gray-50 rounded p-2">
                     <div class="text-gray-600">Biaya Ops</div>
-                    <div class="font-medium">{{ 'Rp ' . number_format($totalBiayaOps, 0, ',', '.') }}</div>
+                    <div class="font-medium">{{ 'Rp ' . number_format($totalBiayaOps, 2, ',', '.') }}</div>
                 </div>
                 <div class="bg-orange-100 rounded p-2">
                     <div class="text-orange-700 font-medium">Sub Total</div>
-                    <div class="font-bold text-orange-800">{{ 'Rp ' . number_format($totalTidakLangsung, 0, ',', '.') }}</div>
+                    <div class="font-bold text-orange-800">{{ 'Rp ' . number_format($totalTidakLangsung, 2, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -688,55 +688,55 @@
                         <td class="px-2 py-2 text-center border-r">{{ $kalkulasi->qty ?? 1 }}</td>
                         <td class="px-2 py-2 text-center border-r">{{ $kalkulasi->barang->satuan ?? 'pcs' }}</td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->harga_vendor ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->harga_vendor ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->total_diskon ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->total_diskon ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->harga_akhir ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->harga_akhir ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->jumlah_volume ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->jumlah_volume ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
                             {{ number_format($kalkulasi->kenaikan_percent ?? 0, 1) }}%
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->proyeksi_kenaikan ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->proyeksi_kenaikan ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->nilai_ppn ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nilai_ppn ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->nilai_pph_badan ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nilai_pph_badan ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right font-bold bg-yellow-50 border-r">
-                            {{ number_format($kalkulasi->hps ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->hps ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->nilai_dpp ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nilai_dpp ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->nilai_asumsi_cair ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nilai_asumsi_cair ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->ongkir ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->ongkir ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->omzet_dinas ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->omzet_dinas ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->bendera ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->bendera ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->bank_cost ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->bank_cost ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
-                            {{ number_format($kalkulasi->biaya_ops ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->biaya_ops ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right font-bold bg-green-50 border-r">
-                            {{ number_format($kalkulasi->nett_income ?? 0, 0, ',', '.') }}
+                            {{ number_format($kalkulasi->nett_income ?? 0, 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-2 text-right font-bold bg-green-50">
                             {{ number_format($kalkulasi->nett_income_percent ?? 0, 1) }}%
@@ -750,53 +750,53 @@
                             <strong>TOTAL:</strong>
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('harga_vendor'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('harga_vendor'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('total_diskon'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('total_diskon'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('harga_akhir'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('harga_akhir'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('jumlah_volume'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('jumlah_volume'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">-</td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('proyeksi_kenaikan'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('proyeksi_kenaikan'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('nilai_ppn'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nilai_ppn'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('nilai_pph_badan'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nilai_pph_badan'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right text-orange-700 bg-yellow-100 border-r">
-                            {{ number_format($kalkulasiData->sum('hps'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('hps'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('nilai_dpp'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nilai_dpp'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('nilai_asumsi_cair'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nilai_asumsi_cair'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('ongkir'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('ongkir'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('omzet_dinas'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('omzet_dinas'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('bendera'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('bendera'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('bank_cost'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('bank_cost'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right border-r">
-                            {{ number_format($kalkulasiData->sum('biaya_ops'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('biaya_ops'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right text-green-700 bg-green-100 border-r">
-                            {{ number_format($kalkulasiData->sum('nett_income'), 0, ',', '.') }}
+                            {{ number_format($kalkulasiData->sum('nett_income'), 2, ',', '.') }}
                         </td>
                         <td class="px-2 py-3 text-right text-green-700 bg-green-100">
                             @php

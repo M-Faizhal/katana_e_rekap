@@ -49,7 +49,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Hutang</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">Rp {{ number_format($stats['total_hutang'] ?? 0, 0, ',', '.') }}</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">Rp {{ number_format($stats['total_hutang'] ?? 0, 2, ',', '.') }}</p>
             </div>
         </div>
     </div>
@@ -73,7 +73,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Rata-rata Hutang</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ number_format($stats['rata_rata_hutang'] ?? 0, 0, ',', '.') }}</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ number_format($stats['rata_rata_hutang'] ?? 0, 2, ',', '.') }}</p>
             </div>
         </div>
     </div>
@@ -197,7 +197,7 @@
                                 } elseif ($nominal >= 1000) {
                                     echo 'Rp ' . number_format($nominal / 1000, 1, ',', '.') . ' rb';
                                 } else {
-                                    echo 'Rp ' . number_format($nominal, 0, ',', '.');
+                                    echo 'Rp ' . number_format($nominal, 2, ',', '.');
                                 }
                             @endphp
                         @endif
@@ -212,7 +212,7 @@
                             } elseif ($nominal >= 1000) {
                                 echo 'Rp ' . number_format($nominal / 1000, 1, ',', '.') . ' rb';
                             } else {
-                                echo 'Rp ' . number_format($nominal, 0, ',', '.');
+                                echo 'Rp ' . number_format($nominal, 2, ',', '.');
                             }
                         @endphp
                         @if($hutang->total_vendor > 0)
@@ -237,7 +237,7 @@
                                 } elseif ($nominal >= 1000) {
                                     echo '<span class="text-red-600">Rp ' . number_format($nominal / 1000, 1, ',', '.') . ' rb</span>';
                                 } else {
-                                    echo '<span class="text-red-600">Rp ' . number_format($nominal, 0, ',', '.') . '</span>';
+                                    echo '<span class="text-red-600">Rp ' . number_format($nominal, 2, ',', '.') . '</span>';
                                 }
                             @endphp
                         @endif

@@ -78,24 +78,24 @@
                 <div class="space-y-2">
                     <div class="flex justify-between">
                         <span class="text-gray-600">Total Modal Vendor (Harga Akhir Kalkulasi HPS):</span>
-                        <span class="font-medium">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
+                        <span class="font-medium">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600 text-sm">Total Penawaran Klien:</span>
                         <span class="font-medium text-sm text-blue-600">
-                            Rp {{ number_format((float)$totalPenawaran, 0, ',', '.') }}
+                            Rp {{ number_format((float)$totalPenawaran, 2, ',', '.') }}
                         </span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">Sudah Dibayar:</span>
                         <span class="font-medium text-blue-600">
-                            Rp {{ number_format($totalDibayar, 0, ',', '.') }}
+                            Rp {{ number_format($totalDibayar, 2, ',', '.') }}
                         </span>
                     </div>
                     <div class="flex justify-between border-t pt-2">
                         <span class="text-gray-600">Sisa Tagihan:</span>
                         <span class="font-bold {{ $sisaBayar > 0 ? 'text-red-600' : 'text-green-600' }}">
-                            Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                            Rp {{ number_format($sisaBayar, 2, ',', '.') }}
                         </span>
                     </div>
                 </div>
@@ -256,7 +256,7 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">
-                            Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
+                            Rp {{ number_format($pembayaran->nominal_bayar, 2, ',', '.') }}
                         </div>
                         @php
                             $persenNominal = $totalModalVendor > 0 ? ($pembayaran->nominal_bayar / $totalModalVendor) * 100 : 0;
@@ -317,7 +317,7 @@
                     Total {{ count($riwayatPembayaran) }} transaksi pembayaran
                 </div>
                 <div class="text-sm font-bold text-gray-900">
-                    Total Dibayar: Rp {{ number_format($totalDibayar, 0, ',', '.') }}
+                    Total Dibayar: Rp {{ number_format($totalDibayar, 2, ',', '.') }}
                 </div>
             </div>
         </div>

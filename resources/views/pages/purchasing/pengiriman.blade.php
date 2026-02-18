@@ -319,7 +319,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <div>
                                     <div class="text-blue-700 text-md">
-                                        Dibayar: Rp {{ number_format($vendorProyek->total_dibayar_approved, 0, ',', '.') }}
+                                        Dibayar: Rp {{ number_format($vendorProyek->total_dibayar_approved, 2, ',', '.') }}
                                     </div>
                                     @php
                                         $sisaBayar = $vendorProyek->total_vendor - $vendorProyek->total_dibayar_approved;
@@ -327,7 +327,7 @@
                                     @endphp
                                     @if($sisaBayar > 0)
                                         <div class="text-orange-600 text-xs">
-                                            Sisa: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                                            Sisa: Rp {{ number_format($sisaBayar, 2, ',', '.') }}
                                         </div>
                                     @endif
                                 </div>

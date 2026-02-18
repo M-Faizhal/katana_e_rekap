@@ -104,20 +104,20 @@
                         <div class="flex justify-between items-center">
                             <span class="text-gray-700 font-medium">Total Modal Vendor:</span>
                             <span class="font-bold text-lg text-green-700">
-                                Rp {{ number_format($totalModalVendor ?? 0, 0, ',', '.') }}
+                                Rp {{ number_format($totalModalVendor ?? 0, 2, ',', '.') }}
                             </span>
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-700 font-medium text-sm">Total Penawaran Klien:</span>
                             <span class="font-semibold text-sm text-blue-600">
-                                Rp {{ number_format((float)$proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}
+                                Rp {{ number_format((float)$proyek->penawaranAktif->total_penawaran, 2, ',', '.') }}
                             </span>
                         </div>
                         @if($totalDibayar > 0)
                         <div class="flex justify-between items-center">
                             <span class="text-gray-700 font-medium">Sudah Dibayar:</span>
                             <span class="font-semibold text-blue-600">
-                                Rp {{ number_format($totalDibayar, 0, ',', '.') }}
+                                Rp {{ number_format($totalDibayar, 2, ',', '.') }}
                             </span>
                         </div>
                         @endif
@@ -125,7 +125,7 @@
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-700 font-medium">Sisa Tagihan:</span>
                                 <span class="font-bold text-xl {{ $sisaBayar > 0 ? 'text-red-600' : 'text-green-600' }}">
-                                    Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                                    Rp {{ number_format($sisaBayar, 2, ',', '.') }}
                                 </span>
                             </div>
                         </div>
@@ -277,7 +277,7 @@
                             data-dibayar="{{ $vendor->total_dibayar }}"
                             data-sisa="{{ $vendor->sisa_bayar }}">
                         {{ $vendor->nama_vendor }} 
-                        (Sisa: Rp {{ number_format($vendor->sisa_bayar, 0, ',', '.') }})
+                        (Sisa: Rp {{ number_format($vendor->sisa_bayar, 2, ',', '.') }})
                     </option>
                     @endforeach
                 </select>
@@ -316,15 +316,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
                         <span class="text-gray-600">Total Modal (Harga Akhir Kalkulasi HPS):</span>
-                        <span class="font-medium">Rp {{ number_format($selectedVendor->total_vendor ?? $totalModalVendor, 0, ',', '.') }}</span>
+                        <span class="font-medium">Rp {{ number_format($selectedVendor->total_vendor ?? $totalModalVendor, 2, ',', '.') }}</span>
                     </div>
                     <div>
                         <span class="text-gray-600">Dibayar:</span>
-                        <span class="font-medium text-green-600">Rp {{ number_format($selectedVendor->total_dibayar ?? $totalDibayar, 0, ',', '.') }}</span>
+                        <span class="font-medium text-green-600">Rp {{ number_format($selectedVendor->total_dibayar ?? $totalDibayar, 2, ',', '.') }}</span>
                     </div>
                     <div>
                         <span class="text-gray-600">Sisa:</span>
-                        <span class="font-medium text-red-600">Rp {{ number_format($selectedVendor->sisa_bayar ?? $sisaBayar, 0, ',', '.') }}</span>
+                        <span class="font-medium text-red-600">Rp {{ number_format($selectedVendor->sisa_bayar ?? $sisaBayar, 2, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -362,14 +362,15 @@
                         <div class="relative">
                             <span class="absolute left-4 top-3 text-gray-500 font-medium">Rp</span>
                             <input type="number" name="nominal_bayar" id="nominal_bayar" required 
-                                   min="1" max="{{ $sisaBayar }}"
+                                   step="0.01"
+                                   min="0.01" max="{{ $sisaBayar }}"
                                    value="{{ old('nominal_bayar') }}"
                                    class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                   placeholder="0">
+                                   placeholder="0.00">
                         </div>
                         <p class="text-sm text-gray-500 mt-2 flex items-center">
                             <i class="fas fa-info-circle mr-1"></i>
-                            Maksimal: Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                            Maksimal: Rp {{ number_format($sisaBayar, 2, ',', '.') }}
                         </p>
                         
                         <!-- Quick Suggestions Enhanced -->
@@ -379,16 +380,16 @@
                                 <button type="button" class="suggestion-btn px-3 py-2 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors border border-green-300" 
                                         data-amount="{{ $sisaBayar }}">
                                     <i class="fas fa-check mr-1"></i>
-                                    Lunas (Rp {{ number_format($sisaBayar, 0, ',', '.') }})
+                                    Lunas (Rp {{ number_format($sisaBayar, 2, ',', '.') }})
                                 </button>
                                 @if($sisaBayar > 0)
                                 <button type="button" class="suggestion-btn px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors border border-blue-300" 
                                         data-amount="{{ $sisaBayar * 0.3 }}">
-                                    30% (Rp {{ number_format($sisaBayar * 0.3, 0, ',', '.') }})
+                                    30% (Rp {{ number_format($sisaBayar * 0.3, 2, ',', '.') }})
                                 </button>
                                 <button type="button" class="suggestion-btn px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors border border-purple-300" 
                                         data-amount="{{ $sisaBayar * 0.5 }}">
-                                    50% (Rp {{ number_format($sisaBayar * 0.5, 0, ',', '.') }})
+                                    50% (Rp {{ number_format($sisaBayar * 0.5, 2, ',', '.') }})
                                 </button>
                                 @endif
                             </div>
@@ -485,11 +486,11 @@
                             <div class="space-y-1 text-xs">
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Qty:</span>
-                                    <span class="font-medium">{{ number_format($item->qty, 0, ',', '.') }} {{ $item->satuan }}</span>
+                                    <span class="font-medium">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->satuan }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Modal:</span>
-                                    <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 0, ',', '.') }}</span>
+                                    <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 2, ',', '.') }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-600">Kontribusi:</span>
@@ -504,7 +505,7 @@
                     </div>
                     <div class="mt-3 pt-3 border-t border-purple-200 flex justify-between items-center">
                         <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
-                        <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
+                        <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
                     </div>
                 </div>
                 @endif
@@ -754,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add event listener to new button
         lunasBtn.addEventListener('click', function() {
-            nominalInput.value = Math.round(sisa);
+            nominalInput.value = parseFloat(sisa).toFixed(2);
         });
     }
     
@@ -763,7 +764,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.classList.contains('suggestion-btn') || e.target.closest('.suggestion-btn')) {
             const btn = e.target.classList.contains('suggestion-btn') ? e.target : e.target.closest('.suggestion-btn');
             const amount = btn.getAttribute('data-amount');
-            nominalInput.value = Math.round(amount);
+            nominalInput.value = parseFloat(amount).toFixed(2);
         }
     });
     
@@ -786,10 +787,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Format number input
+    // Format number input - support decimal values
     nominalInput.addEventListener('blur', function() {
-        const value = parseInt(this.value);
-        if (!isNaN(value)) {
+        const value = parseFloat(this.value);
+        if (!isNaN(value) && value > 0) {
+            // Keep decimal values, format to 2 decimal places if needed
             this.value = value;
         }
     });

@@ -115,7 +115,7 @@
                     <label class="text-xs text-gray-500">Harga Satuan</label>
                     <p class="font-medium text-gray-800">
                         @if($detail->harga_satuan > 0)
-                        Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}
+                        Rp {{ number_format($detail->harga_satuan, 2, ',', '.') }}
                         @else
                         <span class="text-orange-600 text-sm">Belum diset</span>
                         @endif
@@ -125,7 +125,7 @@
                     <label class="text-xs text-gray-500">Subtotal</label>
                     <p class="font-medium text-red-600">
                         @if($detail->subtotal > 0)
-                        Rp {{ number_format($detail->subtotal, 0, ',', '.') }}
+                        Rp {{ number_format($detail->subtotal, 2, ',', '.') }}
                         @else
                         <span class="text-orange-600 text-sm">Rp 0</span>
                         @endif
@@ -223,7 +223,7 @@
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-lg font-semibold text-gray-800">Total Penawaran:</span>
                     <span class="text-2xl font-bold text-red-600">
-                    Rp {{ number_format($proyek->harga_total ?? 0, 0, ',', '.') }}
+                    Rp {{ number_format($proyek->harga_total ?? 0, 2, ',', '.') }}
                     </span>
                 </div>
                 </div>
@@ -279,7 +279,7 @@
                             <label class="text-xs text-gray-500">Harga Satuan</label>
                             <p class="font-medium text-gray-800">
                                 @if($barang->harga_satuan > 0)
-                                    Rp {{ number_format($barang->harga_satuan, 0, ',', '.') }}
+                                    Rp {{ number_format($barang->harga_satuan, 2, ',', '.') }}
                                 @else
                                     <span class="text-gray-400 text-sm">Belum diset</span>
                                 @endif
@@ -289,7 +289,7 @@
                             <label class="text-xs text-gray-500">Total</label>
                             <p class="font-medium text-blue-600">
                                 @if($barang->harga_total > 0)
-                                    Rp {{ number_format($barang->harga_total, 0, ',', '.') }}
+                                    Rp {{ number_format($barang->harga_total, 2, ',', '.') }}
                                 @else
                                     <span class="text-gray-400 text-sm">Rp 0</span>
                                 @endif

@@ -69,7 +69,7 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-500">Total Harga:</span>
-                        <span class="text-lg font-bold text-gray-900">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-lg font-bold text-gray-900">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 2, ',', '.') }}</span>
                     </div>
                     
                     @php
@@ -78,12 +78,12 @@
                     
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-500">Sudah Terbayar:</span>
-                        <span class="text-lg font-semibold text-green-600">Rp {{ number_format($totalBayar, 0, ',', '.') }}</span>
+                        <span class="text-lg font-semibold text-green-600">Rp {{ number_format($totalBayar, 2, ',', '.') }}</span>
                     </div>
                     
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-500">Sisa Pembayaran:</span>
-                        <span class="text-xl font-bold text-red-600">Rp {{ number_format($sisaPembayaran, 0, ',', '.') }}</span>
+                        <span class="text-xl font-bold text-red-600">Rp {{ number_format($sisaPembayaran, 2, ',', '.') }}</span>
                     </div>
                 </div>
                 
@@ -147,10 +147,10 @@
                     <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                         <div class="flex-1">
                             <p class="text-sm font-medium text-gray-900">{{ $detail->barang->nama_barang ?? 'Barang tidak ditemukan' }}</p>
-                            <p class="text-xs text-gray-500">{{ $detail->qty }} x Rp {{ number_format((float)$detail->harga_satuan, 0, ',', '.') }}</p>
+                            <p class="text-xs text-gray-500">{{ $detail->qty }} x Rp {{ number_format((float)$detail->harga_satuan, 2, ',', '.') }}</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-sm font-semibold text-gray-900">Rp {{ number_format((float)$detail->subtotal, 0, ',', '.') }}</p>
+                            <p class="text-sm font-semibold text-gray-900">Rp {{ number_format((float)$detail->subtotal, 2, ',', '.') }}</p>
                         </div>
                     </div>
                     @endforeach
@@ -190,7 +190,7 @@
                         </div>
                         <div class="text-right">
                             <p class="text-sm text-blue-600">Sisa Pembayaran</p>
-                            <p class="text-2xl font-bold text-blue-900">Rp {{ number_format($sisaPembayaran, 0, ',', '.') }}</p>
+                            <p class="text-2xl font-bold text-blue-900">Rp {{ number_format($sisaPembayaran, 2, ',', '.') }}</p>
                         </div>
                     </div>
                 </div>

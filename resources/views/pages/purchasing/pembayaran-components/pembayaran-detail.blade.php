@@ -110,7 +110,7 @@
                         <div class="flex justify-between items-center bg-white rounded-lg p-3 border border-gray-200">
                             <dt class="text-sm font-medium text-gray-600">Nominal:</dt>
                             <dd class="text-lg font-bold text-green-600">
-                                Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
+                                Rp {{ number_format($pembayaran->nominal_bayar, 2, ',', '.') }}
                             </dd>
                         </div>
                         <div class="flex justify-between items-center">
@@ -139,7 +139,7 @@
                         <div class="flex justify-between items-center bg-purple-50 rounded-lg p-3 border border-purple-200">
                             <dt class="text-sm font-medium text-purple-700">Total Modal Vendor:</dt>
                             <dd class="text-sm font-bold text-purple-800">
-                                Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
+                                Rp {{ number_format($totalModalVendor, 2, ',', '.') }}
                             </dd>
                         </div>
                     </dl>
@@ -209,7 +209,7 @@
                         <div class="flex justify-between items-center bg-white rounded-lg p-3 border border-gray-200">
                             <dt class="text-sm font-medium text-gray-600">Total Penawaran:</dt>
                             <dd class="text-lg font-bold text-green-600">
-                                Rp {{ number_format($pembayaran->penawaran->total_penawaran, 0, ',', '.') }}
+                                Rp {{ number_format($pembayaran->penawaran->total_penawaran, 2, ',', '.') }}
                             </dd>
                         </div>
                     </dl>
@@ -367,20 +367,20 @@
                             </td>
                             <td class="py-3 px-4 border-b border-gray-100 text-center">
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {{ number_format($item->qty, 0, ',', '.') }}
+                                    {{ number_format($item->qty, 2, ',', '.') }}
                                 </span>
                             </td>
                             <td class="py-3 px-4 border-b border-gray-100 text-center text-sm text-gray-600">
                                 {{ $item->satuan }}
                             </td>
                             <td class="py-3 px-4 border-b border-gray-100 text-right text-sm">
-                                <span class="text-gray-600">Rp {{ number_format($item->harga_vendor, 0, ',', '.') }}</span>
+                                <span class="text-gray-600">Rp {{ number_format($item->harga_vendor, 2, ',', '.') }}</span>
                             </td>
                             <td class="py-3 px-4 border-b border-gray-100 text-right text-sm font-medium">
-                                <span class="text-purple-600">Rp {{ number_format($item->harga_akhir, 0, ',', '.') }}</span>
+                                <span class="text-purple-600">Rp {{ number_format($item->harga_akhir, 2, ',', '.') }}</span>
                             </td>
                             <td class="py-3 px-4 border-b border-gray-100 text-right">
-                                <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 0, ',', '.') }}</span>
+                                <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 2, ',', '.') }}</span>
                             </td>
                             <td class="py-3 px-4 border-b border-gray-100 text-center">
                                 <div class="flex items-center justify-center">
@@ -399,7 +399,7 @@
                                 <span class="text-gray-700">Total Modal Vendor:</span>
                             </td>
                             <td class="py-4 px-4 text-right border-t-2 border-gray-300">
-                                <span class="text-lg font-bold text-green-600">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
+                                <span class="text-lg font-bold text-green-600">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
                             </td>
                             <td class="py-4 px-4 text-center border-t-2 border-gray-300">
                                 <span class="text-sm font-medium text-green-600">100%</span>
@@ -424,7 +424,7 @@
                     </div>
                     <div class="text-right">
                         <div class="text-lg font-bold text-green-600">
-                            Rp {{ number_format($item->total_harga_hpp, 0, ',', '.') }}
+                            Rp {{ number_format($item->total_harga_hpp, 2, ',', '.') }}
                         </div>
                         <div class="text-xs text-gray-500">{{ number_format($persentaseModal, 1) }}% dari total</div>
                     </div>
@@ -433,15 +433,15 @@
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div>
                         <span class="text-gray-600">Qty:</span>
-                        <span class="font-medium ml-1">{{ number_format($item->qty, 0, ',', '.') }} {{ $item->satuan }}</span>
+                        <span class="font-medium ml-1">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->satuan }}</span>
                     </div>
                     <div>
                         <span class="text-gray-600">Harga Vendor:</span>
-                        <span class="font-medium ml-1">Rp {{ number_format($item->harga_vendor, 0, ',', '.') }}</span>
+                        <span class="font-medium ml-1">Rp {{ number_format($item->harga_vendor, 2, ',', '.') }}</span>
                     </div>
                     <div class="col-span-2">
                         <span class="text-gray-600">Harga Akhir:</span>
-                        <span class="font-medium ml-1 text-purple-600">Rp {{ number_format($item->harga_akhir, 0, ',', '.') }}</span>
+                        <span class="font-medium ml-1 text-purple-600">Rp {{ number_format($item->harga_akhir, 2, ',', '.') }}</span>
                     </div>
                 </div>
                 
@@ -461,7 +461,7 @@
             <div class="bg-green-50 rounded-lg p-4 border border-green-200 mt-4">
                 <div class="flex justify-between items-center">
                     <span class="font-semibold text-green-800">Total Modal Vendor:</span>
-                    <span class="text-lg font-bold text-green-600">Rp {{ number_format($totalModalVendor, 0, ',', '.') }}</span>
+                    <span class="text-lg font-bold text-green-600">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
                 </div>
             </div>
         </div>
@@ -488,24 +488,24 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div class="text-center">
                 <div class="text-lg font-bold text-green-600">
-                    Rp {{ number_format($totalModalVendor, 0, ',', '.') }}
+                    Rp {{ number_format($totalModalVendor, 2, ',', '.') }}
                 </div>
                 <div class="text-sm text-gray-500">Total Modal Vendor (Harga Akhir Kalkulasi HPS)</div>
             </div>
             <div class="text-center">
                 <div class="text-lg font-bold text-blue-600">
-                    Rp {{ number_format($totalDibayar, 0, ',', '.') }}
+                    Rp {{ number_format($totalDibayar, 2, ',', '.') }}
                 </div>
                 <div class="text-sm text-gray-500">Total Dibayar</div>
             </div>
             <div class="text-center">
                 <div class="text-lg font-bold {{ $sisaBayar > 0 ? 'text-red-600' : 'text-green-600' }}">
-                    Rp {{ number_format($sisaBayar, 0, ',', '.') }}
+                    Rp {{ number_format($sisaBayar, 2, ',', '.') }}
                 </div>
                 <div class="text-sm text-gray-500">Sisa Tagihan</div>
             </div>
             <div class="text-center">
-                <div class="text-2xl font-bold text-gray-900">{{ number_format($persenBayar, 1) }}%</div>
+                <div class="text-2xl font-bold text-gray-900">{{ number_format($persenBayar, 2) }}%</div>
                 <div class="text-sm text-gray-500">Progress</div>
             </div>
         </div>
@@ -513,7 +513,7 @@
         <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <div class="text-xs text-blue-700 mb-1">
                 <i class="fas fa-info-circle mr-1"></i>
-                Referensi: Total penawaran ke klien Rp {{ number_format($totalPenawaran, 0, ',', '.') }}. Modal vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>.
+                Referensi: Total penawaran ke klien Rp {{ number_format($totalPenawaran, 2, ',', '.') }}. Modal vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>.
                 @if($breakdownBarang && $breakdownBarang->count() > 0)
                 <br>Detail breakdown per barang dapat dilihat pada tabel di atas untuk transparansi perhitungan modal vendor.
                 @endif

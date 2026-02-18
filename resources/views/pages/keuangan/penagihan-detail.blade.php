@@ -83,7 +83,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Total Harga</label>
-                            <p class="text-xl font-bold text-green-600">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 0, ',', '.') }}</p>
+                            <p class="text-xl font-bold text-green-600">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 2, ',', '.') }}</p>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Dibuat</label>
@@ -102,16 +102,16 @@
                         @if($penagihanDinas->status_pembayaran === 'dp')
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah DP ({{ $penagihanDinas->persentase_dp }}%)</label>
-                            <p class="text-lg font-semibold text-green-600">Rp {{ number_format((float)$penagihanDinas->jumlah_dp, 0, ',', '.') }}</p>
+                            <p class="text-lg font-semibold text-green-600">Rp {{ number_format((float)$penagihanDinas->jumlah_dp, 2, ',', '.') }}</p>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Sisa Pembayaran</label>
-                            <p class="text-lg font-semibold text-red-600">Rp {{ number_format($sisaPembayaran, 0, ',', '.') }}</p>
+                            <p class="text-lg font-semibold text-red-600">Rp {{ number_format($sisaPembayaran, 2, ',', '.') }}</p>
                         </div>
                         @endif
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Total Terbayar</label>
-                            <p class="text-lg font-semibold text-blue-600">Rp {{ number_format((float)$totalBayar, 0, ',', '.') }}</p>
+                            <p class="text-lg font-semibold text-blue-600">Rp {{ number_format((float)$totalBayar, 2, ',', '.') }}</p>
                         </div>
                     </div>
                 </div>
@@ -226,17 +226,17 @@
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {{ number_format($detail->qty, 0, ',', '.') }}
+                                        {{ number_format($detail->qty, 2, ',', '.') }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <span class="text-sm text-gray-900">{{ $detail->satuan }}</span>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <span class="text-sm font-medium text-gray-900">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</span>
+                                    <span class="text-sm font-medium text-gray-900">Rp {{ number_format($detail->harga_satuan, 2, ',', '.') }}</span>
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <span class="text-sm font-semibold text-green-600">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                                    <span class="text-sm font-semibold text-green-600">Rp {{ number_format($subtotal, 2, ',', '.') }}</span>
                                 </td>
                             </tr>
                         @endforeach
@@ -249,7 +249,7 @@
                             <td class="px-4 py-3 text-right">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">
                                     <i class="fas fa-money-bill-wave mr-1"></i>
-                                    Rp {{ number_format($grandTotal, 0, ',', '.') }}
+                                    Rp {{ number_format($grandTotal, 2, ',', '.') }}
                                 </span>
                             </td>
                         </tr>
@@ -347,7 +347,7 @@
                                 {{ ucfirst($bukti->jenis_pembayaran) }}
                             @endif
                         </span>
-                        <span class="text-lg font-bold text-green-600">Rp {{ number_format($bukti->jumlah_bayar, 0, ',', '.') }}</span>
+                        <span class="text-lg font-bold text-green-600">Rp {{ number_format($bukti->jumlah_bayar, 2, ',', '.') }}</span>
                     </div>
                     <div class="grid grid-cols-2 gap-4 mb-3">
                         <div class="flex items-center text-sm text-gray-600">
@@ -422,10 +422,10 @@
                         <span class="text-sm font-medium text-red-800">Sisa Pembayaran</span>
                     </div>
                     <div class="text-2xl font-bold text-red-600">
-                        Rp {{ number_format($penagihanDinas->sisa_pembayaran, 0, ',', '.') }}
+                        Rp {{ number_format($penagihanDinas->sisa_pembayaran, 2, ',', '.') }}
                     </div>
                     <div class="text-xs text-red-600 mt-1">
-                        Dari total: Rp {{ number_format($penagihanDinas->proyek->harga_total ?? 0, 0, ',', '.') }}
+                        Dari total: Rp {{ number_format($penagihanDinas->proyek->harga_total ?? 0, 2, ',', '.') }}
                     </div>
                 </div>
                 @endif

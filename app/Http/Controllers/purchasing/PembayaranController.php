@@ -369,7 +369,7 @@ class PembayaranController extends Controller
             'id_proyek' => 'required|exists:proyek,id_proyek',
             'id_vendor' => 'required|exists:vendor,id_vendor',
             'jenis_bayar' => 'required|in:Lunas,DP,Cicilan',
-            'nominal_bayar' => 'required|numeric|min:1',
+            'nominal_bayar' => 'required|numeric|min:0.01',
             'metode_bayar' => 'required|string',
             'bukti_bayar' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // max 5MB
             'catatan' => 'nullable|string'
@@ -648,7 +648,7 @@ class PembayaranController extends Controller
 
         $request->validate([
             'jenis_bayar' => 'required|in:Lunas,DP,Cicilan',
-            'nominal_bayar' => 'required|numeric|min:1',
+            'nominal_bayar' => 'required|numeric|min:0.01',
             'metode_bayar' => 'required|string',
             'bukti_bayar' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // optional untuk update
             'catatan' => 'nullable|string'

@@ -77,7 +77,7 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-500">Total Harga:</span>
-                        <span class="text-lg font-bold text-gray-900">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-lg font-bold text-gray-900">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 2, ',', '.') }}</span>
                     </div>
                     
                     @php
@@ -89,13 +89,13 @@
                     
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-500">Total Terbayar:</span>
-                        <span class="text-lg font-semibold text-green-600">Rp {{ number_format($totalBayar, 0, ',', '.') }}</span>
+                        <span class="text-lg font-semibold text-green-600">Rp {{ number_format($totalBayar, 2, ',', '.') }}</span>
                     </div>
                     
                     @if($sisaBayar > 0)
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-500">Sisa Pembayaran:</span>
-                        <span class="text-lg font-semibold text-red-600">Rp {{ number_format($sisaBayar, 0, ',', '.') }}</span>
+                        <span class="text-lg font-semibold text-red-600">Rp {{ number_format($sisaBayar, 2, ',', '.') }}</span>
                     </div>
                     @endif
                 </div>
@@ -204,7 +204,7 @@
                                         @endif
                                     </div>
                                     <div class="text-right">
-                                        <span class="text-2xl font-bold text-green-600">Rp {{ number_format((float)$bukti->jumlah_bayar, 0, ',', '.') }}</span>
+                                        <span class="text-2xl font-bold text-green-600">Rp {{ number_format((float)$bukti->jumlah_bayar, 2, ',', '.') }}</span>
                                         <div class="text-xs text-gray-500">Pembayaran #{{ $index + 1 }}</div>
                                     </div>
                                 </div>
@@ -292,7 +292,7 @@
                     </h3>
                     <p class="text-green-700 text-lg">
                         Sisa pembayaran: 
-                        <span class="font-bold text-green-800">Rp {{ number_format($sisaBayar, 0, ',', '.') }}</span>
+                        <span class="font-bold text-green-800">Rp {{ number_format($sisaBayar, 2, ',', '.') }}</span>
                     </p>
                     <p class="text-green-600 text-sm mt-1">Lengkapi pembayaran untuk menyelesaikan transaksi</p>
                 </div>

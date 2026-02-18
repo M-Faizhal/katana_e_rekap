@@ -102,7 +102,7 @@
                             </div>
                             <div>
                                 <span class="text-xs text-gray-500 uppercase tracking-wider">Total Harga</span>
-                                <div class="text-sm font-bold text-green-600">Rp {{ number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</div>
+                                <div class="text-sm font-bold text-green-600">Rp {{ number_format($proyek->harga_total ?? 0, 2, ',', '.') }}</div>
                             </div>
                         </div>
                     </div>
@@ -190,7 +190,7 @@
                                             </td>
                                             <td class="px-4 py-4 text-center">
                                                 <span class="inline-flex items-center justify-center w-16 h-8 px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 shadow-sm">
-                                                    {{ number_format($detail->qty, 0, ',', '.') }}
+                                                    {{ number_format($detail->qty, 2, ',', '.') }}
                                                 </span>
                                             </td>
                                             <td class="px-4 py-4 text-center">
@@ -199,10 +199,10 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-4 text-right">
-                                                <div class="text-sm font-semibold text-gray-900">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</div>
+                                                <div class="text-sm font-semibold text-gray-900">Rp {{ number_format($detail->harga_satuan, 2, ',', '.') }}</div>
                                             </td>
                                             <td class="px-4 py-4 text-right">
-                                                <div class="text-sm font-bold text-green-600">Rp {{ number_format($subtotal, 0, ',', '.') }}</div>
+                                                <div class="text-sm font-bold text-green-600">Rp {{ number_format($subtotal, 2, ',', '.') }}</div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -224,7 +224,7 @@
                                 <div class="text-right">
                                     <div class="inline-flex items-center px-4 py-2 rounded-lg bg-green-100 border border-green-200">
                                         <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
-                                        <span class="text-xl font-bold text-green-700">Rp {{ number_format($proyek->harga_total ?? 0, 0, ',', '.') }}</span>
+                                        <span class="text-xl font-bold text-green-700">Rp {{ number_format($proyek->harga_total ?? 0, 2, ',', '.') }}</span>
                                     </div>
                                 </div>
                             </div>

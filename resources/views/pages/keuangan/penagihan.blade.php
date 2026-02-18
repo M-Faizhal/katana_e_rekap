@@ -139,7 +139,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
                                     <div class="text-sm font-bold text-green-600">
-                                        Rp {{ number_format($totalHarga, 0, ',', '.') }}
+                                        Rp {{ number_format($totalHarga, 2, ',', '.') }}
                                     </div>
                                     <div class="text-xs text-gray-500">
                                         {{ ($penawaran && $penawaran->penawaranDetail) ? $penawaran->penawaranDetail->count() : 0 }} item
@@ -262,13 +262,13 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-bold text-gray-900">
-                                    Rp {{ number_format((float)$penagihan->total_harga, 0, ',', '.') }}
+                                    Rp {{ number_format((float)$penagihan->total_harga, 2, ',', '.') }}
                                 </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
                                     <div class="text-sm font-bold text-green-600">
-                                        Rp {{ number_format((float)$penagihan->jumlah_dp, 0, ',', '.') }}
+                                        Rp {{ number_format((float)$penagihan->jumlah_dp, 2, ',', '.') }}
                                     </div>
                                     <div class="text-xs text-gray-500">{{ $penagihan->persentase_dp }}% dari total</div>
                                 </div>
@@ -279,7 +279,7 @@
                                     $sisaPembayaran = $penagihan->total_harga - $totalBayar;
                                 @endphp
                                 <div class="text-sm font-bold text-red-600">
-                                    Rp {{ number_format($sisaPembayaran, 0, ',', '.') }}
+                                    Rp {{ number_format($sisaPembayaran, 2, ',', '.') }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm font-medium">
@@ -403,7 +403,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
                                     <div class="text-sm font-bold text-green-600">
-                                        Rp {{ number_format((float)$penagihan->total_harga, 0, ',', '.') }}
+                                        Rp {{ number_format((float)$penagihan->total_harga, 2, ',', '.') }}
                                     </div>
                                     <div class="text-xs text-gray-500">
                                         @php

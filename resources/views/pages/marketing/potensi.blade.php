@@ -69,7 +69,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             </div>
             <div class="flex-1">
                 <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-600 mb-1">Total Nilai Potensi</h3>
-                <p id="totalNilaiPotensi" class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">Rp {{ number_format($totalNilaiPotensi, 0, ',', '.') }}</p>
+                <p id="totalNilaiPotensi" class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">Rp {{ number_format($totalNilaiPotensi, 2, ',', '.') }}</p>
                 <p id="totalNilaiLabel" class="text-xs sm:text-sm text-gray-500 mt-1">Estimasi nilai keseluruhan</p>
             </div>
         </div>

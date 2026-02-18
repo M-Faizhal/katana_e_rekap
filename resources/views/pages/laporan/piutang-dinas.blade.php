@@ -49,7 +49,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total Piutang</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ number_format($stats['total_piutang'] ?? 0, 0, ',', '.') }}</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">Rp {{ number_format($stats['total_piutang'] ?? 0, 2, ',', '.') }}</p>
             </div>
         </div>
     </div>
@@ -61,7 +61,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Jatuh Tempo</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">Rp {{ number_format($stats['piutang_jatuh_tempo'] ?? 0, 0, ',', '.') }}</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">Rp {{ number_format($stats['piutang_jatuh_tempo'] ?? 0, 2, ',', '.') }}</p>
             </div>
         </div>
     </div>
@@ -85,7 +85,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Rata-rata Piutang</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">Rp {{ number_format($stats['rata_rata_piutang'] ?? 0, 0, ',', '.') }}</p>
+                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">Rp {{ number_format($stats['rata_rata_piutang'] ?? 0, 2, ',', '.') }}</p>
             </div>
         </div>
     </div>

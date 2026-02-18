@@ -140,18 +140,18 @@ function showProyekDetail(proyek) {
                 <h4 class="font-medium text-gray-900 border-b pb-1">Informasi Pembayaran</h4>
                 <div class="space-y-2 text-sm">
                     <div><span class="font-medium text-gray-600">Total Penawaran:</span> 
-                        <span class="font-semibold text-green-600">Rp ${proyek.penawaran_aktif ? new Intl.NumberFormat('id-ID').format(proyek.penawaran_aktif.total_penawaran) : '0'}</span>
+                        <span class="font-semibold text-green-600">Rp ${proyek.penawaran_aktif ? new Intl.NumberFormat('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(proyek.penawaran_aktif.total_penawaran) : '0,00'}</span>
                     </div>
                     <div><span class="font-medium text-gray-600">Total Dibayar (Approved):</span> 
-                        <span class="font-semibold text-blue-600">Rp ${new Intl.NumberFormat('id-ID').format(proyek.total_dibayar_approved || 0)}</span>
+                        <span class="font-semibold text-blue-600">Rp ${new Intl.NumberFormat('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(proyek.total_dibayar_approved || 0)}</span>
                     </div>
                     <div><span class="font-medium text-gray-600">Sisa Bayar:</span> 
                         <span class="font-semibold ${proyek.status_lunas ? 'text-green-600' : 'text-orange-600'}">
-                            ${proyek.status_lunas ? 'LUNAS' : 'Rp ' + new Intl.NumberFormat('id-ID').format(proyek.sisa_bayar || 0)}
+                            ${proyek.status_lunas ? 'LUNAS' : 'Rp ' + new Intl.NumberFormat('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(proyek.sisa_bayar || 0)}
                         </span>
                     </div>
                     <div><span class="font-medium text-gray-600">Progress:</span> 
-                        <span class="font-semibold">${(proyek.persen_bayar || 0).toFixed(1)}%</span>
+                        <span class="font-semibold">${(proyek.persen_bayar || 0).toFixed(2)}%</span>
                     </div>
                 </div>
                 
@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="space-y-1">
                                             <p class="text-gray-600">
                                                 <span class="font-medium">Total Modal ke Vendor:</span> 
-                                                <span class="text-green-600 font-semibold">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</span>
+                                                <span class="text-green-600 font-semibold">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 2, ',', '.') }}</span>
                                             </p>
                                             <p class="text-gray-600">
                                                 <span class="font-medium">Vendor Belum Lunas:</span> 
@@ -626,11 +626,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                         <div class="text-center">
                                             <p class="text-blue-700 font-medium">Harga Penawaran</p>
-                                            <p class="text-lg font-bold text-blue-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}</p>
+                                            <p class="text-lg font-bold text-blue-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 2, ',', '.') }}</p>
                                         </div>
                                         <div class="text-center">
                                             <p class="text-green-700 font-medium">Total Modal Vendor</p>
-                                            <p class="text-lg font-bold text-green-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
+                                            <p class="text-lg font-bold text-green-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 2, ',', '.') }}</p>
                                         </div>
                                        
                                     </div>
@@ -693,16 +693,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="text-sm">
                                                 <div class="flex justify-between">
                                                     <span class="text-gray-600">Total Modal (Total Harga HPP Kalkulasi HPS):</span>
-                                                    <span class="font-medium">Rp {{ number_format($vendorData->total_vendor, 0, ',', '.') }}</span>
+                                                    <span class="font-medium">Rp {{ number_format($vendorData->total_vendor, 2, ',', '.') }}</span>
                                                 </div>
                                                 <div class="flex justify-between">
                                                     <span class="text-gray-600">Dibayar:</span>
-                                                    <span class="font-medium text-green-600">Rp {{ number_format($vendorData->total_dibayar_approved, 0, ',', '.') }}</span>
+                                                    <span class="font-medium text-green-600">Rp {{ number_format($vendorData->total_dibayar_approved, 2, ',', '.') }}</span>
                                                 </div>
                                                 @if(!$vendorData->status_lunas)
                                                 <div class="flex justify-between">
                                                     <span class="text-gray-600">Sisa:</span>
-                                                    <span class="font-medium text-red-600">Rp {{ number_format($vendorData->sisa_bayar, 0, ',', '.') }}</span>
+                                                    <span class="font-medium text-red-600">Rp {{ number_format($vendorData->sisa_bayar, 2, ',', '.') }}</span>
                                                 </div>
                                                 @endif
                                             </div>
@@ -901,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="space-y-1">
                                     <p class="text-gray-600">
                                         <span class="font-medium">Total Modal ke Vendor:</span> 
-                                        <span class="text-green-600 font-semibold">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</span>
+                                        <span class="text-green-600 font-semibold">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 2, ',', '.') }}</span>
                                     </p>
                                     <p class="text-gray-600">
                                         <span class="font-medium">Vendor Belum Lunas:</span> 
@@ -932,11 +932,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                 <div class="text-center">
                                     <p class="text-blue-700 font-medium">HargaPenawaran</p>
-                                    <p class="text-lg font-bold text-blue-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 0, ',', '.') }}</p>
+                                    <p class="text-lg font-bold text-blue-900">Rp {{ number_format($proyek->penawaranAktif->total_penawaran, 2, ',', '.') }}</p>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-green-700 font-medium">Total Modal Vendor</p>
-                                    <p class="text-lg font-bold text-green-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 0, ',', '.') }}</p>
+                                    <p class="text-lg font-bold text-green-900">Rp {{ number_format($proyek->vendors_data->sum('total_vendor'), 2, ',', '.') }}</p>
                                 </div>
                                
                             </div>
@@ -999,16 +999,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="text-sm">
                                         <div class="flex justify-between">
                                             <span class="text-gray-600">Total Modal (Total Harga HPP Kalkulasi HPS):</span>
-                                            <span class="font-medium">Rp {{ number_format($vendorData->total_vendor, 0, ',', '.') }}</span>
+                                            <span class="font-medium">Rp {{ number_format($vendorData->total_vendor, 2, ',', '.') }}</span>
                                         </div>
                                         <div class="flex justify-between">
                                             <span class="text-gray-600">Dibayar:</span>
-                                            <span class="font-medium text-green-600">Rp {{ number_format($vendorData->total_dibayar_approved, 0, ',', '.') }}</span>
+                                            <span class="font-medium text-green-600">Rp {{ number_format($vendorData->total_dibayar_approved, 2, ',', '.') }}</span>
                                         </div>
                                         @if(!$vendorData->status_lunas)
                                         <div class="flex justify-between">
                                             <span class="text-gray-600">Sisa:</span>
-                                            <span class="font-medium text-red-600">Rp {{ number_format($vendorData->sisa_bayar, 0, ',', '.') }}</span>
+                                            <span class="font-medium text-red-600">Rp {{ number_format($vendorData->sisa_bayar, 2, ',', '.') }}</span>
                                         </div>
                                         @endif
                                     </div>
@@ -1299,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">
-                            Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}
+                            Rp {{ number_format($pembayaran->nominal_bayar, 2, ',', '.') }}
                         </div>
                     </td>
                     <td class="px-6 py-4">
@@ -1407,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="text-xs text-gray-400">{{ $pembayaran->vendor->email }}</div>
                 </div>
                 <div class="mb-2">
-                    <div class="text-sm font-medium text-gray-900">Rp {{ number_format($pembayaran->nominal_bayar, 0, ',', '.') }}</div>
+                    <div class="text-sm font-medium text-gray-900">Rp {{ number_format($pembayaran->nominal_bayar, 2, ',', '.') }}</div>
                 </div>
                 <div class="mb-2">
                     @if($pembayaran->status_verifikasi == 'Pending')
