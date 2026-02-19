@@ -207,6 +207,7 @@
                                 <div>
                                     <div class="font-medium">{{ $vendorProyek->proyek->kode_proyek }}</div>
                                     <div class="text-gray-500">{{ $vendorProyek->proyek->instansi }}</div>
+                                    <div class="text-gray-500">{{ $vendorProyek->proyek->kab_kota }}</div>
                                     <div class="text-xs text-gray-400">{{ $vendorProyek->proyek->penawaranAktif->no_penawaran ?? 'N/A' }}</div>
                                 </div>
                             </td>
@@ -442,6 +443,7 @@
                         <div class="flex-1">
                             <h4 class="font-semibold text-gray-900">{{ $pengiriman->penawaran->proyek->kode_proyek }}</h4>
                             <p class="text-sm text-gray-600">{{ $pengiriman->penawaran->proyek->instansi }}</p>
+                            <p class="text-sm text-gray-600">{{ $pengiriman->penawaran->proyek->kab_kota }}</p>
                             <div class="text-sm text-gray-500 mt-1 space-y-1">
                                 <div><span class="font-medium">Vendor:</span> {{ $pengiriman->vendor->nama_vendor }}</div>
                                 @php
@@ -670,6 +672,7 @@
                                 <div>
                                     <div class="font-medium">{{ $pengiriman->penawaran->proyek->kode_proyek }}</div>
                                     <div class="text-gray-500">{{ $pengiriman->penawaran->proyek->instansi }}</div>
+                                    <div class="text-gray-500">{{ $pengiriman->penawaran->proyek->kab_kota }}</div>
                                     <div class="text-xs text-gray-400">{{ $pengiriman->penawaran->no_penawaran ?? 'N/A' }}</div>
                                 </div>
                             </td>
