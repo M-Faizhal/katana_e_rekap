@@ -1437,6 +1437,12 @@ class KalkulasiController extends Controller
             $proyekId = $request->input('id_proyek');
             $isSuperadmin = $user->role === 'superadmin';
 
+            Log::info('=== AJUKAN PEMBAYARAN START ===', [
+                'project_id' => $proyekId,
+                'user_id' => $user->id_user,
+                'user_role' => $user->role
+            ]);
+
             if (!$isSuperadmin && $user->role !== 'admin_purchasing') {
                 return response()->json([
                     'message' => 'Akses ditolak. Hanya admin purchasing atau superadmin yang dapat mengajukan pembayaran.'
@@ -1451,24 +1457,163 @@ class KalkulasiController extends Controller
             }
 
             // Validasi apakah proyek memiliki kalkulasi
-            $kalkulasiData = KalkulasiHps::where('id_proyek', $proyekId)->get();
+            $kalkulasiData = KalkulasiHps::with(['barang', 'vendor'])
+                                        ->where('id_proyek', $proyekId)
+                                        ->get();
+            
             if ($kalkulasiData->isEmpty()) {
+                Log::warning('Kalkulasi data is empty', ['project_id' => $proyekId]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak ada data kalkulasi untuk diajukan ke pembayaran'
                 ], 400);
             }
 
+            Log::info('Kalkulasi data loaded', [
+                'kalkulasi_count' => $kalkulasiData->count(),
+                'total_hps' => $kalkulasiData->sum('hps')
+            ]);
+
             // Validasi status proyek harus dari penawaran berhasil (ACC)
             $penawaranACC = $proyek->penawaranAktif()->where('status', 'ACC')->first();
             if (!$penawaranACC) {
+                Log::warning('No ACC penawaran found', ['project_id' => $proyekId]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Proyek harus memiliki penawaran yang sudah ACC sebelum bisa diajukan ke pembayaran'
                 ], 400);
             }
 
+            Log::info('ACC Penawaran found', [
+                'penawaran_id' => $penawaranACC->id_penawaran,
+                'no_penawaran' => $penawaranACC->no_penawaran,
+                'current_status' => $penawaranACC->status,
+                'old_total' => $penawaranACC->total_penawaran
+            ]);
+
             DB::beginTransaction();
+
+            // ===== UPDATE PENAWARAN DAN DETAIL BERDASARKAN KALKULASI TERBARU =====
+            $totalPenawaranBaru = $kalkulasiData->sum('hps');
+            
+            Log::info('Updating penawaran', [
+                'penawaran_id' => $penawaranACC->id_penawaran,
+                'old_total' => $penawaranACC->total_penawaran,
+                'new_total' => $totalPenawaranBaru
+            ]);
+
+            // Update total penawaran
+            $penawaranACC->update([
+                'total_penawaran' => $totalPenawaranBaru,
+                'updated_at' => now()
+            ]);
+
+            // Hapus detail penawaran lama
+            $oldDetailsCount = PenawaranDetail::where('id_penawaran', $penawaranACC->id_penawaran)->count();
+            PenawaranDetail::where('id_penawaran', $penawaranACC->id_penawaran)->delete();
+            
+            Log::info('Old penawaran details deleted', [
+                'penawaran_id' => $penawaranACC->id_penawaran,
+                'deleted_count' => $oldDetailsCount
+            ]);
+            
+            // Buat detail penawaran baru berdasarkan kalkulasi terbaru
+            $newDetailsCreated = 0;
+            foreach ($kalkulasiData as $kalkulasi) {
+                // Logic sama dengan createPenawaran
+                $namaBarang = 'Item Kalkulasi';
+                if ($kalkulasi->barang) {
+                    $namaBarang = $kalkulasi->barang->nama_barang;
+                } elseif ($kalkulasi->keterangan_1) {
+                    $namaBarang = $kalkulasi->keterangan_1;
+                } elseif ($kalkulasi->keterangan_2) {
+                    $namaBarang = $kalkulasi->keterangan_2;
+                }
+
+                // Cari data proyek barang yang sesuai
+                $proyekBarang = null;
+                if ($kalkulasi->barang) {
+                    $proyekBarang = $proyek->proyekBarang()
+                                         ->where('nama_barang', $kalkulasi->barang->nama_barang)
+                                         ->first();
+                }
+
+                // Logika qty
+                $qty = 1;
+                if (isset($kalkulasi->qty) && $kalkulasi->qty > 0) {
+                    $qty = (int) $kalkulasi->qty;
+                } elseif ($proyekBarang && $proyekBarang->jumlah > 0) {
+                    $qty = (int) $proyekBarang->jumlah;
+                }
+
+                // Logika satuan
+                $satuan = 'pcs';
+                if ($kalkulasi->barang && $kalkulasi->barang->satuan) {
+                    $satuan = $kalkulasi->barang->satuan;
+                } elseif ($proyekBarang && $proyekBarang->satuan) {
+                    $satuan = $proyekBarang->satuan;
+                }
+
+                // Logika harga
+                $subtotal = $kalkulasi->hps ?: 0;
+                $hargaSatuan = 0;
+
+                if ($subtotal > 0 && $qty > 0) {
+                    $hargaSatuan = $subtotal / $qty;
+                } else {
+                    if ($kalkulasi->harga_vendor && $kalkulasi->harga_vendor > 0) {
+                        $hargaSatuan = $kalkulasi->harga_vendor;
+                        $subtotal = $hargaSatuan * $qty;
+                    } elseif ($proyekBarang && $proyekBarang->harga_satuan > 0) {
+                        $hargaSatuan = $proyekBarang->harga_satuan;
+                        $subtotal = $hargaSatuan * $qty;
+                    } elseif ($kalkulasi->barang && $kalkulasi->barang->harga_vendor > 0) {
+                        $hargaSatuan = $kalkulasi->barang->harga_vendor;
+                        $subtotal = $hargaSatuan * $qty;
+                    } else {
+                        $hargaSatuan = 1000;
+                        $subtotal = $hargaSatuan * $qty;
+                    }
+                }
+
+                // Validasi final
+                $hargaSatuan = max($hargaSatuan, 100);
+                $subtotal = max($subtotal, $hargaSatuan);
+                $qty = max($qty, 1);
+
+                // Tentukan id_barang
+                $idBarang = $kalkulasi->id_barang;
+                if (!$idBarang && $kalkulasi->barang) {
+                    $idBarang = $kalkulasi->barang->id_barang;
+                }
+
+                // Buat detail penawaran baru
+                $newDetail = PenawaranDetail::create([
+                    'id_penawaran' => $penawaranACC->id_penawaran,
+                    'id_barang' => $idBarang,
+                    'nama_barang' => $namaBarang,
+                    'spesifikasi' => $this->generateSpesifikasi($kalkulasi),
+                    'qty' => $qty,
+                    'satuan' => $satuan,
+                    'harga_satuan' => $hargaSatuan,
+                    'subtotal' => $subtotal
+                ]);
+
+                $newDetailsCreated++;
+
+                Log::info('Penawaran detail created', [
+                    'detail_id' => $newDetail->id_detail,
+                    'nama_barang' => $namaBarang,
+                    'qty' => $qty,
+                    'harga_satuan' => $hargaSatuan,
+                    'subtotal' => $subtotal
+                ]);
+            }
+
+            Log::info('All penawaran details created', [
+                'penawaran_id' => $penawaranACC->id_penawaran,
+                'new_details_count' => $newDetailsCreated
+            ]);
 
             // Update status proyek menjadi 'Pembayaran'
             $proyek->update([
@@ -1476,33 +1621,55 @@ class KalkulasiController extends Controller
                 'updated_at' => now()
             ]);
 
+            Log::info('Project status updated to Pembayaran', [
+                'project_id' => $proyekId,
+                'new_status' => 'Pembayaran'
+            ]);
+
             // Log aktivitas
             Log::info('Proyek diajukan ke pembayaran', [
                 'id_proyek' => $proyekId,
                 'nama_klien' => $proyek->nama_klien,
-                'total_hps' => $kalkulasiData->sum('hps'),
+                'total_hps' => $totalPenawaranBaru,
                 'diajukan_oleh' => $user->id_user,
-                'nama_user' => $user->nama
+                'nama_user' => $user->nama,
+                'penawaran_updated' => true,
+                'penawaran_id' => $penawaranACC->id_penawaran,
+                'old_details_count' => $oldDetailsCount,
+                'new_details_count' => $newDetailsCreated
             ]);
 
             DB::commit();
 
+            Log::info('=== AJUKAN PEMBAYARAN COMPLETED SUCCESSFULLY ===', [
+                'project_id' => $proyekId,
+                'penawaran_id' => $penawaranACC->id_penawaran,
+                'total_nilai' => $totalPenawaranBaru
+            ]);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Proyek berhasil diajukan ke pembayaran',
+                'message' => 'Proyek berhasil diajukan ke pembayaran dan penawaran telah diperbarui',
                 'data' => [
                     'id_proyek' => $proyekId,
                     'status_baru' => 'Pembayaran',
-                    'total_nilai' => $kalkulasiData->sum('hps'),
-                    'tanggal_ajukan' => now()->format('d/m/Y H:i')
+                    'total_nilai' => $totalPenawaranBaru,
+                    'tanggal_ajukan' => now()->format('d/m/Y H:i'),
+                    'penawaran_updated' => true,
+                    'penawaran_id' => $penawaranACC->id_penawaran,
+                    'no_penawaran' => $penawaranACC->no_penawaran,
+                    'details_count' => $newDetailsCreated
                 ]
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error mengajukan pembayaran', [
+            Log::error('=== ERROR AJUKAN PEMBAYARAN ===', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'project_id' => $proyekId ?? 'unknown',
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ]);
             return response()->json([
                 'success' => false,
