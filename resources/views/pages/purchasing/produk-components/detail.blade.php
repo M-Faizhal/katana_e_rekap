@@ -49,20 +49,68 @@
                                     -
                                 </span>
                             </div>
-                        </div>
-                        <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 mb-1">Brand</label>
                                 <p id="detailBrand" class="text-lg font-semibold text-gray-800">-</p>
                             </div>
                             <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Spesifikasi Kunci</label>
+                                <p id="detailSpesifikasiKunci" class="text-base text-gray-700">-</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Garansi</label>
+                                <p id="detailGaransi" class="text-base text-gray-700">-</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
                                 <label class="block text-sm font-medium text-gray-500 mb-1">Vendor</label>
                                 <p id="detailVendor" class="text-lg font-semibold text-gray-800">-</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Harga Pasaran Inaproc</label>
+                                <p id="detailHargaInaproc" class="text-lg font-bold text-red-600">-</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 mb-1">Harga Vendor</label>
                                 <p id="detailHarga" class="text-lg font-bold text-red-600">-</p>
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">PDN/TKDN/Impor</label>
+                                <span id="detailPdnTkdn" class="inline-flex px-3 py-1 text-sm font-semibold rounded">-</span>
+                            </div>
+                            <div id="detailSkorTkdnContainer" style="display: none;">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Skor TKDN</label>
+                                <p id="detailSkorTkdn" class="text-base font-semibold text-green-700">-</p>
+                            </div>
+                            <div id="detailLinkTkdnContainer" style="display: none;">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Link TKDN</label>
+                                <a id="detailLinkTkdn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
+                                    <i class="fas fa-external-link-alt mr-2"></i>
+                                    <span id="detailLinkTkdnText">Buka Link TKDN</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Product Details -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-clipboard-list text-red-600 mr-2"></i>
+                        Detail Tambahan
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Estimasi Ketersediaan</label>
+                            <p id="detailEstimasiKetersediaan" class="text-base text-gray-700">-</p>
+                        </div>
+                        <div id="detailLinkProdukContainer">
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Link Produk</label>
+                            <a id="detailLinkProduk" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
+                                <i class="fas fa-external-link-alt mr-2"></i>
+                                <span id="detailLinkProdukText">Buka Link Produk</span>
+                            </a>
                         </div>
                     </div>
                 </div>

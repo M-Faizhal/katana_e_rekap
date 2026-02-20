@@ -24,7 +24,8 @@ class Wilayah extends Model
         'email',
         'alamat',
         'admin_marketing_text',
-        'is_active'
+        'is_active',
+        'updated_by'
     ];
 
     protected $casts = [
@@ -35,6 +36,12 @@ class Wilayah extends Model
     public function proyeks()
     {
         return $this->hasMany(Proyek::class, 'id_wilayah', 'id_wilayah');
+    }
+
+    // Relasi dengan user yang melakukan update terakhir
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by', 'id_user');
     }
 
     // Scope untuk wilayah aktif

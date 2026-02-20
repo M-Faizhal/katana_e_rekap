@@ -79,7 +79,7 @@
                                             <th class="px-2 py-2 text-left text-xs font-medium text-gray-600">QTY</th>
                                             <th class="px-2 py-2 text-left text-xs font-medium text-gray-600">SATUAN</th>
                                             <th class="px-2 py-2 text-left text-xs font-medium text-gray-600">JUMLAH VOLUME YANG DIKERJAKAN</th>
-                                            <th class="px-2 py-2 text-left text-xs font-medium text-gray-600">HARGA YANG DIHARAPKAN</th>
+                                            <th class="px-2 py-2 text-left text-xs font-medium text-gray-600">HARGA JUAL</th>
                                             <th class="px-2 py-2 text-left text-xs font-medium text-gray-600">TOTAL HPS</th>
                                             <th class="px-2 py-2 text-left text-xs font-medium text-gray-600">KETERANGAN</th>
                                             <th class="px-2 py-2 text-left text-xs font-medium text-gray-600">TKDN</th>

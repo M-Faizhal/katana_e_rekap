@@ -8,7 +8,6 @@ use App\Models\PenagihanDinas;
 use App\Models\BuktiPembayaran;
 use App\Models\Penawaran;
 use App\Models\Proyek;
-use App\Models\PenawaranDetail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -55,16 +54,31 @@ class PenagihanDinasController extends Controller
         return true;
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+
         // Ambil proyek yang sudah di ACC oleh klien
-        $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
+        $proyekAccQuery = Proyek::with(['semuaPenawaran' => function($query) {
             $query->where('status', 'ACC');
         }, 'semuaPenawaran.pengiriman.vendor', 'semuaPenawaran.penawaranDetail.barang.vendor'])
         ->whereHas('semuaPenawaran', function($query) {
             $query->where('status', 'ACC');
-        })
-        ->get();
+        });
+
+        // Apply search filter for Belum Bayar tab
+        if ($search) {
+            $proyekAccQuery->where(function($q) use ($search) {
+                $q->where('kode_proyek', 'like', '%' . $search . '%')
+                  ->orWhere('instansi', 'like', '%' . $search . '%')
+                  // Search by proyekBarang nama_barang via relationship
+                  ->orWhereHas('proyekBarang', function($pbq) use ($search) {
+                      $pbq->where('nama_barang', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+
+        $proyekAcc = $proyekAccQuery->get();
 
         // Group berdasarkan status pembayaran
         $proyekBelumBayarCollection = collect();
@@ -110,15 +124,45 @@ class PenagihanDinasController extends Controller
         );
         $proyekBelumBayar->appends(request()->query());
 
-        // Pagination untuk DP
-        $proyekDp = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
-            ->where('status_pembayaran', 'dp')
-            ->paginate(10, ['*'], 'dp_page');
+        // Pagination untuk DP with search
+        $proyekDpQuery = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
+            ->where('status_pembayaran', 'dp');
 
-        // Pagination untuk Lunas
-        $proyekLunas = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
-            ->where('status_pembayaran', 'lunas')
-            ->paginate(10, ['*'], 'lunas_page');
+        if ($search) {
+            $proyekDpQuery->where(function($q) use ($search) {
+                $q->where('nomor_invoice', 'like', '%' . $search . '%')
+                  ->orWhereHas('proyek', function($pq) use ($search) {
+                      $pq->where('kode_proyek', 'like', '%' . $search . '%')
+                         ->orWhere('instansi', 'like', '%' . $search . '%')
+                         // Search by proyekBarang nama_barang via relationship
+                         ->orWhereHas('proyekBarang', function($pbq) use ($search) {
+                             $pbq->where('nama_barang', 'like', '%' . $search . '%');
+                         });
+                  });
+            });
+        }
+
+        $proyekDp = $proyekDpQuery->paginate(10, ['*'], 'dp_page');
+
+        // Pagination untuk Lunas with search
+        $proyekLunasQuery = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
+            ->where('status_pembayaran', 'lunas');
+
+        if ($search) {
+            $proyekLunasQuery->where(function($q) use ($search) {
+                $q->where('nomor_invoice', 'like', '%' . $search . '%')
+                  ->orWhereHas('proyek', function($pq) use ($search) {
+                      $pq->where('kode_proyek', 'like', '%' . $search . '%')
+                         ->orWhere('instansi', 'like', '%' . $search . '%')
+                         // Search by proyekBarang nama_barang via relationship
+                         ->orWhereHas('proyekBarang', function($pbq) use ($search) {
+                             $pbq->where('nama_barang', 'like', '%' . $search . '%');
+                         });
+                  });
+            });
+        }
+
+        $proyekLunas = $proyekLunasQuery->paginate(10, ['*'], 'lunas_page');
 
         return view('pages.keuangan.penagihan', compact(
             'proyekBelumBayar', 

@@ -70,7 +70,7 @@
     <div id="belum-bayar" class="tab-pane">
         <div class="bg-white rounded-lg shadow-lg">
             <div class="p-4 sm:p-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <h2 class="text-base sm:text-xl font-semibold text-gray-900 flex items-center">
                             <i class="fas fa-clock text-yellow-500 mr-1 sm:mr-2"></i>
@@ -78,12 +78,36 @@
                         </h2>
                         <p class="text-xs sm:text-sm text-gray-600 mt-1">Daftar proyek yang sudah di ACC klien namun belum dibuat penagihan</p>
                     </div>
-                    @if(!$isAdminKeuangan)
-                    <div class="flex items-center px-2 sm:px-3 py-1 sm:py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                        <i class="fas fa-eye text-blue-600 mr-1 sm:mr-2"></i>
-                        <span class="text-xs sm:text-sm font-medium text-blue-700">Mode Lihat Saja</span>
+                    <div class="flex items-center gap-2">
+                        <!-- Search Bar -->
+                        <form method="GET" action="{{ route('keuangan.penagihan') }}" class="flex-1 md:flex-none">
+                            <input type="hidden" name="tab" value="belum-bayar">
+                            <div class="flex items-center space-x-2">
+                                <div class="relative">
+                                    <input type="text" 
+                                           name="search" 
+                                           value="{{ request('search') }}" 
+                                           placeholder="Cari proyek, instansi..." 
+                                           class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 w-full md:w-64 text-sm">
+                                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                </div>
+                                <button type="submit" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                @if(request('search'))
+                                <a href="{{ route('keuangan.penagihan') }}?tab=belum-bayar" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                                @endif
+                            </div>
+                        </form>
+                        @if(!$isAdminKeuangan)
+                        <div class="flex items-center px-2 sm:px-3 py-1 sm:py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                            <i class="fas fa-eye text-blue-600 mr-1 sm:mr-2"></i>
+                            <span class="text-xs sm:text-sm font-medium text-blue-700">Mode Lihat Saja</span>
+                        </div>
+                        @endif
                     </div>
-                    @endif
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -197,7 +221,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $proyekBelumBayar->total() }}</span> proyek
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekBelumBayar->appends(['tab' => 'belum-bayar'])->links() }}
+                        {{ $proyekBelumBayar->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -209,11 +233,37 @@
     <div id="dp" class="tab-pane hidden">
         <div class="bg-white rounded-lg shadow-lg">
             <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-hand-holding-usd text-blue-500 mr-2"></i>
-                    Pembayaran DP
-                </h2>
-                <p class="text-gray-600 mt-1">Daftar pembayaran yang masih dalam status DP (menunggu pelunasan)</p>
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-hand-holding-usd text-blue-500 mr-2"></i>
+                            Pembayaran DP
+                        </h2>
+                        <p class="text-gray-600 mt-1">Daftar pembayaran yang masih dalam status DP (menunggu pelunasan)</p>
+                    </div>
+                    <!-- Search Bar -->
+                    <form method="GET" action="{{ route('keuangan.penagihan') }}">
+                        <input type="hidden" name="tab" value="dp">
+                        <div class="flex items-center space-x-2">
+                            <div class="relative">
+                                <input type="text" 
+                                       name="search" 
+                                       value="{{ request('search') }}" 
+                                       placeholder="Cari invoice, proyek..." 
+                                       class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64 text-sm">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            @if(request('search'))
+                            <a href="{{ route('keuangan.penagihan') }}?tab=dp" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                <i class="fas fa-times"></i>
+                            </a>
+                            @endif
+                        </div>
+                    </form>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -338,7 +388,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $proyekDp->total() }}</span> pembayaran DP
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekDp->appends(['tab' => 'dp'])->links() }}
+                        {{ $proyekDp->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -350,11 +400,37 @@
     <div id="lunas" class="tab-pane hidden">
         <div class="bg-white rounded-lg shadow-lg">
             <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                    Pembayaran Lunas
-                </h2>
-                <p class="text-gray-600 mt-1">Daftar pembayaran yang sudah lunas</p>
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            Pembayaran Lunas
+                        </h2>
+                        <p class="text-gray-600 mt-1">Daftar pembayaran yang sudah lunas</p>
+                    </div>
+                    <!-- Search Bar -->
+                    <form method="GET" action="{{ route('keuangan.penagihan') }}">
+                        <input type="hidden" name="tab" value="lunas">
+                        <div class="flex items-center space-x-2">
+                            <div class="relative">
+                                <input type="text" 
+                                       name="search" 
+                                       value="{{ request('search') }}" 
+                                       placeholder="Cari invoice, proyek..." 
+                                       class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 w-64 text-sm">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            @if(request('search'))
+                            <a href="{{ route('keuangan.penagihan') }}?tab=lunas" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                <i class="fas fa-times"></i>
+                            </a>
+                            @endif
+                        </div>
+                    </form>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -473,7 +549,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $proyekLunas->total() }}</span> pembayaran lunas
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekLunas->appends(['tab' => 'lunas'])->links() }}
+                        {{ $proyekLunas->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>

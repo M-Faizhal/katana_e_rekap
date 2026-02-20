@@ -128,8 +128,33 @@
     <!-- Pending Payments Table -->
     <div class="bg-white rounded-lg shadow-lg">
         <div class="p-6 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-800">Pembayaran Pending Approval</h2>
-            <p class="text-gray-600 mt-1">{{ ($pendingPayments ?? collect())->count() }} pembayaran menunggu persetujuan</p>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Pembayaran Pending Approval</h2>
+                    <p class="text-gray-600 mt-1">{{ ($pendingPayments ?? collect())->count() }} pembayaran menunggu persetujuan</p>
+                </div>
+                <!-- Search Bar -->
+                <form method="GET" action="{{ route('keuangan.approval') }}" class="mt-4 md:mt-0">
+                    <div class="flex items-center space-x-2">
+                        <div class="relative">
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ request('search') }}" 
+                                   placeholder="Cari proyek, instansi, vendor..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 w-64">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        @if(request('search'))
+                        <a href="{{ route('keuangan.approval') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        @endif
+                    </div>
+                </form>
+            </div>
         </div>
         
         @if(isset($pendingPayments) && $pendingPayments->count() > 0)
@@ -229,7 +254,7 @@
                     dari <span class="font-semibold text-gray-800">{{ $pendingPayments->total() }}</span> pembayaran pending
                 </div>
                 <div class="flex justify-center">
-                    {{ $pendingPayments->links() }}
+                    {{ $pendingPayments->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>

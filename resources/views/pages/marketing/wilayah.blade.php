@@ -87,6 +87,15 @@
         <!-- Filter & Search -->
         <div class="p-6 border-b border-gray-200 bg-gray-50">
             <div class="flex flex-col lg:flex-row gap-4">
+                <!-- Search Box -->
+                <div class="flex-1">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="searchWilayah" placeholder="Cari nama wilayah atau instansi..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500" oninput="searchWilayah()">
+                    </div>
+                </div>
+                
+                <!-- Filter PIC -->
                 <div class="flex-1">
                     <div class="relative">
                         <i class="fas fa-user-tie absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -106,6 +115,25 @@
                         <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                     </div>
                 </div>
+                
+                <!-- Sort Filter -->
+                <div class="flex-1">
+                    <div class="relative">
+                        <i class="fas fa-sort absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <select id="sortOrder" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white" onchange="sortWilayah()">
+                            <option value="newest">Terbaru</option>
+                            <option value="oldest">Terlama</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                
+                <!-- Reset Button -->
+                <div>
+                    <button onclick="resetFilter()" class="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl transition-colors duration-200 flex items-center whitespace-nowrap">
+                        <i class="fas fa-redo mr-2"></i>Reset
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -120,7 +148,8 @@
                      data-instansi="{{ implode(',', array_column($wilayah['instansi_list'], 'instansi')) }}"
                      data-admin="{{ implode(',', array_filter(array_column($wilayah['instansi_list'], 'admin_marketing'))) }}"
                      data-jumlah-instansi="{{ $wilayah['jumlah_instansi'] }}"
-                     data-updated="{{ $wilayah['updated_at'] }}">
+                     data-updated="{{ $wilayah['updated_at'] }}"
+                     data-updated-timestamp="{{ $wilayah['updated_at_timestamp'] }}">
                     <!-- Wilayah Header -->
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center space-x-4">
@@ -141,13 +170,7 @@
                     </div>
 
                     <!-- PIC Wilayah -->
-                    @php
-                        // Ambil PIC dari instansi pertama atau admin marketing yang ada
-                        $picWilayah = collect($wilayah['instansi_list'])->map(function($inst) {
-                            return $inst['admin_marketing'] ?? null;
-                        })->filter()->unique()->first();
-                    @endphp
-                    @if($picWilayah && $picWilayah != '-')
+                    @if(isset($wilayah['pic_wilayah']) && $wilayah['pic_wilayah'] != '-')
                     <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                         <div class="flex items-center space-x-2">
                             <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -155,7 +178,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-yellow-600 font-medium">PIC Wilayah</p>
-                                <p class="text-sm font-semibold text-gray-800">{{ $picWilayah }}</p>
+                                <p class="text-sm font-semibold text-gray-800">{{ $wilayah['pic_wilayah'] }}</p>
                             </div>
                         </div>
                     </div>
@@ -183,14 +206,18 @@
                             </div>
 
                             <div class="space-y-2">
+                                @if($instansi['nama_pejabat'] && $instansi['nama_pejabat'] != '-')
                                 <div class="flex items-center text-xs text-gray-600">
                                     <i class="fas fa-user-tie w-3 mr-2"></i>
                                     <span class="font-medium">{{ $instansi['nama_pejabat'] }}</span>
                                 </div>
+                                @endif
+                                @if($instansi['jabatan'] && $instansi['jabatan'] != '-')
                                 <div class="flex items-center text-xs text-gray-600">
                                     <i class="fas fa-briefcase w-3 mr-2"></i>
                                     <span>{{ $instansi['jabatan'] }}</span>
                                 </div>
+                                @endif
                                 @if($instansi['no_telp'] && $instansi['no_telp'] != '-')
                                 <div class="flex items-center text-xs text-gray-600">
                                     <i class="fas fa-phone w-3 mr-2"></i>
@@ -203,8 +230,21 @@
                                     <span class="truncate">{{ $instansi['email'] }}</span>
                                 </div>
                                 @endif
+                                
+                                @if(
+                                    (!isset($instansi['nama_pejabat']) || $instansi['nama_pejabat'] == '-') &&
+                                    (!isset($instansi['jabatan']) || $instansi['jabatan'] == '-') &&
+                                    (!isset($instansi['no_telp']) || $instansi['no_telp'] == '-') &&
+                                    (!isset($instansi['email']) || $instansi['email'] == '-')
+                                )
+                                <div class="text-xs text-gray-400 italic">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Data kontak belum tersedia
+                                </div>
+                                @endif
                             </div>
 
+                            <!-- Admin Marketing -->
                             @if($instansi['admin_marketing'] && $instansi['admin_marketing'] != '-')
                             <div class="mt-3 pt-2 border-t border-gray-200">
                                 <div class="flex items-center text-xs text-gray-500">
@@ -213,14 +253,26 @@
                                 </div>
                             </div>
                             @endif
+
+                            <!-- Update Info per Instansi -->
+                            <div class="mt-3 pt-2 border-t border-gray-200 space-y-1">
+                                <div class="flex items-center text-xs text-gray-400">
+                                    <i class="fas fa-clock w-3 mr-2"></i>
+                                    <span>Diperbarui: {{ $instansi['updated_at'] }}</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-400">
+                                    <i class="fas fa-user-edit w-3 mr-2"></i>
+                                    <span>Oleh:  {{ $instansi['updated_by_name'] }}</span>
+                                </div>
+                            </div>
                         </div>
                         @endforeach
                     </div>
 
                     <!-- Wilayah Footer -->
                     <div class="border-t border-gray-200 pt-3 flex items-center justify-between">
-                        <div class="text-sm text-gray-600">
-                            <span>Terakhir diperbarui: {{ $wilayah['updated_at'] }}</span>
+                        <div class="text-xs text-gray-500">
+                            
                         </div>
                         <button onclick="tambahInstansiKeWilayah('{{ $wilayah['wilayah'] }}', '{{ $wilayah['provinsi'] }}')"
                                 class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded-lg text-sm font-medium transition-colors">
@@ -306,23 +358,37 @@
         function saveCurrentState() {
             localStorage.setItem('wilayah_current_page', currentPage);
             localStorage.setItem('wilayah_filter_pic', document.getElementById('filterPIC').value);
+            localStorage.setItem('wilayah_search', document.getElementById('searchWilayah').value);
+            localStorage.setItem('wilayah_sort', document.getElementById('sortOrder').value);
         }
 
         // Function to restore state from localStorage
         function restoreState() {
+            // Restore search
+            const savedSearch = localStorage.getItem('wilayah_search');
+            if (savedSearch) {
+                document.getElementById('searchWilayah').value = savedSearch;
+            }
+            
             // Restore filter
             const savedFilter = localStorage.getItem('wilayah_filter_pic');
             if (savedFilter) {
                 document.getElementById('filterPIC').value = savedFilter;
             }
             
+            // Restore sort
+            const savedSort = localStorage.getItem('wilayah_sort');
+            if (savedSort) {
+                document.getElementById('sortOrder').value = savedSort;
+            }
+            
             // Restore page
             const savedPage = parseInt(localStorage.getItem('wilayah_current_page')) || 1;
             currentPage = savedPage;
             
-            // Apply filter with page preservation if there was a saved filter
-            if (savedFilter) {
-                filterWilayah(true); // preserve page
+            // Apply filters/search/sort with page preservation if there was a saved value
+            if (savedSearch || savedFilter || savedSort) {
+                applyAllFilters(true); // preserve page
             } else {
                 displayWilayah();
             }
@@ -719,20 +785,43 @@
             });
         });
 
-        // Filter and Search Functions
-        function filterWilayah() {
+        // Search Function
+        function searchWilayah() {
+            saveCurrentState();
+            applyAllFilters(false); // reset to first page on new search
+        }
+
+        // Sort Function
+        function sortWilayah() {
+            saveCurrentState();
+            applyAllFilters(true); // preserve page when sorting
+        }
+
+        // Combined Filter Function
+        function applyAllFilters(preservePage = false) {
+            const searchTerm = document.getElementById('searchWilayah').value.toLowerCase();
             const filterPIC = document.getElementById('filterPIC').value.toLowerCase();
-            const cards = document.querySelectorAll('.wilayah-card');
+            const sortOrder = document.getElementById('sortOrder').value;
+            const cards = Array.from(document.querySelectorAll('.wilayah-card'));
+            
             let visibleCount = 0;
 
+            // First, filter and show/hide cards
             cards.forEach(card => {
+                const wilayah = card.getAttribute('data-wilayah').toLowerCase();
+                const instansi = card.getAttribute('data-instansi').toLowerCase();
                 const admin = card.getAttribute('data-admin').toLowerCase();
 
-                // Check PIC filter (hanya berdasarkan PIC)
+                // Check search (wilayah OR instansi)
+                const searchMatch = searchTerm === '' || 
+                                   wilayah.includes(searchTerm) || 
+                                   instansi.includes(searchTerm);
+
+                // Check PIC filter
                 const picMatch = filterPIC === '' || admin.includes(filterPIC);
 
                 // Show/hide card
-                if (picMatch) {
+                if (searchMatch && picMatch) {
                     card.style.display = 'block';
                     visibleCount++;
                 } else {
@@ -740,20 +829,59 @@
                 }
             });
 
+            // Then, sort visible cards
+            const visibleCards = cards.filter(card => card.style.display !== 'none');
+            const container = document.getElementById('wilayahContainer');
+            
+            visibleCards.sort((a, b) => {
+                const timestampA = parseInt(a.getAttribute('data-updated-timestamp'));
+                const timestampB = parseInt(b.getAttribute('data-updated-timestamp'));
+                
+                if (sortOrder === 'newest') {
+                    return timestampB - timestampA; // Descending (newest first)
+                } else {
+                    return timestampA - timestampB; // Ascending (oldest first)
+                }
+            });
+
+            // Re-append cards in sorted order
+            visibleCards.forEach(card => {
+                container.appendChild(card);
+            });
+
+            // Reset to first page after filtering (only if not preserving page)
+            if (!preservePage) {
+                currentPage = 1;
+                localStorage.setItem('wilayah_current_page', currentPage);
+            }
+
+            // Apply pagination to filtered results
+            displayWilayah();
+
             // Show/hide no results message
             const noResults = document.getElementById('noResults');
-            const container = document.getElementById('wilayahContainer');
             if (visibleCount === 0) {
                 noResults.classList.remove('hidden');
+                document.getElementById('paginationContainer').style.display = 'none';
             } else {
                 noResults.classList.add('hidden');
             }
         }
 
+        // Update the original filterWilayah to use the combined function
+        function filterWilayah(preservePage = false) {
+            saveCurrentState();
+            applyAllFilters(preservePage);
+        }
+
         function resetFilter() {
+            document.getElementById('searchWilayah').value = '';
             document.getElementById('filterPIC').value = '';
+            document.getElementById('sortOrder').value = 'newest';
+            localStorage.removeItem('wilayah_search');
             localStorage.removeItem('wilayah_filter_pic');
-            filterWilayah();
+            localStorage.removeItem('wilayah_sort');
+            applyAllFilters(false);
         }
 
         // Pagination Functions

@@ -112,7 +112,7 @@
                                         Project Items
                                     @endif
                                 </div>
-                                <div class="text-sm text-gray-500">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
+                                
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap">
@@ -233,7 +233,7 @@
                                     Project Items
                                 @endif
                             </h3>
-                            <p class="text-xs sm:text-sm text-gray-500 mt-1">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</p>
+                           
                         </div>
                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-3 shrink-0 bg-yellow-100 text-yellow-800">
                             Menunggu
@@ -575,7 +575,7 @@
                                     Project Items
                                 @endif
                             </h3>
-                            <p class="text-xs sm:text-sm text-gray-500 mt-1">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</p>
+                           
                         </div>
                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-3 shrink-0 bg-yellow-100 text-yellow-800">
                             {{ $p->penawaran->status ?? 'Menunggu' }}
@@ -809,7 +809,7 @@
                                         Project Items
                                     @endif
                                 </div>
-                                <div class="text-sm text-gray-500">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
+                                <div class="text-sm text-gray-500">{{ $p->kode_proyek }}</div>
                             </td>
 
                             <td class="px-4 py-4 whitespace-nowrap">
@@ -915,7 +915,7 @@
                                     Project Items
                                 @endif
                             </h3>
-                            <p class="text-xs sm:text-sm text-gray-500 mt-1">PRJ{{ str_pad($p->id_proyek, 3, '0', STR_PAD_LEFT) }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ $p->kode_proyek }}</p>
                         </div>
                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-3 shrink-0 bg-green-100 text-green-800">
                             {{ $p->penawaran->status ?? 'ACC' }}

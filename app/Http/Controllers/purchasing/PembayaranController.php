@@ -21,14 +21,33 @@ class PembayaranController extends Controller
      */
     public function index()
     {
+        // Ambil parameter filter dan search
+        $search = request()->get('search');
+        $statusFilter = request()->get('status_filter'); // untuk pembayaran
+        $proyekStatusFilter = request()->get('proyek_status_filter'); // untuk status proyek lunas/belum
+        $sortBy = request()->get('sort_by', 'desc');
+        $activeTab = request()->get('tab', 'perlu-bayar'); // untuk tab navigation
+
         // Ambil proyek yang statusnya 'Pembayaran', 'Pengiriman', 'Selesai', atau 'Gagal' dan sudah ada penawaran yang di-ACC
         // Dengan vendor yang terlibat
-        $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
+        $proyekPerluBayarQuery = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
             ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']) // Hapus 'Gagal' dari filter
             ->whereHas('penawaranAktif', function ($query) {
                 $query->where('status', 'ACC');
-            })
-            ->get()
+            });
+
+        // Filter berdasarkan search untuk tab perlu bayar
+        if ($search) {
+            $proyekPerluBayarQuery->where(function ($query) use ($search) {
+                $query->where('instansi', 'like', "%{$search}%")
+                      ->orWhere('kode_proyek', 'like', "%{$search}%")
+                      ->orWhereHas('proyekBarang', function ($subQuery) use ($search) {
+                          $subQuery->where('nama_barang', 'like', "%{$search}%");
+                      });
+            });
+        }
+
+        $proyekPerluBayar = $proyekPerluBayarQuery->get()
             ->map(function ($proyek) {
                 // Ambil vendor yang terlibat dalam proyek ini
                 $vendors = $proyek->penawaranAktif->penawaranDetail
@@ -86,13 +105,6 @@ class PembayaranController extends Controller
             ['path' => request()->url(), 'pageName' => 'page']
         );
 
-        // Ambil parameter filter dan search
-        $search = request()->get('search');
-        $statusFilter = request()->get('status_filter'); // untuk pembayaran
-        $proyekStatusFilter = request()->get('proyek_status_filter'); // untuk status proyek lunas/belum
-        $sortBy = request()->get('sort_by', 'desc');
-        $activeTab = request()->get('tab', 'perlu-bayar'); // untuk tab navigation
-
         // Ambil semua proyek dengan status Pembayaran, Pengiriman, Selesai, atau Gagal untuk history
         $semuaProyekQuery = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
             ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
@@ -104,7 +116,10 @@ class PembayaranController extends Controller
         if ($search) {
             $semuaProyekQuery->where(function ($query) use ($search) {
                 $query->where('instansi', 'like', "%{$search}%")
-                      ->orWhere('kode_proyek', 'like', "%{$search}%");
+                      ->orWhere('kode_proyek', 'like', "%{$search}%")
+                      ->orWhereHas('proyekBarang', function ($subQuery) use ($search) {
+                          $subQuery->where('nama_barang', 'like', "%{$search}%");
+                      });
             });
         }
 
@@ -208,7 +223,10 @@ class PembayaranController extends Controller
             $semuaPembayaranQuery->where(function ($query) use ($search) {
                 $query->whereHas('penawaran.proyek', function ($subQuery) use ($search) {
                     $subQuery->where('instansi', 'like', "%{$search}%")
-                             ->orWhere('kode_proyek', 'like', "%{$search}%");
+                             ->orWhere('kode_proyek', 'like', "%{$search}%")
+                             ->orWhereHas('proyekBarang', function ($subSubQuery) use ($search) {
+                                 $subSubQuery->where('nama_barang', 'like', "%{$search}%");
+                             });
                 })->orWhereHas('vendor', function ($subQuery) use ($search) {
                     $subQuery->where('nama_vendor', 'like', "%{$search}%");
                 });

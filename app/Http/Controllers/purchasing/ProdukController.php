@@ -89,6 +89,11 @@ class ProdukController extends Controller
             $query->where('id_vendor', $request->vendor);
         }
         
+        // PDN/TKDN/Impor filter
+        if ($request->filled('pdn_tkdn_impor')) {
+            $query->where('pdn_tkdn_impor', $request->pdn_tkdn_impor);
+        }
+        
         // Price range filters
         if ($request->filled('min_harga')) {
             $query->where('harga_vendor', '>=', $request->min_harga);
@@ -138,6 +143,18 @@ class ProdukController extends Controller
             'success' => true,
             'produk' => $produk
         ]);
+    }
+    
+    /**
+     * Export products to Excel based on filters with images
+     */
+    public function export(Request $request)
+    {
+        // Create export instance with filters
+        $export = new \App\Exports\ProdukExport($request->all());
+        
+        // Execute export (akan langsung download)
+        return $export->export();
     }
     
     /**

@@ -203,7 +203,7 @@
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Qty</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Satuan</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Jumlah volume yang dikerjakan</th>
-                        <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Harga Yang Diharapkan</th>
+                        <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Harga Jual</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Total HPS</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">Keterangan</th>
                         <th class="px-3 py-3 text-xs font-medium text-gray-600 uppercase">TKDN</th>

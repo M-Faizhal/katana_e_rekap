@@ -162,11 +162,15 @@
                     <i class="fas fa-refresh"></i>
                     <span>Reset</span>
                 </a>
+                <a href="{{ route('purchasing.produk.export', request()->all()) }}" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Export Excel</span>
+                </a>
             </div>
         </div>
         
         <!-- Advanced Filters -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             <!-- Category Filter -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
@@ -190,6 +194,17 @@
                             {{ $vendor->nama_vendor }}
                         </option>
                     @endforeach
+                </select>
+            </div>
+            
+            <!-- PDN/TKDN/Impor Filter -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">PDN/TKDN/Impor</label>
+                <select name="pdn_tkdn_impor" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">Semua</option>
+                    <option value="TKDN" {{ request('pdn_tkdn_impor') == 'TKDN' ? 'selected' : '' }}>TKDN</option>
+                    <option value="PDN" {{ request('pdn_tkdn_impor') == 'PDN' ? 'selected' : '' }}>PDN</option>
+                    <option value="Impor" {{ request('pdn_tkdn_impor') == 'Impor' ? 'selected' : '' }}>Impor</option>
                 </select>
             </div>
             
@@ -257,47 +272,61 @@
             <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-6">
                 @foreach($produk as $item)
                     <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col" onclick="showProductDetail({{ $item->id_barang }})">
-                        <div class="relative">
-                            <!-- Product Image -->
-                            <div class="w-full h-28 sm:h-48 bg-gray-100 overflow-hidden">
-                                @if($item->foto_barang)
-                                    <img src="{{ asset('storage/' . $item->foto_barang) }}" 
-                                         alt="{{ $item->nama_barang }}" 
-                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                                        <i class="fas fa-image text-2xl sm:text-4xl text-gray-400"></i>
-                                    </div>
-                                @endif
-                            </div>
-                            <!-- Category Badge -->
-                            <div class="absolute top-2 right-2">
-                                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full
-                                    @if($item->kategori == 'Elektronik') bg-blue-100 text-blue-800
-                                    @elseif($item->kategori == 'Mesin') bg-green-100 text-green-800
-                                    @elseif($item->kategori == 'Meubel') bg-yellow-100 text-yellow-800
-                                    @elseif($item->kategori == 'Lain-lain') bg-purple-100 text-purple-800
-                                    @else bg-gray-100 text-gray-800
-                                    @endif">
-                                    {{ $item->kategori }}
-                                </span>
-                            </div>
-                            <!-- Product Code -->
-                            <div class="absolute top-2 left-2">
-                                <span class="bg-gray-800 text-white text-xs px-2 py-0.5 rounded-md">PRD-{{ str_pad($item->id_barang, 3, '0', STR_PAD_LEFT) }}</span>
-                            </div>
+                        <!-- Product Image -->
+                        <div class="w-full h-28 sm:h-48 bg-gray-100 overflow-hidden">
+                            @if($item->foto_barang)
+                                <img src="{{ asset('storage/' . $item->foto_barang) }}" 
+                                     alt="{{ $item->nama_barang }}" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                    <i class="fas fa-image text-2xl sm:text-4xl text-gray-400"></i>
+                                </div>
+                            @endif
                         </div>
+                        
                         <!-- Product Info -->
-                        <div class="p-2 sm:p-4 flex-1 flex flex-col justify-between">
-                            <h3 class="font-semibold text-gray-900 text-xs sm:text-lg mb-1 sm:mb-2 line-clamp-1">{{ $item->nama_barang }}</h3>
-                            <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 line-clamp-2">{{ $item->brand }} - {{ $item->vendor->nama_vendor }}</p>
-                            <div class="text-center mt-auto">
-                                <p class="text-xs text-gray-500">Harga Vendor</p>
-                                <p class="text-sm sm:text-lg font-bold text-red-600">
-                                    Rp {{ number_format($item->harga_vendor, 0, ',', '.') }}
+                        <div class="p-2 sm:p-3 flex-1 flex flex-col">
+                            <!-- Product Name (Bold) -->
+                            <h3 class="font-bold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2">{{ $item->nama_barang }}</h3>
+                            
+                            <!-- Spesifikasi Kunci (if exists) -->
+                            @if($item->spesifikasi_kunci)
+                                <p class="text-xs text-gray-600 mb-1 line-clamp-1">{{ $item->spesifikasi_kunci }}</p>
+                            @endif
+                            
+                            <!-- Garansi (if exists) -->
+                            @if($item->garansi)
+                                <p class="text-xs text-gray-600 mb-1">Garansi: {{ $item->garansi }}</p>
+                            @endif
+                            
+                            <!-- PDN/TKDN/Impor Badge -->
+                            @if($item->pdn_tkdn_impor)
+                                <div class="mb-2">
+                                    <span class="inline-flex px-2 py-0.5 text-xs font-semibold rounded 
+                                        @if($item->pdn_tkdn_impor == 'TKDN') bg-green-100 text-green-800
+                                        @elseif($item->pdn_tkdn_impor == 'PDN') bg-blue-100 text-blue-800
+                                        @else bg-gray-100 text-gray-800
+                                        @endif">
+                                        {{ $item->pdn_tkdn_impor }}
+                                    </span>
+                                </div>
+                            @endif
+                            
+                            <!-- Harga Pasaran Inaproc (Red, Bold) -->
+                            @if($item->harga_pasaran_inaproc)
+                                <p class="text-xs sm:text-sm font-bold text-red-600 mb-1">
+                                    Rp {{ number_format($item->harga_pasaran_inaproc, 0, ',', '.') }} / {{ $item->satuan }} 
                                 </p>
-                                <p class="text-xs text-gray-400">per {{ $item->satuan }}</p>
-                            </div>
+                            @endif
+                            
+                            <!-- Harga Vendor -->
+                            <p class="text-xs sm:text-sm text-gray-900 mb-1">
+                                Rp {{ number_format($item->harga_vendor, 0, ',', '.') }} / {{ $item->satuan }}
+                            </p>
+                            
+                            <!-- Vendor Name -->
+                            <p class="text-xs text-gray-500 mt-auto">{{ $item->vendor->nama_vendor }}</p>
                         </div>
                     </div>
                 @endforeach
@@ -380,6 +409,78 @@
                     document.getElementById('detailBrand').textContent = produk.brand;
                     document.getElementById('detailVendor').textContent = produk.vendor.nama_vendor;
                     document.getElementById('detailHarga').textContent = `Rp ${new Intl.NumberFormat('id-ID').format(produk.harga_vendor)} / ${produk.satuan}`;
+                    
+                    // Update new fields
+                    // Spesifikasi Kunci
+                    document.getElementById('detailSpesifikasiKunci').textContent = produk.spesifikasi_kunci || '-';
+                    
+                    // Garansi
+                    document.getElementById('detailGaransi').textContent = produk.garansi || '-';
+                    
+                    // Harga Pasaran Inaproc
+                    if (produk.harga_pasaran_inaproc) {
+                        document.getElementById('detailHargaInaproc').textContent = `Rp ${new Intl.NumberFormat('id-ID').format(produk.harga_pasaran_inaproc)} / ${produk.satuan}`;
+                    } else {
+                        document.getElementById('detailHargaInaproc').textContent = '-';
+                    }
+                    
+                    // PDN/TKDN/Impor Badge
+                    const pdnTkdnBadge = document.getElementById('detailPdnTkdn');
+                    if (produk.pdn_tkdn_impor) {
+                        pdnTkdnBadge.textContent = produk.pdn_tkdn_impor;
+                        pdnTkdnBadge.className = 'inline-flex px-3 py-1 text-sm font-semibold rounded';
+                        if (produk.pdn_tkdn_impor === 'TKDN') {
+                            pdnTkdnBadge.classList.add('bg-green-100', 'text-green-800');
+                        } else if (produk.pdn_tkdn_impor === 'PDN') {
+                            pdnTkdnBadge.classList.add('bg-blue-100', 'text-blue-800');
+                        } else {
+                            pdnTkdnBadge.classList.add('bg-gray-100', 'text-gray-800');
+                        }
+                    } else {
+                        pdnTkdnBadge.textContent = '-';
+                        pdnTkdnBadge.className = 'inline-flex px-3 py-1 text-sm font-semibold rounded bg-gray-100 text-gray-800';
+                    }
+                    
+                    // Skor TKDN (only show if TKDN)
+                    const skorTkdnContainer = document.getElementById('detailSkorTkdnContainer');
+                    if (produk.pdn_tkdn_impor === 'TKDN' && produk.skor_tkdn) {
+                        document.getElementById('detailSkorTkdn').textContent = produk.skor_tkdn + '%';
+                        skorTkdnContainer.style.display = 'block';
+                    } else {
+                        skorTkdnContainer.style.display = 'none';
+                    }
+                    
+                    // Link TKDN (only show if TKDN)
+                    const linkTkdnContainer = document.getElementById('detailLinkTkdnContainer');
+                    if (produk.pdn_tkdn_impor === 'TKDN' && produk.link_tkdn) {
+                        const linkTkdnElement = document.getElementById('detailLinkTkdn');
+                        const linkTkdnText = document.getElementById('detailLinkTkdnText');
+                        linkTkdnElement.href = produk.link_tkdn;
+                        linkTkdnText.textContent = 'Buka Link TKDN';
+                        linkTkdnContainer.style.display = 'block';
+                    } else {
+                        linkTkdnContainer.style.display = 'none';
+                    }
+                    
+                    // Estimasi Ketersediaan
+                    document.getElementById('detailEstimasiKetersediaan').textContent = produk.estimasi_ketersediaan || '-';
+                    
+                    // Link Produk (External Link)
+                    const linkProdukContainer = document.getElementById('detailLinkProdukContainer');
+                    const linkProdukElement = document.getElementById('detailLinkProduk');
+                    const linkProdukText = document.getElementById('detailLinkProdukText');
+                    
+                    if (produk.link_produk && produk.link_produk.trim() !== '') {
+                        linkProdukElement.href = produk.link_produk;
+                        linkProdukText.textContent = 'Buka Link Produk';
+                        linkProdukElement.classList.remove('pointer-events-none', 'text-gray-400');
+                        linkProdukElement.classList.add('text-blue-600', 'hover:text-blue-800', 'hover:underline');
+                    } else {
+                        linkProdukElement.href = '#';
+                        linkProdukText.textContent = 'Link produk tidak tersedia';
+                        linkProdukElement.classList.add('pointer-events-none', 'text-gray-400');
+                        linkProdukElement.classList.remove('text-blue-600', 'hover:text-blue-800', 'hover:underline');
+                    }
                     
                     // Update product image
                     const imageElement = document.getElementById('detailProductImage');
