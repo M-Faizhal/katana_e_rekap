@@ -56,6 +56,11 @@ class LaporanController extends Controller
             ]);
         }
 
+        // Default to current year if no year and no 'all' param
+        if (!$request->has('year') && !$request->has('all')) {
+            return redirect()->route('laporan.proyek', array_merge($request->query(), ['year' => date('Y')]));
+        }
+
         // Get basic statistics with year filter
         $stats = $this->getStatistics($request);
 
@@ -79,6 +84,11 @@ class LaporanController extends Controller
      */
     public function omset(Request $request)
     {
+        // Default to current year if no year and no 'all' param
+        if (!$request->has('year') && !$request->has('all')) {
+            return redirect()->route('laporan.omset', array_merge($request->query(), ['year' => date('Y')]));
+        }
+
         // Get omset statistics with year filter
         $stats = $this->getOmsetStatistics($request);
 
@@ -88,14 +98,18 @@ class LaporanController extends Controller
         // Get admin omset data with year filter
         $adminMarketing = $this->getAdminMarketingOmset($request);
         $adminPurchasing = $this->getAdminPurchasingOmset($request);
+        $adminMarketingInternal = $this->getAdminMarketingOmsetByLabel($request, 'internal');
+        $adminMarketingEksternal = $this->getAdminMarketingOmsetByLabel($request, 'eksternal');
+
+        // Omset split internal vs eksternal for pie chart
+        $omsetByLabel = $this->getOmsetByLabel($request);
 
         // Get year range from project data
         $yearRange = $this->getYearRange();
-        
-        // Debug log
-        Log::info('Year range data:', $yearRange);
 
-        return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'adminMarketing', 'adminPurchasing', 'yearRange'));
+        $selectedYear = $request->get('year', date('Y'));
+
+        return view('pages.laporan.omset', compact('stats', 'monthlyOmset', 'adminMarketing', 'adminPurchasing', 'adminMarketingInternal', 'adminMarketingEksternal', 'omsetByLabel', 'yearRange', 'selectedYear'));
     }
 
     /**
@@ -143,8 +157,8 @@ class LaporanController extends Controller
      */
     private function getStatistics(Request $request = null)
     {
-        // Get year filter if provided
-        $selectedYear = $request ? $request->get('year') : null;
+        // Get year filter if provided; skip if 'all' param is set
+        $selectedYear = ($request && !$request->has('all')) ? $request->get('year') : null;
         
         // Base query for projects
         $proyekQuery = Proyek::where('status', '!=', 'Gagal');
@@ -216,6 +230,11 @@ class LaporanController extends Controller
             'penawaran',
             'semuaPenawaran'
         ]); // Show all projects
+
+        // Apply year filter (skip if 'all' param is set)
+        if (!$request->has('all') && $request->filled('year')) {
+            $query->whereYear('tanggal', $request->get('year'));
+        }
 
         // Apply filters
         if ($request->filled('start_date') && $request->filled('end_date')) {
@@ -570,123 +589,99 @@ public function exportTSV(Request $request)
      */
     private function getOmsetStatistics(Request $request = null)
     {
-        $currentMonth = Carbon::now();
-        $currentYear = Carbon::now()->year;
-        
-        // Get year filter parameter
+        $currentMonth = Carbon::now()->month;
+        $currentYear  = Carbon::now()->year;
+
+        // Get year filter — based on tahun_potensi
         $selectedYear = $request ? $request->get('year') : null;
-        
+
+        // Base: SUM(proyek_barang.harga_total) joined to proyek via tahun_potensi
+        $baseQuery = fn() => DB::table('proyek_barang')
+            ->join('proyek', 'proyek_barang.id_proyek', '=', 'proyek.id_proyek')
+            ->where('proyek.status', '!=', 'Gagal');
+
         if ($selectedYear && $selectedYear !== 'all') {
-            // For specific year
             $year = (int) $selectedYear;
-            
-            // Total Omset = Omset kumulatif dari awal sampai tahun terpilih dari kalkulasi HPS
-            $totalOmset = DB::table('kalkulasi_hps')
-                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                ->where('penawaran.status', 'ACC')
-                ->whereYear('penawaran.tanggal_penawaran', '<=', $year)
-                ->sum('kalkulasi_hps.hps');
-                
-            // Omset Tahun = Omset hanya di tahun terpilih saja dari kalkulasi HPS
-            $omsetTahunIni = DB::table('kalkulasi_hps')
-                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                ->where('penawaran.status', 'ACC')
-                ->whereYear('penawaran.tanggal_penawaran', $year)
-                ->sum('kalkulasi_hps.hps');
-            
-            // Omset bulan ini (jika tahun terpilih adalah tahun sekarang)
+
+            // Omset tahun terpilih
+            $omsetTahunIni = $baseQuery()
+                ->where('proyek.tahun_potensi', $year)
+                ->sum('proyek_barang.harga_total');
+
+            // Omset bulan berjalan pada tahun yang sama (gunakan MONTH(proyek.tanggal))
             if ($year == $currentYear) {
-                $omsetBulanIni = DB::table('kalkulasi_hps')
-                    ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                    ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                    ->where('penawaran.status', 'ACC')
-                    ->whereYear('penawaran.tanggal_penawaran', $year)
-                    ->whereMonth('penawaran.tanggal_penawaran', $currentMonth->month)
-                    ->sum('kalkulasi_hps.hps');
+                $omsetBulanIni = $baseQuery()
+                    ->where('proyek.tahun_potensi', $year)
+                    ->whereMonth('proyek.tanggal', $currentMonth)
+                    ->sum('proyek_barang.harga_total');
             } else {
-                // Jika bukan tahun sekarang, ambil bulan terakhir dari tahun itu
-                $omsetBulanIni = DB::table('kalkulasi_hps')
-                    ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                    ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                    ->where('penawaran.status', 'ACC')
-                    ->whereYear('penawaran.tanggal_penawaran', $year)
-                    ->whereMonth('penawaran.tanggal_penawaran', 12) // Desember
-                    ->sum('kalkulasi_hps.hps');
+                // Tahun lain: tampilkan omset Desember tahun tersebut
+                $omsetBulanIni = $baseQuery()
+                    ->where('proyek.tahun_potensi', $year)
+                    ->whereMonth('proyek.tanggal', 12)
+                    ->sum('proyek_barang.harga_total');
             }
+
+            // Total kumulatif s/d tahun terpilih
+            $totalOmset = $baseQuery()
+                ->where('proyek.tahun_potensi', '<=', $year)
+                ->sum('proyek_barang.harga_total');
         } else {
-            // For "Semua Tahun" option, show cumulative data
-            
-            // Total Omset - semua proyek dengan penawaran ACC dari awal sampai akhir
-            $totalOmset = DB::table('kalkulasi_hps')
-                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                ->where('penawaran.status', 'ACC')
-                ->sum('kalkulasi_hps.hps');
+            // Semua tahun
+            $totalOmset = $baseQuery()->sum('proyek_barang.harga_total');
 
-            // Omset Tahun Ini - proyek dengan penawaran ACC tahun ini
-            $omsetTahunIni = DB::table('kalkulasi_hps')
-                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                ->where('penawaran.status', 'ACC')
-                ->whereYear('penawaran.tanggal_penawaran', $currentYear)
-                ->sum('kalkulasi_hps.hps');
+            $omsetTahunIni = $baseQuery()
+                ->where('proyek.tahun_potensi', $currentYear)
+                ->sum('proyek_barang.harga_total');
 
-            // Omset Bulan Ini - proyek dengan penawaran ACC bulan ini
-            $omsetBulanIni = DB::table('kalkulasi_hps')
-                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                ->where('penawaran.status', 'ACC')
-                ->whereYear('penawaran.tanggal_penawaran', $currentYear)
-                ->whereMonth('penawaran.tanggal_penawaran', $currentMonth->month)
-                ->sum('kalkulasi_hps.hps');
+            $omsetBulanIni = $baseQuery()
+                ->where('proyek.tahun_potensi', $currentYear)
+                ->whereMonth('proyek.tanggal', $currentMonth)
+                ->sum('proyek_barang.harga_total');
         }
 
         return [
-            'total_omset' => $totalOmset ?? 0,
+            'total_omset'    => $totalOmset    ?? 0,
             'omset_tahun_ini' => $omsetTahunIni ?? 0,
             'omset_bulan_ini' => $omsetBulanIni ?? 0,
         ];
     }
 
     /**
-     * Get monthly omset data (with year filter)
+     * Get monthly omset data — berdasarkan SUM(proyek_barang.harga_total)
+     * Dikelompokkan berdasarkan tahun_potensi proyek
      */
     private function getMonthlyOmset(Request $request)
     {
         $selectedYear = $request->get('year');
-        
+
+        $base = DB::table('proyek_barang')
+            ->join('proyek', 'proyek_barang.id_proyek', '=', 'proyek.id_proyek')
+            ->where('proyek.status', '!=', 'Gagal');
+
         if ($selectedYear && $selectedYear === 'all') {
-            // For "Semua Tahun", show yearly data instead of monthly
-            return DB::table('kalkulasi_hps')
-                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                ->where('penawaran.status', 'ACC')
-                ->select(
-                    DB::raw('YEAR(penawaran.tanggal_penawaran) as year'),
-                    DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
+            // Semua tahun → group by tahun_potensi
+            return $base->select(
+                    'proyek.tahun_potensi as year',
+                    DB::raw('SUM(proyek_barang.harga_total) as total_omset'),
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
                 )
-                ->groupBy('year')
-                ->orderBy('year')
+                ->whereNotNull('proyek.tahun_potensi')
+                ->groupBy('proyek.tahun_potensi')
+                ->orderBy('proyek.tahun_potensi')
                 ->get();
         } else {
-            // For specific year or default (current year), show monthly data
+            // Tahun tertentu → group by bulan (MONTH(proyek.tanggal))
             $year = $selectedYear ? (int) $selectedYear : Carbon::now()->year;
-            
-            return DB::table('kalkulasi_hps')
-                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                ->where('penawaran.status', 'ACC')
-                ->whereYear('penawaran.tanggal_penawaran', $year)
-                ->select(
-                    DB::raw('MONTH(penawaran.tanggal_penawaran) as month'),
-                    DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
+
+            return $base->select(
+                    DB::raw('MONTH(proyek.tanggal) as month'),
+                    DB::raw('SUM(proyek_barang.harga_total) as total_omset'),
                     DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
                 )
-                ->groupBy('month')
-                ->orderBy('month')
+                ->where('proyek.tahun_potensi', $year)
+                ->groupBy(DB::raw('MONTH(proyek.tanggal)'))
+                ->orderBy(DB::raw('MONTH(proyek.tanggal)'))
                 ->get();
         }
     }
@@ -718,108 +713,164 @@ public function exportTSV(Request $request)
     }
 
     /**
-     * Get admin marketing omset data (Top 10 Admin Marketing berdasarkan keuntungan)
+     * Get admin marketing omset — SUM(proyek_barang.harga_total) per admin marketing
+     * Filter berdasarkan tahun_potensi
      */
     private function getAdminMarketingOmset(Request $request)
     {
-        // Base query
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
-            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-            ->join('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-            ->where('penawaran.status', 'ACC');
-            
-        // Apply year filter
+            ->join('proyek_barang', 'proyek.id_proyek', '=', 'proyek_barang.id_proyek')
+            ->where('proyek.status', '!=', 'Gagal');
+
         $selectedYear = $request ? $request->get('year') : null;
-        
         if ($selectedYear && $selectedYear !== 'all') {
-            // For specific year
-            $year = (int) $selectedYear;
-            $query->whereYear('penawaran.tanggal_penawaran', $year);
+            $query->where('proyek.tahun_potensi', (int) $selectedYear);
         }
-        // For "all" years, no additional filter needed
-        
+
         $result = $query->select(
+                'users.id_user',
                 'users.nama as name',
-                DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                DB::raw('AVG(kalkulasi_hps.hps) as rata_rata_omset_per_proyek')
+                DB::raw('SUM(proyek_barang.harga_total) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
             )
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_omset', 'desc')
             ->limit(10)
             ->get();
 
-        // Jika tidak ada data, buat data dummy untuk testing
         if ($result->isEmpty()) {
-            $allMarketingUsers = DB::table('users')
+            return DB::table('users')
                 ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
                 ->select(
+                    'users.id_user',
                     'users.nama as name',
                     DB::raw('0 as total_omset'),
-                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                    DB::raw('0 as rata_rata_omset_per_proyek')
+                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
                 )
                 ->groupBy('users.id_user', 'users.nama')
                 ->limit(10)
                 ->get();
-            
-            return $allMarketingUsers;
         }
-        
+
         return $result;
     }
 
     /**
-     * Get admin purchasing omset data (Top 10 Admin Purchasing berdasarkan keuntungan)
+     * Get admin marketing omset by label (internal/eksternal).
+     * Users with NULL label are treated as 'internal'.
+     * Filter berdasarkan tahun_potensi.
+     */
+    private function getAdminMarketingOmsetByLabel(Request $request, string $label)
+    {
+        $query = DB::table('users')
+            ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
+            ->join('proyek_barang', 'proyek.id_proyek', '=', 'proyek_barang.id_proyek')
+            ->where('proyek.status', '!=', 'Gagal');
+
+        // Filter by label: 'internal' also includes NULL labels
+        if ($label === 'internal') {
+            $query->where(function ($q) {
+                $q->where('users.label', 'internal')
+                  ->orWhereNull('users.label');
+            });
+        } else {
+            $query->where('users.label', $label);
+        }
+
+        $selectedYear = $request ? $request->get('year') : null;
+        if ($selectedYear && $selectedYear !== 'all') {
+            $query->where('proyek.tahun_potensi', (int) $selectedYear);
+        }
+
+        return $query->select(
+                'users.id_user',
+                'users.nama as name',
+                'users.label',
+                DB::raw('SUM(proyek_barang.harga_total) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
+            )
+            ->groupBy('users.id_user', 'users.nama', 'users.label')
+            ->orderBy('total_omset', 'desc')
+            ->limit(10)
+            ->get();
+    }
+
+    /**
+     * Get total omset split by marketing label (internal vs eksternal).
+     * Used for the pie/doughnut chart.
+     * NULL label is treated as 'internal'.
+     */
+    private function getOmsetByLabel(Request $request)
+    {
+        $selectedYear = $request ? $request->get('year') : null;
+
+        $base = DB::table('proyek_barang')
+            ->join('proyek', 'proyek_barang.id_proyek', '=', 'proyek.id_proyek')
+            ->join('users', 'proyek.id_admin_marketing', '=', 'users.id_user')
+            ->where('proyek.status', '!=', 'Gagal');
+
+        if ($selectedYear && $selectedYear !== 'all') {
+            $base->where('proyek.tahun_potensi', (int) $selectedYear);
+        }
+
+        $internal = (clone $base)
+            ->where(function ($q) {
+                $q->where('users.label', 'internal')->orWhereNull('users.label');
+            })
+            ->sum('proyek_barang.harga_total');
+
+        $eksternal = (clone $base)
+            ->where('users.label', 'eksternal')
+            ->sum('proyek_barang.harga_total');
+
+        return [
+            'internal'  => (float) ($internal ?? 0),
+            'eksternal' => (float) ($eksternal ?? 0),
+        ];
+    }
+
+    /**
+     * Get admin purchasing omset — SUM(proyek_barang.harga_total) per admin purchasing
+     * Filter berdasarkan tahun_potensi
      */
     private function getAdminPurchasingOmset(Request $request)
     {
-        // Base query
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_purchasing')
-            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-            ->join('kalkulasi_hps', 'proyek.id_proyek', '=', 'kalkulasi_hps.id_proyek')
-            ->where('penawaran.status', 'ACC');
-            
-        // Apply year filter
+            ->join('proyek_barang', 'proyek.id_proyek', '=', 'proyek_barang.id_proyek')
+            ->where('proyek.status', '!=', 'Gagal');
+
         $selectedYear = $request ? $request->get('year') : null;
-        
         if ($selectedYear && $selectedYear !== 'all') {
-            // For specific year
-            $year = (int) $selectedYear;
-            $query->whereYear('penawaran.tanggal_penawaran', $year);
+            $query->where('proyek.tahun_potensi', (int) $selectedYear);
         }
-        // For "all" years, no additional filter needed
-        
+
         $result = $query->select(
+                'users.id_user',
                 'users.nama as name',
-                DB::raw('SUM(kalkulasi_hps.hps) as total_omset'),
-                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                DB::raw('AVG(kalkulasi_hps.hps) as rata_rata_omset_per_proyek')
+                DB::raw('SUM(proyek_barang.harga_total) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
             )
             ->groupBy('users.id_user', 'users.nama')
             ->orderBy('total_omset', 'desc')
             ->limit(10)
             ->get();
 
-        // Jika tidak ada data, buat data dummy untuk testing
         if ($result->isEmpty()) {
-            $allPurchasingUsers = DB::table('users')
+            return DB::table('users')
                 ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_purchasing')
                 ->select(
+                    'users.id_user',
                     'users.nama as name',
                     DB::raw('0 as total_omset'),
-                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek'),
-                    DB::raw('0 as rata_rata_omset_per_proyek')
+                    DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
                 )
                 ->groupBy('users.id_user', 'users.nama')
                 ->limit(10)
                 ->get();
-            
-            return $allPurchasingUsers;
         }
-        
+
         return $result;
     }
 

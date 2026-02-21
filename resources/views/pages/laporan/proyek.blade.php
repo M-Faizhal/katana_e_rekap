@@ -66,7 +66,7 @@
                 <input type="number" id="globalYear" value="{{ request('year', date('Y')) }}" 
                        min="{{ $yearRange['min_year'] }}" 
                        max="{{ $yearRange['max_year'] }}"
-                       class="w-24 text-center text-lg font-semibold border-2 border-gray-300 rounded-lg py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" 
+                       class="w-24 text-center text-lg font-semibold border-2 border-gray-300 rounded-lg py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 {{ request()->has('all') ? 'opacity-50' : '' }}" 
                        onchange="updateGlobalYear()" 
                        readonly
                        title="Range: {{ $yearRange['min_year'] }} - {{ $yearRange['max_year'] }}">
@@ -162,7 +162,7 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-gray-800">Proyek Per Bulan</h3>
-                    <p class="text-sm text-gray-600" id="monthlyChartSubtitle">Distribusi bulanan tahun {{ request('year', date('Y')) }}</p>
+                    <p class="text-sm text-gray-600" id="monthlyChartSubtitle">Distribusi bulanan {{ request()->has('all') ? 'semua tahun' : 'tahun ' . request('year', date('Y')) }}</p>
                 </div>
             </div>
         </div>
@@ -180,8 +180,7 @@
                 <i class="fas fa-chart-line text-purple-600 text-lg"></i>
             </div>
             <div>
-                <h3 class="text-lg font-bold text-gray-800">Nilai Proyek Per Bulan</h3>
-                <p class="text-sm text-gray-600" id="valueChartSubtitle">Total nilai proyek tahun {{ request('year', date('Y')) }}</p>
+                <h3 class="text-lg font-bold text-gray-800">Nilai Proyek Per Bulan</h3>                    <p class="text-sm text-gray-600" id="valueChartSubtitle">Total nilai proyek {{ request()->has('all') ? 'semua tahun' : 'tahun ' . request('year', date('Y')) }}</p>
             </div>
         </div>
     </div>
@@ -557,11 +556,7 @@ function updateGlobalYear() {
 }
 
 function showAllYears() {
-    // Reload page without year parameter (show all data)
-    const params = new URLSearchParams(window.location.search);
-    params.delete('year');
-    
-    window.location.href = '{{ route("laporan.proyek") }}' + (params.toString() ? '?' + params.toString() : '');
+    window.location.href = '{{ route("laporan.proyek") }}?all=1';
 }
 
 function exportProyek() {

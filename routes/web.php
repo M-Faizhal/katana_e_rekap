@@ -18,6 +18,7 @@ use App\Http\Controllers\marketing\PotensiController;
 use App\Http\Controllers\marketing\PenawaranController;
 use App\Http\Controllers\marketing\Export\PotensiExportController;
 use App\Http\Controllers\marketing\Export\OmsetExportController;
+use App\Http\Controllers\marketing\Export\OmsetMarketingExportController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 
@@ -67,7 +68,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/hutang-vendor', [LaporanController::class, 'hutangVendor'])->name('laporan.hutang-vendor');
     Route::get('/laporan/piutang-dinas', [LaporanController::class, 'piutangDinas'])->name('laporan.piutang-dinas');
     Route::get('/laporan/export', [OmsetExportController::class, 'exportExcel'])->name('laporan.export');
-    Route::get('/laporan/export-omset', [OmsetExportController::class, 'exportExcel'])->name('laporan.export-omset');
+    Route::get('/laporan/export-omset-marketing', [OmsetMarketingExportController::class, 'exportExcel'])->name('laporan.export-omset-marketing');
     Route::get('/laporan/project/{id}', [LaporanController::class, 'getProjectDetail'])->name('laporan.project.detail');
     Route::get('/laporan/data', [LaporanController::class, 'getFilteredData'])->name('laporan.data');
 
