@@ -47,24 +47,8 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-chart-line text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">
-                    @if(request('year') && request('year') != 'all')
-                        Total Omset Sampai Tahun {{ request('year') }}
-                    @else
-                        Total Omset Sampai Saat Ini
-                    @endif
-                </h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">Rp {{ number_format($stats['total_omset'] ?? 0, 2, ',', '.') }}</p>
-            </div>
-        </div>
-    </div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+   
 
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 border border-gray-100">
         <div class="flex flex-col sm:flex-row sm:items-center">

@@ -154,10 +154,18 @@ class LaporanController extends Controller
             $proyekQuery->whereYear('tanggal', $selectedYear);
         }
         
-        // Hitung total nilai dari harga_total proyek yang status tidak 'Gagal'
-        $totalNilai = (clone $proyekQuery)
-            ->whereNotNull('harga_total')
-            ->sum('harga_total');
+        // Hitung total nilai dari kalkulasi_hps.hps (sama seperti logika omset)
+        $hpsQuery = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->where('penawaran.status', 'ACC')
+            ->where('proyek.status', '!=', 'Gagal');
+
+        if ($selectedYear) {
+            $hpsQuery->whereYear('penawaran.tanggal_penawaran', $selectedYear);
+        }
+
+        $totalNilai = $hpsQuery->sum('kalkulasi_hps.hps');
 
         // Hitung proyek yang sudah SP (proyek dengan penawaran status ACC)
         // Filter berdasarkan tanggal_penawaran jika ada year filter
@@ -346,94 +354,7 @@ class LaporanController extends Controller
     /**
      * Export report to Excel
      */
-    public function export(Request $request)
-{
-    // Get projects with HPS kalkulasi only (ACC status and has kalkulasi_hps)
-    $projects = $this->getProjectsWithHPS($request);
-
-    // Create CSV response
-    $filename = 'laporan-proyek-' . Carbon::now()->format('Y-m-d') . '.csv';
-
-    $headers = [
-        'Content-Type' => 'text/csv; charset=UTF-8',
-        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        'Cache-Control' => 'no-cache, no-store, must-revalidate',
-        'Pragma' => 'no-cache',
-        'Expires' => '0'
-    ];
-
-    $callback = function() use ($projects) {
-        $file = fopen('php://output', 'w');
-        
-        // Add BOM for proper UTF-8 encoding in Excel
-        fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-
-        // Add CSV headers sesuai format yang diminta
-        fputcsv($file, [
-            'No',
-            'Kab/Kota',
-            'Nama Instansi',
-            'Nama Barang',
-            'Qty',
-            'Satuan',
-            'Spesifikasi',
-            'Pagu Satuan',
-            'Pagu Total',
-            'Jenis Pengadaan',
-            'Note',
-            'Marketing',
-            'Purchasing',
-            'Status'
-        ], ';'); // Gunakan semicolon sebagai delimiter untuk Excel Indonesia
-
-        // Add data rows - setiap barang dalam penawaran detail jadi 1 baris
-        $no = 1;
-        foreach ($projects as $project) {
-            if ($project->penawaran && $project->penawaran->penawaranDetail) {
-                foreach ($project->penawaran->penawaranDetail as $detail) {
-                    // Clean data - hapus koma dan karakter khusus yang bisa merusak CSV
-                    $instansi = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
-                        $project->instansi);
-                    
-                    $namaBarang = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
-                        $detail->barang->nama_barang ?? '-');
-                    
-                    $spesifikasi = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
-                        $detail->barang->spesifikasi ?? $detail->barang->deskripsi ?? '-');
-                    
-                    $jenisPN = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
-                        $project->jenis_pengadaan);
-                    
-                    $note = str_replace([',', ';', '"', "\n", "\r"], [' ', ' ', '\'', ' ', ' '], 
-                        $project->catatan ?? '-');
-
-                    fputcsv($file, [
-                        $no,
-                        $project->kab_kota ?? '-', // Kab/Kota dari field kab_kota
-                        $instansi,
-                        $namaBarang,
-                        $detail->qty ?? 0,
-                        $detail->barang->satuan ?? '-',
-                        $spesifikasi,
-                        number_format($detail->harga_satuan ?? 0, 0, ',', '.'),
-                        number_format($detail->subtotal ?? 0, 0, ',', '.'),
-                        $jenisPN,
-                        $note,
-                        $project->adminMarketing->nama ?? '-',
-                        $project->adminPurchasing->nama ?? '-',
-                        ucfirst($project->status)
-                    ], ';');
-                    
-                    $no++;
-                }
-            }
-        }
-
-        fclose($file);
-    };
-
-    return response()->stream($callback, 200, $headers);
-}
+ 
 
     /**
      * Get projects that have HPS kalkulasi (only ACC status with kalkulasi_hps)
@@ -446,8 +367,12 @@ class LaporanController extends Controller
             'penawaran.penawaranDetail.barang.vendor',
             'kalkulasiHps'
         ])
-        ->whereHas('penawaran', function($q) {
+        ->whereHas('penawaran', function($q) use ($request) {
             $q->where('status', 'ACC');
+            // Apply year filter on tanggal_penawaran (sama seperti logika omset)
+            if ($request->filled('year') && $request->get('year') !== 'all') {
+                $q->whereYear('tanggal_penawaran', $request->get('year'));
+            }
         })
         ->whereHas('kalkulasiHps'); // Hanya proyek yang sudah ada HPS kalkulasi
 
@@ -1063,16 +988,18 @@ public function exportTSV(Request $request)
             ];
         });
 
-        // Get monthly values from proyek.harga_total for the entire year (excluding 'Gagal' status)
-        $monthlyValues = DB::table('proyek')
+        // Get monthly values from kalkulasi_hps.hps (sama seperti logika omset)
+        $monthlyValues = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->where('penawaran.status', 'ACC')
+            ->where('proyek.status', '!=', 'Gagal')
+            ->whereYear('penawaran.tanggal_penawaran', $year)
             ->select(
-                DB::raw('MONTH(tanggal) as month_num'),
-                DB::raw('MONTHNAME(tanggal) as month_name'),
-                DB::raw('SUM(COALESCE(harga_total, 0)) as total_value')
+                DB::raw('MONTH(penawaran.tanggal_penawaran) as month_num'),
+                DB::raw('SUM(kalkulasi_hps.hps) as total_value')
             )
-            ->where('status', '!=', 'Gagal') // Exclude failed projects
-            ->whereYear('tanggal', $year)
-            ->groupBy('month_num', 'month_name')
+            ->groupBy('month_num')
             ->orderBy('month_num')
             ->get();
 

@@ -147,93 +147,8 @@
                     </div>
                 </div>
 
-                <!-- Dokumen Surat -->
-                <div class="bg-gray-50 rounded-xl p-6">
-                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-file-upload text-red-600 mr-2"></i>
-                        Dokumen Surat
-                    </h4>
-
-                    <!-- Penawaran Status Info -->
-                    <div id="penawaranStatusInfo" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg hidden">
-                        <div class="flex items-center">
-                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-                            <div>
-                                <span class="text-sm font-medium text-blue-800">Status Penawaran: </span>
-                                <span id="penawaranStatus" class="text-sm text-blue-700 font-semibold">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Surat Penawaran -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Penawaran</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="file" id="editSuratPenawaran" name="surat_penawaran"
-                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
-                                       accept=".pdf,.doc,.docx">
-                                <button type="button" onclick="clearFile('editSuratPenawaran')"
-                                        class="px-3 py-3 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <div id="editSuratPenawaranPreview" class="mt-2 text-sm text-gray-600 hidden">
-                                <i class="fas fa-file-pdf mr-1"></i>
-                                <span class="filename">No file selected</span>
-                            </div>
-                        </div>
-
-                        <!-- Surat Persetujuan -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Persetujuan</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="file" id="editSuratPersetujuan" name="surat_persetujuan"
-                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
-                                       accept=".pdf,.doc,.docx">
-                                <button type="button" onclick="clearFile('editSuratPersetujuan')"
-                                        class="px-3 py-3 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <div id="editSuratPersetujuanPreview" class="mt-2 text-sm text-gray-600 hidden">
-                                <i class="fas fa-file-pdf mr-1"></i>
-                                <span class="filename">No file selected</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Current Files Display -->
-                    <div class="mt-4 space-y-3">
-                        <h5 class="text-sm font-medium text-gray-700">File Yang Ada Saat Ini:</h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
-                                <div class="flex items-center">
-                                    <i class="fas fa-file-pdf text-red-500 mr-2"></i>
-                                    <span>Surat Penawaran:</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span id="currentSuratPenawaran" class="text-gray-600 font-mono text-xs">Loading...</span>
-                                    <a id="downloadSuratPenawaran" href="#" class="text-red-600 hover:text-red-700 hidden" title="Download">
-                                        <i class="fas fa-download text-sm"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
-                                <div class="flex items-center">
-                                    <i class="fas fa-file-pdf text-purple-500 mr-2"></i>
-                                    <span>Surat Pesanan:</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span id="currentSuratPersetujuan" class="text-gray-600 font-mono text-xs">Loading...</span>
-                                    <a id="downloadSuratPesanan" href="#" class="text-purple-600 hover:text-purple-700 hidden" title="Download">
-                                        <i class="fas fa-download text-sm"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
+                
             </form>
         </div>
 
@@ -335,9 +250,7 @@ async function loadEditData(data) {
         togglePotensiEdit(data.potensi);
     }
 
-    // Load current files information
-    loadCurrentFiles(data);
-
+ 
     // Load items (check both field names for compatibility)
     const container = document.getElementById('daftarBarangEdit');
     if (container) {
@@ -372,7 +285,6 @@ function addEditItem(itemData = null) {
     let satuan = '';
     let hargaSatuan = '';
     let spesifikasi = '';
-    let existingFiles = [];
 
     if (itemData) {
         nama = itemData.nama || itemData.nama_barang || '';
@@ -390,7 +302,6 @@ function addEditItem(itemData = null) {
             }
         }
         spesifikasi = itemData.spesifikasi || '';
-        existingFiles = itemData.spesifikasi_files || [];
     }
 
     const itemHtml = `
@@ -441,65 +352,6 @@ function addEditItem(itemData = null) {
             <div class="mt-3">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Spesifikasi</label>
                 <textarea name="barang[${editItemCounter}][spesifikasi]" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm" placeholder="Masukkan spesifikasi barang...">${spesifikasi}</textarea>
-
-                <!-- Existing Files Display -->
-                ${existingFiles && existingFiles.length > 0 ? `
-                <div class="mt-2">
-                    <div class="text-sm font-medium text-gray-700 mb-2">📎 File spesifikasi yang ada (${existingFiles.length} file):</div>
-                    <div class="space-y-1">
-                        ${existingFiles.map(file => `
-                            <div class="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm">
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas ${getFileIcon(file.original_name)} text-gray-500"></i>
-                                    <span class="font-medium">${file.original_name}</span>
-                                    <span class="text-gray-500">(${formatFileSize(file.file_size)})</span>
-                                </div>
-                                <div class="flex items-center space-x-1">
-                                    ${file.mime_type && file.mime_type.includes('pdf') ? `
-                                        <button type="button" onclick="previewFile('${file.stored_name}')" class="text-blue-600 hover:text-blue-800 p-1">
-                                            <i class="fas fa-eye" title="Preview"></i>
-                                        </button>
-                                    ` : ''}
-                                    <button type="button" onclick="downloadFile('${file.stored_name}')" class="text-green-600 hover:text-green-800 p-1">
-                                        <i class="fas fa-download" title="Download"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                ` : ''}
-
-                <!-- File Upload Option -->
-                <div class="mt-2">
-                    <div class="flex items-center">
-                        <input type="checkbox" id="enableFileUploadEdit_${editItemCounter}" class="file-upload-checkbox-edit mr-2 text-red-600 focus:ring-red-500" onchange="toggleFileUploadEdit(this, ${editItemCounter})">
-                        <label for="enableFileUploadEdit_${editItemCounter}" class="text-sm text-gray-600 cursor-pointer flex items-center">
-                            <i class="fas fa-paperclip mr-1 text-gray-500"></i>
-                            ${existingFiles && existingFiles.length > 0 ? 'Tambah file baru' : 'Tambah lampiran file spesifikasi'}
-                        </label>
-                    </div>
-
-                    <!-- File Upload Area (Hidden by default) -->
-                    <div id="fileUploadAreaEdit_${editItemCounter}" class="mt-3 hidden">
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-400 transition-colors duration-200">
-                            <input type="file" name="barang[${editItemCounter}][files][]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" class="hidden" id="fileInputEdit_${editItemCounter}" onchange="handleFileSelectEdit(this, ${editItemCounter})">
-                            <label for="fileInputEdit_${editItemCounter}" class="cursor-pointer">
-                                <div class="text-gray-500">
-                                    <i class="fas fa-cloud-upload-alt text-2xl mb-2"></i>
-                                    <p class="text-sm font-medium">Klik untuk browse atau drag & drop files</p>
-                                    <p class="text-xs mt-1">PDF, DOC, XLS, JPG, PNG (Max 5MB per file)</p>
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- Selected Files Preview -->
-                        <div id="filePreviewEdit_${editItemCounter}" class="mt-3 space-y-2 hidden">
-                            <div class="text-sm font-medium text-gray-700 mb-2">File terpilih:</div>
-                            <div id="fileListEdit_${editItemCounter}" class="space-y-1"></div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     `;
@@ -749,73 +601,6 @@ function formatRupiah(angka) {
     return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-// Function to load current files information
-function loadCurrentFiles(data) {
-    console.log('Loading current files for project:', data);
-
-    // Initialize loading state
-    updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', null);
-    updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', null);
-    document.getElementById('currentSuratPenawaran').textContent = 'Loading...';
-    document.getElementById('currentSuratPersetujuan').textContent = 'Loading...';
-
-    // Load documents from penawaran data if available
-    if (data.penawaran && data.penawaran.length > 0) {
-        const penawaran = data.penawaran[0]; // Get the first/latest penawaran
-        
-        // Show penawaran status info
-        const statusInfo = document.getElementById('penawaranStatusInfo');
-        const statusSpan = document.getElementById('penawaranStatus');
-        if (statusInfo && statusSpan && penawaran.status) {
-            statusSpan.textContent = penawaran.status;
-            statusInfo.classList.remove('hidden');
-        }
-
-        // Load surat penawaran
-        if (penawaran.surat_penawaran) {
-            updateFileDisplay('currentSuratPenawaran', 'downloadSuratPenawaran', penawaran.surat_penawaran);
-        } else {
-            document.getElementById('currentSuratPenawaran').textContent = 'Belum ada file';
-        }
-
-        // Load surat persetujuan (surat pesanan)
-        if (penawaran.surat_pesanan) {
-            updateFileDisplay('currentSuratPersetujuan', 'downloadSuratPesanan', penawaran.surat_pesanan);
-        } else {
-            document.getElementById('currentSuratPersetujuan').textContent = 'Belum ada file';
-        }
-    } else {
-        // No penawaran data - show no files
-        document.getElementById('currentSuratPenawaran').textContent = 'Belum ada file';
-        document.getElementById('currentSuratPersetujuan').textContent = 'Belum ada file';
-        
-        // Hide penawaran status info
-        const statusInfo = document.getElementById('penawaranStatusInfo');
-        if (statusInfo) {
-            statusInfo.classList.add('hidden');
-        }
-    }
-}
-
-// Helper function to update file display
-function updateFileDisplay(textElementId, linkElementId, filename) {
-    const textElement = document.getElementById(textElementId);
-    const linkElement = document.getElementById(linkElementId);
-    
-    if (filename) {
-        textElement.textContent = filename;
-        if (linkElement) {
-            linkElement.href = `/storage/documents/${filename}`;
-            linkElement.classList.remove('hidden');
-        }
-    } else {
-        textElement.textContent = 'Belum ada file';
-        if (linkElement) {
-            linkElement.classList.add('hidden');
-        }
-    }
-}
-
 // Function to fetch penawaran data from server
 async function fetchPenawaranData(proyekId) {
     try {
@@ -830,90 +615,7 @@ async function fetchPenawaranData(proyekId) {
     return null;
 }
 
-// File upload functions
-function toggleFileUploadEdit(checkbox, itemIndex) {
-    const fileUploadArea = document.getElementById(`fileUploadAreaEdit_${itemIndex}`);
-    if (checkbox.checked) {
-        fileUploadArea.classList.remove('hidden');
-    } else {
-        fileUploadArea.classList.add('hidden');
-        // Clear file input
-        const fileInput = document.getElementById(`fileInputEdit_${itemIndex}`);
-        if (fileInput) {
-            fileInput.value = '';
-        }
-        // Hide file preview
-        const filePreview = document.getElementById(`filePreviewEdit_${itemIndex}`);
-        if (filePreview) {
-            filePreview.classList.add('hidden');
-        }
-    }
-}
 
-function handleFileSelectEdit(input, itemIndex) {
-    const filePreview = document.getElementById(`filePreviewEdit_${itemIndex}`);
-    const fileList = document.getElementById(`fileListEdit_${itemIndex}`);
-    
-    if (input.files.length > 0) {
-        filePreview.classList.remove('hidden');
-        fileList.innerHTML = '';
-        
-        Array.from(input.files).forEach((file, index) => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'flex items-center justify-between bg-white p-2 rounded border text-sm';
-            fileItem.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-file text-gray-500 mr-2"></i>
-                    <span>${file.name}</span>
-                    <span class="text-gray-400 ml-2">(${(file.size / 1024).toFixed(1)} KB)</span>
-                </div>
-                <button type="button" onclick="removeFileEdit(${itemIndex}, ${index})" class="text-red-600 hover:text-red-800">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            fileList.appendChild(fileItem);
-        });
-    } else {
-        filePreview.classList.add('hidden');
-    }
-}
-
-function removeFileEdit(itemIndex, fileIndex) {
-    const fileInput = document.getElementById(`fileInputEdit_${itemIndex}`);
-    if (fileInput) {
-        // Create new FileList without the removed file
-        const dt = new DataTransfer();
-        Array.from(fileInput.files).forEach((file, index) => {
-            if (index !== fileIndex) {
-                dt.items.add(file);
-            }
-        });
-        fileInput.files = dt.files;
-        
-        // Refresh file display
-        handleFileSelectEdit(fileInput, itemIndex);
-    }
-}
-
-function clearFile(inputId) {
-    const input = document.getElementById(inputId);
-    if (input) {
-        input.value = '';
-        
-        // Hide preview if exists
-        const previewId = inputId + 'Preview';
-        const preview = document.getElementById(previewId);
-        if (preview) {
-            preview.classList.add('hidden');
-        }
-    }
-}
-
-function downloadFile(filename) {
-    if (filename && filename !== 'Belum ada file') {
-        window.open(`/storage/documents/${filename}`, '_blank');
-    }
-}
 
 // Form submission for edit
 document.addEventListener('DOMContentLoaded', function() {

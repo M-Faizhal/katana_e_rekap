@@ -3,7 +3,7 @@
 @section('title', 'Laporan Proyek - Cyber KATANA')
 
 @section('content')
-<!-- Navigation Tabs -->
+<!-- Na    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100"> -->
 <div class="bg-white rounded-xl shadow-lg border border-gray-100 mb-6">
     <div class="px-6 py-4">
         <nav class="flex space-x-8" aria-label="Tabs">
@@ -34,8 +34,14 @@
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Laporan Proyek</h1>
             <p class="text-red-100 text-sm sm:text-base lg:text-lg">Laporan semua proyek dengan berbagai status</p>
         </div>
-        <div class="hidden sm:block lg:block">
-            <i class="fas fa-chart-bar text-3xl sm:text-4xl lg:text-6xl"></i>
+        <div class="flex items-center space-x-4">
+            <button onclick="exportProyek()" class="bg-white text-red-800 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors duration-200 flex items-center space-x-2 shadow-md">
+                <i class="fas fa-file-excel text-lg"></i>
+                <span class="font-semibold hidden sm:inline">Export Excel</span>
+            </button>
+            <div class="hidden sm:block lg:block">
+                <i class="fas fa-chart-bar text-3xl sm:text-4xl lg:text-6xl"></i>
+            </div>
         </div>
     </div>
 </div>
@@ -77,7 +83,7 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
         <div class="flex flex-col text-center">
             <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-100 mb-3 w-fit mx-auto">
@@ -116,35 +122,12 @@
 
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
         <div class="flex flex-col text-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-yellow-100 mb-3 w-fit mx-auto">
-                <i class="fas fa-clock text-yellow-600 text-lg sm:text-xl lg:text-2xl"></i>
-            </div>
-            <div>
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1">Proyek Berjalan</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">{{ $stats['proyek_berjalan'] }}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-5 border border-gray-100">
-        <div class="flex flex-col text-center">
             <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-3 w-fit mx-auto">
                 <i class="fas fa-money-bill-wave text-purple-600 text-lg sm:text-xl lg:text-2xl"></i>
             </div>
             <div>
                 <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-800 mb-1">Total Nilai</h3>
-                <p class="text-sm sm:text-base lg:text-lg font-bold text-purple-600">
-                    @php
-                        $totalNilai = $stats['total_nilai_proyek'] ?? 0;
-                        if ($totalNilai >= 1000000000) {
-                            echo 'Rp ' . number_format($totalNilai / 1000000000, 1) . ' Miliar';
-                        } elseif ($totalNilai >= 1000000) {
-                            echo 'Rp ' . number_format($totalNilai / 1000000, 1) . ' Juta';
-                        } else {
-                            echo 'Rp ' . number_format($totalNilai, 0, ',', '.');
-                        }
-                    @endphp
-                </p>
+                <p class="text-sm sm:text-base lg:text-lg font-bold text-purple-600">Rp {{ number_format($stats['total_nilai_proyek'] ?? 0, 2, ',', '.') }}</p>
             </div>
         </div>
     </div>
@@ -207,19 +190,8 @@
     </div>
 </div>
 
-<!-- Advanced Filter Section -->
-<div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
-    <div class="p-4 sm:p-6 border-b border-gray-200">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <i class="fas fa-filter text-red-600 text-lg"></i>
-            </div>
-            <div>
-                <h2 class="text-lg sm:text-xl font-bold text-gray-800">Filter Laporan Proyek</h2>
-                <p class="text-sm sm:text-base text-gray-600 mt-1">Filter berdasarkan periode dan status proyek</p>
-            </div>
-        </div>
-    </div>
+<!-- Advanced Filter Section (hidden, kept for JS compatibility) -->
+<div class="hidden">
     <div class="p-4 sm:p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Periode Filter dengan Date Range -->
@@ -300,23 +272,9 @@
     </div>
 </div>
 
-<!-- Projects Table -->
-<div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
-    <div class="p-4 sm:p-6 border-b border-gray-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-table text-red-600 text-lg"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg sm:text-xl font-bold text-gray-800">Daftar Proyek</h2>
-                    <p class="text-sm sm:text-base text-gray-600 mt-1">Semua proyek dengan berbagai status</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="overflow-x-auto">
+<!-- Projects Table (hidden) -->
+<div class="hidden">
+    <div>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
@@ -606,6 +564,12 @@ function showAllYears() {
     window.location.href = '{{ route("laporan.proyek") }}' + (params.toString() ? '?' + params.toString() : '');
 }
 
+function exportProyek() {
+    const selectedYear = document.getElementById('globalYear').value;
+    showNotification(`Mengunduh laporan proyek tahun ${selectedYear}...`, 'info');
+    window.location.href = '{{ route("laporan.export") }}?year=' + selectedYear;
+}
+
 // Update chart subtitles based on current year
 document.addEventListener('DOMContentLoaded', function() {
     const currentYear = document.getElementById('globalYear').value;
@@ -702,20 +666,20 @@ monthlyChart = new Chart(monthlyCtx, {
     }
 });
 
-// Monthly Value Chart (Line)
+// Monthly Value Chart (Line) - sama seperti grafik omset
 const valueCtx = document.getElementById('valueChart').getContext('2d');
 valueChart = new Chart(valueCtx, {
     type: 'line',
     data: {
         labels: chartData.monthly_values.map(item => item.month),
         datasets: [{
-            label: 'Total Nilai (Rp)',
+            label: 'Nilai Proyek (Rp)',
             data: chartData.monthly_values.map(item => item.value),
-            borderColor: 'rgb(147, 51, 234)',
-            backgroundColor: 'rgba(147, 51, 234, 0.1)',
+            borderColor: 'rgb(34, 197, 94)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
             tension: 0.4,
             fill: true,
-            pointBackgroundColor: 'rgb(147, 51, 234)',
+            pointBackgroundColor: 'rgb(34, 197, 94)',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
             pointRadius: 6
@@ -729,12 +693,16 @@ valueChart = new Chart(valueCtx, {
                 beginAtZero: true,
                 ticks: {
                     callback: function(value) {
-                        if (value >= 1000000000) {
-                            return 'Rp ' + (value / 1000000000).toFixed(1) + 'M';
+                        if (value >= 1000000000000) {
+                            return (value / 1000000000000).toFixed(1) + ' T';
+                        } else if (value >= 1000000000) {
+                            return (value / 1000000000).toFixed(1) + ' M';
                         } else if (value >= 1000000) {
-                            return 'Rp ' + (value / 1000000).toFixed(1) + 'Jt';
+                            return (value / 1000000).toFixed(1) + ' jt';
+                        } else if (value >= 1000) {
+                            return (value / 1000).toFixed(1) + ' rb';
                         } else {
-                            return 'Rp ' + value.toLocaleString('id-ID');
+                            return value.toLocaleString('id-ID');
                         }
                     }
                 }
@@ -748,13 +716,7 @@ valueChart = new Chart(valueCtx, {
                 callbacks: {
                     label: function(context) {
                         let value = context.parsed.y;
-                        if (value >= 1000000000) {
-                            return 'Total Nilai: Rp ' + (value / 1000000000).toFixed(1) + ' Miliar';
-                        } else if (value >= 1000000) {
-                            return 'Total Nilai: Rp ' + (value / 1000000).toFixed(1) + ' Juta';
-                        } else {
-                            return 'Total Nilai: Rp ' + value.toLocaleString('id-ID');
-                        }
+                        return 'Nilai: Rp ' + value.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     }
                 }
             }

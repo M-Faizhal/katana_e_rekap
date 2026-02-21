@@ -50,87 +50,6 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
     </div>
 </div>
 
-<!-- Stats Cards -->
-<div class="grid grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4 lg:gap-4 mb-6 sm:mb-8">
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-list text-red-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Total</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">{{ $totalProyek }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gray-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-clock text-gray-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Menunggu</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-600">{{ $menungguCount }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-blue-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-file-alt text-blue-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Penawaran</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{{ $penawaranCount }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-purple-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-credit-card text-purple-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Pembayaran</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">{{ $pembayaranCount }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-orange-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-shipping-fast text-orange-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Pengiriman</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">{{ $pengirimanCount }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-green-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-check-circle text-green-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Selesai</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{{ $selesaiCount }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-4 border border-gray-100">
-        <div class="flex flex-col sm:flex-row sm:items-center">
-            <div class="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-red-100 mb-2 sm:mb-0 sm:mr-4 w-fit">
-                <i class="fas fa-times-circle text-red-600 text-sm sm:text-lg lg:text-xl"></i>
-            </div>
-            <div class="min-w-0">
-                <h3 class="text-xs sm:text-sm lg:text-lg font-semibold text-gray-800 truncate">Gagal</h3>
-                <p class="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">{{ $gagalCount }}</p>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Main Content -->
 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-20">
     <!-- Header -->
@@ -138,7 +57,8 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Daftar Proyek</h2>
-                <p class="text-gray-600 mt-1 text-sm sm:text-base">Kelola semua proyek dan proposal proyek</p>
+                <p class="text-gray-600 mt-1 text-sm sm:text-base">Kelola semua proyek</p>
+               
             </div>
         </div>
     </div>
@@ -168,7 +88,31 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                     <option value="terbaru">Terbaru</option>
                     <option value="terlama">Terlama</option>
                 </select>
-                <button onclick="resetFilters()" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg sm:rounded-xl transition-colors duration-200">
+            </div>
+        </div>
+        <!-- Date range & quick filter row -->
+        <div class="mt-3 sm:mt-4 flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-center">
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <label for="dateFrom" class="text-xs sm:text-sm text-gray-600 whitespace-nowrap">Tanggal dari</label>
+                    <input type="date" id="dateFrom" class="px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="dateTo" class="text-xs sm:text-sm text-gray-600 whitespace-nowrap">sampai</label>
+                    <input type="date" id="dateTo" class="px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 sm:gap-3">
+                <button type="button" data-range="minggu" class="quick-range px-3 py-1.5 text-xs sm:text-sm rounded-full border border-gray-300 text-gray-700 bg-white hover:bg-gray-100">
+                    Minggu ini
+                </button>
+                <button type="button" data-range="bulan" class="quick-range px-3 py-1.5 text-xs sm:text-sm rounded-full border border-gray-300 text-gray-700 bg-white hover:bg-gray-100">
+                    Bulan ini
+                </button>
+                <button type="button" data-range="tahun" class="quick-range px-3 py-1.5 text-xs sm:text-sm rounded-full border border-gray-300 text-gray-700 bg-white hover:bg-gray-100">
+                    Tahun ini
+                </button>
+                <button onclick="resetFilters()" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg sm:rounded-xl transition-colors duration-200 ml-auto md:ml-0">
                     <i class="fas fa-redo text-gray-600"></i>
                     <span class="hidden sm:inline ml-1">Reset</span>
                 </button>
@@ -307,11 +251,26 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             @endforeach
         </div>
 
+        <!-- Empty State: Petunjuk saat belum ada interaksi -->
+        <div id="emptyState" class="text-center py-12 px-4">
+            <div class="inline-flex items-center justify-center w-15 h-15 bg-red-50 rounded-full mb-6">
+                <i class="fas fa-filter text-red-400 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Cari atau filter proyek Anda</h3>
+            <p class="text-gray-500 text-sm sm:text-base mb-6 max-w-md mx-auto">
+                Halaman ini menampilkan data berdasarkan pencarian atau filter yang Anda pilih. Silakan gunakan salah satu cara di bawah ini:
+            </p>
+            
+        </div>
+
         <!-- No Results Message -->
         <div id="noResults" class="hidden text-center py-12">
-            <i class="fas fa-search text-gray-400 text-4xl mb-4"></i>
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <i class="fas fa-search text-gray-400 text-2xl"></i>
+            </div>
             <h3 class="text-lg font-medium text-gray-600 mb-2">Tidak ada proyek ditemukan</h3>
-            <p class="text-gray-500">Coba ubah filter atau kata kunci pencarian Anda</p>
+            <p class="text-gray-500 text-sm mb-1">Tidak ada data yang cocok dengan filter atau kata kunci Anda.</p>
+            <p class="text-gray-400 text-xs">Coba ubah kata kunci, pilih status lain, atau ganti rentang tanggal.</p>
         </div>
     </div>
 
@@ -427,23 +386,23 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
 .modal-content::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 3px;
-}
-
+    // Placeholder - akan di-override oleh fungsi lengkap di script utama
+};
 .modal-content::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-.modal-open {
+window.goToPage = function(page) {
+    console.log('Early goToPage called - will be replaced by full version');
+    // Placeholder - akan di-override oleh fungsi lengkap di script utama
+};odal-open {
     overflow: hidden;
+window.buatPenawaran = function(id) {
+    console.log('Early buatPenawaran called - will be replaced by full version');
+    // Placeholder - akan di-override oleh fungsi lengkap di script utama
+};  transition: all 0.2s ease-in-out;
 }
-
-.potensi-btn, .potensi-btn-edit {
-    transition: all 0.2s ease-in-out;
-}
-
-.potensi-btn:hover, .potensi-btn-edit:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+window.viewDetail = function(id) {
+    console.log('Early viewDetail called - will be replaced by full version');
+    // Placeholder - akan di-override oleh fungsi lengkap di script utama
+};  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 639px) {
@@ -640,8 +599,9 @@ select.status-dropdown {
 <script>
 // Data dari PHP untuk JavaScript
 const proyekData = @json($proyekData);
-let filteredData = [...proyekData];
-let currentData = [...proyekData];
+let filteredData = [];
+let currentData = [];
+let hasInteracted = false; // penanda apakah user sudah search/filter
 
 // Pagination variables
 let currentPage = 1;
@@ -652,20 +612,48 @@ let totalPages = 1;
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
 const sortBy = document.getElementById('sortBy');
+const dateFrom = document.getElementById('dateFrom');
+const dateTo = document.getElementById('dateTo');
+const quickRangeButtons = document.querySelectorAll('.quick-range');
 const proyekContainer = document.getElementById('proyekContainer');
 const noResults = document.getElementById('noResults');
 const paginationInfo = document.getElementById('paginationInfo');
 
 // Event Listeners untuk filter dan search
 if (searchInput) {
-    searchInput.addEventListener('input', debounce(filterAndSort, 300));
+    searchInput.addEventListener('input', debounce(() => { hasInteracted = true; filterAndSort(); }, 300));
 }
 if (statusFilter) {
-    statusFilter.addEventListener('change', filterAndSort);
+    statusFilter.addEventListener('change', () => { hasInteracted = true; filterAndSort(); });
 }
 if (sortBy) {
-    sortBy.addEventListener('change', filterAndSort);
+    sortBy.addEventListener('change', () => { hasInteracted = true; filterAndSort(); });
 }
+if (dateFrom) {
+    dateFrom.addEventListener('change', () => { hasInteracted = true; filterAndSort(); });
+}
+if (dateTo) {
+    dateTo.addEventListener('change', () => { hasInteracted = true; filterAndSort(); });
+}
+if (quickRangeButtons && quickRangeButtons.length) {
+    quickRangeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const range = btn.getAttribute('data-range');
+            applyQuickRange(range);
+            hasInteracted = true;
+            filterAndSort();
+        });
+    });
+}
+
+// Inisialisasi: halaman kosong dulu sampai user filter/search
+window.addEventListener('DOMContentLoaded', () => {
+    currentData = [];
+    hasInteracted = false;
+    displayResults();
+    updatePaginationInfo();
+    renderPagination();
+});
 
 // Debounce function untuk search
 function debounce(func, wait) {
@@ -673,11 +661,38 @@ function debounce(func, wait) {
     return function executedFunction(...args) {
         const later = () => {
             clearTimeout(timeout);
-            func(...args);
+            func.apply(this, args);
         };
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Helper untuk set range cepat berdasarkan tanggal hari ini
+function applyQuickRange(range) {
+    const today = new Date();
+    let start, end;
+
+    // Set end ke hari ini
+    end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    if (range === 'minggu') {
+        const dayOfWeek = end.getDay(); // 0=Min,1=Sen,...
+        const diffToMonday = (dayOfWeek + 6) % 7; // jarak ke Senin
+        start = new Date(end);
+        start.setDate(end.getDate() - diffToMonday);
+    } else if (range === 'bulan') {
+        start = new Date(end.getFullYear(), end.getMonth(), 1);
+    } else if (range === 'tahun') {
+        start = new Date(end.getFullYear(), 0, 1);
+    } else {
+        return;
+    }
+
+    const toYMD = (d) => d.toISOString().slice(0, 10);
+
+    if (dateFrom) dateFrom.value = toYMD(start);
+    if (dateTo) dateTo.value = toYMD(end);
 }
 
 // Filter dan sort function
@@ -686,77 +701,52 @@ function filterAndSort() {
 
     console.log('=== FILTER AND SORT DEBUG ===');
     console.log('Starting filterAndSort with total data:', filtered.length);
-    console.log('Data sample:', filtered.slice(0, 2));
 
     // Apply search filter
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    console.log('Search term:', searchTerm);
     if (searchTerm) {
-        console.log('Applying search filter for term:', searchTerm);
-        const beforeSearch = filtered.length;
         filtered = filtered.filter(proyek => {
-            // Pastikan semua field ada dan bukan null/undefined
-            const instansi = proyek.instansi ? proyek.instansi.toLowerCase() : '';
-            const kabupaten = proyek.kabupaten ? proyek.kabupaten.toLowerCase() : '';
-            const namaProyek = proyek.nama_proyek ? proyek.nama_proyek.toLowerCase() : '';
-            const kode = proyek.kode ? proyek.kode.toLowerCase() : '';
-
-            const match = instansi.includes(searchTerm) ||
-                         kabupaten.includes(searchTerm) ||
-                         namaProyek.includes(searchTerm) ||
-                         kode.includes(searchTerm);
-
-            if (match) {
-                console.log('Match found in:', { instansi, kabupaten, namaProyek, kode });
-            }
-
-            return match;
+            return (
+                (proyek.instansi && proyek.instansi.toLowerCase().includes(searchTerm)) ||
+                (proyek.kabupaten && proyek.kabupaten.toLowerCase().includes(searchTerm)) ||
+                (proyek.kode && proyek.kode.toLowerCase().includes(searchTerm))
+            );
         });
-        console.log('After search filter:', filtered.length, 'items remaining (was', beforeSearch, ')');
     }
 
     // Apply status filter
     const selectedStatus = statusFilter ? statusFilter.value : '';
-    console.log('Selected status:', selectedStatus);
     if (selectedStatus) {
-        console.log('Applying status filter for:', selectedStatus);
-        const beforeStatusFilter = filtered.length;
+        filtered = filtered.filter(proyek => proyek.status === selectedStatus);
+    }
+
+    // Apply date range filter (pakai field tanggal proyek, format 'YYYY-MM-DD')
+    const fromVal = dateFrom ? dateFrom.value : '';
+    const toVal = dateTo ? dateTo.value : '';
+
+    if (fromVal || toVal) {
         filtered = filtered.filter(proyek => {
-            const match = proyek.status === selectedStatus;
-            console.log('Status check:', proyek.status, '===', selectedStatus, '=', match);
-            return match;
+            const tgl = proyek.tanggal; // sudah string 'YYYY-MM-DD'
+            if (!tgl) return false;
+
+            if (fromVal && tgl < fromVal) return false;
+            if (toVal && tgl > toVal) return false;
+            return true;
         });
-        console.log('After status filter:', filtered.length, 'items remaining (was', beforeStatusFilter, ')');
     }
 
     // Apply sorting
     const selectedSort = sortBy ? sortBy.value : '';
-    console.log('Selected sort:', selectedSort);
     if (selectedSort) {
-        console.log('Applying sort:', selectedSort);
-
-        switch (selectedSort) {
-            case 'terbaru':
-                filtered.sort((a, b) => {
-                    const dateA = new Date(a.tanggal);
-                    const dateB = new Date(b.tanggal);
-                    return dateB - dateA;
-                });
-                break;
-            case 'terlama':
-                filtered.sort((a, b) => {
-                    const dateA = new Date(a.tanggal);
-                    const dateB = new Date(b.tanggal);
-                    return dateA - dateB;
-                });
-                break;
-        }
-
-        console.log('After sort - first 3 items:', filtered.slice(0, 3).map(p => ({ id: p.id, tanggal: p.tanggal, instansi: p.instansi })));
+        filtered.sort((a, b) => {
+            if (selectedSort === 'terbaru') {
+                return (a.tanggal < b.tanggal) ? 1 : (a.tanggal > b.tanggal ? -1 : 0);
+            } else if (selectedSort === 'terlama') {
+                return (a.tanggal > b.tanggal) ? 1 : (a.tanggal < b.tanggal ? -1 : 0);
+            }
+            return 0;
+        });
     }
-
-    console.log('Final filtered data:', filtered.length, 'items');
-    console.log('Sample final data:', filtered.slice(0, 2).map(p => ({ kode: p.kode, instansi: p.instansi, status: p.status })));
 
     currentData = filtered;
     currentPage = 1; // Reset to first page when filtering
@@ -770,46 +760,27 @@ function filterAndSort() {
 // Reset all filters
 function resetFilters() {
     console.log('=== RESET FILTERS DEBUG ===');
-    console.log('Starting reset filters');
 
     // Reset form elements
-    if (searchInput) {
-        console.log('Resetting search input from:', searchInput.value);
-        searchInput.value = '';
-    }
-    if (statusFilter) {
-        console.log('Resetting status filter from:', statusFilter.value);
-        statusFilter.value = '';
-    }
-    if (sortBy) {
-        console.log('Resetting sort by from:', sortBy.value);
-        sortBy.value = '';
-    }
+    if (searchInput) searchInput.value = '';
+    if (statusFilter) statusFilter.value = '';
+    if (sortBy) sortBy.value = '';
+    if (dateFrom) dateFrom.value = '';
+    if (dateTo) dateTo.value = '';
 
-    // Reset data to original
-    console.log('Resetting currentData from', currentData.length, 'to', proyekData.length, 'items');
-    currentData = [...proyekData];
-    currentPage = 1; // Reset to first page
+    // Reset interaksi user dan data
+    hasInteracted = false;
+    currentData = [];
+    currentPage = 1;
 
-    // Hide no results message
-    const noResults = document.getElementById('noResults');
-    const proyekContainer = document.getElementById('proyekContainer');
-    if (noResults) {
-        noResults.classList.add('hidden');
-        console.log('No results message hidden');
-    }
-    if (proyekContainer) {
-        proyekContainer.classList.remove('hidden');
-        proyekContainer.classList.remove('reordering');
-        console.log('Proyek container shown');
-    }
+    // Tampilkan kembali empty state petunjuk
+    const emptyStateEl = document.getElementById('emptyState');
+    if (emptyStateEl) emptyStateEl.classList.remove('hidden');
 
-    // Update pagination info and render - this will handle showing/hiding cards
     displayResults();
     updatePaginationInfo();
     renderPagination();
 
-    console.log('Reset complete - showing first page of', proyekData.length, 'items');
     console.log('=== END RESET DEBUG ===');
 }
 
@@ -824,76 +795,67 @@ function displayResults() {
         return;
     }
 
-    // Calculate total pages
-    totalPages = Math.ceil(currentData.length / itemsPerPage);
-    console.log('Total pages:', totalPages, 'Current page:', currentPage);
-
-    // Get all cards
     const cards = document.querySelectorAll('.proyek-card');
-    console.log('Found', cards.length, 'total cards');
-    console.log('Current data length:', currentData.length);
 
-    // If there's no filtered data, show no results
-    if (currentData.length === 0) {
-        console.log('No data to show - displaying no results message');
+    const emptyState = document.getElementById('emptyState');
+
+    // Default: tampilkan petunjuk sebelum user berinteraksi
+    if (!hasInteracted) {
         cards.forEach(card => card.style.display = 'none');
-        if (noResults) noResults.classList.remove('hidden');
-        if (container) container.classList.add('hidden');
+        if (noResults) noResults.classList.add('hidden');
+        if (emptyState) emptyState.classList.remove('hidden');
+        container.classList.add('hidden');
+        totalPages = 1;
         return;
     }
 
-    // Calculate start and end index for current page
+    // Sembunyikan empty state saat sudah berinteraksi
+    if (emptyState) emptyState.classList.add('hidden');
+
+    // Calculate total pages
+    totalPages = Math.ceil(currentData.length / itemsPerPage) || 1;
+
+    // Jika tidak ada data setelah filter
+    if (currentData.length === 0) {
+        cards.forEach(card => card.style.display = 'none');
+        if (noResults) noResults.classList.remove('hidden');
+        container.classList.add('hidden');
+        return;
+    }
+
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentPageData = currentData.slice(startIndex, endIndex);
-
-    console.log('Displaying items from', startIndex, 'to', endIndex);
-    console.log('Items on current page:', currentPageData.length);
-
-    // Create a set of current page project IDs
     const currentPageIds = new Set(currentPageData.map(proyek => proyek.id));
-    console.log('Current page project IDs:', Array.from(currentPageIds));
 
-    // Show/hide cards based on current page data
     let visibleCount = 0;
-
-    // Process each card
     cards.forEach((card, cardIndex) => {
         const originalProyek = proyekData[cardIndex];
         if (originalProyek && currentPageIds.has(originalProyek.id)) {
             card.style.display = 'block';
             visibleCount++;
-            console.log('Showing card for project:', originalProyek.kode, 'at index', cardIndex);
         } else {
             card.style.display = 'none';
         }
     });
 
-    console.log('Visible cards:', visibleCount);
-
-    // Show/hide appropriate messages
     if (visibleCount === 0) {
         if (noResults) noResults.classList.remove('hidden');
-        if (container) container.classList.add('hidden');
-        console.log('No cards visible - showing no results');
+        container.classList.add('hidden');
     } else {
         if (noResults) noResults.classList.add('hidden');
-        if (container) container.classList.remove('hidden');
-        console.log('Cards visible - hiding no results');
+        container.classList.remove('hidden');
     }
 
-    // If we have sorted data, we need to reorder the cards in the container
+    // Reorder cards jika sedang sort
     if (currentData.length > 0 && sortBy && sortBy.value) {
-        console.log('Reordering cards based on sort order');
         reorderCards();
     } else {
-        // Reset to original order if no sorting, but keep pagination
-        console.log('No sorting - keeping original order with pagination');
-        const container = document.getElementById('proyekContainer');
-        if (container) {
-            container.classList.remove('reordering');
-        }
+        const containerEl = document.getElementById('proyekContainer');
+        if (containerEl) containerEl.classList.remove('reordering');
     }
+
+   
 
     console.log('=== END DISPLAY RESULTS DEBUG ===');
 }
@@ -1970,48 +1932,8 @@ function validateDropdownChange(selectElement, proyekId) {
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== DOM LOADED DEBUG ===');
-    console.log('DOM loaded, initializing...');
-    console.log('Proyek data loaded:', proyekData.length, 'items');
-
-    // Debug: Show first item structure
-    if (proyekData.length > 0) {
-        console.log('Sample data structure:', {
-            id: proyekData[0].id,
-            kode: proyekData[0].kode,
-            instansi: proyekData[0].instansi,
-            kabupaten: proyekData[0].kabupaten,
-            status: proyekData[0].status,
-            tanggal: proyekData[0].tanggal,
-            nama_proyek: proyekData[0].nama_proyek
-        });
-    }
-
-    // Check if input elements exist
-    console.log('Form elements check:');
-    console.log('searchInput:', searchInput ? 'found' : 'NOT FOUND');
-    console.log('statusFilter:', statusFilter ? 'found' : 'NOT FOUND');
-    console.log('sortBy:', sortBy ? 'found' : 'NOT FOUND');
-
-    // Initialize pagination
-    currentData = [...proyekData];
-    totalPages = Math.ceil(currentData.length / itemsPerPage);
-    console.log('Initial pagination - Total pages:', totalPages, 'Items per page:', itemsPerPage);
-
-    // Initialize display
-    displayResults();
-    updatePaginationInfo();
-    renderPagination();
-
-    // Add event listeners for modal close buttons
-    document.querySelectorAll('[onclick*="closeModal"]').forEach(button => {
-        console.log('Found modal close button');
-    });
-
-    console.log('Initialization complete');
-    console.log('=== END DOM LOADED DEBUG ===');
-});
+// Hapus inisialisasi lama yang langsung mengisi currentData dengan semua proyek
+// document.addEventListener('DOMContentLoaded', function() { ... });
+// karena sudah digantikan oleh handler DOMContentLoaded di atas yang membuat halaman default kosong dengan arahan search/filter.
 </script>
-
 @endsection
