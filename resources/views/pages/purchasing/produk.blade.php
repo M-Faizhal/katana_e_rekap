@@ -465,21 +465,21 @@
                     // Estimasi Ketersediaan
                     document.getElementById('detailEstimasiKetersediaan').textContent = produk.estimasi_ketersediaan || '-';
                     
-                    // Link Produk (External Link)
-                    const linkProdukContainer = document.getElementById('detailLinkProdukContainer');
-                    const linkProdukElement = document.getElementById('detailLinkProduk');
-                    const linkProdukText = document.getElementById('detailLinkProdukText');
-                    
+                    // Link Produk — isi input & simpan id barang untuk save
+                    const inputLink = document.getElementById('inputLinkProduk');
+                    const openLinkBtn = document.getElementById('detailLinkProduk');
+                    const saveMsg = document.getElementById('linkProdukSaveMsg');
+                    inputLink.value = produk.link_produk || '';
+                    inputLink.dataset.barangId = produk.id_barang;
+                    saveMsg.classList.add('hidden');
                     if (produk.link_produk && produk.link_produk.trim() !== '') {
-                        linkProdukElement.href = produk.link_produk;
-                        linkProdukText.textContent = 'Buka Link Produk';
-                        linkProdukElement.classList.remove('pointer-events-none', 'text-gray-400');
-                        linkProdukElement.classList.add('text-blue-600', 'hover:text-blue-800', 'hover:underline');
+                        const normalizedLink = /^https?:\/\//i.test(produk.link_produk) ? produk.link_produk : 'https://' + produk.link_produk;
+                        openLinkBtn.href = normalizedLink;
+                        openLinkBtn.classList.remove('hidden');
+                        openLinkBtn.classList.add('inline-flex');
                     } else {
-                        linkProdukElement.href = '#';
-                        linkProdukText.textContent = 'Link produk tidak tersedia';
-                        linkProdukElement.classList.add('pointer-events-none', 'text-gray-400');
-                        linkProdukElement.classList.remove('text-blue-600', 'hover:text-blue-800', 'hover:underline');
+                        openLinkBtn.classList.add('hidden');
+                        openLinkBtn.classList.remove('inline-flex');
                     }
                     
                     // Update product image
@@ -544,6 +544,63 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+    }
+
+    function saveLinkProduk() {
+        const input = document.getElementById('inputLinkProduk');
+        const openLinkBtn = document.getElementById('detailLinkProduk');
+        const saveMsg = document.getElementById('linkProdukSaveMsg');
+        const barangId = input.dataset.barangId;
+        let link = input.value.trim();
+
+        // Auto-prefix https:// jika belum ada protocol
+        if (link && !/^https?:\/\//i.test(link)) {
+            link = 'https://' + link;
+            input.value = link;
+        }
+
+        if (!barangId) {
+            saveMsg.textContent = 'ID produk tidak ditemukan.';
+            saveMsg.className = 'text-xs mt-1 text-red-600';
+            saveMsg.classList.remove('hidden');
+            return;
+        }
+
+        fetch(`/purchasing/produk/${barangId}/link`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ link_produk: link }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                saveMsg.textContent = 'Link berhasil disimpan.';
+                saveMsg.className = 'text-xs mt-1 text-green-600';
+                saveMsg.classList.remove('hidden');
+                if (link) {
+                    openLinkBtn.href = link;
+                    openLinkBtn.classList.remove('hidden');
+                    openLinkBtn.classList.add('inline-flex');
+                } else {
+                    openLinkBtn.classList.add('hidden');
+                    openLinkBtn.classList.remove('inline-flex');
+                }
+                setTimeout(() => saveMsg.classList.add('hidden'), 3000);
+            } else {
+                saveMsg.textContent = data.message || 'Gagal menyimpan link.';
+                saveMsg.className = 'text-xs mt-1 text-red-600';
+                saveMsg.classList.remove('hidden');
+            }
+        })
+        .catch(() => {
+            saveMsg.textContent = 'Terjadi kesalahan. Coba lagi.';
+            saveMsg.className = 'text-xs mt-1 text-red-600';
+            saveMsg.classList.remove('hidden');
+        });
     }
     
     // Auto submit form when filter changes

@@ -154,10 +154,10 @@
 
             <!-- Produk -->
             <li>
-                <a href="{{ route('produk') }}"
-                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('produk') ? 'bg-red-200 text-red-800' : '' }}">
+                <a href="{{ route('produk.marketing') }}"
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('produk.marketing') ? 'bg-red-200 text-red-800' : '' }}">
                     <i class="fas fa-box w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
-                    <span class="font-medium">Produk</span>
+                    <span class="font-medium">Produk Marketing</span>
                 </a>
             </li>
 
@@ -393,10 +393,10 @@
 
             <!-- Produk -->
             <li>
-                <a href="{{ route('produk') }}" onclick="closeMobileMenu()"
-                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('produk') ? 'bg-red-200 text-red-800' : '' }}">
+                <a href="{{ route('produk.marketing') }}" onclick="closeMobileMenu()"
+                   class="flex items-center space-x-3 text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('produk.marketing') ? 'bg-red-200 text-red-800' : '' }}">
                     <i class="fas fa-box w-5 text-lg group-hover:scale-110 transition-transform duration-300"></i>
-                    <span class="font-medium">Produk</span>
+                    <span class="font-medium">Produk Marketing</span>
                 </a>
             </li>
 

@@ -254,25 +254,22 @@
                             </div>
                             @endif
 
-                            <!-- Update Info per Instansi -->
-                            <div class="mt-3 pt-2 border-t border-gray-200 space-y-1">
-                                <div class="flex items-center text-xs text-gray-400">
-                                    <i class="fas fa-clock w-3 mr-2"></i>
-                                    <span>Diperbarui: {{ $instansi['updated_at'] }}</span>
-                                </div>
-                                <div class="flex items-center text-xs text-gray-400">
-                                    <i class="fas fa-user-edit w-3 mr-2"></i>
-                                    <span>Oleh:  {{ $instansi['updated_by_name'] }}</span>
-                                </div>
-                            </div>
+
                         </div>
                         @endforeach
                     </div>
 
                     <!-- Wilayah Footer -->
                     <div class="border-t border-gray-200 pt-3 flex items-center justify-between">
-                        <div class="text-xs text-gray-500">
-                            
+                        <div class="flex items-center gap-3 text-xs text-gray-400">
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ $wilayah['updated_at'] }}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-user-edit"></i>
+                                <span>{{ $wilayah['updated_by_name'] }}</span>
+                            </div>
                         </div>
                         <button onclick="tambahInstansiKeWilayah('{{ $wilayah['wilayah'] }}', '{{ $wilayah['provinsi'] }}')"
                                 class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded-lg text-sm font-medium transition-colors">
