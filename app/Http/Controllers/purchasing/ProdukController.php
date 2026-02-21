@@ -73,7 +73,7 @@ class ProdukController extends Controller
         $sortOrder = $request->get('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        $produk = $query->paginate(12)->withQueryString();
+        $produk = $query->paginate(36)->withQueryString();
 
         // Pasangkan harga_marketing ke tiap item
         $hargaMap = $latestHarga->get()->keyBy('id_barang');
@@ -128,7 +128,7 @@ class ProdukController extends Controller
         $query->orderBy($sortBy, $sortOrder);
         
         // Paginate
-        $produk = $query->paginate(12)->withQueryString();
+        $produk = $query->paginate(36)->withQueryString();
         
         // Get cached vendors (cache for 1 hour since vendors don't change often)
         $vendors = Cache::remember('vendors_list', 3600, function() {
