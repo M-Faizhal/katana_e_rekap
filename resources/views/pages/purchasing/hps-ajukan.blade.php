@@ -233,6 +233,7 @@
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-yellow-100" title="Input: Harga yang diharapkan">Harga Yang Diharapkan <br><small class="text-blue-600">(INPUT)</small></th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-gray-100" title="Calculated: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100">% Kenaikan <br><small class="text-gray-600">(AUTO)</small></th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Proyeksi Kenaikan</th>
+                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-yellow-100" title="Input: PPN persen per item (default 11%)">% PPN <br><small class="text-blue-600">(INPUT)</small></th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPN</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPH</th>
                         <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">HPS</th>
@@ -939,6 +940,7 @@ const totalPermintaanKlien = {{ $totalPermintaanKlien ?? 0 }};
 kalkulasiData = kalkulasiData.map(item => ({
     ...item,
     harga_yang_diharapkan: item.harga_yang_diharapkan || 0,
+    ppn_percent: parseFloat(item.ppn_percent) || 11,
     persen_kenaikan: item.persen_kenaikan || item.kenaikan_percent || 0,
     // Clean display values - show empty string for 0 values in UI
     _displayValues: {
@@ -1258,6 +1260,10 @@ function createKalkulasiTableRow(item, index) {
             </td>
             <td class="px-2 py-3 bg-blue-50 text-xs">
                 <span>${(item.proyeksi_kenaikan && item.proyeksi_kenaikan > 0) ? formatRupiah(item.proyeksi_kenaikan) : '-'}</span>
+            </td>
+            <td class="px-2 py-3 bg-yellow-100">
+                <input type="number" value="${item.ppn_percent > 0 ? item.ppn_percent : 11}" onchange="updateValue(${index}, 'ppn_percent', this.value)" class="no-spin text-right w-14 font-semibold" step="0.1" min="0" max="100" placeholder="11" title="INPUT: PPN persen per item (default 11%)" ${!canEdit ? 'readonly' : ''}>
+                <span class="text-gray-400 text-xs"></span>
             </td>
             <td class="px-2 py-3 bg-blue-50 text-xs">
                 <span>${(item.ppn_dinas && item.ppn_dinas > 0) ? formatRupiah(item.ppn_dinas) : '-'}</span>
@@ -1591,7 +1597,7 @@ function updateValue(index, field, value) {
         kalkulasiData[index][field] = 0;
         
         // Handle percentage sync for empty values
-        if (['omzet_dinas_percent', 'bendera_percent', 'bank_cost_percent', 'biaya_ops_percent'].includes(field)) {
+        if (['bendera_percent', 'bank_cost_percent', 'biaya_ops_percent'].includes(field)) {
             syncPercentageToAllItems(field, 0);
         } else {
             calculateRow(index);
@@ -1631,7 +1637,7 @@ function updateValue(index, field, value) {
         calculateTotals();
     }
     // Handle percentage fields that should sync across all items
-    else if (['omzet_dinas_percent', 'bendera_percent', 'bank_cost_percent', 'biaya_ops_percent'].includes(field)) {
+    else if (['bendera_percent', 'bank_cost_percent', 'biaya_ops_percent'].includes(field)) {
         syncPercentageToAllItems(field, numericValue);
     }
     else {
@@ -2463,6 +2469,7 @@ function resetInputFields(index) {
     kalkulasiData[index].harga_vendor = 0;
     kalkulasiData[index].harga_diskon = 0;
     kalkulasiData[index].harga_yang_diharapkan = 0;
+    kalkulasiData[index].ppn_percent = 11;
     kalkulasiData[index].nilai_sp = 0;
     kalkulasiData[index].ongkir = 0;
     kalkulasiData[index].omzet_dinas_percent = 0;

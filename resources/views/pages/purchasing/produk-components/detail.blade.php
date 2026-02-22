@@ -67,6 +67,12 @@
                                 <label class="block text-sm font-medium text-gray-500 mb-1">Vendor</label>
                                 <p id="detailVendor" class="text-lg font-semibold text-gray-800">-</p>
                             </div>
+                            <div id="detailHargaMarketingContainer" style="display: none;">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">
+                                    Harga Jual
+                                </label>
+                                <p id="detailHargaMarketing" class="text-xl font-bold text-orange-600">-</p>
+                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 mb-1">Harga Pasaran Inaproc</label>
                                 <p id="detailHargaInaproc" class="text-lg font-bold text-red-600">-</p>
@@ -105,12 +111,24 @@
                             <label class="block text-sm font-medium text-gray-500 mb-1">Estimasi Ketersediaan</label>
                             <p id="detailEstimasiKetersediaan" class="text-base text-gray-700">-</p>
                         </div>
-                        <div id="detailLinkProdukContainer">
+                        <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Link Produk</label>
-                            <a id="detailLinkProduk" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
-                                <i class="fas fa-external-link-alt mr-2"></i>
-                                <span id="detailLinkProdukText">Buka Link Produk</span>
-                            </a>
+                            <div class="flex items-center gap-2">
+                                <input type="url" id="inputLinkProduk"
+                                    placeholder="https://..."
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all">
+                                <button type="button" onclick="saveLinkProduk()"
+                                    class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm flex items-center gap-1 whitespace-nowrap">
+                                    <i class="fas fa-save"></i>
+                                    <span>Simpan</span>
+                                </button>
+                                <a id="detailLinkProduk" href="#" target="_blank" rel="noopener noreferrer"
+                                    class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm hidden items-center gap-1 whitespace-nowrap">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span>Buka</span>
+                                </a>
+                            </div>
+                            <p id="linkProdukSaveMsg" class="text-xs mt-1 hidden"></p>
                         </div>
                     </div>
                 </div>

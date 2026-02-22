@@ -142,6 +142,10 @@ class HPSCalculator {
         const hargaYangDiharapkan = parseFloat(calculated.harga_yang_diharapkan) || 0;
         calculated.harga_yang_diharapkan = hargaYangDiharapkan;
         
+        // PPN PERCENT per item (inputan admin, default 11%)
+        const ppnPercent = parseFloat(calculated.ppn_percent) || 11;
+        calculated.ppn_percent = ppnPercent;
+
         // 13. Persen Kenaikan - CALCULATED based on formula
         // Formula: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100
         // NOTE: Nilai ini BOLEH NEGATIF jika target yang diharapkan lebih rendah dari biaya (loss scenario)
@@ -151,7 +155,7 @@ class HPSCalculator {
         // - Nilai PPH + Nilai PPN = Pajak yang harus dibayar
         // - Result = Persentase kenaikan yang dibutuhkan untuk mencapai target (bisa minus untuk loss)
         const totalHargaHpp = totalHarga; // Total harga is the hpp
-        const nilaiPpn = totalHarga * 0.11; // PPN 11%
+        const nilaiPpn = totalHarga * (ppnPercent / 100); // PPN dinamis sesuai input
         const nilaiPph = totalHarga * 0.015; // PPH 1.5%
         const targetRevenue = hargaYangDiharapkan * qty;
         const totalCost = totalHargaHpp + nilaiPph + nilaiPpn;
@@ -167,8 +171,8 @@ class HPSCalculator {
         const proyeksiKenaikan = (persenKenaikan / 100) * totalHarga;
         calculated.proyeksi_kenaikan = proyeksiKenaikan;
         
-        // 15. PPN DINAS = 11% dari total harga
-        const ppnDinas = totalHarga * 0.11;
+        // 15. PPN DINAS = ppnPercent% dari total harga
+        const ppnDinas = totalHarga * (ppnPercent / 100);
         calculated.ppn_dinas = ppnDinas;
         
         // 16. PPH DINAS = 1.5% dari total harga
@@ -198,8 +202,9 @@ class HPSCalculator {
         
         // 22. NILAI SP (Admin Input Nilai Harga) (already set)
         
-        // 23. DPP = HPS / 1.11 (Revisi)
-        const dpp = hps / 1.11;
+        // 23. DPP = HPS / (1 + ppnPercent/100) (Revisi)
+        const ppnMultiplier = 1 + (ppnPercent / 100);
+        const dpp = hps / ppnMultiplier;
         calculated.dpp = dpp;
         calculated.nilai_dpp = dpp; // For compatibility
         
@@ -397,6 +402,7 @@ class HPSCalculator {
             harga_yang_diharapkan: 0, // ← INPUT: Harga yang diharapkan (default 0, bisa diedit)
             persen_kenaikan: 0,       // ← CALCULATED: Persentase kenaikan (bisa minus)
             proyeksi_kenaikan: 0,
+            ppn_percent: 11,          // ← INPUT: PPN persen per item (default 11%)
             ppn_dinas: 0,
             pph_dinas: 0,
             hps: 0,

@@ -18,6 +18,7 @@ use App\Http\Controllers\marketing\PotensiController;
 use App\Http\Controllers\marketing\PenawaranController;
 use App\Http\Controllers\marketing\Export\PotensiExportController;
 use App\Http\Controllers\marketing\Export\OmsetExportController;
+use App\Http\Controllers\marketing\Export\OmsetMarketingExportController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 
@@ -66,8 +67,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/omset', [LaporanController::class, 'omset'])->name('laporan.omset');
     Route::get('/laporan/hutang-vendor', [LaporanController::class, 'hutangVendor'])->name('laporan.hutang-vendor');
     Route::get('/laporan/piutang-dinas', [LaporanController::class, 'piutangDinas'])->name('laporan.piutang-dinas');
-    Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
-    Route::get('/laporan/export-omset', [OmsetExportController::class, 'exportExcel'])->name('laporan.export-omset');
+    Route::get('/laporan/export', [OmsetExportController::class, 'exportExcel'])->name('laporan.export');
+    Route::get('/laporan/export-omset-marketing', [OmsetMarketingExportController::class, 'exportExcel'])->name('laporan.export-omset-marketing');
     Route::get('/laporan/project/{id}', [LaporanController::class, 'getProjectDetail'])->name('laporan.project.detail');
     Route::get('/laporan/data', [LaporanController::class, 'getFilteredData'])->name('laporan.data');
 
@@ -128,6 +129,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/produk', [ProdukController::class, 'index_produk_purchasing'])->name('purchasing.produk');
         Route::get('/produk/export', [ProdukController::class, 'export'])->name('purchasing.produk.export');
         Route::get('/produk/{id}', [ProdukController::class, 'show'])->name('produk.show');
+        Route::patch('/produk/{id}/link', [ProdukController::class, 'updateLink'])->name('produk.updateLink');
 
         // Vendor Routes
         Route::get('/vendor', [VendorController::class, 'index'])->name('purchasing.vendor');
@@ -222,8 +224,8 @@ Route::middleware('auth')->group(function () {
 
     });
 
-    Route::get('/produk', [ProdukController::class, 'index_produk'])->name('produk');
     Route::get('/produk/export', [ProdukController::class, 'export'])->name('produk.export');
+    Route::get('/produk', [ProdukController::class, 'index_produk_marketing'])->name('produk.marketing');
 
 
     Route::get('/pengaturan', [App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan');

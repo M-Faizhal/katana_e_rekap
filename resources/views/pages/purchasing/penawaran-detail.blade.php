@@ -424,6 +424,8 @@
             $totalBankCost = $kalkulasiData->sum('bank_cost');
             $totalBiayaOps = $kalkulasiData->sum('biaya_ops');
             $totalTidakLangsung = $totalOmzetDinas + $totalBendera + $totalBankCost + $totalBiayaOps;
+            $totalNilaiPpn = $kalkulasiData->sum('nilai_ppn');
+            $totalNilaiPph = $kalkulasiData->sum('nilai_pph_badan');
         @endphp
         
         <!-- Main Summary Row -->
@@ -497,7 +499,6 @@
                 <div class="text-sm font-semibold">{{ 'Rp ' . number_format($totalAsumsiOngkir, 2, ',', '.') }}</div>
             </div>
         </div>
-        
         <!-- Biaya Tidak Langsung Summary -->
         <div class="mt-4 bg-white rounded-lg p-4 border">
             <h4 class="text-md font-semibold text-gray-800 mb-3">Biaya Tidak Langsung</h4>
@@ -658,6 +659,7 @@
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Total Harga</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">% Kenaikan</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">Proyeksi Kenaikan</th>
+                        <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">% PPN</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">PPN Dinas</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r">PPh Dinas</th>
                         <th class="px-2 py-2 text-left font-medium text-orange-700 uppercase border-r bg-yellow-100">HPS</th>
@@ -704,6 +706,9 @@
                         </td>
                         <td class="px-2 py-2 text-right border-r">
                             {{ number_format($kalkulasi->proyeksi_kenaikan ?? 0, 2, ',', '.') }}
+                        </td>
+                        <td class="px-2 py-2 text-right border-r">
+                            {{ number_format($kalkulasi->ppn_percent ?? 11, 1) }}
                         </td>
                         <td class="px-2 py-2 text-right border-r">
                             {{ number_format($kalkulasi->nilai_ppn ?? 0, 2, ',', '.') }}
@@ -765,6 +770,7 @@
                         <td class="px-2 py-3 text-right border-r">
                             {{ number_format($kalkulasiData->sum('proyeksi_kenaikan'), 2, ',', '.') }}
                         </td>
+                        <td class="px-2 py-3 text-right border-r">-</td>
                         <td class="px-2 py-3 text-right border-r">
                             {{ number_format($kalkulasiData->sum('nilai_ppn'), 2, ',', '.') }}
                         </td>

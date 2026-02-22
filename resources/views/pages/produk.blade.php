@@ -66,8 +66,8 @@
 <div class="bg-red-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 text-white shadow-lg mt-4">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Manajemen Produk</h1>
-            <p class="text-red-100 text-sm sm:text-base lg:text-lg">Kelola dan pantau semua produk dari vendor</p>
+            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Produk Marketing</h1>
+            <p class="text-red-100 text-sm sm:text-base lg:text-lg">Daftar produk yang digunakan dalam kalkulasi HPS</p>
         </div>
         <div class="hidden sm:block lg:block">
             <i class="fas fa-box text-3xl sm:text-4xl lg:text-6xl"></i>
@@ -136,7 +136,7 @@
 
 <!-- Search & Filter Section -->
 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 mb-6">
-    <form method="GET" action="{{ route('purchasing.produk') }}" class="space-y-4">
+    <form method="GET" action="{{ route('produk.marketing') }}" class="space-y-4">
         <div class="flex flex-col lg:flex-row gap-4">
             <!-- Search Bar -->
             <div class="flex-1">
@@ -158,7 +158,7 @@
                     <i class="fas fa-search"></i>
                     <span>Cari</span>
                 </button>
-                <a href="{{ route('produk') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
+                <a href="{{ route('produk.marketing') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
                     <i class="fas fa-refresh"></i>
                     <span>Reset</span>
                 </a>
@@ -210,7 +210,7 @@
             
             <!-- Min Price -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Min</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Jual Min</label>
                 <input type="number" 
                        name="min_harga" 
                        value="{{ request('min_harga') }}"
@@ -220,7 +220,7 @@
             
             <!-- Max Price -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Max</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Harga Jual Max</label>
                 <input type="number" 
                        name="max_harga" 
                        value="{{ request('max_harga') }}"
@@ -234,7 +234,6 @@
                 <select name="sort_by" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="created_at" {{ request('sort_by') == 'created_at' ? 'selected' : '' }}>Tanggal Dibuat</option>
                     <option value="nama_barang" {{ request('sort_by') == 'nama_barang' ? 'selected' : '' }}>Nama Produk</option>
-                    <option value="harga_vendor" {{ request('sort_by') == 'harga_vendor' ? 'selected' : '' }}>Harga</option>
                     <option value="brand" {{ request('sort_by') == 'brand' ? 'selected' : '' }}>Brand</option>
                 </select>
                 <select name="sort_order" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 mt-2">
@@ -313,17 +312,29 @@
                                 </div>
                             @endif
                             
-                            <!-- Harga Pasaran Inaproc (Red, Bold) -->
-                            @if($item->harga_pasaran_inaproc)
+                            <!-- Harga yang Diharapkan (dari kalkulasi HPS) -->
+                            @if(isset($item->harga_marketing) && $item->harga_marketing)
                                 <p class="text-xs sm:text-sm font-bold text-red-600 mb-1">
-                                    Rp {{ number_format($item->harga_pasaran_inaproc, 0, ',', '.') }} / {{ $item->satuan }} 
+                                    Rp {{ number_format($item->harga_marketing, 0, ',', '.') }} / {{ $item->satuan }}
+                                </p>
+                                @if($item->harga_pasaran_inaproc)
+                                <p class="text-xs text-gray-400 line-through mb-1">
+                                    Inaproc: Rp {{ number_format($item->harga_pasaran_inaproc, 0, ',', '.') }}
+                                </p>
+                                @endif
+                            @else
+                                <!-- Harga Pasaran Inaproc (Red, Bold) -->
+                                @if($item->harga_pasaran_inaproc)
+                                    <p class="text-xs sm:text-sm font-bold text-red-600 mb-1">
+                                        Rp {{ number_format($item->harga_pasaran_inaproc, 0, ',', '.') }} / {{ $item->satuan }} 
+                                    </p>
+                                @endif
+                                
+                                <!-- Harga Vendor -->
+                                <p class="text-xs sm:text-sm text-gray-900 mb-1">
+                                    Rp {{ number_format($item->harga_vendor, 0, ',', '.') }} / {{ $item->satuan }}
                                 </p>
                             @endif
-                            
-                            <!-- Harga Vendor -->
-                            <p class="text-xs sm:text-sm text-gray-900 mb-1">
-                                Rp {{ number_format($item->harga_vendor, 0, ',', '.') }} / {{ $item->satuan }}
-                            </p>
                             
                             <!-- Vendor Name -->
                             <p class="text-xs text-gray-500 mt-auto">{{ $item->vendor->nama_vendor }}</p>
@@ -350,7 +361,7 @@
                         Belum ada produk yang tersedia saat ini.
                     @endif
                 </p>
-                <a href="{{ route('purchasing.produk') }}" class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                <a href="{{ route('produk.marketing') }}" class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                     <i class="fas fa-refresh mr-2"></i>
                     Reset Filter
                 </a>
@@ -409,6 +420,17 @@
                     document.getElementById('detailBrand').textContent = produk.brand;
                     document.getElementById('detailVendor').textContent = produk.vendor.nama_vendor;
                     document.getElementById('detailHarga').textContent = `Rp ${new Intl.NumberFormat('id-ID').format(produk.harga_vendor)} / ${produk.satuan}`;
+                    
+                    // Harga Marketing (dari kalkulasi HPS)
+                    const hargaMarketingContainer = document.getElementById('detailHargaMarketingContainer');
+                    if (hargaMarketingContainer) {
+                        if (produk.harga_marketing) {
+                            document.getElementById('detailHargaMarketing').textContent = `Rp ${new Intl.NumberFormat('id-ID').format(produk.harga_marketing)} / ${produk.satuan}`;
+                            hargaMarketingContainer.style.display = 'block';
+                        } else {
+                            hargaMarketingContainer.style.display = 'none';
+                        }
+                    }
                     
                     // Update new fields
                     // Spesifikasi Kunci
@@ -479,21 +501,22 @@
                         document.getElementById('detailEstimasiKetersediaan').textContent = produk.estimasi_ketersediaan || '-';
                     }
                     
-                    // Link Produk (External Link)
-                    if (document.getElementById('detailLinkProdukContainer')) {
-                        const linkProdukElement = document.getElementById('detailLinkProduk');
-                        const linkProdukText = document.getElementById('detailLinkProdukText');
-                        
+                    // Link Produk — isi input & simpan id barang untuk save
+                    const inputLink = document.getElementById('inputLinkProduk');
+                    const openLinkBtn = document.getElementById('detailLinkProduk');
+                    const saveMsg = document.getElementById('linkProdukSaveMsg');
+                    if (inputLink) {
+                        inputLink.value = produk.link_produk || '';
+                        inputLink.dataset.barangId = produk.id_barang;
+                        saveMsg.classList.add('hidden');
                         if (produk.link_produk && produk.link_produk.trim() !== '') {
-                            linkProdukElement.href = produk.link_produk;
-                            linkProdukText.textContent = 'Buka Link Produk';
-                            linkProdukElement.classList.remove('pointer-events-none', 'text-gray-400');
-                            linkProdukElement.classList.add('text-blue-600', 'hover:text-blue-800', 'hover:underline');
+                            const normalizedLink = /^https?:\/\//i.test(produk.link_produk) ? produk.link_produk : 'https://' + produk.link_produk;
+                            openLinkBtn.href = normalizedLink;
+                            openLinkBtn.classList.remove('hidden');
+                            openLinkBtn.classList.add('inline-flex');
                         } else {
-                            linkProdukElement.href = '#';
-                            linkProdukText.textContent = 'Link produk tidak tersedia';
-                            linkProdukElement.classList.add('pointer-events-none', 'text-gray-400');
-                            linkProdukElement.classList.remove('text-blue-600', 'hover:text-blue-800', 'hover:underline');
+                            openLinkBtn.classList.add('hidden');
+                            openLinkBtn.classList.remove('inline-flex');
                         }
                     }
                     
@@ -559,6 +582,63 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+    }
+
+    function saveLinkProduk() {
+        const input = document.getElementById('inputLinkProduk');
+        const openLinkBtn = document.getElementById('detailLinkProduk');
+        const saveMsg = document.getElementById('linkProdukSaveMsg');
+        const barangId = input.dataset.barangId;
+        let link = input.value.trim();
+
+        // Auto-prefix https:// jika belum ada protocol
+        if (link && !/^https?:\/\//i.test(link)) {
+            link = 'https://' + link;
+            input.value = link;
+        }
+
+        if (!barangId) {
+            saveMsg.textContent = 'ID produk tidak ditemukan.';
+            saveMsg.className = 'text-xs mt-1 text-red-600';
+            saveMsg.classList.remove('hidden');
+            return;
+        }
+
+        fetch(`/purchasing/produk/${barangId}/link`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ link_produk: link }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                saveMsg.textContent = 'Link berhasil disimpan.';
+                saveMsg.className = 'text-xs mt-1 text-green-600';
+                saveMsg.classList.remove('hidden');
+                if (link) {
+                    openLinkBtn.href = link;
+                    openLinkBtn.classList.remove('hidden');
+                    openLinkBtn.classList.add('inline-flex');
+                } else {
+                    openLinkBtn.classList.add('hidden');
+                    openLinkBtn.classList.remove('inline-flex');
+                }
+                setTimeout(() => saveMsg.classList.add('hidden'), 3000);
+            } else {
+                saveMsg.textContent = data.message || 'Gagal menyimpan link.';
+                saveMsg.className = 'text-xs mt-1 text-red-600';
+                saveMsg.classList.remove('hidden');
+            }
+        })
+        .catch(() => {
+            saveMsg.textContent = 'Terjadi kesalahan. Coba lagi.';
+            saveMsg.className = 'text-xs mt-1 text-red-600';
+            saveMsg.classList.remove('hidden');
+        });
     }
     
     // Auto submit form when filter changes

@@ -57,6 +57,7 @@ class PengelolaanAkun extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:superadmin,admin_marketing,admin_purchasing,admin_keuangan',
             'jabatan' => 'nullable|in:direktur,manager_marketing,staf_marketing,admin_marketing,staf_purchasing,admin_keuangan_hr,staf_keuangan',
+            'label' => 'nullable|in:internal,eksternal',
         ]);
 
         User::create([
@@ -66,6 +67,7 @@ class PengelolaanAkun extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'jabatan' => $request->jabatan,
+            'label' => $request->label,
         ]);
 
         return response()->json([
@@ -86,6 +88,7 @@ class PengelolaanAkun extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|in:superadmin,admin_marketing,admin_purchasing,admin_keuangan',
             'jabatan' => 'nullable|in:direktur,manager_marketing,staf_marketing,admin_marketing,staf_purchasing,admin_keuangan_hr,staf_keuangan',
+            'label' => 'nullable|in:internal,eksternal',
         ]);
 
         $updateData = [
@@ -94,6 +97,7 @@ class PengelolaanAkun extends Controller
             'email' => $request->email,
             'role' => $request->role,
             'jabatan' => $request->jabatan,
+            'label' => $request->label,
         ];
 
         if ($request->password) {

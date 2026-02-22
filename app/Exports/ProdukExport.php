@@ -71,7 +71,7 @@ class ProdukExport
 
         // Set judul
         $sheet->setCellValue('A1', 'DAFTAR PRODUK');
-        $sheet->mergeCells('A1:L1');
+        $sheet->mergeCells('A1:H1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
@@ -87,7 +87,7 @@ class ProdukExport
         $filterInfo .= 'Tanggal Export: ' . Carbon::now()->format('d/m/Y H:i');
 
         $sheet->setCellValue('A2', $filterInfo);
-        $sheet->mergeCells('A2:L2');
+        $sheet->mergeCells('A2:H2');
         $sheet->getStyle('A2')->getFont()->setItalic(true)->setSize(10);
 
         // Header tabel
@@ -95,14 +95,10 @@ class ProdukExport
         $headers = [
             'No',
             'Nama Barang',
-            'Vendor',
             'Brand',
-            'Kategori',
-            'Harga Pasaran Inaproc',
-            'Harga Vendor',
-            'PDN/TKDN/Impor',
+            'Spesifikasi',
             'Garansi',
-            'Estimasi Ketersediaan',
+            'PDN/TKDN/Impor',
             'Link Produk',
             'Gambar'
         ];
@@ -114,7 +110,7 @@ class ProdukExport
         }
 
         // Style header
-        $sheet->getStyle('A' . $row . ':L' . $row)->applyFromArray([
+        $sheet->getStyle('A' . $row . ':H' . $row)->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'DC2626']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
@@ -139,56 +135,33 @@ class ProdukExport
             $sheet->getStyle('B' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)
                                                         ->setWrapText(true);
 
-            // Vendor
-            $sheet->setCellValue('C' . $row, $produk->vendor->nama_vendor ?? '-');
+            // Brand
+            $sheet->setCellValue('C' . $row, $produk->brand ?? '-');
             $sheet->getStyle('C' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-            // Brand
-            $sheet->setCellValue('D' . $row, $produk->brand ?? '-');
-            $sheet->getStyle('D' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-
-            // Kategori
-            $sheet->setCellValue('E' . $row, $produk->kategori);
-            $sheet->getStyle('E' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)
-                                                        ->setVertical(Alignment::VERTICAL_CENTER);
-
-            // Harga Pasaran Inaproc
-            if ($produk->harga_pasaran_inaproc) {
-                $sheet->setCellValue('F' . $row, $produk->harga_pasaran_inaproc);
-                $sheet->getStyle('F' . $row)->getNumberFormat()->setFormatCode('#,##0');
-            } else {
-                $sheet->setCellValue('F' . $row, '-');
-            }
-            $sheet->getStyle('F' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-
-            // Harga Vendor
-            $sheet->setCellValue('G' . $row, $produk->harga_vendor);
-            $sheet->getStyle('G' . $row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('G' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-
-            // PDN/TKDN/Impor
-            $sheet->setCellValue('H' . $row, $produk->pdn_tkdn_impor ?? '-');
-            $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)
-                                                        ->setVertical(Alignment::VERTICAL_CENTER);
+            // Spesifikasi
+            $sheet->setCellValue('D' . $row, $produk->spesifikasi ?? '-');
+            $sheet->getStyle('D' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)
+                                                        ->setWrapText(true);
 
             // Garansi
-            $sheet->setCellValue('I' . $row, $produk->garansi ?? '-');
-            $sheet->getStyle('I' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->setCellValue('E' . $row, $produk->garansi ?? '-');
+            $sheet->getStyle('E' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
 
-            // Estimasi Ketersediaan
-            $sheet->setCellValue('J' . $row, $produk->estimasi_ketersediaan ?? '-');
-            $sheet->getStyle('J' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)
-                                                        ->setWrapText(true);
+            // PDN/TKDN/Impor
+            $sheet->setCellValue('F' . $row, $produk->pdn_tkdn_impor ?? '-');
+            $sheet->getStyle('F' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                                                        ->setVertical(Alignment::VERTICAL_CENTER);
 
             // Link Produk
             if ($produk->link_produk) {
-                $sheet->setCellValue('K' . $row, $produk->link_produk);
-                $sheet->getCell('K' . $row)->getHyperlink()->setUrl($produk->link_produk);
-                $sheet->getStyle('K' . $row)->getFont()->setUnderline(true)->getColor()->setRGB('0000FF');
+                $sheet->setCellValue('G' . $row, $produk->link_produk);
+                $sheet->getCell('G' . $row)->getHyperlink()->setUrl($produk->link_produk);
+                $sheet->getStyle('G' . $row)->getFont()->setUnderline(true)->getColor()->setRGB('0000FF');
             } else {
-                $sheet->setCellValue('K' . $row, '-');
+                $sheet->setCellValue('G' . $row, '-');
             }
-            $sheet->getStyle('K' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)
+            $sheet->getStyle('G' . $row)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)
                                                         ->setWrapText(true);
 
             // Gambar Produk (di kolom terakhir)
@@ -199,17 +172,17 @@ class ProdukExport
                     $drawing->setDescription('Foto Produk');
                     $drawing->setPath(storage_path('app/public/' . $produk->foto_barang));
                     $drawing->setHeight(50);
-                    $drawing->setCoordinates('L' . $row);
+                    $drawing->setCoordinates('H' . $row);
                     $drawing->setOffsetX(5);
                     $drawing->setOffsetY(5);
                     $drawing->setWorksheet($sheet);
                 } catch (\Exception $e) {
-                    $sheet->setCellValue('L' . $row, 'No Image');
+                    $sheet->setCellValue('H' . $row, 'No Image');
                 }
             } else {
-                $sheet->setCellValue('L' . $row, 'No Image');
+                $sheet->setCellValue('H' . $row, 'No Image');
             }
-            $sheet->getStyle('L' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)
                                                         ->setVertical(Alignment::VERTICAL_CENTER);
 
             $row++;
@@ -218,23 +191,19 @@ class ProdukExport
 
         // Borders untuk semua data
         $lastRow = $row - 1;
-        $sheet->getStyle('A4:L' . $lastRow)->applyFromArray([
+        $sheet->getStyle('A4:H' . $lastRow)->applyFromArray([
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]]
         ]);
 
         // Set column widths
         $sheet->getColumnDimension('A')->setWidth(5);   // No
         $sheet->getColumnDimension('B')->setWidth(35);  // Nama Barang
-        $sheet->getColumnDimension('C')->setWidth(25);  // Vendor
-        $sheet->getColumnDimension('D')->setWidth(20);  // Brand
-        $sheet->getColumnDimension('E')->setWidth(15);  // Kategori
-        $sheet->getColumnDimension('F')->setWidth(20);  // Harga Pasaran
-        $sheet->getColumnDimension('G')->setWidth(20);  // Harga Vendor
-        $sheet->getColumnDimension('H')->setWidth(15);  // PDN/TKDN/Impor
-        $sheet->getColumnDimension('I')->setWidth(20);  // Garansi
-        $sheet->getColumnDimension('J')->setWidth(25);  // Estimasi Ketersediaan
-        $sheet->getColumnDimension('K')->setWidth(40);  // Link Produk
-        $sheet->getColumnDimension('L')->setWidth(15);  // Gambar
+        $sheet->getColumnDimension('C')->setWidth(20);  // Brand
+        $sheet->getColumnDimension('D')->setWidth(40);  // Spesifikasi
+        $sheet->getColumnDimension('E')->setWidth(20);  // Garansi
+        $sheet->getColumnDimension('F')->setWidth(15);  // PDN/TKDN/Impor
+        $sheet->getColumnDimension('G')->setWidth(40);  // Link Produk
+        $sheet->getColumnDimension('H')->setWidth(15);  // Gambar
 
         // Generate filename
         $filename = 'Daftar_Produk_' . Carbon::now()->format('YmdHis') . '.xlsx';

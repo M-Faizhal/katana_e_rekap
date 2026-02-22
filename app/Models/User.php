@@ -29,6 +29,7 @@ class User extends Authenticatable
         'password',
         'role',
         'jabatan',
+        'label',
         'foto',
     ];
 
@@ -153,6 +154,33 @@ class User extends Authenticatable
             'admin_keuangan_hr' => 'Admin Keuangan & HR',
             'staf_keuangan' => 'Staf Keuangan',
         ];
+    }
+
+    /**
+     * Get available label
+     */
+    public static function getAvailableLabel()
+    {
+        return [
+            'internal' => 'Internal',
+            'eksternal' => 'Eksternal',
+        ];
+    }
+
+    /**
+     * Check if user is internal
+     */
+    public function isInternal()
+    {
+        return $this->label === 'internal';
+    }
+
+    /**
+     * Check if user is eksternal
+     */
+    public function isEksternal()
+    {
+        return $this->label === 'eksternal';
     }
 
     /**

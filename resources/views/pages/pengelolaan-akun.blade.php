@@ -147,6 +147,15 @@
                                             {{ $jabatanNames[$user->jabatan] ?? $user->jabatan }}
                                         </span>
                                         @endif
+                                        @if($user->label === 'internal')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                                             Internal
+                                        </span>
+                                        @elseif($user->label === 'eksternal')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                             Eksternal
+                                        </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -181,6 +190,7 @@
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jabatan</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Label</th>
                             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
@@ -248,6 +258,19 @@
                                 <span class="text-gray-400 text-sm">-</span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($user->label === 'internal')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                                   Internal
+                                </span>
+                                @elseif($user->label === 'eksternal')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                    Eksternal
+                                </span>
+                                @else
+                                <span class="text-gray-400 text-sm">-</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex space-x-2">
                                     <button onclick="openEditUserModal({{ $user->id_user }})" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-200" title="Edit Pengguna">
@@ -263,7 +286,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
+                            <td colspan="7" class="px-6 py-12 text-center">
                                 <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
                                 <p class="text-gray-500">Belum ada pengguna terdaftar.</p>
                             </td>
@@ -353,6 +376,17 @@
                         <option value="staf_purchasing">Staf Purchasing</option>
                         <option value="admin_keuangan_hr">Admin Keuangan & HR</option>
                         <option value="staf_keuangan">Staf Keuangan</option>
+                    </select>
+                </div>
+
+                <!-- Label -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Label</label>
+                    <select id="label" name="label"
+                            class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 text-sm sm:text-base">
+                        <option value="">Pilih Label</option>
+                        <option value="internal">Internal</option>
+                        <option value="eksternal">Eksternal</option>
                     </select>
                 </div>
 
@@ -485,6 +519,17 @@
                         <option value="staf_purchasing">Staf Purchasing</option>
                         <option value="admin_keuangan_hr">Admin Keuangan & HR</option>
                         <option value="staf_keuangan">Staf Keuangan</option>
+                    </select>
+                </div>
+
+                <!-- Label -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Label</label>
+                    <select id="edit_label" name="label"
+                            class="w-full px-4 py-3 sm:py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base">
+                        <option value="">Pilih Label</option>
+                        <option value="internal">Internal</option>
+                        <option value="eksternal">Eksternal</option>
                     </select>
                 </div>
 
@@ -638,6 +683,7 @@ function openEditUserModal(userId) {
                 document.getElementById('edit_email').value = user.email;
                 document.getElementById('edit_role').value = user.role;
                 document.getElementById('edit_jabatan').value = user.jabatan || '';
+                document.getElementById('edit_label').value = user.label || '';
 
                 // Reset password fields
                 document.getElementById('edit_password').value = '';
