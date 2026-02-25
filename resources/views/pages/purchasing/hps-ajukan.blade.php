@@ -216,51 +216,93 @@
         
         <div class="overflow-x-auto">
             <table class="w-full text-sm hps-table">
-                <thead class="bg-gray-50 sticky top-0">
+                <thead class="sticky top-0 z-10">
+                    <!-- Row 1: Group Headers -->
                     <tr>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">No</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Nama Barang</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Vendor</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Jenis Vendor</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Satuan</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Qty</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Harga Vendor</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-yellow-100" title="Input: Harga akhir setelah diskon">Harga Diskon <br><small class="text-blue-600">(INPUT)</small></th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-gray-100" title="Calculated: Harga Vendor - Harga Diskon">Nilai Diskon <br><small class="text-gray-600">(AUTO)</small></th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-gray-100" title="Calculated: Nilai Diskon × Qty">Total Diskon <br><small class="text-gray-600">(AUTO)</small></th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Total Harga</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Jumlah Volume</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-yellow-100" title="Input: Harga yang diharapkan">Harga Yang Diharapkan <br><small class="text-blue-600">(INPUT)</small></th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-gray-100" title="Calculated: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100">% Kenaikan <br><small class="text-gray-600">(AUTO)</small></th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Proyeksi Kenaikan</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase bg-yellow-100" title="Input: PPN persen per item (default 11%)">% PPN <br><small class="text-blue-600">(INPUT)</small></th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPN</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">PPH</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">HPS</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Harga/PCS</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Pagu Dinas/PCS</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Pagu Total</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Selisih Pagu</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Nilai SP</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">DPP</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Asumsi Cair</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Ongkir</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Dinas</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Dinas</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Bendera</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Gross Bendera</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Bank Cost</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Gross Bank Cost</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">% Biaya Ops</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Gross Biaya Ops</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Sub Total Tidak Langsung</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Gross Income</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Gross %</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Nett Income</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Nett %</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Keterangan</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">TKDN</th>
-                        <th class="px-2 py-3 text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                        {{-- 1. Permintaan: No, Barang Klien, Qty, Satuan --}}
+                        <th colspan="4" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#1e3a5f;">Permintaan</th>
+                        {{-- 2. Rencana Belanja: Barang, Vendor, TKDN, Garansi, Durasi PO, Qty, Satuan, Harga Vendor, Harga Diskon, Keterangan, Total Harga, Ongkir --}}
+                        <th colspan="12" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#1a4731;">Rencana Belanja</th>
+                        {{-- 3. Set Harga Jual: Harga Yang Diharapkan, % Kenaikan --}}
+                        <th colspan="2" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#713f12;">Set Harga Jual</th>
+                        {{-- 4. Nett: Nett Income, Nett % --}}
+                        <th colspan="2" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#14532d;">Nett</th>
+                        {{-- 5. Harga Penawaran: Harga/PCS, HPS --}}
+                        <th colspan="2" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#312e81;">Harga Penawaran</th>
+                        {{-- 6. Pagu Dinas: Pagu/PCS, Pagu Total --}}
+                        <th colspan="2" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#1e3a5f;">Pagu Dinas</th>
+                        {{-- 7. Selisih: Selisih Pagu, Nilai SP --}}
+                        <th colspan="2" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#4a1942;">Selisih (Pagu:HPS)</th>
+                        {{-- 8. Total Potongan/Diskon: Nilai Diskon, Total Diskon, % Diskon --}}
+                        <th colspan="3" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#7c2d12;">Total Potongan / Diskon</th>
+                        {{-- 9. Pajak: PPH, % PPN, PPN, Proyeksi Kenaikan --}}
+                        <th colspan="4" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#1e3a5f;">Pajak</th>
+                        {{-- 10. Asumsi Cair: DPP, Asumsi Cair --}}
+                        <th colspan="2" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#365314;">Asumsi Cair</th>
+                        {{-- 11. Biaya Tidak Langsung: % Dinas, Dinas, % Bendera, Gross Bendera, % Bank Cost, Gross Bank Cost, % Biaya Ops, Gross Biaya Ops, Sub Total, Gross Income, Gross % --}}
+                        <th colspan="11" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#7f1d1d;">Biaya Tidak Langsung</th>
+                        {{-- Aksi --}}
+                        <th rowspan="2" class="px-2 py-2 text-xs font-bold text-white uppercase text-center border border-gray-600" style="background:#374151;">Aksi</th>
+                    </tr>
+                    <!-- Row 2: Sub-column Headers -->
+                    <tr>
+                        {{-- Permintaan --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">No</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">Barang (Klien)</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">Qty</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">Satuan</th>
+                        {{-- Rencana Belanja --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Barang</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Vendor</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">TKDN/PDN/Impor</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Garansi</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Durasi PO</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Qty</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Satuan</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Harga Vendor</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Harga Diskon</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Keterangan</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Total Harga</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#276348;">Biaya Tambahan</th>
+                        {{-- Set Harga Jual --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#92400e;">Harga Diharapkan</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#92400e;">% Kenaikan</th>
+                        {{-- Nett --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#166534;">Nett Income</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#166534;">Nett %</th>
+                        {{-- Harga Penawaran --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#3730a3;">Harga/PCS</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#3730a3;">HPS</th>
+                        {{-- Pagu Dinas --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">Pagu/PCS</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">Pagu Total</th>
+                        {{-- Selisih --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#6b21a8;">Selisih Pagu</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#6b21a8;">Nilai SP</th>
+                        {{-- Total Potongan/Diskon --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#9a3412;">Nilai Diskon</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#9a3412;">Total Diskon</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#9a3412;">% Diskon</th>
+                        {{-- Pajak --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">PPH 1.5%</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">% PPN</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">PPN</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#2d4f7c;">Proyeksi Kenaikan</th>
+                        {{-- Asumsi Cair --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#3f6212;">DPP</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#3f6212;">Asumsi Cair</th>
+                        {{-- Biaya Tidak Langsung --}}
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#991b1b;">% Dinas</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#991b1b;">Dinas</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#991b1b;">% Bendera</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#991b1b;">Gross Bendera</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600 whitespace-nowrap" style="background:#991b1b;">% Bank Cost</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600 whitespace-nowrap" style="background:#991b1b;">Gross Bank Cost</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-yellow-200 text-center border border-gray-600" style="background:#991b1b;">% Biaya Ops</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600" style="background:#991b1b;">Gross Biaya Ops</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600" style="background:#991b1b;">Sub Total</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600" style="background:#991b1b;">Gross Income</th>
+                        <th class="px-2 py-2 text-xs font-semibold text-white text-center border border-gray-600" style="background:#991b1b;">Gross %</th>
                     </tr>
                 </thead>
                 <tbody id="kalkulasi-table-body" class="bg-white divide-y divide-gray-200">
@@ -468,8 +510,9 @@
 <style>
 /* HPS Table Styles */
 .hps-table {
-    min-width: 2400px;
+    min-width: 3200px;
     table-layout: fixed;
+    border-collapse: collapse;
 }
 
 /* Input vs Calculated field styling */
@@ -930,6 +973,9 @@
 // Global variables
 let currentProyekId = {{ $proyek->id_proyek ?? 'null' }};
 let currentProject = @json($proyek);
+// Explicit proyekBarang array - langsung di-pass dari PHP agar tidak bergantung pada key serialization
+// Gunakan ->values() untuk memastikan index numerik berurutan (0, 1, 2, ...)
+let proyekBarangData = @json(($proyek->proyekBarang ?? collect())->values());
 let canEdit = {{ ($canEdit ?? false) ? 'true' : 'false' }};
 let barangList = [];
 let vendorList = [];
@@ -1188,163 +1234,195 @@ function populateKalkulasiTable() {
 // Create kalkulasi table row
 function createKalkulasiTableRow(item, index) {
     // Get client request data for this row
-    const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+    const clientRequest = proyekBarangData && proyekBarangData[index] ? proyekBarangData[index] : null;
     const hasClientMapping = clientRequest ? true : false;
-    
+
+    const mappingIndicator = hasClientMapping ?
+        `<span class="text-xs text-blue-600 font-medium">${index + 1}</span>` :
+        `<span class="text-xs text-gray-500">${index + 1}</span>`;
+
     return `
-        <tr class="hover:bg-gray-50">
-            <td class="px-2 py-3 text-sm text-gray-900">${index + 1}</td>
-            <td class="px-2 py-3">
+        <tr class="hover:bg-gray-50 border-b border-gray-200 ${hasClientMapping ? 'bg-blue-50' : ''}">
+
+            {{-- ===== GROUP 1: PERMINTAAN ===== --}}
+            <td class="px-2 py-2 text-sm text-center text-gray-900 border-r border-gray-200" style="background:#eef4fb;">${mappingIndicator}</td>
+            <td class="px-2 py-2 text-xs text-center border-r border-gray-200" style="background:#eef4fb;">
+                ${hasClientMapping ? `<span class="text-blue-800 font-medium">${clientRequest.nama_barang}</span>` : '<span class="text-gray-400">-</span>'}
+            </td>
+            <td class="px-2 py-2 text-xs text-center border-r border-gray-200" style="background:#eef4fb;">
+                ${hasClientMapping ? `<span class="font-semibold text-blue-800">${formatNumber(clientRequest.jumlah)}</span>` : '<span class="text-gray-400">-</span>'}
+            </td>
+            <td class="px-2 py-2 text-xs text-center border-r-2 border-gray-400" style="background:#eef4fb;">
+                ${hasClientMapping ? `<span class="text-blue-800">${clientRequest.satuan}</span>` : '<span class="text-gray-400">-</span>'}
+            </td>
+
+            {{-- ===== GROUP 2: RENCANA BELANJA ===== --}}
+            <td class="px-2 py-2" style="background:#f0fdf4;">
                 <div class="barang-search-container">
                     <div style="position: relative;">
-                        <input type="text" 
-                               id="barang-search-${index}" 
-                               class="barang-search-input" 
-                               placeholder="🔍 Ketik untuk mencari barang..." 
+                        <input type="text"
+                               id="barang-search-${index}"
+                               class="barang-search-input"
+                               placeholder="🔍 Cari barang..."
                                autocomplete="off"
                                oninput="searchBarang(${index}, this.value)"
                                onfocus="showBarangDropdown(${index})"
                                onblur="hideBarangDropdown(${index})"
                                ${!canEdit ? 'readonly' : ''}
                                value="${item.nama_barang || ''}" />
-                        ${item.nama_barang ? `<button type="button" 
+                        ${item.nama_barang ? `<button type="button"
                                onclick="clearBarangSelection(${index})"
-                               style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
-                                      background: none; border: none; color: #6b7280; cursor: pointer; 
-                                      padding: 4px; border-radius: 4px; hover:background-color: #f3f4f6;"
-                               title="Hapus pilihan">
-                            ✕
-                        </button>` : ''}
+                               style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+                                      background: none; border: none; color: #6b7280; cursor: pointer; padding: 8px;"
+                               title="Hapus pilihan">✕</button>` : ''}
                     </div>
-                    <div id="barang-dropdown-${index}" 
-                         class="barang-dropdown hidden">
-                    </div>
+                    <div id="barang-dropdown-${index}" class="barang-dropdown hidden"></div>
                 </div>
             </td>
-            <td class="px-2 py-3 text-sm text-gray-700">
-                <span>${item.nama_vendor || '-'}</span>
+            <td class="px-2 py-2 text-xs text-center border-l border-gray-200" style="background:#f0fdf4;">
+                <span class="text-gray-700">${item.nama_vendor || '-'}</span>
             </td>
-            <td class="px-2 py-3 text-sm text-gray-700">
-                <span>${item.jenis_vendor || '-'}</span>
+            <td class="px-2 py-2 text-xs text-center border-l border-gray-200" style="background:#f0fdf4;">
+                <span class="text-gray-600">${item.pdn_tkdn_impor || item.keterangan_2 || '-'}</span>
             </td>
-            <td class="px-2 py-3 text-sm text-gray-700">
-                <span>${item.satuan || '-'}</span>
+            <td class="px-2 py-2 text-xs text-center border-l border-gray-200" style="background:#f0fdf4;">
+                <span class="text-gray-600">${item.garansi || '-'}</span>
             </td>
-            <td class="px-2 py-3">
-                <input type="text" value="${item.qty > 0 ? formatNumber(item.qty) : ''}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16 ${hasClientMapping ? 'bg-blue-50 border-blue-300' : ''}" placeholder="Jumlah" ${!canEdit ? 'readonly' : ''}>
-                ${hasClientMapping ? `<div class="text-xs text-blue-600">Klien: ${formatNumber(clientRequest.jumlah)}</div>` : ''}
+            <td class="px-2 py-2 text-xs text-center border-l border-gray-200" style="background:#f0fdf4;">
+                <span class="text-gray-600">${item.estimasi_ketersediaan || '-'}</span>
             </td>
-            <td class="px-2 py-3">
+            <td class="px-2 py-2 border-l border-gray-200" style="background:#fef9c3;">
+                <input type="text" value="${item.qty > 0 ? formatNumber(item.qty) : ''}" onchange="updateValue(${index}, 'qty', this.value)" class="no-spin text-right w-16" placeholder="Qty" ${!canEdit ? 'readonly' : ''}>
+            </td>
+            <td class="px-2 py-2 text-xs text-center border-l border-gray-200" style="background:#f0fdf4;">
+                <span class="text-gray-700">${item.satuan || '-'}</span>
+            </td>
+            <td class="px-2 py-2 border-l border-gray-200" style="background:#f0fdf4;">
                 <input type="text" value="${item.harga_vendor > 0 ? formatNumber(item.harga_vendor) : ''}" onchange="updateValue(${index}, 'harga_vendor', this.value)" class="no-spin text-right w-20" placeholder="10.000" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-yellow-100">
-                <input type="text" value="${item.harga_diskon > 0 ? formatNumber(item.harga_diskon) : ''}" onchange="updateValue(${index}, 'harga_diskon', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="9.500" title="INPUT: Masukkan harga akhir setelah diskon" ${!canEdit ? 'readonly' : ''}>
+            <td class="px-2 py-2 border-l border-gray-200" style="background:#fef9c3;">
+                <input type="text" value="${item.harga_diskon > 0 ? formatNumber(item.harga_diskon) : ''}" onchange="updateValue(${index}, 'harga_diskon', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="9.500" title="Harga akhir setelah diskon" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span class="text-gray-600" title="CALCULATED: Harga Vendor - Harga Diskon">${(item.nilai_diskon && item.nilai_diskon > 0) ? formatRupiah(item.nilai_diskon) : '-'}</span>
+            <td class="px-2 py-2 border-l border-gray-200" style="background:#f0fdf4;">
+                <input type="text" value="${item.keterangan_1 || ''}" onchange="updateValue(${index}, 'keterangan_1', this.value)" class="w-24 text-xs" placeholder="Keterangan" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span class="text-gray-600" title="CALCULATED: Nilai Diskon × Qty">${(item.total_diskon && item.total_diskon > 0) ? formatRupiah(item.total_diskon) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#f0fdf4;">
+                <span class="font-medium text-gray-700">${(item.total_harga && item.total_harga > 0) ? formatRupiah(item.total_harga) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-yellow-50 text-xs">
-                <span>${(item.total_harga && item.total_harga > 0) ? formatRupiah(item.total_harga) : '-'}</span>
+            <td class="px-2 py-2 border-l border-r-2 border-gray-400" style="background:#fef9c3;">
+                <input type="text" value="${item.ongkir > 0 ? formatNumber(item.ongkir) : ''}" onchange="updateValue(${index}, 'ongkir', this.value)" class="no-spin text-right w-20" placeholder="50.000" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-yellow-50 text-xs">
-                <span>${(item.jumlah_volume && item.jumlah_volume > 0) ? formatRupiah(item.jumlah_volume) : '-'}</span>
+
+            {{-- ===== GROUP 3: SET HARGA JUAL ===== --}}
+            <td class="px-2 py-2" style="background:#fffbeb;">
+                <input type="text" value="${item.harga_yang_diharapkan > 0 ? formatNumber(item.harga_yang_diharapkan) : ''}" onchange="updateValue(${index}, 'harga_yang_diharapkan', this.value)" class="no-spin text-right w-24 font-semibold" placeholder="12.000" title="Harga yang diharapkan" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-yellow-100">
-                <input type="text" value="${item.harga_yang_diharapkan > 0 ? formatNumber(item.harga_yang_diharapkan) : ''}" onchange="updateValue(${index}, 'harga_yang_diharapkan', this.value)" class="no-spin text-right w-20 font-semibold" placeholder="12.000" title="INPUT: Masukkan harga yang diharapkan" ${!canEdit ? 'readonly' : ''}>
+            <td class="px-2 py-2 text-xs text-center border-l border-r-2 border-gray-400" style="background:#fffbeb;">
+                <span class="font-semibold ${(item.persen_kenaikan || 0) >= 0 ? 'text-green-700' : 'text-red-600'}">${item.persen_kenaikan ? formatPercent(item.persen_kenaikan) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span class="${(item.persen_kenaikan || 0) >= 0 ? 'text-green-700' : 'text-red-700'} font-medium" title="CALCULATED: (((Harga Yang Diharapkan × QTY) - (Total Harga hpp + Nilai PPH + Nilai PPN)) / Total Harga hpp) × 100">${item.persen_kenaikan ? formatPercent(item.persen_kenaikan) : '-'}</span>
+
+            {{-- ===== GROUP 4: NETT ===== --}}
+            <td class="px-2 py-2 text-xs text-right" style="background:#f0fdf4;">
+                <span class="font-bold text-green-700">${(item.nilai_nett_income && item.nilai_nett_income > 0) ? formatRupiah(item.nilai_nett_income) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-blue-50 text-xs">
-                <span>${(item.proyeksi_kenaikan && item.proyeksi_kenaikan > 0) ? formatRupiah(item.proyeksi_kenaikan) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-center border-l border-r-2 border-gray-400" style="background:#f0fdf4;">
+                <span class="font-bold ${(item.nett_income_persentase || 0) >= 0 ? 'text-green-700' : 'text-red-600'}">${item.nett_income_persentase ? formatPercent(item.nett_income_persentase) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-yellow-100">
-                <input type="number" value="${item.ppn_percent > 0 ? item.ppn_percent : 11}" onchange="updateValue(${index}, 'ppn_percent', this.value)" class="no-spin text-right w-14 font-semibold" step="0.1" min="0" max="100" placeholder="11" title="INPUT: PPN persen per item (default 11%)" ${!canEdit ? 'readonly' : ''}>
-                <span class="text-gray-400 text-xs"></span>
+
+            {{-- ===== GROUP 5: HARGA PENAWARAN ===== --}}
+            <td class="px-2 py-2 text-xs text-right" style="background:#eef2ff;">
+                <span class="text-indigo-700">${(item.harga_per_pcs && item.harga_per_pcs > 0) ? formatRupiah(item.harga_per_pcs) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-blue-50 text-xs">
-                <span>${(item.ppn_dinas && item.ppn_dinas > 0) ? formatRupiah(item.ppn_dinas) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-r-2 border-gray-400" style="background:#eef2ff;">
+                <span class="font-bold text-indigo-800">${(item.hps && item.hps > 0) ? formatRupiah(item.hps) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-blue-50 text-xs">
-                <span>${(item.pph_dinas && item.pph_dinas > 0) ? formatRupiah(item.pph_dinas) : '-'}</span>
+
+            {{-- ===== GROUP 6: PAGU DINAS ===== --}}
+            <td class="px-2 py-2" style="background:#eef4fb;">
+                <input type="text" value="${item.harga_pagu_dinas_per_pcs > 0 ? formatNumber(item.harga_pagu_dinas_per_pcs) : ''}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-24" placeholder="11.000" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-purple-50 text-xs">
-                <span class="font-semibold">${(item.hps && item.hps > 0) ? formatRupiah(item.hps) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-r-2 border-gray-400" style="background:#eef4fb;">
+                <span class="text-blue-700">${(item.pagu_total && item.pagu_total > 0) ? formatRupiah(item.pagu_total) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-purple-50 text-xs">
-                <span>${(item.harga_per_pcs && item.harga_per_pcs > 0) ? formatRupiah(item.harga_per_pcs) : '-'}</span>
+
+            {{-- ===== GROUP 7: SELISIH (PAGU:HPS) ===== --}}
+            <td class="px-2 py-2 text-xs text-right" style="background:#faf5ff;">
+                <span class="${(item.selisih_pagu_hps || 0) >= 0 ? 'text-green-700' : 'text-red-600'}">${item.selisih_pagu_hps ? formatRupiah(item.selisih_pagu_hps) : '-'}</span>
             </td>
-            <td class="px-2 py-3">
-                <input type="text" value="${item.harga_pagu_dinas_per_pcs > 0 ? formatNumber(item.harga_pagu_dinas_per_pcs) : ''}" onchange="updateValue(${index}, 'harga_pagu_dinas_per_pcs', this.value)" class="no-spin text-right w-20 ${hasClientMapping ? 'bg-blue-50 border-blue-300' : ''}" placeholder="11.000" ${!canEdit ? 'readonly' : ''}>
-                ${hasClientMapping ? `<div class="text-xs text-blue-600">Klien: ${formatRupiah(clientRequest.harga_satuan)}</div>` : ''}
-            </td>
-            <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span>${(item.pagu_total && item.pagu_total > 0) ? formatRupiah(item.pagu_total) : '-'}</span>
-            </td>
-            <td class="px-2 py-3 bg-gray-50 text-xs">
-                <span class="${(item.selisih_pagu_hps || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${item.selisih_pagu_hps ? formatRupiah(item.selisih_pagu_hps) : '-'}</span>
-            </td>
-            <td class="px-2 py-3">
+            <td class="px-2 py-2 border-l border-r-2 border-gray-400" style="background:#faf5ff;">
                 <input type="text" value="${item.nilai_sp > 0 ? formatNumber(item.nilai_sp) : ''}" onchange="updateValue(${index}, 'nilai_sp', this.value)" class="no-spin text-right w-20" placeholder="5.000" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-orange-50 text-xs">
-                <span>${(item.dpp && item.dpp > 0) ? formatRupiah(item.dpp) : '-'}</span>
+
+            {{-- ===== GROUP 8: TOTAL POTONGAN/DISKON ===== --}}
+            <td class="px-2 py-2 text-xs text-right" style="background:#fff7ed;">
+                <span class="text-orange-700">${(item.nilai_diskon && item.nilai_diskon > 0) ? formatRupiah(item.nilai_diskon) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-orange-50 text-xs">
-                <span>${(item.asumsi_nilai_cair && item.asumsi_nilai_cair > 0) ? formatRupiah(item.asumsi_nilai_cair) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#fff7ed;">
+                <span class="text-orange-700">${(item.total_diskon && item.total_diskon > 0) ? formatRupiah(item.total_diskon) : '-'}</span>
             </td>
-            <td class="px-2 py-3">
-                <input type="text" value="${item.ongkir > 0 ? formatNumber(item.ongkir) : ''}" onchange="updateValue(${index}, 'ongkir', this.value)" class="no-spin text-right w-16" placeholder="50.000" ${!canEdit ? 'readonly' : ''}>
+            <td class="px-2 py-2 text-xs text-right border-l border-r-2 border-gray-400" style="background:#fff7ed;">
+                <span class="text-orange-600 font-medium">${(item.diskon_percent && item.diskon_percent > 0) ? formatPercent(item.diskon_percent) : '-'}</span>
             </td>
-            <td class="px-2 py-3">
-                <input type="number" value="${item.omzet_dinas_percent || ''}" onchange="updateValue(${index}, 'omzet_dinas_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
+
+            {{-- ===== GROUP 9: PAJAK ===== --}}
+            <td class="px-2 py-2 text-xs text-right" style="background:#eef4fb;">
+                <span class="text-blue-600">${(item.pph_dinas && item.pph_dinas > 0) ? formatRupiah(item.pph_dinas) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-red-50 text-xs">
-                <span>${(item.omzet_nilai_dinas && item.omzet_nilai_dinas > 0) ? formatRupiah(item.omzet_nilai_dinas) : '-'}</span>
+            <td class="px-2 py-2 border-l border-gray-200" style="background:#fef9c3;">
+                <input type="number" value="${item.ppn_percent > 0 ? item.ppn_percent : 11}" onchange="updateValue(${index}, 'ppn_percent', this.value)" class="no-spin text-right w-14 font-semibold" step="0.1" min="0" max="100" placeholder="11" title="PPN persen per item" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3">
-                <input type="number" value="${item.bendera_percent || ''}" onchange="updateValue(${index}, 'bendera_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#eef4fb;">
+                <span class="text-blue-600">${(item.ppn_dinas && item.ppn_dinas > 0) ? formatRupiah(item.ppn_dinas) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-red-50 text-xs">
-                <span>${(item.gross_nilai_bendera && item.gross_nilai_bendera > 0) ? formatRupiah(item.gross_nilai_bendera) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-r-2 border-gray-400" style="background:#eef4fb;">
+                <span class="text-blue-700">${(item.proyeksi_kenaikan && item.proyeksi_kenaikan > 0) ? formatRupiah(item.proyeksi_kenaikan) : '-'}</span>
             </td>
-            <td class="px-2 py-3">
-                <input type="number" value="${item.bank_cost_percent || ''}" onchange="updateValue(${index}, 'bank_cost_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
+
+            {{-- ===== GROUP 10: ASUMSI CAIR ===== --}}
+            <td class="px-2 py-2 text-xs text-right" style="background:#f7fee7;">
+                <span class="text-lime-700">${(item.dpp && item.dpp > 0) ? formatRupiah(item.dpp) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-red-50 text-xs">
-                <span>${(item.gross_nilai_bank_cost && item.gross_nilai_bank_cost > 0) ? formatRupiah(item.gross_nilai_bank_cost) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-r-2 border-gray-400" style="background:#f7fee7;">
+                <span class="text-lime-700">${(item.asumsi_nilai_cair && item.asumsi_nilai_cair > 0) ? formatRupiah(item.asumsi_nilai_cair) : '-'}</span>
             </td>
-            <td class="px-2 py-3">
-                <input type="number" value="${item.biaya_ops_percent || ''}" onchange="updateValue(${index}, 'biaya_ops_percent', this.value)" class="no-spin text-right w-12" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
+
+            {{-- ===== GROUP 11: BIAYA TIDAK LANGSUNG ===== --}}
+            <td class="px-2 py-2" style="background:#fff1f2;">
+                <input type="number" value="${item.omzet_dinas_percent > 0 ? item.omzet_dinas_percent : ''}" onchange="updateValue(${index}, 'omzet_dinas_percent', this.value)" class="no-spin text-right w-14" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-red-50 text-xs">
-                <span>${(item.gross_nilai_biaya_ops && item.gross_nilai_biaya_ops > 0) ? formatRupiah(item.gross_nilai_biaya_ops) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#fff1f2;">
+                <span class="text-red-600">${(item.omzet_nilai_dinas && item.omzet_nilai_dinas > 0) ? formatRupiah(item.omzet_nilai_dinas) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-red-100 text-xs">
-                <span class="font-semibold">${(item.sub_total_biaya_tidak_langsung && item.sub_total_biaya_tidak_langsung > 0) ? formatRupiah(item.sub_total_biaya_tidak_langsung) : '-'}</span>
+            <td class="px-2 py-2 border-l border-gray-200" style="background:#fff1f2;">
+                <input type="number" value="${item.bendera_percent > 0 ? item.bendera_percent : ''}" onchange="updateValue(${index}, 'bendera_percent', this.value)" class="no-spin text-right w-14" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-green-50 text-xs">
-                <span>${(item.gross_income && item.gross_income > 0) ? formatRupiah(item.gross_income) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#fff1f2;">
+                <span class="text-red-600">${(item.gross_nilai_bendera && item.gross_nilai_bendera > 0) ? formatRupiah(item.gross_nilai_bendera) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-green-50 text-xs">
-                <span>${item.gross_income_persentase ? formatPercent(item.gross_income_persentase) : '-'}</span>
+            <td class="px-2 py-2 border-l border-gray-200" style="background:#fff1f2;">
+                <input type="number" value="${item.bank_cost_percent > 0 ? item.bank_cost_percent : ''}" onchange="updateValue(${index}, 'bank_cost_percent', this.value)" class="no-spin text-right w-14" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3 bg-green-100 text-xs">
-                <span class="font-bold">${(item.nilai_nett_income && item.nilai_nett_income > 0) ? formatRupiah(item.nilai_nett_income) : '-'}</span>
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#fff1f2;">
+                <span class="text-red-600">${(item.gross_nilai_bank_cost && item.gross_nilai_bank_cost > 0) ? formatRupiah(item.gross_nilai_bank_cost) : '-'}</span>
             </td>
-            <td class="px-2 py-3 bg-green-100 text-xs">
-                <span class="font-bold ${(item.nett_income_persentase || 0) >= 0 ? 'text-green-700' : 'text-red-700'}">${item.nett_income_persentase ? formatPercent(item.nett_income_persentase) : '-'}</span>
+            <td class="px-2 py-2 border-l border-gray-200" style="background:#fff1f2;">
+                <input type="number" value="${item.biaya_ops_percent > 0 ? item.biaya_ops_percent : ''}" onchange="updateValue(${index}, 'biaya_ops_percent', this.value)" class="no-spin text-right w-14" step="0.1" placeholder="%" ${!canEdit ? 'readonly' : ''}>
             </td>
-            <td class="px-2 py-3">
-                <input type="text" value="${item.keterangan_1 || ''}" onchange="updateValue(${index}, 'keterangan_1', this.value)" class="w-20 text-xs" placeholder="Keterangan" ${!canEdit ? 'readonly' : ''}>
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#fff1f2;">
+                <span class="text-red-600">${(item.gross_nilai_biaya_ops && item.gross_nilai_biaya_ops > 0) ? formatRupiah(item.gross_nilai_biaya_ops) : '-'}</span>
             </td>
-            <td class="px-2 py-3">
-                <input type="text" value="${item.keterangan_2 || ''}" onchange="updateValue(${index}, 'keterangan_2', this.value)" class="w-20 text-xs" placeholder="TKDN" ${!canEdit ? 'readonly' : ''}>
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#ffe4e6;">
+                <span class="font-semibold text-red-700">${(item.sub_total_biaya_tidak_langsung && item.sub_total_biaya_tidak_langsung > 0) ? formatRupiah(item.sub_total_biaya_tidak_langsung) : '-'}</span>
             </td>
-            <td class="px-2 py-3">
+            <td class="px-2 py-2 text-xs text-right border-l border-gray-200" style="background:#fff1f2;">
+                <span class="text-red-700">${(item.gross_income && item.gross_income > 0) ? formatRupiah(item.gross_income) : '-'}</span>
+            </td>
+            <td class="px-2 py-2 text-xs text-center border-l border-r-2 border-gray-400" style="background:#fff1f2;">
+                <span class="text-red-700">${item.gross_income_persentase ? formatPercent(item.gross_income_persentase) : '-'}</span>
+            </td>
+
+            {{-- ===== AKSI ===== --}}
+            <td class="px-2 py-2 text-center">
                 ${canEdit ? `<button onclick="removeItem(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">
                     <i class="fas fa-trash"></i>
                 </button>` : '<span class="text-gray-400 text-xs">-</span>'}
@@ -1404,7 +1482,7 @@ function addVendorItem() {
     
     // Check if there's client request for this new item (based on current index)
     const currentIndex = kalkulasiData.length - 1; // Last added item
-    const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[currentIndex];
+    const clientRequest = proyekBarangData && proyekBarangData[currentIndex];
     if (clientRequest) {
         // Auto-fill qty and pagu dinas from client request
         kalkulasiData[currentIndex].qty = parseFloat(clientRequest.jumlah) || 0;
@@ -1455,7 +1533,7 @@ async function updateBarang(index, barangId) {
                 }
                 
                 // Check if there's client request for this item and auto-fill qty and pagu dinas
-                const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+                const clientRequest = proyekBarangData && proyekBarangData[index] ? proyekBarangData[index] : null;
                 if (clientRequest) {
                     // Auto-fill qty from client request if not already set
                     if (!kalkulasiData[index].qty || kalkulasiData[index].qty === 0) {
@@ -1488,7 +1566,7 @@ async function updateBarang(index, barangId) {
                     }
                     
                     // Check if there's client request for this item and auto-fill qty and pagu dinas
-                    const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+                    const clientRequest = proyekBarangData && proyekBarangData[index] ? proyekBarangData[index] : null;
                     if (clientRequest) {
                         // Auto-fill qty from client request if not already set
                         if (!kalkulasiData[index].qty || kalkulasiData[index].qty === 0) {
@@ -1531,7 +1609,7 @@ async function updateBarang(index, barangId) {
                 }
                 
                 // Check if there's client request for this item and auto-fill qty and pagu dinas
-                const clientRequest = currentProject.proyekBarang && currentProject.proyekBarang[index];
+                const clientRequest = proyekBarangData && proyekBarangData[index] ? proyekBarangData[index] : null;
                 if (clientRequest) {
                     // Auto-fill qty from client request if not already set
                     if (!kalkulasiData[index].qty || kalkulasiData[index].qty === 0) {
@@ -2600,19 +2678,14 @@ document.addEventListener('keydown', function(event) {
     if (event.target.id && event.target.id.startsWith('barang-search-')) {
         const index = event.target.id.split('-')[2];
         const dropdown = document.getElementById(`barang-dropdown-${index}`);
-        const input = event.target;
         
         if (event.key === 'Escape') {
             dropdown.classList.add('hidden');
-            input.blur();
-            return;
-        }
-        
-        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.target.blur();
+        } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
             event.preventDefault();
             const items = dropdown.querySelectorAll('.barang-dropdown-item');
             if (items.length > 0) {
-                dropdown.classList.remove('hidden');
                 const currentActive = dropdown.querySelector('.barang-dropdown-item.active');
                 let nextIndex = 0;
                 
@@ -2629,41 +2702,16 @@ document.addEventListener('keydown', function(event) {
                 items[nextIndex].classList.add('active');
                 items[nextIndex].scrollIntoView({ block: 'nearest' });
             }
-            return;
-        }
-        
-        if (event.key === 'Enter') {
+        } else if (event.key === 'Enter') {
             event.preventDefault();
             const activeItem = dropdown.querySelector('.barang-dropdown-item.active');
             if (activeItem) {
                 activeItem.click();
-            } else {
-                // If no item is active and there are results, select first item
-                const firstItem = dropdown.querySelector('.barang-dropdown-item');
-                if (firstItem) {
-                    firstItem.click();
-                }
             }
-            return;
-        }
-        
-        if (event.key === 'Tab') {
-            // Close dropdown on tab
-            dropdown.classList.add('hidden');
         }
     }
 });
 
-// Clear search cache when barang list changes
-function clearSearchCache() {
-    searchCache.clear();
-}
 
-// Call clearSearchCache when barang list is reloaded
-const originalLoadBarangList = loadBarangList;
-loadBarangList = async function() {
-    await originalLoadBarangList.call(this);
-    clearSearchCache();
-};
 </script>
 @endpush
