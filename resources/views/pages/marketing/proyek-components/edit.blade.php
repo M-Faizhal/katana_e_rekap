@@ -291,7 +291,7 @@ function addEditItem(itemData = null) {
         qty = itemData.qty || itemData.jumlah || '';
         satuan = itemData.satuan || '';
         // Format harga satuan for Indonesian display if it exists
-        if (itemData.harga_satuan && itemData.harga_satuan !== null) {
+        if (itemData.harga_satuan !== null && itemData.harga_satuan !== undefined && itemData.harga_satuan !== '') {
             const price = parseFloat(itemData.harga_satuan);
             if (!isNaN(price)) {
                 // Format with Indonesian locale (dots for thousands, comma for decimals)
@@ -468,15 +468,17 @@ function formatNumberToIndonesian(number) {
 
 // Helper function to parse Indonesian formatted number to float
 function parseIndonesianNumber(value) {
-    if (!value || typeof value !== 'string') return 0;
-    
+    if (value === null || value === undefined || value === '') return 0;
+    if (typeof value === 'number') return value;
+
     // Clean the value: remove dots (thousand separators) and replace comma with dot for decimal
-    let cleanValue = value
+    let cleanValue = String(value)
         .trim()
         .replace(/\./g, '')    // Remove thousand separators (dots)
         .replace(/,/g, '.');   // Replace decimal comma with dot for parsing
-    
-    return parseFloat(cleanValue) || 0;
+
+    const parsed = parseFloat(cleanValue);
+    return isNaN(parsed) ? 0 : parsed;
 }
 
 function hitungTotalEdit(input) {
@@ -517,7 +519,8 @@ function formatHargaSatuanEdit(input) {
     let [integerPart, decimalPart] = value.split(',');
 
     // Format integer part with thousand separators (dots)
-    if (integerPart) {
+    // NOTE: use !== undefined/null check, NOT truthy check, so "0" is handled correctly
+    if (integerPart !== undefined && integerPart !== '') {
         // Add dots every 3 digits for thousand separators
         integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
@@ -525,9 +528,9 @@ function formatHargaSatuanEdit(input) {
     // Reconstruct the value
     if (decimalPart !== undefined) {
         // Allow unlimited decimal places
-        value = integerPart + ',' + decimalPart;
+        value = (integerPart ?? '') + ',' + decimalPart;
     } else {
-        value = integerPart || '';
+        value = integerPart ?? '';
     }
 
     // Update input value
@@ -784,9 +787,10 @@ function collectEditFormData() {
         }
         
         // Parse harga satuan (Indonesian format)
-        let hargaSatuan = 0;
-        if (hargaSatuanStr) {
-            hargaSatuan = parseIndonesianNumber(hargaSatuanStr);
+        let hargaSatuan = null;
+        if (hargaSatuanStr !== '') {
+            const parsed = parseIndonesianNumber(hargaSatuanStr);
+            hargaSatuan = isNaN(parsed) ? null : parsed;
         }
         
         daftarBarang.push({

@@ -639,7 +639,8 @@ function hitungTotal(input) {
         let cleanValue = hargaSatuanInput.value
             .replace(/\./g, '')    // Remove thousand separators (dots)
             .replace(/,/g, '.');   // Replace decimal comma with dot
-        hargaSatuan = parseFloat(cleanValue) || 0;
+        const parsed = parseFloat(cleanValue);
+        hargaSatuan = isNaN(parsed) ? 0 : parsed;
     }
 
     const total = qty * hargaSatuan;
@@ -671,7 +672,8 @@ function formatHargaSatuan(input) {
     let [integerPart, decimalPart] = value.split(',');
 
     // Format integer part with thousand separators (dots)
-    if (integerPart) {
+    // NOTE: use !== undefined/null check, NOT truthy check, so "0" is handled correctly
+    if (integerPart !== undefined && integerPart !== '') {
         // Add dots every 3 digits for thousand separators
         integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
@@ -679,9 +681,9 @@ function formatHargaSatuan(input) {
     // Reconstruct the value
     if (decimalPart !== undefined) {
         // Allow unlimited decimal places
-        value = integerPart + ',' + decimalPart;
+        value = (integerPart ?? '') + ',' + decimalPart;
     } else {
-        value = integerPart || '';
+        value = integerPart ?? '';
     }
 
     // Update input value
@@ -727,7 +729,8 @@ function hitungTotalKeseluruhan() {
             let cleanValue = hargaSatuanInput.value
                 .replace(/\./g, '')    // Remove thousand separators (dots)
                 .replace(/,/g, '.');   // Replace decimal comma with dot
-            const hargaSatuan = parseFloat(cleanValue) || 0;
+            const parsedHarga = parseFloat(cleanValue);
+            const hargaSatuan = isNaN(parsedHarga) ? 0 : parsedHarga;
             total += qty * hargaSatuan;
         }
     });
@@ -1247,11 +1250,12 @@ function collectTambahFormData() {
 
         // Convert Indonesian formatted price to number (remove dots, replace comma with dot)
         let hargaSatuan = null;
-        if (hargaSatuanRaw) {
+        if (hargaSatuanRaw !== null && hargaSatuanRaw !== undefined && hargaSatuanRaw !== '') {
             const cleanValue = hargaSatuanRaw
                 .replace(/\./g, '')    // Remove thousand separators (dots)
                 .replace(/,/g, '.');   // Replace decimal comma with dot
-            hargaSatuan = parseFloat(cleanValue) || null;
+            const parsed = parseFloat(cleanValue);
+            hargaSatuan = isNaN(parsed) ? null : parsed;
         }
 
         // Hanya tambahkan barang yang memiliki data minimal (nama, qty, satuan)
