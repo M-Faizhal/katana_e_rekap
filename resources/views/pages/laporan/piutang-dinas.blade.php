@@ -272,13 +272,11 @@ function applyFilters() {
     const instansi = document.getElementById('instansi-filter').value;
     const nominal = document.getElementById('nominal-filter').value;
 
-    // Build URL with query parameters
     const params = new URLSearchParams();
     if (status) params.append('status', status);
     if (instansi) params.append('instansi', instansi);
     if (nominal) params.append('nominal', nominal);
 
-    // Redirect with filters
     window.location.href = '{{ route("laporan.piutang-dinas") }}?' + params.toString();
 }
 
@@ -286,15 +284,10 @@ function resetFilters() {
     window.location.href = '{{ route("laporan.piutang-dinas") }}';
 }
 
-function showAllData() {
 function showAllData() {
     const params = new URLSearchParams();
     params.append('show_all', 'true');
     window.location.href = '{{ route("laporan.piutang-dinas") }}?' + params.toString();
-}
-
-function resetFilters() {
-    window.location.href = '{{ route("laporan.piutang-dinas") }}';
 }
 </script>
 @endsection

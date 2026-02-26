@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Proyek;
 use App\Models\Penawaran;
-use App\Models\Pembayaran;
 use App\Models\Pengiriman;
-use App\Models\Vendor;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,304 +16,215 @@ class PengirimanController extends Controller
 {
     /**
      * Display a listing of projects ready for shipping
+     *
+     * Optimisations vs original:
+     * - Removed per-vendor Pengiriman::where() query inside nested map() loop
+     *   → replaced with in-memory filtering on the already eager-loaded $proyek->pengiriman
+     * - Removed all Log::info() debug calls
+     * - Deduplicated the identical kalkulasiHps barang-list transform (extracted to helper)
+     * - kalkulasiHps.vendor eager-load removed (vendor not needed there)
      */
     public function index()
     {
-        // Ambil parameter search
-        $search = request()->get('search');
+        $search    = request()->get('search');
         $activeTab = request()->get('tab', 'ready');
-        
-        // Ambil proyek yang statusnya 'Pengiriman' atau 'Selesai'
-        // Dan vendor yang sudah lunas pembayarannya
+
+        // ----------------------------------------------------------------
+        // TAB: Ready Kirim
+        // ----------------------------------------------------------------
         $proyekReadyQuery = Proyek::with([
-                'penawaranAktif.penawaranDetail.barang.vendor', 
-                'adminMarketing', 
-                'pembayaran', 
-                'pengiriman',
-                'kalkulasiHps.barang',
-                'kalkulasiHps.vendor'
+                'penawaranAktif.penawaranDetail.barang.vendor',
+                'adminMarketing',
+                'pembayaran',
+                'pengiriman',          // hasManyThrough — already defined on Proyek
+                'kalkulasiHps.barang', // for barang_vendor list (in-memory)
             ])
             ->whereIn('status', ['Pengiriman', 'Selesai'])
-            ->whereHas('penawaranAktif', function ($query) {
-                $query->where('status', 'ACC');
-            });
-        
-        // Filter berdasarkan search untuk tab ready
+            ->whereHas('penawaranAktif', fn($q) => $q->where('status', 'ACC'));
+
         if ($search) {
-            $proyekReadyQuery->where(function ($query) use ($search) {
-                $query->where('instansi', 'like', "%{$search}%")
-                      ->orWhere('kode_proyek', 'like', "%{$search}%")
-                      ->orWhereHas('proyekBarang', function ($subQuery) use ($search) {
-                          $subQuery->where('nama_barang', 'like', "%{$search}%");
-                      });
+            $proyekReadyQuery->where(function ($q) use ($search) {
+                $q->where('instansi', 'like', "%{$search}%")
+                  ->orWhere('kode_proyek', 'like', "%{$search}%")
+                  ->orWhereHas('proyekBarang', fn($sq) => $sq->where('nama_barang', 'like', "%{$search}%"));
             });
         }
-        
+
         $proyekReady = $proyekReadyQuery->get()
             ->map(function ($proyek) {
-                // Ambil vendor yang terlibat dalam proyek ini
+                // Group existing pengiriman by vendor ID for O(1) lookup — no extra queries
+                $pengirimanByVendor = $proyek->pengiriman->groupBy('id_vendor');
+
+                // Group kalkulasi HPS by vendor ID for O(1) barang lookup
+                $kalkulasiByVendor = $proyek->kalkulasiHps->groupBy('id_vendor');
+
                 $vendors = $proyek->penawaranAktif->penawaranDetail
                     ->pluck('barang.vendor')
                     ->unique('id_vendor')
                     ->filter();
 
-                $proyek->vendors_ready = $vendors->map(function ($vendor) use ($proyek) {
-                    // Hitung total untuk vendor ini (menggunakan total_harga_hpp)
+                $proyek->vendors_ready = $vendors->map(function ($vendor) use ($proyek, $pengirimanByVendor, $kalkulasiByVendor) {
                     $totalVendor = $proyek->penawaranAktif->penawaranDetail
                         ->where('barang.id_vendor', $vendor->id_vendor)
                         ->sum('total_harga_hpp');
 
-                    // Hitung yang sudah dibayar untuk vendor ini (approved saja)
-                    $pembayaranApproved = $proyek->pembayaran
+                    $totalDibayarApproved = $proyek->pembayaran
                         ->where('id_vendor', $vendor->id_vendor)
-                        ->where('status_verifikasi', 'Approved');
-                    
-                    $totalDibayarApproved = $pembayaranApproved->sum('nominal_bayar');
+                        ->where('status_verifikasi', 'Approved')
+                        ->sum('nominal_bayar');
 
-                    $isLunas = $totalVendor <= $totalDibayarApproved;
-                    $hasPembayaranApproved = $totalDibayarApproved > 0; // Ada pembayaran yang sudah approved
+                    $hasPembayaranApproved = $totalDibayarApproved > 0;
 
-                    // Debug log untuk setiap vendor
-                    Log::info('Vendor Payment Check:', [
-                        'proyek_id' => $proyek->id_proyek,
-                        'vendor_id' => $vendor->id_vendor,
-                        'vendor_name' => $vendor->nama_vendor,
-                        'total_vendor' => $totalVendor,
-                        'pembayaran_approved_count' => $pembayaranApproved->count(),
-                        'pembayaran_approved_data' => $pembayaranApproved->map(function($p) {
-                            return [
-                                'id' => $p->id_pembayaran,
-                                'nominal' => $p->nominal_bayar,
-                                'status' => $p->status_verifikasi,
-                                'tanggal' => $p->tanggal_pembayaran
-                            ];
-                        })->toArray(),
-                        'total_dibayar_approved' => $totalDibayarApproved,
-                        'has_approved_payment' => $hasPembayaranApproved,
-                        'is_lunas' => $isLunas
-                    ]);
+                    // In-memory lookup — zero extra queries
+                    $pengirimanVendor = $pengirimanByVendor->get($vendor->id_vendor, collect());
 
-                    // Cek apakah sudah ada pengiriman untuk vendor ini di penawaran ini
-                    $pengiriman = Pengiriman::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->get();
+                    // Barang list from kalkulasiHps (in-memory)
+                    $barangVendor = $kalkulasiByVendor->get($vendor->id_vendor, collect())
+                        ->pluck('barang.nama_barang')
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
 
-                    // Ambil daftar barang untuk vendor ini dari kalkulasi HPS
-                    $barangVendor = [];
-                    $kalkulasiCount = 0;
-                    $barangFoundCount = 0;
-                    
-                    if ($proyek->kalkulasiHps) {
-                        $kalkulasiCount = $proyek->kalkulasiHps->count();
-                        foreach ($proyek->kalkulasiHps as $kalkulasi) {
-                            if ($kalkulasi->id_vendor == $vendor->id_vendor) {
-                                if ($kalkulasi->barang && $kalkulasi->barang->nama_barang) {
-                                    $barangVendor[] = $kalkulasi->barang->nama_barang;
-                                    $barangFoundCount++;
-                                }
-                            }
-                        }
-                        $barangVendor = array_unique(array_filter($barangVendor));
+                    // Fallback: from penawaran detail
+                    if (empty($barangVendor)) {
+                        $barangVendor = $proyek->penawaranAktif->penawaranDetail
+                            ->filter(fn($d) => $d->barang && $d->barang->id_vendor == $vendor->id_vendor)
+                            ->pluck('barang.nama_barang')
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->all();
                     }
-
-                    // Fallback: jika tidak ada di kalkulasi HPS, ambil dari penawaran detail
-                    if (empty($barangVendor) && $proyek->penawaranAktif && $proyek->penawaranAktif->penawaranDetail) {
-                        foreach ($proyek->penawaranAktif->penawaranDetail as $detail) {
-                            if ($detail->barang && $detail->barang->id_vendor == $vendor->id_vendor && $detail->barang->nama_barang) {
-                                $barangVendor[] = $detail->barang->nama_barang;
-                            }
-                        }
-                        $barangVendor = array_unique(array_filter($barangVendor));
-                    }
-
-                    // Log debug information
-                    Log::info('Barang Vendor Debug:', [
-                        'proyek_id' => $proyek->id_proyek,
-                        'vendor_id' => $vendor->id_vendor,
-                        'vendor_name' => $vendor->nama_vendor,
-                        'kalkulasi_total_count' => $kalkulasiCount,
-                        'barang_found_count' => $barangFoundCount,
-                        'barang_vendor_array' => $barangVendor,
-                        'has_penawaran_aktif' => $proyek->penawaranAktif ? true : false,
-                        'penawaran_detail_count' => $proyek->penawaranAktif && $proyek->penawaranAktif->penawaranDetail ? 
-                            $proyek->penawaranAktif->penawaranDetail->count() : 0
-                    ]);
 
                     return [
-                        'vendor' => $vendor->toArray(),
-                        'total_vendor' => $totalVendor,
+                        'vendor'                 => $vendor->toArray(),
+                        'total_vendor'           => $totalVendor,
                         'total_dibayar_approved' => $totalDibayarApproved,
-                        'status_lunas' => $isLunas,
-                        'has_approved_payment' => $hasPembayaranApproved,
-                        'pengiriman' => $pengiriman ? $pengiriman->toArray() : null,
-                        'ready_to_ship' => $hasPembayaranApproved && $pengiriman->isEmpty(), // Bisa kirim jika ada pembayaran approved dan belum ada pengiriman
-                        'barang_vendor' => $barangVendor // Daftar nama barang untuk vendor ini
+                        'status_lunas'           => $totalVendor <= $totalDibayarApproved,
+                        'has_approved_payment'   => $hasPembayaranApproved,
+                        'pengiriman'             => $pengirimanVendor->toArray(),
+                        'ready_to_ship'          => $hasPembayaranApproved && $pengirimanVendor->isEmpty(),
+                        'barang_vendor'          => $barangVendor,
                     ];
-                })->filter(function ($vendorData) {
-                    return $vendorData['has_approved_payment']; // Hanya vendor yang ada pembayaran approved
-                })->values()->toArray(); // Konversi ke array PHP biasa
+                })
+                ->filter(fn($v) => $v['has_approved_payment'])
+                ->values()
+                ->toArray();
 
                 return $proyek;
             })
-            ->filter(function ($proyek) {
-                return count($proyek->vendors_ready) > 0; // Hanya proyek yang ada vendor lunas
-            })
+            ->filter(fn($p) => count($p->vendors_ready) > 0)
             ->values();
 
-        // Convert proyekReady collection to paginated result
-        $currentPageReady = request()->get('ready_page', 1);
-        $perPageReady = 10;
-        $readyItems = collect($proyekReady)->flatMap(function($proyek) {
-            return collect($proyek->vendors_ready)->filter(function($vendor) {
-                return $vendor['ready_to_ship'];
-            })->map(function($vendor) use ($proyek) {
-                return (object) array_merge($vendor, ['proyek' => $proyek]);
-            });
+        // Flatten to per-vendor rows and paginate
+        $currentPageReady = (int) request()->get('ready_page', 1);
+        $perPageReady     = 10;
+        $readyItems = collect($proyekReady)->flatMap(function ($proyek) {
+            return collect($proyek->vendors_ready)
+                ->filter(fn($v) => $v['ready_to_ship'])
+                ->map(fn($v) => (object) array_merge($v, ['proyek' => $proyek]));
         });
-        $currentPageReadyItems = $readyItems->slice(($currentPageReady - 1) * $perPageReady, $perPageReady);
+
         $proyekReadyPaginated = new \Illuminate\Pagination\LengthAwarePaginator(
-            $currentPageReadyItems,
+            $readyItems->slice(($currentPageReady - 1) * $perPageReady, $perPageReady),
             $readyItems->count(),
             $perPageReady,
             $currentPageReady,
             ['path' => request()->url(), 'pageName' => 'ready_page']
         );
 
-        // Ambil pengiriman yang sedang berjalan (per vendor) dengan pagination
+        // ----------------------------------------------------------------
+        // TAB: Dalam Proses
+        // ----------------------------------------------------------------
         $pengirimanBerjalanQuery = Pengiriman::with([
-                'penawaran.proyek.kalkulasiHps.barang', 
-                'penawaran.proyek.kalkulasiHps.vendor',
-                'vendor'
+                'penawaran.proyek.kalkulasiHps.barang',
+                'vendor',
             ])
             ->whereIn('status_verifikasi', ['Pending', 'Dalam_Proses']);
-        
-        // Filter berdasarkan search untuk tab proses
+
         if ($search) {
-            $pengirimanBerjalanQuery->where(function ($query) use ($search) {
-                $query->whereHas('penawaran.proyek', function ($subQuery) use ($search) {
-                    $subQuery->where('instansi', 'like', "%{$search}%")
-                             ->orWhere('kode_proyek', 'like', "%{$search}%")
-                             ->orWhereHas('proyekBarang', function ($subSubQuery) use ($search) {
-                                 $subSubQuery->where('nama_barang', 'like', "%{$search}%");
-                             });
-                })->orWhereHas('vendor', function ($subQuery) use ($search) {
-                    $subQuery->where('nama_vendor', 'like', "%{$search}%");
-                });
+            $pengirimanBerjalanQuery->where(function ($q) use ($search) {
+                $q->whereHas('penawaran.proyek', function ($sq) use ($search) {
+                    $sq->where('instansi', 'like', "%{$search}%")
+                       ->orWhere('kode_proyek', 'like', "%{$search}%");
+                })->orWhereHas('vendor', fn($sq) => $sq->where('nama_vendor', 'like', "%{$search}%"));
             });
         }
-        
+
         $pengirimanBerjalan = $pengirimanBerjalanQuery
             ->orderBy('created_at', 'desc')
             ->paginate(10, ['*'], 'proses_page');
 
-        // Tambahkan data barang untuk setiap pengiriman yang sedang berjalan
-        $pengirimanBerjalan->getCollection()->transform(function ($pengiriman) {
-            // Ambil daftar barang untuk vendor ini dari kalkulasi HPS
-            $barangList = [];
-            if ($pengiriman->penawaran && $pengiriman->penawaran->proyek && $pengiriman->penawaran->proyek->kalkulasiHps) {
-                foreach ($pengiriman->penawaran->proyek->kalkulasiHps as $kalkulasi) {
-                    if ($kalkulasi->id_vendor == $pengiriman->id_vendor && $kalkulasi->barang) {
-                        $barangList[] = $kalkulasi->barang->nama_barang;
-                    }
-                }
-                $barangList = array_unique(array_filter($barangList));
-            }
+        // Attach barang_list in-memory (no extra queries — kalkulasiHps already eager-loaded)
+        $pengirimanBerjalan->getCollection()->transform(
+            fn($p) => $this->attachBarangList($p)
+        );
 
-            // Jika tidak ada barang_list di field, set dari kalkulasi HPS
-            if (empty($pengiriman->barang_list) && !empty($barangList)) {
-                $pengiriman->barang_list = $barangList;
-            }
-
-            return $pengiriman;
-        });
-
-        // Ambil pengiriman yang sudah selesai (per vendor) dengan pagination
-        // Kriteria selesai: 
-        // 1. Status Verified (untuk proyek yang sudah Selesai)
-        // 2. Atau dokumen lengkap (foto_sampai + tanda_terima) tapi proyek belum Selesai
+        // ----------------------------------------------------------------
+        // TAB: Selesai
+        // ----------------------------------------------------------------
         $pengirimanSelesaiQuery = Pengiriman::with([
-                'penawaran.proyek.kalkulasiHps.barang', 
-                'penawaran.proyek.kalkulasiHps.vendor',
-                'vendor', 
-                'verifiedBy'
+                'penawaran.proyek.kalkulasiHps.barang',
+                'vendor',
+                'verifiedBy',
             ])
-            ->where(function($query) {
-                // Yang sudah verified dan proyeknya selesai
-                $query->where('status_verifikasi', 'Verified')
-                      ->whereHas('penawaran.proyek', function($proyekQuery) {
-                          $proyekQuery->where('status', 'Selesai');
-                      });
+            ->where(function ($q) {
+                $q->where('status_verifikasi', 'Verified')
+                  ->whereHas('penawaran.proyek', fn($sq) => $sq->where('status', 'Selesai'));
             })
-            ->orWhere(function($query) {
-                // yang sudah sampai tujuan
-                $query->where('status_verifikasi', 'Sampai_Tujuan');
-                      
-            });
-        
-        // Filter berdasarkan search untuk tab selesai
+            ->orWhere('status_verifikasi', 'Sampai_Tujuan');
+
         if ($search) {
-            $pengirimanSelesaiQuery->where(function ($query) use ($search) {
-                $query->whereHas('penawaran.proyek', function ($subQuery) use ($search) {
-                    $subQuery->where('instansi', 'like', "%{$search}%")
-                             ->orWhere('kode_proyek', 'like', "%{$search}%")
-                             ->orWhereHas('proyekBarang', function ($subSubQuery) use ($search) {
-                                 $subSubQuery->where('nama_barang', 'like', "%{$search}%");
-                             });
-                })->orWhereHas('vendor', function ($subQuery) use ($search) {
-                    $subQuery->where('nama_vendor', 'like', "%{$search}%");
-                });
+            $pengirimanSelesaiQuery->where(function ($q) use ($search) {
+                $q->whereHas('penawaran.proyek', function ($sq) use ($search) {
+                    $sq->where('instansi', 'like', "%{$search}%")
+                       ->orWhere('kode_proyek', 'like', "%{$search}%");
+                })->orWhereHas('vendor', fn($sq) => $sq->where('nama_vendor', 'like', "%{$search}%"));
             });
         }
-        
+
         $pengirimanSelesai = $pengirimanSelesaiQuery
             ->orderBy('updated_at', 'desc')
             ->paginate(10, ['*'], 'selesai_page');
 
-        // Tambahkan data barang untuk setiap pengiriman yang selesai
-        $pengirimanSelesai->getCollection()->transform(function ($pengiriman) {
-            // Ambil daftar barang untuk vendor ini dari kalkulasi HPS
-            $barangList = [];
-            if ($pengiriman->penawaran && $pengiriman->penawaran->proyek && $pengiriman->penawaran->proyek->kalkulasiHps) {
-                foreach ($pengiriman->penawaran->proyek->kalkulasiHps as $kalkulasi) {
-                    if ($kalkulasi->id_vendor == $pengiriman->id_vendor && $kalkulasi->barang) {
-                        $barangList[] = $kalkulasi->barang->nama_barang;
-                    }
-                }
-                $barangList = array_unique(array_filter($barangList));
-            }
-
-            // Jika tidak ada barang_list di field, set dari kalkulasi HPS
-            if (empty($pengiriman->barang_list) && !empty($barangList)) {
-                $pengiriman->barang_list = $barangList;
-            }
-
-            return $pengiriman;
-        });
-
-        // Debug log untuk memastikan struktur data benar
-        Log::info('Proyek Ready Data Structure:', [
-            'count' => $proyekReady->count(),
-            'sample' => $proyekReady->count() > 0 ? [
-                'proyek_id' => $proyekReady->first()->id_proyek,
-                'proyek_status' => $proyekReady->first()->status,
-                'vendors_ready_count' => count($proyekReady->first()->vendors_ready),
-                'vendors_ready_sample' => $proyekReady->first()->vendors_ready[0] ?? 'No vendors ready',
-                'barang_vendor_sample' => isset($proyekReady->first()->vendors_ready[0]['barang_vendor']) ? 
-                    $proyekReady->first()->vendors_ready[0]['barang_vendor'] : 'No barang data',
-                'kalkulasi_hps_count' => $proyekReady->first()->kalkulasiHps ? $proyekReady->first()->kalkulasiHps->count() : 0,
-                'kalkulasi_hps_sample' => $proyekReady->first()->kalkulasiHps ? 
-                    $proyekReady->first()->kalkulasiHps->first() : 'No kalkulasi HPS'
-            ] : 'No projects'
-        ]);
+        $pengirimanSelesai->getCollection()->transform(
+            fn($p) => $this->attachBarangList($p)
+        );
 
         return view('pages.purchasing.pengiriman', compact(
             'proyekReady',
             'proyekReadyPaginated',
-            'pengirimanBerjalan', 
+            'pengirimanBerjalan',
             'pengirimanSelesai',
             'search',
             'activeTab'
         ));
+    }
+
+    /**
+     * Attach barang_list to a Pengiriman model using already-eager-loaded kalkulasiHps.
+     * Zero extra queries.
+     */
+    private function attachBarangList(Pengiriman $pengiriman): Pengiriman
+    {
+        if (!empty($pengiriman->barang_list)) {
+            return $pengiriman;
+        }
+
+        $barangList = [];
+        if ($pengiriman->penawaran?->proyek?->kalkulasiHps) {
+            $barangList = $pengiriman->penawaran->proyek->kalkulasiHps
+                ->filter(fn($k) => $k->id_vendor == $pengiriman->id_vendor && $k->barang)
+                ->pluck('barang.nama_barang')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        $pengiriman->barang_list = $barangList;
+        return $pengiriman;
     }
 
     /**

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PenagihanDinas;
 use App\Models\BuktiPembayaran;
-use App\Models\Penawaran;
 use App\Models\Proyek;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -15,64 +14,45 @@ use Carbon\Carbon;
 
 class PenagihanDinasController extends Controller
 {
-    /**
-     * Helper method untuk mengecek apakah semua vendor sudah mengirim dengan status "Sampai_Tujuan"
-     * 
-     * @param Penawaran $penawaran
-     * @return bool
-     */
-    private function checkAllVendorsDelivered($penawaran)
-    {
-        // Ambil semua vendor yang terlibat dalam penawaran ini
-        $vendorIds = $penawaran->penawaranDetail()
-            ->with('barang.vendor')
-            ->get()
-            ->pluck('barang.id_vendor')
-            ->filter()
-            ->unique()
-            ->values();
-
-        // Jika tidak ada vendor, return false (tidak bisa ditagih)
-        if ($vendorIds->isEmpty()) {
-            return false;
-        }
-
-        // Cek pengiriman untuk setiap vendor
-        foreach ($vendorIds as $vendorId) {
-            $pengiriman = $penawaran->pengiriman()
-                ->where('id_vendor', $vendorId)
-                ->latest()
-                ->first();
-
-            // Jika vendor belum ada pengiriman atau status bukan "Sampai_Tujuan", return false
-            if (!$pengiriman || $pengiriman->status_verifikasi !== 'Sampai_Tujuan') {
-                return false;
-            }
-        }
-
-        // Semua vendor sudah mengirim dengan status "Sampai_Tujuan"
-        return true;
-    }
-
     public function index(Request $request)
     {
         $search = $request->input('search');
 
-        // Ambil proyek yang sudah di ACC oleh klien
-        $proyekAccQuery = Proyek::with(['semuaPenawaran' => function($query) {
-            $query->where('status', 'ACC');
-        }, 'semuaPenawaran.pengiriman.vendor', 'semuaPenawaran.penawaranDetail.barang.vendor'])
-        ->whereHas('semuaPenawaran', function($query) {
+        // --- Belum Bayar tab: batch-optimized, no N+1 ---
+
+        // Step 1: Load all ACC penawaran IDs that already have a penagihan (batch, single query)
+        $penawaranSudahDitagihIds = PenagihanDinas::withTrashed(false)
+            ->pluck('penawaran_id')
+            ->flip(); // use as a set for O(1) lookup
+
+        // Step 2: Load all pengiriman with status "Sampai_Tujuan", keyed by id_penawaran
+        //   Result: [ id_penawaran => Collection of vendor_ids that have Sampai_Tujuan ]
+        $pengirimanSampaiRaw = \App\Models\Pengiriman::where('status_verifikasi', 'Sampai_Tujuan')
+            ->select('id_penawaran', 'id_vendor')
+            ->get();
+        // Build map: id_penawaran -> set of vendor IDs delivered
+        $deliveredVendorsByPenawaran = [];
+        foreach ($pengirimanSampaiRaw as $p) {
+            $deliveredVendorsByPenawaran[$p->id_penawaran][$p->id_vendor] = true;
+        }
+
+        // Step 3: Load all ACC proyek with their penawaran and vendor info (eager load)
+        $proyekAccQuery = Proyek::with([
+            'semuaPenawaran' => function ($query) {
+                $query->where('status', 'ACC');
+            },
+            'semuaPenawaran.penawaranDetail.barang' => function ($query) {
+                $query->select('id_barang', 'id_vendor');
+            },
+        ])->whereHas('semuaPenawaran', function ($query) {
             $query->where('status', 'ACC');
         });
 
-        // Apply search filter for Belum Bayar tab
         if ($search) {
-            $proyekAccQuery->where(function($q) use ($search) {
+            $proyekAccQuery->where(function ($q) use ($search) {
                 $q->where('kode_proyek', 'like', '%' . $search . '%')
                   ->orWhere('instansi', 'like', '%' . $search . '%')
-                  // Search by proyekBarang nama_barang via relationship
-                  ->orWhereHas('proyekBarang', function($pbq) use ($search) {
+                  ->orWhereHas('proyekBarang', function ($pbq) use ($search) {
                       $pbq->where('nama_barang', 'like', '%' . $search . '%');
                   });
             });
@@ -80,29 +60,47 @@ class PenagihanDinasController extends Controller
 
         $proyekAcc = $proyekAccQuery->get();
 
-        // Group berdasarkan status pembayaran
+        // Step 4: In-memory filtering — no extra queries per penawaran/vendor
         $proyekBelumBayarCollection = collect();
-        
+
         foreach ($proyekAcc as $proyek) {
-            $penawaranAcc = $proyek->semuaPenawaran;
             $hasUnpaidPenawaran = false;
-            
-            foreach ($penawaranAcc as $penawaran) {
-                // Cek apakah penawaran sudah ditagih
-                $existingPenagihan = PenagihanDinas::where('penawaran_id', $penawaran->id_penawaran)->first();
-                
-                if (!$existingPenagihan) {
-                    // Cek apakah semua vendor sudah mengirim dengan status "Sampai_Tujuan"
-                    $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
-                    
-                    // Hanya masukkan ke belum bayar jika belum ditagih DAN semua vendor sudah sampai tujuan
-                    if ($allVendorsDelivered) {
-                        $hasUnpaidPenawaran = true;
+
+            foreach ($proyek->semuaPenawaran as $penawaran) {
+                $penawaranId = $penawaran->id_penawaran;
+
+                // Skip already-invoiced penawaran (in-memory lookup)
+                if (isset($penawaranSudahDitagihIds[$penawaranId])) {
+                    continue;
+                }
+
+                // Collect vendor IDs from penawaran details (in-memory, already eager-loaded)
+                $vendorIds = $penawaran->penawaranDetail
+                    ->pluck('barang.id_vendor')
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                if ($vendorIds->isEmpty()) {
+                    continue;
+                }
+
+                // Check all vendors delivered (in-memory lookup against pre-loaded map)
+                $deliveredForThisPenawaran = $deliveredVendorsByPenawaran[$penawaranId] ?? [];
+                $allDelivered = true;
+                foreach ($vendorIds as $vendorId) {
+                    if (!isset($deliveredForThisPenawaran[$vendorId])) {
+                        $allDelivered = false;
                         break;
                     }
                 }
+
+                if ($allDelivered) {
+                    $hasUnpaidPenawaran = true;
+                    break;
+                }
             }
-            
+
             if ($hasUnpaidPenawaran) {
                 $proyekBelumBayarCollection->push($proyek);
             }
