@@ -29,6 +29,39 @@ class Pembayaran extends Model
         'tanggal_verifikasi' => 'datetime',
     ];
 
+    /**
+     * Get bukti_bayar as array (handles both legacy string and new JSON array format)
+     */
+    public function getBuktiBayarArrayAttribute(): array
+    {
+        $value = $this->bukti_bayar;
+        if (empty($value)) {
+            return [];
+        }
+        $decoded = json_decode($value, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+        // Legacy single-file string
+        return [$value];
+    }
+
+    /**
+     * Set bukti_bayar: always store as JSON array
+     */
+    public function setBuktiBayarAttribute($value): void
+    {
+        if (is_array($value)) {
+            $this->attributes['bukti_bayar'] = json_encode(array_values($value));
+        } elseif (is_string($value) && $value !== '') {
+            // Check if already JSON
+            $decoded = json_decode($value, true);
+            $this->attributes['bukti_bayar'] = is_array($decoded) ? $value : json_encode([$value]);
+        } else {
+            $this->attributes['bukti_bayar'] = null;
+        }
+    }
+
     // Relationships
     public function penawaran()
     {
@@ -45,10 +78,10 @@ class Pembayaran extends Model
         return $this->hasOneThrough(
             Proyek::class,
             Penawaran::class,
-            'id_penawaran', // Foreign key on penawaran table
-            'id_proyek', // Foreign key on proyek table
-            'id_penawaran', // Local key on pembayaran table
-            'id_proyek' // Local key on penawaran table
+            'id_penawaran',
+            'id_proyek',
+            'id_penawaran',
+            'id_proyek'
         );
     }
 

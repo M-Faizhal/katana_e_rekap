@@ -247,12 +247,9 @@ class PengirimanController extends Controller
                       });
             })
             ->orWhere(function($query) {
-                // Atau yang dokumennya sudah lengkap (sampai + tanda terima) tapi belum verified
-                $query->whereNotNull('foto_sampai')
-                      ->whereNotNull('tanda_terima')
-                      ->where('foto_sampai', '!=', '')
-                      ->where('tanda_terima', '!=', '')
-                      ->where('status_verifikasi', '!=', 'Verified');
+                // yang sudah sampai tujuan
+                $query->where('status_verifikasi', 'Sampai_Tujuan');
+                      
             });
         
         // Filter berdasarkan search untuk tab selesai
@@ -564,19 +561,41 @@ class PengirimanController extends Controller
                     $file = $request->file($field);
                     $fileName = time() . '_' . $field . '_' . $file->getClientOriginalName();
                     $file->storeAs('pengiriman/dokumentasi', $fileName, 'public');
-                    $updateData[$field] = $fileName; // Simpan hanya nama file
+                    $updateData[$field] = $fileName;
                 }
+            }
+
+            // Simpan checklist (tanpa migration — disimpan sebagai JSON prefix di catatan_verifikasi)
+            // Hanya update checklist jika status belum Verified (agar catatan superadmin tidak tertimpa)
+            if (!in_array($pengiriman->status_verifikasi, ['Verified', 'Rejected'])) {
+                // Baca checklist lama jika ada
+                $oldChecklist = $pengiriman->checklist_data;
+
+                $newChecklist = [
+                    'berangkat'  => $request->boolean('check_berangkat')  || !empty($oldChecklist['berangkat']),
+                    'perjalanan' => $request->boolean('check_perjalanan') || !empty($oldChecklist['perjalanan']),
+                    'sampai'     => $request->boolean('check_sampai')     || !empty($oldChecklist['sampai']),
+                    'terima'     => $request->boolean('check_terima')     || !empty($oldChecklist['terima']),
+                ];
+
+                $updateData['catatan_verifikasi'] = '[CHECKLIST]' . json_encode($newChecklist);
             }
 
             // Update status berdasarkan kelengkapan dokumentasi
             $pengiriman->update($updateData);
             $pengiriman->refresh();
 
-            // Auto update status berdasarkan dokumentasi yang ada
-            if ($pengiriman->foto_berangkat && !$pengiriman->foto_perjalanan) {
-                $pengiriman->update(['status_verifikasi' => 'Dalam_Proses']);
-            } elseif ($pengiriman->foto_berangkat && $pengiriman->foto_perjalanan && $pengiriman->foto_sampai && $pengiriman->tanda_terima) {
+            // Auto update status berdasarkan file + checklist
+            $cl = $pengiriman->checklist_data;
+            $adaBerangkat  = $pengiriman->foto_berangkat  || !empty($cl['berangkat']);
+            $adaPerjalanan = $pengiriman->foto_perjalanan || !empty($cl['perjalanan']);
+            $adaSampai     = $pengiriman->foto_sampai     || !empty($cl['sampai']);
+            $adaTerima     = $pengiriman->tanda_terima    || !empty($cl['terima']);
+
+            if ($adaBerangkat && $adaPerjalanan && $adaSampai && $adaTerima) {
                 $pengiriman->update(['status_verifikasi' => 'Sampai_Tujuan']);
+            } elseif ($adaBerangkat) {
+                $pengiriman->update(['status_verifikasi' => 'Dalam_Proses']);
             }
 
             DB::commit();
@@ -586,7 +605,7 @@ class PengirimanController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Terjadi kesalahan saat mengupdate dokumentasi');
+            return back()->with('error', 'Terjadi kesalahan saat mengupdate dokumentasi: ' . $e->getMessage());
         }
     }
 

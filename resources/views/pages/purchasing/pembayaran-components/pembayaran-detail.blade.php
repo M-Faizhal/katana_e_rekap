@@ -215,37 +215,65 @@
                     </dl>
                 </div>
                 
-                <!-- Bukti Pembayaran Enhanced -->
-                @if($pembayaran->bukti_bayar)
+                <!-- Bukti Pembayaran Enhanced (Multi-file) -->
+                @php
+                    $buktiBayarArr = $pembayaran->bukti_bayar_array ?? [];
+                @endphp
+                @if(count($buktiBayarArr) > 0)
                 <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
                     <h4 class="text-sm font-semibold text-purple-800 mb-3 flex items-center">
                         <i class="fas fa-file-invoice mr-2"></i>
                         Bukti Pembayaran
+                        <span class="ml-2 bg-purple-200 text-purple-800 text-xs font-bold px-2 py-0.5 rounded-full">{{ count($buktiBayarArr) }} file</span>
                     </h4>
-                    <div class="bg-white border border-purple-200 rounded-lg p-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        @foreach($buktiBayarArr as $idx => $buktiFile)
                         @php
-                            $fileExtension = pathinfo($pembayaran->bukti_bayar, PATHINFO_EXTENSION);
+                            $buktiExt = strtolower(pathinfo($buktiFile, PATHINFO_EXTENSION));
+                            $isImage = in_array($buktiExt, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                            $buktiUrl = asset('storage/' . $buktiFile);
                         @endphp
-                        
-                        @if(in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png']))
-                        <img src="{{ Storage::url($pembayaran->bukti_bayar) }}" 
-                             alt="Bukti Pembayaran" 
-                             class="w-full h-48 object-cover rounded-lg mb-3 shadow-sm border border-gray-200">
-                        @else
-                        <div class="flex items-center justify-center h-24 bg-gray-100 rounded-lg mb-3 border border-gray-200">
-                            <i class="fas fa-file-pdf text-red-500 text-4xl"></i>
+                        <div class="bg-white border border-purple-200 rounded-lg p-3 flex flex-col items-center">
+                            @if($isImage)
+                                <img src="{{ $buktiUrl }}"
+                                     alt="Bukti Pembayaran {{ $idx + 1 }}"
+                                     class="w-full h-28 object-cover rounded-lg mb-2 shadow-sm border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                                     onclick="openBuktiDetailLightbox('{{ $buktiUrl }}')"
+                                     title="Klik untuk memperbesar">
+                                <button type="button"
+                                        onclick="openBuktiDetailLightbox('{{ $buktiUrl }}')"
+                                        class="inline-flex items-center px-3 py-1.5 border border-purple-300 text-xs font-medium rounded-lg text-purple-700 bg-purple-50 hover:bg-purple-100 w-full justify-center transition-colors mt-auto">
+                                    <i class="fas fa-search-plus mr-1"></i>
+                                    Lihat Gambar
+                                </button>
+                            @else
+                                <div class="flex items-center justify-center h-28 w-full bg-red-50 rounded-lg mb-2 border border-red-100">
+                                    <i class="fas fa-file-pdf text-red-500 text-4xl"></i>
+                                </div>
+                                <a href="{{ $buktiUrl }}"
+                                   target="_blank"
+                                   class="inline-flex items-center px-3 py-1.5 border border-red-300 text-xs font-medium rounded-lg text-red-700 bg-red-50 hover:bg-red-100 w-full justify-center transition-colors mt-auto">
+                                    <i class="fas fa-external-link-alt mr-1"></i>
+                                    Buka PDF
+                                </a>
+                            @endif
+                            <span class="text-xs text-gray-400 mt-1">File {{ $idx + 1 }}</span>
                         </div>
-                        @endif
-                        
-                        <a href="{{ Storage::url($pembayaran->bukti_bayar) }}" 
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 border border-purple-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-purple-700 bg-purple-50 hover:bg-purple-100 w-full justify-center transition-colors">
-                            <i class="fas fa-external-link-alt mr-2"></i>
-                            Lihat File Bukti Pembayaran
-                        </a>
+                        @endforeach
                     </div>
                 </div>
                 @endif
+
+                <!-- Lightbox Modal for Bukti Pembayaran Detail -->
+                <div id="buktiDetailLightboxModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden" onclick="closeBuktiDetailLightbox()">
+                    <div class="relative max-w-4xl max-h-screen p-4" onclick="event.stopPropagation()">
+                        <button onclick="closeBuktiDetailLightbox()"
+                                class="absolute top-0 right-0 -mt-3 -mr-3 bg-white text-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-gray-100 z-10">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                        <img id="buktiDetailLightboxImg" src="" alt="Bukti Pembayaran" class="max-w-full max-h-screen rounded-xl shadow-2xl object-contain" style="max-height: 85vh;">
+                    </div>
+                </div>
                 
                 <!-- Documents Section (Surat Pesanan & Surat Penawaran) -->
                 @if($pembayaran->penawaran && ($pembayaran->penawaran->surat_pesanan || $pembayaran->penawaran->surat_penawaran))
@@ -568,4 +596,20 @@
     </div>
 </div>
 
+
+<script>
+function openBuktiDetailLightbox(url) {
+    document.getElementById('buktiDetailLightboxImg').src = url;
+    document.getElementById('buktiDetailLightboxModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closeBuktiDetailLightbox() {
+    document.getElementById('buktiDetailLightboxModal').classList.add('hidden');
+    document.getElementById('buktiDetailLightboxImg').src = '';
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeBuktiDetailLightbox();
+});
+</script>
 @endsection

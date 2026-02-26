@@ -246,6 +246,148 @@ function closeProyekDetail() {
     document.getElementById('proyekDetailModal').classList.add('hidden');
 }
 
+// =============================================
+// Modal Bukti Pembayaran (Multi-file)
+// =============================================
+let currentLightboxImages = [];
+let currentLightboxIndex = 0;
+
+function openBuktiModal(files, namaBarang) {
+    const modal = document.getElementById('buktiModal');
+    const title = document.getElementById('buktiModalTitle');
+    const subtitle = document.getElementById('buktiModalSubtitle');
+    const content = document.getElementById('buktiModalContent');
+
+    title.textContent = 'Bukti Pembayaran';
+    subtitle.textContent = namaBarang || '';
+
+    // files sudah berupa URL lengkap dari asset() yang di-generate di Blade
+    // Pisahkan gambar dan PDF berdasarkan ekstensi URL
+    const imageFiles = [];
+    const pdfFiles = [];
+    files.forEach(function(url) {
+        const ext = url.split('?')[0].split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext)) {
+            imageFiles.push(url);
+        } else {
+            pdfFiles.push(url);
+        }
+    });
+
+    currentLightboxImages = imageFiles;
+    currentLightboxIndex = 0;
+
+    let html = '';
+
+    if (files.length === 0) {
+        html = `<div class="text-center py-10 text-gray-400">
+            <i class="fas fa-file-slash text-4xl mb-3"></i>
+            <p class="text-sm">Tidak ada file bukti pembayaran.</p>
+        </div>`;
+    } else {
+        html += `<p class="text-xs text-gray-500 mb-4"><i class="fas fa-paperclip mr-1"></i>${files.length} file bukti pembayaran</p>`;
+
+        // Tampilan grid gambar
+        if (imageFiles.length > 0) {
+            html += `<div class="mb-5">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-images text-blue-500"></i> Gambar (${imageFiles.length} file)
+                </h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">`;
+            imageFiles.forEach(function(url, idx) {
+                html += `<div class="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50 aspect-square cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                             onclick="openLightbox(${idx})">
+                    <img src="${url}" alt="Bukti ${idx+1}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                         onerror="this.parentElement.innerHTML='<div class=\\'flex flex-col items-center justify-center h-full text-gray-400\\' ><i class=\\'fas fa-image text-2xl mb-1\\'></i><span class=\\'text-xs\\'>Gagal muat</span></div>'">
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                        <i class="fas fa-search-plus text-white text-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 drop-shadow"></i>
+                    </div>
+                    <div class="absolute bottom-1 right-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
+                        ${idx+1}/${imageFiles.length}
+                    </div>
+                </div>`;
+            });
+            html += `</div>
+                <p class="text-xs text-gray-400 mt-2 flex items-center gap-1"><i class="fas fa-info-circle"></i> Klik gambar untuk zoom/preview</p>
+            </div>`;
+        }
+
+        // Daftar PDF
+        if (pdfFiles.length > 0) {
+            html += `<div>
+                <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <i class="fas fa-file-pdf text-red-500"></i> Dokumen PDF (${pdfFiles.length} file)
+                </h4>
+                <div class="space-y-2">`;
+            pdfFiles.forEach(function(url) {
+                const fileName = url.split('/').pop().split('?')[0];
+                html += `<div class="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors">
+                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-file-pdf text-red-600 text-lg"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 truncate">${fileName}</p>
+                        <p class="text-xs text-gray-500">Dokumen PDF</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="${url}" target="_blank"
+                           class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors"
+                           onclick="event.stopPropagation()">
+                            <i class="fas fa-external-link-alt mr-1.5"></i>Buka
+                        </a>
+                        <a href="${url}" download
+                           class="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white text-xs font-medium rounded-lg hover:bg-gray-700 transition-colors"
+                           onclick="event.stopPropagation()">
+                            <i class="fas fa-download mr-1.5"></i>Unduh
+                        </a>
+                    </div>
+                </div>`;
+            });
+            html += `</div></div>`;
+        }
+    }
+
+    content.innerHTML = html;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBuktiModal() {
+    document.getElementById('buktiModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Lightbox — currentLightboxImages berisi URL lengkap dari asset()
+function openLightbox(idx) {
+    if (currentLightboxImages.length === 0) return;
+    currentLightboxIndex = idx;
+    document.getElementById('lightboxImage').src = currentLightboxImages[idx];
+    document.getElementById('lightboxCounter').textContent = `${idx + 1} / ${currentLightboxImages.length}`;
+    document.getElementById('imageLightbox').classList.remove('hidden');
+    document.getElementById('imageLightbox').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    document.getElementById('imageLightbox').classList.add('hidden');
+    document.getElementById('imageLightbox').style.display = 'none';
+}
+
+function prevLightboxImage(event) {
+    event.stopPropagation();
+    if (currentLightboxImages.length === 0) return;
+    currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+    openLightbox(currentLightboxIndex);
+}
+
+function nextLightboxImage(event) {
+    event.stopPropagation();
+    if (currentLightboxImages.length === 0) return;
+    currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+    openLightbox(currentLightboxIndex);
+}
+
 // Initialize tabs on page load
 document.addEventListener('DOMContentLoaded', function() {
     const activeTab = '{{ $activeTab ?? "perlu-bayar" }}';
@@ -307,6 +449,16 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeProyekDetail();
+        closeBuktiModal();
+        closeLightbox();
+    }
+});
+
+// Close bukti modal when clicking outside
+document.addEventListener('click', function(e) {
+    const buktiModal = document.getElementById('buktiModal');
+    if (buktiModal && e.target === buktiModal) {
+        closeBuktiModal();
     }
 });
 
@@ -1370,13 +1522,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                 Detail
                             </a>
                             
-                            @if($pembayaran->bukti_bayar)
-                            <a href="{{ asset('storage/' . $pembayaran->bukti_bayar) }}" 
-                               target="_blank"
+                            @php $buktiBayarArr = array_map(fn($f) => asset('storage/' . $f), $pembayaran->bukti_bayar_array); @endphp
+                            @if(count($buktiBayarArr) > 0)
+                            <button type="button"
+                               onclick="openBuktiModal({{ json_encode(array_values($buktiBayarArr)) }}, '{{ addslashes($pembayaran->penawaran->proyek->nama_barang) }}')"
                                class="inline-flex items-center px-2 py-1 border border-blue-300 text-xs leading-4 font-medium rounded text-blue-700 bg-blue-50 hover:bg-blue-100">
-                                <i class="fas fa-file-image mr-1"></i>
+                                <i class="fas fa-images mr-1"></i>
                                 Bukti
-                            </a>
+                                @if(count($buktiBayarArr) > 1)
+                                <span class="ml-1 bg-blue-200 text-blue-800 text-xs rounded-full px-1.5 py-0.5 font-bold">{{ count($buktiBayarArr) }}</span>
+                                @endif
+                            </button>
                             @endif
                             
                             @if($pembayaran->status_verifikasi == 'Pending')
@@ -1472,13 +1628,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fas fa-eye mr-1"></i>
                         Detail
                     </a>
-                    @if($pembayaran->bukti_bayar)
-                    <a href="{{ asset('storage/' . $pembayaran->bukti_bayar) }}" 
-                       target="_blank"
+                    @php $buktiBayarArrMobile = array_map(fn($f) => asset('storage/' . $f), $pembayaran->bukti_bayar_array); @endphp
+                    @if(count($buktiBayarArrMobile) > 0)
+                    <button type="button"
+                       onclick="openBuktiModal({{ json_encode(array_values($buktiBayarArrMobile)) }}, '{{ addslashes($pembayaran->penawaran->proyek->nama_barang) }}')"
                        class="inline-flex items-center px-2 py-1 border border-blue-300 text-xs leading-4 font-medium rounded text-blue-700 bg-blue-50 hover:bg-blue-100">
-                        <i class="fas fa-file-image mr-1"></i>
+                        <i class="fas fa-images mr-1"></i>
                         Bukti
-                    </a>
+                        @if(count($buktiBayarArrMobile) > 1)
+                        <span class="ml-1 bg-blue-200 text-blue-800 text-xs rounded-full px-1.5 py-0.5 font-bold">{{ count($buktiBayarArrMobile) }}</span>
+                        @endif
+                    </button>
                     @endif
                     @if($pembayaran->status_verifikasi == 'Pending')
                         @php
@@ -1594,5 +1754,57 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
     </div>
+</div>
+
+<!-- Modal Bukti Pembayaran -->
+<div id="buktiModal" class="fixed inset-0 bg-black/20 bg-opacity-60 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-xs">
+    <div class="relative top-10 mx-auto p-0 w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 shadow-2xl rounded-2xl bg-white">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-2xl">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-images text-white text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-white" id="buktiModalTitle">Bukti Pembayaran</h3>
+                    <p class="text-blue-200 text-xs" id="buktiModalSubtitle"></p>
+                </div>
+            </div>
+            <button onclick="closeBuktiModal()" class="text-white/70 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Modal Content -->
+        <div class="p-6" id="buktiModalContent">
+            <!-- Populated by JS -->
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="flex justify-end px-6 py-4 border-t bg-gray-50 rounded-b-2xl">
+            <button onclick="closeBuktiModal()" 
+                    class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors">
+                <i class="fas fa-times mr-2"></i>
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox untuk preview gambar -->
+<div id="imageLightbox" class="fixed inset-0 bg-black bg-opacity-90 hidden z-[60] flex items-center justify-center" onclick="closeLightbox()">
+    <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 z-10">
+        <i class="fas fa-times"></i>
+    </button>
+    <button onclick="prevLightboxImage(event)" class="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl hover:text-gray-300 z-10 bg-black/30 rounded-full w-12 h-12 flex items-center justify-center">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <div class="max-w-5xl max-h-screen p-4 flex items-center justify-center" onclick="event.stopPropagation()">
+        <img id="lightboxImage" src="" alt="Bukti Pembayaran" class="max-h-[85vh] max-w-full object-contain rounded-lg shadow-2xl">
+    </div>
+    <button onclick="nextLightboxImage(event)" class="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl hover:text-gray-300 z-10 bg-black/30 rounded-full w-12 h-12 flex items-center justify-center">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm" id="lightboxCounter"></div>
 </div>
 @endsection

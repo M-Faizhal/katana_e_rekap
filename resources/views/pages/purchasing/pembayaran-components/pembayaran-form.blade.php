@@ -434,28 +434,22 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Bukti Pembayaran <span class="text-red-500">*</span>
                         </label>
-                        <div class="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-white hover:bg-purple-50 transition-colors">
+                        <div class="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-white hover:bg-purple-50 transition-colors" id="drop-zone">
                             <div class="mx-auto h-12 w-12 text-purple-400 mb-4">
                                 <i class="fas fa-cloud-upload-alt text-4xl"></i>
                             </div>
-                            <input type="file" name="bukti_bayar" id="bukti_bayar" required 
+                            <input type="file" name="bukti_bayar[]" id="bukti_bayar"
                                    accept=".jpg,.jpeg,.png,.pdf"
+                                   multiple
                                    class="hidden">
                             <label for="bukti_bayar" class="cursor-pointer">
                                 <span class="text-purple-600 hover:text-purple-500 font-medium">Upload file</span>
                                 <span class="text-gray-500"> atau drag & drop</span>
                             </label>
-                            <p class="text-xs text-gray-500 mt-2">JPG, JPEG, PNG, PDF (max 5MB)</p>
+                            <p class="text-xs text-gray-500 mt-2">JPG, JPEG, PNG, PDF (max 5MB per file, bisa lebih dari 1 file)</p>
                         </div>
-                        <div id="file-info" class="mt-3 hidden">
-                            <div class="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                                <i class="fas fa-file text-green-600 mr-2"></i>
-                                <span id="file-name" class="text-sm text-green-800 flex-1"></span>
-                                <button type="button" id="remove-file" class="text-red-500 hover:text-red-700 transition-colors">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <!-- File list container -->
+                        <div id="file-list" class="mt-3 space-y-2"></div>
                     </div>
                     
                     <!-- Catatan -->
@@ -468,10 +462,12 @@
                                   placeholder="Catatan tambahan (opsional)">{{ old('catatan') }}</textarea>
                     </div>
                 </div>
-                
-                <!-- Breakdown Modal per Barang Section (untuk selected vendor) -->
+            </div>
+            
+        </div>
+        <!-- Breakdown Modal per Barang Section (untuk selected vendor) -->
                 @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
-                <div class="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                <div class="mt-8 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
                     <h3 class="text-sm font-semibold text-purple-800 mb-3 flex items-center">
                         <i class="fas fa-chart-pie mr-2"></i>
                         Modal per Barang - {{ $selectedVendor->nama_vendor ?? 'Vendor' }} ({{ $breakdownBarang->count() }} item)
@@ -509,42 +505,6 @@
                     </div>
                 </div>
                 @endif
-                
-                <!-- Info Enhanced -->
-                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg p-4">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-info-circle text-yellow-500 text-lg"></i>
-                        </div>
-                        <div class="ml-3">
-                            <h4 class="text-sm font-semibold text-yellow-800 mb-2">Informasi Penting</h4>
-                            <ul class="text-sm text-yellow-700 space-y-1">
-                                <li class="flex items-start">
-                                    <i class="fas fa-clock text-yellow-500 mr-2 mt-1 text-xs"></i>
-                                    Pembayaran akan berstatus "Pending" menunggu verifikasi admin keuangan
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fas fa-check-circle text-yellow-500 mr-2 mt-1 text-xs"></i>
-                                    Pastikan bukti pembayaran jelas dan valid
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fas fa-calendar-check text-yellow-500 mr-2 mt-1 text-xs"></i>
-                                    Admin keuangan akan memverifikasi dalam 1-2 hari kerja
-                                </li>
-                            </ul>
-                            <p class="text-xs text-yellow-800 flex items-center mt-2">
-                                <i class="fas fa-info-circle mr-2"></i>
-                                <strong>Catatan:</strong> Pembayaran ke vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>, bukan harga vendor barang.
-                                @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
-                                <br>Detail breakdown per barang dapat dilihat pada card di atas untuk transparansi perhitungan modal vendor.
-                                @endif
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <!-- Action Buttons Enhanced -->
         <div class="flex items-center justify-between pt-8 border-t border-gray-200 mt-8">
             <a href="{{ route('purchasing.pembayaran') }}" 
@@ -617,39 +577,129 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // File upload handling
+    // Multi-file upload handling
     const fileInput = document.getElementById('bukti_bayar');
-    const fileInfo = document.getElementById('file-info');
-    const fileName = document.getElementById('file-name');
-    const removeFile = document.getElementById('remove-file');
+    const fileList = document.getElementById('file-list');
+    const dropZone = document.getElementById('drop-zone');
     
-    fileInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            const file = this.files[0];
-            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-            
-            // Check file size
-            if (file.size > maxSize) {
-                // Show error message
-                showFileError('Ukuran file terlalu besar! Maksimal 5MB. Ukuran file saat ini: ' + formatFileSize(file.size));
-                
-                // Clear the input
-                this.value = '';
-                fileInfo.classList.add('hidden');
-                return;
-            }
-            
-            // If file size is OK, show file info
-            fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
-            fileInfo.classList.remove('hidden');
-            hideFileError();
+    // Maintain a DataTransfer to allow removing individual files
+    let selectedFiles = new DataTransfer();
+
+    function renderFileList() {
+        fileList.innerHTML = '';
+        const files = selectedFiles.files;
+
+        if (files.length === 0) {
+            return;
         }
-    });
-    
-    removeFile.addEventListener('click', function() {
-        fileInput.value = '';
-        fileInfo.classList.add('hidden');
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const ext = file.name.split('.').pop().toLowerCase();
+            let iconClass = 'fa-file text-gray-500';
+            if (ext === 'pdf') iconClass = 'fa-file-pdf text-red-500';
+            else if (['jpg','jpeg','png'].includes(ext)) iconClass = 'fa-file-image text-blue-500';
+
+            const item = document.createElement('div');
+            item.className = 'flex items-center p-3 bg-green-50 rounded-lg border border-green-200';
+            item.innerHTML = `
+                <i class="fas ${iconClass} mr-2 text-sm"></i>
+                <span class="text-sm text-green-800 flex-1 truncate">${file.name} <span class="text-xs text-gray-500">(${formatFileSize(file.size)})</span></span>
+                <button type="button" class="remove-file-btn ml-2 text-red-500 hover:text-red-700 transition-colors" data-index="${i}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            fileList.appendChild(item);
+        }
+    }
+
+    // Sync files to input and validate on form submit
+    const pembayaranForm = document.querySelector('form[enctype="multipart/form-data"]');
+    if (pembayaranForm) {
+        pembayaranForm.addEventListener('submit', function(e) {
+            // Always sync selectedFiles DataTransfer to the actual file input before submit
+            fileInput.files = selectedFiles.files;
+
+            // Validate that at least one file was selected
+            if (selectedFiles.files.length === 0) {
+                e.preventDefault();
+                showFileError('Bukti pembayaran wajib diupload. Pilih minimal 1 file.');
+                dropZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+
+            hideFileError();
+        });
+    }
+
+    fileInput.addEventListener('change', function() {
+        let valid = true;
+        for (let i = 0; i < this.files.length; i++) {
+            const file = this.files[i];
+            if (file.size > 5 * 1024 * 1024) {
+                showFileError(`File "${file.name}" terlalu besar! Maksimal 5MB. Ukuran: ${formatFileSize(file.size)}`);
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) {
+            this.value = '';
+            return;
+        }
         hideFileError();
+        for (let i = 0; i < this.files.length; i++) {
+            selectedFiles.items.add(this.files[i]);
+        }
+        renderFileList();
+        // Reset input so the same file can be re-added later if needed
+        this.value = '';
+    });
+
+    // Remove individual file
+    fileList.addEventListener('click', function(e) {
+        const btn = e.target.closest('.remove-file-btn');
+        if (!btn) return;
+        const index = parseInt(btn.getAttribute('data-index'));
+        const newDT = new DataTransfer();
+        for (let i = 0; i < selectedFiles.files.length; i++) {
+            if (i !== index) newDT.items.add(selectedFiles.files[i]);
+        }
+        selectedFiles = newDT;
+        renderFileList();
+    });
+
+    // Drag & drop support
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('bg-purple-100', 'border-purple-500');
+    });
+    dropZone.addEventListener('dragleave', function() {
+        this.classList.remove('bg-purple-100', 'border-purple-500');
+    });
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('bg-purple-100', 'border-purple-500');
+        let valid = true;
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+            const file = e.dataTransfer.files[i];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['jpg','jpeg','png','pdf'].includes(ext)) {
+                showFileError(`File "${file.name}" tidak didukung. Gunakan JPG, PNG, atau PDF.`);
+                valid = false;
+                break;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showFileError(`File "${file.name}" terlalu besar! Maksimal 5MB.`);
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) return;
+        hideFileError();
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+            selectedFiles.items.add(e.dataTransfer.files[i]);
+        }
+        renderFileList();
     });
     
     // Helper function to format file size

@@ -503,6 +503,43 @@
                 @if($bayar->catatan)
                 <p class="text-sm text-gray-600 mt-2">{{ $bayar->catatan }}</p>
                 @endif
+
+                {{-- Bukti Pembayaran Multi-file --}}
+                @php $buktiBayarArr = $bayar->bukti_bayar_array ?? []; @endphp
+                @if(count($buktiBayarArr) > 0)
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                    <p class="text-xs font-semibold text-gray-600 mb-2 flex items-center">
+                        <i class="fas fa-paperclip mr-1"></i>
+                        Bukti Pembayaran
+                        <span class="ml-2 bg-purple-100 text-purple-700 text-xs font-bold px-1.5 py-0.5 rounded-full">{{ count($buktiBayarArr) }} file</span>
+                    </p>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        @foreach($buktiBayarArr as $idx => $buktiFile)
+                        @php
+                            $buktiExt = strtolower(pathinfo($buktiFile, PATHINFO_EXTENSION));
+                            $isImage = in_array($buktiExt, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                            $buktiUrl = asset('storage/' . $buktiFile);
+                        @endphp
+                        @if($isImage)
+                            <div class="relative group cursor-pointer" onclick="openVerifBuktiLightbox('{{ $buktiUrl }}')">
+                                <img src="{{ $buktiUrl }}"
+                                     alt="Bukti {{ $idx + 1 }}"
+                                     class="w-full h-16 object-cover rounded-lg border border-gray-200 group-hover:opacity-75 transition-opacity shadow-sm">
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-search-plus text-white text-lg drop-shadow"></i>
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ $buktiUrl }}" target="_blank"
+                               class="flex flex-col items-center justify-center h-16 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition-colors shadow-sm">
+                                <i class="fas fa-file-pdf text-red-500 text-xl"></i>
+                                <span class="text-xs text-red-600 mt-1">PDF {{ $idx + 1 }}</span>
+                            </a>
+                        @endif
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
             @endforeach
         </div>
@@ -745,7 +782,7 @@
     @endif
 </div>
 
-<!-- Modal untuk preview gambar -->
+<!-- Modal untuk preview gambar pengiriman -->
 <div id="imageModal" class="fixed inset-0 bg-black/20 backdrop-blur-xs z-50 hidden">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-lg max-w-4xl max-h-full overflow-auto">
@@ -759,6 +796,17 @@
                 <img id="modalImage" src="" alt="" class="max-w-full h-auto">
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Lightbox Modal untuk Bukti Pembayaran Vendor -->
+<div id="verifBuktiLightboxModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hidden" onclick="closeVerifBuktiLightbox()">
+    <div class="relative max-w-4xl max-h-screen p-4" onclick="event.stopPropagation()">
+        <button onclick="closeVerifBuktiLightbox()"
+                class="absolute top-0 right-0 -mt-3 -mr-3 bg-white text-gray-800 rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-gray-100 z-10">
+            <i class="fas fa-times text-sm"></i>
+        </button>
+        <img id="verifBuktiLightboxImg" src="" alt="Bukti Pembayaran" class="max-w-full rounded-xl shadow-2xl object-contain" style="max-height: 85vh;">
     </div>
 </div>
 
@@ -831,6 +879,18 @@ function closeImageModal() {
     document.getElementById('imageModal').classList.add('hidden');
 }
 
+function openVerifBuktiLightbox(url) {
+    document.getElementById('verifBuktiLightboxImg').src = url;
+    document.getElementById('verifBuktiLightboxModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeVerifBuktiLightbox() {
+    document.getElementById('verifBuktiLightboxModal').classList.add('hidden');
+    document.getElementById('verifBuktiLightboxImg').src = '';
+    document.body.style.overflow = '';
+}
+
 function openVerificationModal(action) {
     const modal = document.getElementById('verificationModal');
     const form = document.getElementById('verificationForm');
@@ -880,6 +940,14 @@ document.getElementById('imageModal').addEventListener('click', function(e) {
 
 document.getElementById('verificationModal').addEventListener('click', function(e) {
     if (e.target === this) {
+        closeVerificationModal();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+        closeVerifBuktiLightbox();
         closeVerificationModal();
     }
 });

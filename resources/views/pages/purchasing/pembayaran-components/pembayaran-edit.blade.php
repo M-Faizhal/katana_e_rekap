@@ -17,18 +17,7 @@
                     </p>
                 </div>
             </div>
-            <div class="bg-red-700/30 rounded-lg p-3">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span class="text-red-200">Proyek:</span>
-                        <span class="font-semibold ml-2">{{ $proyek->nama_barang }}</span>
-                    </div>
-                    <div>
-                        <span class="text-red-200">Klien:</span>
-                        <span class="font-semibold ml-2">{{ $proyek->nama_klien }}</span>
-                    </div>
-                </div>
-            </div>
+           
         </div>
         <div class="hidden lg:block">
             <i class="fas fa-file-edit text-5xl opacity-20"></i>
@@ -263,19 +252,57 @@
                     <label for="bukti_bayar" class="block text-sm font-medium text-gray-700 mb-2">
                         Bukti Pembayaran
                     </label>
-                    <input type="file" name="bukti_bayar" id="bukti_bayar" 
-                           accept=".jpg,.jpeg,.png,.pdf"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                    <p class="mt-1 text-sm text-gray-500">Format: JPG, PNG, PDF. Maksimal 5MB. Kosongkan jika tidak ingin mengubah.</p>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-white hover:bg-gray-50 transition-colors" id="drop-zone-edit">
+                        <input type="file" name="bukti_bayar[]" id="bukti_bayar" 
+                               accept=".jpg,.jpeg,.png,.pdf"
+                               multiple
+                               class="hidden">
+                        <label for="bukti_bayar" class="cursor-pointer">
+                            <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2 block"></i>
+                            <span class="text-indigo-600 hover:text-indigo-500 font-medium text-sm">Upload file baru</span>
+                            <span class="text-gray-500 text-sm"> (bisa lebih dari 1)</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1">JPG, PNG, PDF (max 5MB per file). Kosongkan jika tidak ingin mengubah.</p>
+                    </div>
+                    <!-- New files preview -->
+                    <div id="new-file-list" class="mt-2 space-y-1"></div>
                     
-                    @if($pembayaran->bukti_bayar)
-                    <div class="mt-2 p-2 bg-gray-50 rounded border">
-                        <p class="text-sm text-gray-600">File saat ini:</p>
-                        <a href="{{ asset('storage/' . $pembayaran->bukti_bayar) }}" target="_blank" 
-                           class="text-blue-600 hover:text-blue-800 text-sm">
-                            <i class="fas fa-file mr-1"></i>
-                            Lihat file yang ada
-                        </a>
+                    @php $existingFiles = $pembayaran->bukti_bayar_array; @endphp
+                    @if(count($existingFiles) > 0)
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-paperclip mr-1"></i>
+                            File saat ini — centang untuk <span class="text-red-600 font-semibold">menghapus</span>:
+                        </p>
+                        <div class="space-y-2" id="existing-file-list">
+                            @foreach($existingFiles as $file)
+                            @php
+                                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                                $iconClass = 'fa-file text-gray-500';
+                                if ($ext === 'pdf') $iconClass = 'fa-file-pdf text-red-500';
+                                elseif (in_array($ext, ['jpg','jpeg','png'])) $iconClass = 'fa-file-image text-blue-500';
+                            @endphp
+                            <div class="existing-file-item flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-white transition-colors" data-file="{{ $file }}">
+                                <input type="checkbox" 
+                                       name="delete_files[]" 
+                                       value="{{ $file }}" 
+                                       id="del_{{ $loop->index }}"
+                                       class="delete-file-checkbox w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500 cursor-pointer flex-shrink-0">
+                                <i class="fas {{ $iconClass }} text-sm flex-shrink-0"></i>
+                                <a href="{{ asset('storage/' . $file) }}" target="_blank"
+                                   class="text-blue-600 hover:text-blue-800 text-sm underline truncate flex-1">
+                                    {{ basename($file) }}
+                                </a>
+                                <label for="del_{{ $loop->index }}" class="text-xs text-red-500 font-medium cursor-pointer flex-shrink-0 select-none">
+                                    Hapus
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            File yang dicentang akan dihapus permanen saat klik "Update Pembayaran".
+                        </p>
                     </div>
                     @endif
                 </div>
@@ -363,18 +390,7 @@
         </div>
         @endif
 
-        <!-- Notes Section -->
-        <div class="mt-6">
-            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg p-4">
-                <p class="text-xs text-yellow-800 flex items-center">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <strong>Catatan:</strong> Pembayaran ke vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>, bukan harga vendor barang.
-                    @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
-                    <br>Detail breakdown per barang dapat dilihat pada card di atas untuk transparansi perhitungan modal vendor.
-                    @endif
-                </p>
-            </div>
-        </div>
+      
     </div>
 </div>
 
@@ -401,6 +417,134 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // For 'Cicilan', let user input manually
     });
+
+    // --- Multi-file upload for edit form ---
+    const fileInput = document.getElementById('bukti_bayar');
+    const newFileList = document.getElementById('new-file-list');
+    const dropZone = document.getElementById('drop-zone-edit');
+    let selectedFiles = new DataTransfer();
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function renderNewFileList() {
+        newFileList.innerHTML = '';
+        const files = selectedFiles.files;
+        if (files.length === 0) return;
+
+        const header = document.createElement('p');
+        header.className = 'text-xs font-medium text-gray-600 mt-1';
+        header.innerHTML = `<i class="fas fa-plus-circle text-green-500 mr-1"></i>File baru yang akan diupload (${files.length}):`;
+        newFileList.appendChild(header);
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const ext = file.name.split('.').pop().toLowerCase();
+            let iconClass = 'fa-file text-gray-500';
+            if (ext === 'pdf') iconClass = 'fa-file-pdf text-red-500';
+            else if (['jpg','jpeg','png'].includes(ext)) iconClass = 'fa-file-image text-blue-500';
+
+            const item = document.createElement('div');
+            item.className = 'flex items-center p-2 bg-green-50 rounded border border-green-200 text-sm';
+            item.innerHTML = `
+                <i class="fas ${iconClass} mr-2 text-xs"></i>
+                <span class="flex-1 truncate text-green-800">${file.name} <span class="text-xs text-gray-500">(${formatFileSize(file.size)})</span></span>
+                <button type="button" class="remove-new-file ml-2 text-red-500 hover:text-red-700" data-index="${i}">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            `;
+            newFileList.appendChild(item);
+        }
+    }
+
+    // Sync new files to input before form submit
+    const editForm = document.querySelector('form[enctype="multipart/form-data"]');
+    if (editForm) {
+        editForm.addEventListener('submit', function() {
+            if (fileInput && selectedFiles.files.length > 0) {
+                fileInput.files = selectedFiles.files;
+            }
+        });
+    }
+
+    // --- Visual feedback untuk checkbox hapus file lama ---
+    document.querySelectorAll('.delete-file-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const item = this.closest('.existing-file-item');
+            if (this.checked) {
+                item.classList.add('bg-red-50', 'border-red-300');
+                item.classList.remove('bg-white', 'border-gray-200');
+                item.querySelector('a').classList.add('line-through', 'text-red-400');
+                item.querySelector('a').classList.remove('text-blue-600');
+            } else {
+                item.classList.remove('bg-red-50', 'border-red-300');
+                item.classList.add('bg-white', 'border-gray-200');
+                item.querySelector('a').classList.remove('line-through', 'text-red-400');
+                item.querySelector('a').classList.add('text-blue-600');
+            }
+        });
+    });
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            for (let i = 0; i < this.files.length; i++) {
+                const file = this.files[i];
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`File "${file.name}" terlalu besar! Maksimal 5MB.`);
+                    this.value = '';
+                    return;
+                }
+                selectedFiles.items.add(file);
+            }
+            renderNewFileList();
+            this.value = '';
+        });
+
+        newFileList.addEventListener('click', function(e) {
+            const btn = e.target.closest('.remove-new-file');
+            if (!btn) return;
+            const index = parseInt(btn.getAttribute('data-index'));
+            const newDT = new DataTransfer();
+            for (let i = 0; i < selectedFiles.files.length; i++) {
+                if (i !== index) newDT.items.add(selectedFiles.files[i]);
+            }
+            selectedFiles = newDT;
+            renderNewFileList();
+        });
+
+        if (dropZone) {
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('bg-indigo-50', 'border-indigo-400');
+            });
+            dropZone.addEventListener('dragleave', function() {
+                this.classList.remove('bg-indigo-50', 'border-indigo-400');
+            });
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('bg-indigo-50', 'border-indigo-400');
+                for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                    const file = e.dataTransfer.files[i];
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    if (!['jpg','jpeg','png','pdf'].includes(ext)) {
+                        alert(`File "${file.name}" tidak didukung.`);
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert(`File "${file.name}" terlalu besar! Maksimal 5MB.`);
+                        return;
+                    }
+                    selectedFiles.items.add(file);
+                }
+                renderNewFileList();
+            });
+        }
+    }
 });
 </script>
 @endsection

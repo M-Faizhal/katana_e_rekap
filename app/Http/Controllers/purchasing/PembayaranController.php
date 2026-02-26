@@ -389,7 +389,8 @@ class PembayaranController extends Controller
             'jenis_bayar' => 'required|in:Lunas,DP,Cicilan',
             'nominal_bayar' => 'required|numeric|min:0.01',
             'metode_bayar' => 'required|string',
-            'bukti_bayar' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // max 5MB
+            'bukti_bayar' => 'required|array|min:1',
+            'bukti_bayar.*' => 'file|mimes:jpg,jpeg,png,pdf|max:5120', // max 5MB per file
             'catatan' => 'nullable|string'
         ]);
 
@@ -414,13 +415,14 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
-            // Upload bukti pembayaran dulu
-            $buktiPath = null;
+            // Upload satu atau lebih bukti pembayaran
+            $buktiPaths = [];
             if ($request->hasFile('bukti_bayar')) {
-                $buktiFile = $request->file('bukti_bayar');
-                $fileName = time() . '_bukti_' . $buktiFile->getClientOriginalName();
-                $buktiFile->storeAs('', $fileName, 'public');
-                $buktiPath = $fileName;
+                foreach ($request->file('bukti_bayar') as $buktiFile) {
+                    $fileName = time() . '_' . uniqid() . '_bukti_' . $buktiFile->getClientOriginalName();
+                    $buktiFile->storeAs('', $fileName, 'public');
+                    $buktiPaths[] = $fileName;
+                }
             }
 
             // Simpan pembayaran
@@ -431,7 +433,7 @@ class PembayaranController extends Controller
                 'nominal_bayar' => $request->nominal_bayar,
                 'tanggal_bayar' => now()->toDateString(),
                 'metode_bayar' => $request->metode_bayar,
-                'bukti_bayar' => $buktiPath,
+                'bukti_bayar' => $buktiPaths, // Model accessor will JSON-encode this
                 'catatan' => $request->catatan,
                 'status_verifikasi' => 'Pending', // Menunggu verifikasi admin keuangan
             ]);
@@ -473,8 +475,8 @@ class PembayaranController extends Controller
             DB::rollback();
             
             // Hapus file yang sudah diupload jika terjadi error
-            if ($buktiPath) {
-                $this->deleteFileIfExists($buktiPath);
+            foreach ($buktiPaths ?? [] as $uploadedFile) {
+                $this->deleteFileIfExists($uploadedFile);
             }
             
             return back()->with('error', 'Terjadi kesalahan saat menyimpan pembayaran');
@@ -668,7 +670,10 @@ class PembayaranController extends Controller
             'jenis_bayar' => 'required|in:Lunas,DP,Cicilan',
             'nominal_bayar' => 'required|numeric|min:0.01',
             'metode_bayar' => 'required|string',
-            'bukti_bayar' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // optional untuk update
+            'bukti_bayar' => 'nullable|array',
+            'bukti_bayar.*' => 'file|mimes:jpg,jpeg,png,pdf|max:5120', // optional untuk update
+            'delete_files' => 'nullable|array',
+            'delete_files.*' => 'string',
             'catatan' => 'nullable|string'
         ]);
 
@@ -694,29 +699,39 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
-            $oldBuktiPath = $pembayaran->bukti_bayar;
-            $newBuktiPath = $oldBuktiPath; // Default keep old file
+            $existingFiles = $pembayaran->bukti_bayar_array; // semua file lama
+            $filesToDelete = $request->input('delete_files', []); // file lama yang ingin dihapus
 
-            // Handle file upload jika ada file baru
-            if ($request->hasFile('bukti_bayar')) {
-                // Upload file baru
-                $buktiFile = $request->file('bukti_bayar');
-                $fileName = time() . '_bukti_' . $buktiFile->getClientOriginalName();
-                $buktiFile->storeAs('', $fileName, 'public');
-                $newBuktiPath = $fileName;
-                
-                // Hapus file lama jika ada dan berbeda
-                if ($oldBuktiPath && $oldBuktiPath !== $newBuktiPath) {
-                    $this->deleteFileIfExists($oldBuktiPath);
+            // Hapus file yang dipilih untuk dihapus
+            foreach ($filesToDelete as $fileToDelete) {
+                // Pastikan hanya menghapus file milik pembayaran ini (security check)
+                if (in_array($fileToDelete, $existingFiles)) {
+                    $this->deleteFileIfExists($fileToDelete);
                 }
             }
+
+            // File lama yang masih tersisa (tidak dihapus)
+            $remainingFiles = array_values(array_diff($existingFiles, $filesToDelete));
+
+            // Upload file baru jika ada
+            $newlyUploadedFiles = [];
+            if ($request->hasFile('bukti_bayar')) {
+                foreach ($request->file('bukti_bayar') as $buktiFile) {
+                    $fileName = time() . '_' . uniqid() . '_bukti_' . $buktiFile->getClientOriginalName();
+                    $buktiFile->storeAs('', $fileName, 'public');
+                    $newlyUploadedFiles[] = $fileName;
+                }
+            }
+
+            // Gabungkan file lama yang tersisa + file baru
+            $finalFiles = array_merge($remainingFiles, $newlyUploadedFiles);
 
             // Update pembayaran
             $pembayaran->update([
                 'jenis_bayar' => $request->jenis_bayar,
                 'nominal_bayar' => $request->nominal_bayar,
                 'metode_bayar' => $request->metode_bayar,
-                'bukti_bayar' => $newBuktiPath,
+                'bukti_bayar' => $finalFiles, // Model accessor will JSON-encode
                 'catatan' => $request->catatan,
             ]);
 
@@ -728,9 +743,9 @@ class PembayaranController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             
-            // Hapus file baru jika upload gagal
-            if (isset($newBuktiPath) && $newBuktiPath !== $oldBuktiPath) {
-                $this->deleteFileIfExists($newBuktiPath);
+            // Hapus file baru yang sudah terupload jika terjadi error
+            foreach ($newlyUploadedFiles ?? [] as $newFile) {
+                $this->deleteFileIfExists($newFile);
             }
             
             return back()->with('error', 'Terjadi kesalahan saat mengupdate pembayaran');
@@ -763,14 +778,14 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
-            $buktiPath = $pembayaran->bukti_bayar;
+            $buktiPaths = $pembayaran->bukti_bayar_array; // get all files as array
             
             // Hapus record dari database
             $pembayaran->delete();
             
-            // Hapus file bukti pembayaran
-            if ($buktiPath) {
-                $this->deleteFileIfExists($buktiPath);
+            // Hapus semua file bukti pembayaran
+            foreach ($buktiPaths as $filePath) {
+                $this->deleteFileIfExists($filePath);
             }
 
             DB::commit();
