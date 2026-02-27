@@ -318,6 +318,116 @@
                           placeholder="Catatan tambahan (opsional)">{{ old('catatan', $pembayaran->catatan) }}</textarea>
             </div>
 
+            {{-- PPN per Barang --}}
+            @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
+            <div class="mt-6 p-4 bg-gradient-to-r from-purple-50 to-yellow-50 rounded-lg border border-purple-200">
+                <h3 class="text-sm font-semibold text-purple-800 mb-1 flex items-center">
+                    <i class="fas fa-percent mr-2"></i>
+                    PPN per Barang
+                    <span class="ml-2 text-xs font-normal text-gray-500">— centang jika harga sudah <strong>include PPN</strong></span>
+                </h3>
+                @if(!empty($ppnDataExisting))
+                <p class="text-xs text-blue-600 mb-3 flex items-center">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Pre-filled dari data PPN yang sudah tersimpan.
+                </p>
+                @endif
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach($breakdownBarang as $item)
+                    @php
+                        $persentaseModal = $totalModalVendor > 0 ? ($item->total_harga_hpp / $totalModalVendor) * 100 : 0;
+                        $ppnItem   = $ppnMapExisting[$item->id_kalkulasi_hps] ?? null;
+                        $adaPpn    = !empty($ppnItem['ada_ppn']);
+                        $persenPpn = $ppnItem['persen_ppn'] ?? 11;
+                    @endphp
+                    <div class="bg-white rounded-lg p-3 border {{ $adaPpn ? 'border-yellow-300 ring-1 ring-yellow-200' : 'border-purple-200' }} shadow-sm">
+                        <h4 class="font-medium text-gray-900 text-sm mb-2">{{ $item->nama_barang }}</h4>
+                        <div class="space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Qty:</span>
+                                <span class="font-medium">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->satuan }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Modal:</span>
+                                <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Kontribusi:</span>
+                                <span class="font-medium text-purple-600">{{ number_format($persentaseModal, 1) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
+                                <div class="bg-purple-500 h-1 rounded-full" style="width: {{ $persentaseModal }}%"></div>
+                            </div>
+                        </div>
+
+                        {{-- PPN Checkbox --}}
+                        <div class="mt-3 pt-3 border-t border-gray-100">
+                            <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][id_barang]"   value="{{ $item->id_kalkulasi_hps }}">
+                            <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][nama_barang]" value="{{ $item->nama_barang }}">
+                            <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][harga]"       value="{{ $item->total_harga_hpp }}">
+
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="checkbox"
+                                       name="ppn_items[{{ $item->id_kalkulasi_hps }}][ada_ppn]"
+                                       value="1"
+                                       data-harga="{{ $item->total_harga_hpp }}"
+                                       data-id="{{ $item->id_kalkulasi_hps }}"
+                                       class="ppn-checkbox w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                                       {{ $adaPpn ? 'checked' : '' }}>
+                                <span class="text-xs font-medium text-gray-700">Harga sudah include PPN</span>
+                                @if($adaPpn)
+                                    <span class="text-xs text-purple-400 italic">(tersimpan)</span>
+                                @endif
+                            </label>
+
+                            <div class="ppn-detail {{ $adaPpn ? '' : 'hidden' }} mt-2 p-2 bg-yellow-50 rounded border border-yellow-200"
+                                 id="ppn-detail-{{ $item->id_kalkulasi_hps }}">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs text-yellow-700">PPN:</span>
+                                    <input type="number"
+                                           name="ppn_items[{{ $item->id_kalkulasi_hps }}][persen_ppn]"
+                                           value="{{ $persenPpn }}"
+                                           min="0" max="100" step="0.1"
+                                           class="ppn-persen w-14 text-xs border border-yellow-300 rounded px-1 py-0.5 text-center focus:ring-1 focus:ring-yellow-400"
+                                           data-id="{{ $item->id_kalkulasi_hps }}"
+                                           data-harga="{{ $item->total_harga_hpp }}">
+                                    <span class="text-xs text-yellow-700">%</span>
+                                </div>
+                                <div class="flex justify-between text-xs mt-1">
+                                    <span class="text-yellow-700">Sebelum PPN:</span>
+                                    <span class="font-medium text-yellow-800" id="harga-before-ppn-{{ $item->id_kalkulasi_hps }}">-</span>
+                                </div>
+                                <div class="flex justify-between text-xs mt-0.5">
+                                    <span class="text-yellow-700">Nominal PPN:</span>
+                                    <span class="font-bold text-orange-600" id="nominal-ppn-{{ $item->id_kalkulasi_hps }}">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                {{-- Summary PPN total --}}
+                <div class="mt-3 pt-3 border-t border-purple-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
+                        <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
+                    </div>
+                    <div id="ppn-summary-edit" class="{{ !empty($ppnDataExisting['ada_ppn']) ? '' : 'hidden' }} mt-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-orange-700">Total sebelum PPN:</span>
+                            <span class="font-semibold text-orange-800" id="summary-sebelum-ppn-edit">-</span>
+                        </div>
+                        <div class="flex justify-between text-sm mt-1">
+                            <span class="text-orange-700 font-bold">Total PPN (diekstrak):</span>
+                            <span class="font-bold text-orange-600 text-base" id="summary-total-ppn-edit">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Form Actions -->
             <div class="mt-8 flex items-center justify-between">
                 <div class="flex space-x-3">
@@ -349,48 +459,6 @@
             </div>
         </form>
 
-        <!-- Breakdown Modal per Barang Section (Optional Display) -->
-        @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
-        <div class="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-            <h3 class="text-sm font-semibold text-purple-800 mb-3 flex items-center">
-                <i class="fas fa-chart-pie mr-2"></i>
-                Modal per Barang ({{ $breakdownBarang->count() }} item)
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                @foreach($breakdownBarang as $item)
-                @php
-                    $persentaseModal = $totalModalVendor > 0 ? ($item->total_harga_hpp / $totalModalVendor) * 100 : 0;
-                @endphp
-                <div class="bg-white rounded-lg p-3 border border-purple-200 shadow-sm">
-                    <h4 class="font-medium text-gray-900 text-sm mb-2">{{ $item->nama_barang }}</h4>
-                    <div class="space-y-1 text-xs">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Qty:</span>
-                            <span class="font-medium">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->satuan }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Modal:</span>
-                            <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 2, ',', '.') }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Kontribusi:</span>
-                            <span class="font-medium text-purple-600">{{ number_format($persentaseModal, 1) }}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
-                            <div class="bg-purple-500 h-1 rounded-full" style="width: {{ $persentaseModal }}%"></div>
-                        </div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-            <div class="mt-3 pt-3 border-t border-purple-200 flex justify-between items-center">
-                <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
-                <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
-            </div>
-        </div>
-        @endif
-
-      
     </div>
 </div>
 
@@ -545,6 +613,72 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+    // ---- PPN per-item logic (edit) ----
+    function formatRupiahEdit(amount) {
+        return 'Rp ' + parseFloat(amount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function calcPpnEdit(harga, persen) {
+        const sebelum = harga / (1 + persen / 100);
+        return { hargaSebelum: sebelum, nominalPpn: harga - sebelum };
+    }
+
+    function updatePpnItemEdit(id) {
+        const cb       = document.querySelector(`.ppn-checkbox[data-id="${id}"]`);
+        const detail   = document.getElementById(`ppn-detail-${id}`);
+        const persen   = document.querySelector(`.ppn-persen[data-id="${id}"]`);
+        const beforeEl = document.getElementById(`harga-before-ppn-${id}`);
+        const nomEl    = document.getElementById(`nominal-ppn-${id}`);
+        if (!cb || !detail) return;
+
+        const harga = parseFloat(cb.dataset.harga) || 0;
+        const p     = parseFloat(persen ? persen.value : 11) || 0;
+
+        if (cb.checked) {
+            detail.classList.remove('hidden');
+            const { hargaSebelum, nominalPpn } = calcPpnEdit(harga, p);
+            if (beforeEl) beforeEl.textContent = formatRupiahEdit(hargaSebelum);
+            if (nomEl)    nomEl.textContent    = formatRupiahEdit(nominalPpn);
+        } else {
+            detail.classList.add('hidden');
+        }
+        updatePpnSummaryEdit();
+    }
+
+    function updatePpnSummaryEdit() {
+        let totalPpn = 0, totalSebelum = 0, any = false;
+        document.querySelectorAll('.ppn-checkbox').forEach(function(cb) {
+            if (!cb.checked) return;
+            any = true;
+            const id    = cb.dataset.id;
+            const harga = parseFloat(cb.dataset.harga) || 0;
+            const p     = parseFloat((document.querySelector(`.ppn-persen[data-id="${id}"]`) || {}).value || 11) || 0;
+            const { hargaSebelum, nominalPpn } = calcPpnEdit(harga, p);
+            totalPpn    += nominalPpn;
+            totalSebelum += hargaSebelum;
+        });
+
+        const summaryDiv = document.getElementById('ppn-summary-edit');
+        if (!summaryDiv) return;
+        if (any) {
+            summaryDiv.classList.remove('hidden');
+            const s = document.getElementById('summary-sebelum-ppn-edit');
+            const t = document.getElementById('summary-total-ppn-edit');
+            if (s) s.textContent = formatRupiahEdit(totalSebelum);
+            if (t) t.textContent = formatRupiahEdit(totalPpn);
+        } else {
+            summaryDiv.classList.add('hidden');
+        }
+    }
+
+    document.querySelectorAll('.ppn-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', function() { updatePpnItemEdit(this.dataset.id); });
+        if (cb.checked) updatePpnItemEdit(cb.dataset.id); // auto-calc on load
+    });
+    document.querySelectorAll('.ppn-persen').forEach(function(inp) {
+        inp.addEventListener('input', function() { updatePpnItemEdit(this.dataset.id); });
+    });
+    // ---- end PPN logic ----
 });
 </script>
 @endsection

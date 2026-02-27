@@ -149,6 +149,13 @@
                             <span class="font-medium">Penagihan Dinas</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('keuangan.riwayat-pembelian') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.riwayat-pembelian') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-receipt w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Riwayat Pembelian</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 
@@ -386,6 +393,13 @@
                            class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.penagihan') ? 'bg-red-100 text-red-800' : '' }}">
                             <i class="fas fa-file-invoice-dollar w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
                             <span class="font-medium">Penagihan Dinas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('keuangan.riwayat-pembelian') }}" onclick="closeMobileMenu()"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.riwayat-pembelian') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-receipt w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Riwayat Pembelian</span>
                         </a>
                     </li>
                 </ul>

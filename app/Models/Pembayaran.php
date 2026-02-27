@@ -18,16 +18,35 @@ class Pembayaran extends Model
         'metode_bayar',
         'bukti_bayar',
         'catatan',
+        'ppn_data',
         'status_verifikasi',
         'diverifikasi_oleh',
         'tanggal_verifikasi',
     ];
 
     protected $casts = [
-        'nominal_bayar' => 'decimal:2',
-        'tanggal_bayar' => 'date',
+        'nominal_bayar'     => 'decimal:2',
+        'tanggal_bayar'     => 'date',
         'tanggal_verifikasi' => 'datetime',
+        'ppn_data'          => 'array',
     ];
+
+    /**
+     * Total nominal PPN dari pembayaran ini
+     */
+    public function getTotalPpnAttribute(): float
+    {
+        return (float) ($this->ppn_data['total_ppn'] ?? 0);
+    }
+
+    /**
+     * Apakah ada item yang kena PPN
+     */
+    public function getAdaPpnAttribute(): bool
+    {
+        if (empty($this->ppn_data['items'])) return false;
+        return collect($this->ppn_data['items'])->contains('ada_ppn', true);
+    }
 
     /**
      * Get bukti_bayar as array (handles both legacy string and new JSON array format)

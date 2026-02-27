@@ -12,6 +12,7 @@ use App\Http\Controllers\purchasing\PembayaranController;
 use App\Http\Controllers\purchasing\PengirimanController;
 use App\Http\Controllers\keuangan\ApprovalController;
 use App\Http\Controllers\keuangan\PenagihanDinasController;
+use App\Http\Controllers\keuangan\RiwayatPembelianController;
 use App\Http\Controllers\marketing\ProyekController;
 use App\Http\Controllers\marketing\WilayahController;
 use App\Http\Controllers\marketing\PotensiController;
@@ -221,6 +222,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/penagihan-dinas/{id}', [PenagihanDinasController::class, 'destroy'])->name('penagihan-dinas.destroy');
         Route::delete('/penagihan-dinas/{id}/dokumen/{jenis}', [PenagihanDinasController::class, 'deleteDokumen'])->name('penagihan-dinas.delete-dokumen');
         Route::delete('/penagihan-dinas/bukti-pembayaran/{buktiId}', [PenagihanDinasController::class, 'deleteBuktiPembayaran'])->name('penagihan-dinas.delete-bukti-pembayaran');
+
+        // Riwayat Pembelian (rekap per proyek + PPN)
+        Route::get('/riwayat-pembelian', [RiwayatPembelianController::class, 'index'])->name('keuangan.riwayat-pembelian');
 
     });
 

@@ -5,231 +5,263 @@ namespace App\Http\Controllers\purchasing;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Proyek;
-use App\Models\Penawaran;
 use App\Models\Pembayaran;
-use App\Models\Vendor;
 use App\Models\KalkulasiHps;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class PembayaranController extends Controller
 {
+    /**
+     * Build the breakdown-barang list for a given proyek+vendor (reused in create/show/edit).
+     */
+    private function buildBreakdownBarang(int $proyekId, int $vendorId): \Illuminate\Support\Collection
+    {
+        return KalkulasiHps::with(['barang'])
+            ->where('id_proyek', $proyekId)
+            ->where('id_vendor', $vendorId)
+            ->get()
+            ->map(fn($k) => (object) [
+                'id_kalkulasi_hps' => $k->id_kalkulasi,
+                'id_barang'        => $k->id_barang,
+                'nama_barang'      => $k->barang->nama_barang ?? 'N/A',
+                'satuan'           => $k->barang->satuan ?? 'N/A',
+                'qty'              => $k->qty,
+                'harga_vendor'     => $k->harga_vendor,
+                'total_harga_hpp'  => $k->total_harga_hpp,
+                'harga_akhir'      => $k->harga_akhir,
+            ]);
+    }
+
+    /**
+     * Batch-load KalkulasiHps totals for a list of proyek IDs.
+     * Returns: [ id_proyek => [ id_vendor => total_harga_hpp ] ]
+     */
+    private function batchHpsMap(array $proyekIds): array
+    {
+        if (empty($proyekIds)) return [];
+
+        $rows = KalkulasiHps::whereIn('id_proyek', $proyekIds)
+            ->select('id_proyek', 'id_vendor', DB::raw('SUM(total_harga_hpp) as total'))
+            ->groupBy('id_proyek', 'id_vendor')
+            ->get();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row->id_proyek][$row->id_vendor] = (float) $row->total;
+        }
+        return $map;
+    }
+
+    /**
+     * Batch-load approved Pembayaran totals for a list of proyek IDs (via penawaran).
+     * Returns: [ id_proyek => [ id_vendor => total_dibayar_approved ] ]
+     * Requires proyek collection to be already loaded with penawaranAktif.
+     */
+    private function batchBayarMap(array $proyekIds, array $penawaranByProyek): array
+    {
+        if (empty($proyekIds)) return [];
+
+        // Flatten all penawaran IDs we need
+        $penawaranIds = [];
+        foreach ($penawaranByProyek as $pid => $penawaranId) {
+            if ($penawaranId) $penawaranIds[] = $penawaranId;
+        }
+        if (empty($penawaranIds)) return [];
+
+        // Single query: total approved per (penawaran, vendor)
+        $rows = Pembayaran::whereIn('id_penawaran', $penawaranIds)
+            ->where('status_verifikasi', 'Approved')
+            ->select('id_penawaran', 'id_vendor', DB::raw('SUM(nominal_bayar) as total'))
+            ->groupBy('id_penawaran', 'id_vendor')
+            ->get();
+
+        // Build reverse map penawaran_id -> proyek_id
+        $penawaranToProyek = array_flip($penawaranByProyek);
+
+        $map = [];
+        foreach ($rows as $row) {
+            $proyekId = $penawaranToProyek[$row->id_penawaran] ?? null;
+            if ($proyekId !== null) {
+                $map[$proyekId][$row->id_vendor] = (float) $row->total;
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * Build vendors_data for a proyek using pre-loaded HPS and Bayar maps.
+     * @param bool $filterUnpaid  When true, only vendors with sisa_bayar > 0 or missing HPS are included.
+     */
+    private function attachVendorsData($proyek, array $hpsMap, array $bayarMap, bool $filterUnpaid = false)
+    {
+        $vendors = $proyek->penawaranAktif->penawaranDetail
+            ->pluck('barang.vendor')
+            ->unique('id_vendor')
+            ->filter();
+
+        $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek, $hpsMap, $bayarMap) {
+            $totalVendor         = $hpsMap[$proyek->id_proyek][$vendor->id_vendor] ?? 0;
+            $totalDibayarApproved = $bayarMap[$proyek->id_proyek][$vendor->id_vendor] ?? 0;
+            $sisaBayar           = $totalVendor - $totalDibayarApproved;
+            $warningHps          = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+
+            return (object) [
+                'vendor'                 => $vendor,
+                'total_vendor'           => $totalVendor,
+                'total_dibayar_approved' => $totalDibayarApproved,
+                'sisa_bayar'             => $sisaBayar,
+                'persen_bayar'           => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
+                'status_lunas'           => $totalVendor > 0 ? $sisaBayar <= 0 : false,
+                'warning_hps'            => $warningHps,
+            ];
+        });
+
+        if ($filterUnpaid) {
+            $proyek->vendors_data = $proyek->vendors_data->filter(
+                fn($v) => $v->sisa_bayar > 0 || $v->warning_hps
+            );
+        }
+
+        // Aggregate totals on the proyek object
+        $proyek->total_modal_vendor      = $proyek->vendors_data->sum('total_vendor');
+        $proyek->total_dibayar_approved  = $proyek->vendors_data->sum('total_dibayar_approved');
+        $proyek->sisa_bayar              = $proyek->vendors_data->sum('sisa_bayar');
+        $proyek->persen_bayar            = $proyek->total_modal_vendor > 0
+            ? ($proyek->total_dibayar_approved / $proyek->total_modal_vendor) * 100
+            : 0;
+        $proyek->status_lunas = $proyek->sisa_bayar <= 0;
+
+        return $proyek;
+    }
+
     /**
      * Display a listing of projects that need payment processing
      */
     public function index()
     {
         // Ambil parameter filter dan search
-        $search = request()->get('search');
-        $statusFilter = request()->get('status_filter'); // untuk pembayaran
-        $proyekStatusFilter = request()->get('proyek_status_filter'); // untuk status proyek lunas/belum
-        $sortBy = request()->get('sort_by', 'desc');
-        $activeTab = request()->get('tab', 'perlu-bayar'); // untuk tab navigation
+        $search             = request()->get('search');
+        $statusFilter       = request()->get('status_filter');
+        $proyekStatusFilter = request()->get('proyek_status_filter');
+        $sortBy             = request()->get('sort_by', 'desc');
+        $activeTab          = request()->get('tab', 'perlu-bayar');
 
-        // Ambil proyek yang statusnya 'Pembayaran', 'Pengiriman', 'Selesai', atau 'Gagal' dan sudah ada penawaran yang di-ACC
-        // Dengan vendor yang terlibat
-        $proyekPerluBayarQuery = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai']) // Hapus 'Gagal' dari filter
-            ->whereHas('penawaranAktif', function ($query) {
-                $query->where('status', 'ACC');
-            });
+        // ----------------------------------------------------------------
+        // TAB "Perlu Bayar"
+        // ----------------------------------------------------------------
+        $proyekPerluBayarQuery = Proyek::with([
+            'penawaranAktif.penawaranDetail.barang.vendor',
+            'adminMarketing',
+            'pembayaran',
+        ])
+        ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+        ->whereHas('penawaranAktif', fn($q) => $q->where('status', 'ACC'));
 
-        // Filter berdasarkan search untuk tab perlu bayar
         if ($search) {
-            $proyekPerluBayarQuery->where(function ($query) use ($search) {
-                $query->where('instansi', 'like', "%{$search}%")
-                      ->orWhere('kode_proyek', 'like', "%{$search}%")
-                      ->orWhereHas('proyekBarang', function ($subQuery) use ($search) {
-                          $subQuery->where('nama_barang', 'like', "%{$search}%");
-                      });
+            $proyekPerluBayarQuery->where(function ($q) use ($search) {
+                $q->where('instansi', 'like', "%{$search}%")
+                  ->orWhere('kode_proyek', 'like', "%{$search}%")
+                  ->orWhereHas('proyekBarang', fn($sq) => $sq->where('nama_barang', 'like', "%{$search}%"));
             });
         }
 
-        $proyekPerluBayar = $proyekPerluBayarQuery->get()
-            ->map(function ($proyek) {
-                // Ambil vendor yang terlibat dalam proyek ini
-                $vendors = $proyek->penawaranAktif->penawaranDetail
-                    ->pluck('barang.vendor')
-                    ->unique('id_vendor')
-                    ->filter(); // Remove null values
+        $proyekPerluBayarAll = $proyekPerluBayarQuery->get();
 
-                $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
-                    $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->sum('total_harga_hpp');
+        // Batch KalkulasiHps + approved Pembayaran for all relevant proyek (single query each)
+        $proyekIds1          = $proyekPerluBayarAll->pluck('id_proyek')->all();
+        $penawaranByProyek1  = $proyekPerluBayarAll->pluck('penawaranAktif.id_penawaran', 'id_proyek')->all();
+        $hpsMap1             = $this->batchHpsMap($proyekIds1);
+        $bayarMap1           = $this->batchBayarMap($proyekIds1, $penawaranByProyek1);
 
-                    $totalDibayarApproved = $proyek->pembayaran
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->where('status_verifikasi', 'Approved')
-                        ->sum('nominal_bayar');
-
-                    $sisaBayar = $totalVendor - $totalDibayarApproved;
-
-                    // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
-                    $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
-
-                    return (object) [
-                        'vendor' => $vendor,
-                        'total_vendor' => $totalVendor,
-                        'total_dibayar_approved' => $totalDibayarApproved,
-                        'sisa_bayar' => $sisaBayar,
-                        'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
-                        'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
-                        'warning_hps' => $warning_hps
-                    ];
-                })
-                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
-                ->filter(function ($vendorData) {
-                    return $vendorData->sisa_bayar > 0 || $vendorData->warning_hps;
-                });
-
-                return $proyek;
-            })
-            ->filter(function ($proyek) {
-                return $proyek->vendors_data->count() > 0; // Hanya proyek yang ada vendor belum lunas
-            })
-            ->sortByDesc('created_at') // Sort by created_at instead of nama_barang
+        $proyekPerluBayarCollection = $proyekPerluBayarAll
+            ->map(fn($p) => $this->attachVendorsData($p, $hpsMap1, $bayarMap1, filterUnpaid: true))
+            ->filter(fn($p) => $p->vendors_data->count() > 0)
+            ->sortByDesc('created_at')
             ->values();
-            
-        // Convert collection to paginated result
-        $currentPage = request()->get('page', 1);
-        $perPage = 10;
-        $currentPageItems = $proyekPerluBayar->slice(($currentPage - 1) * $perPage, $perPage);
+
+        // Manual paginate
+        $currentPage     = (int) request()->get('page', 1);
+        $perPage         = 10;
         $proyekPerluBayar = new \Illuminate\Pagination\LengthAwarePaginator(
-            $currentPageItems,
-            $proyekPerluBayar->count(),
+            $proyekPerluBayarCollection->slice(($currentPage - 1) * $perPage, $perPage)->values(),
+            $proyekPerluBayarCollection->count(),
             $perPage,
             $currentPage,
             ['path' => request()->url(), 'pageName' => 'page']
         );
 
-        // Ambil semua proyek dengan status Pembayaran, Pengiriman, Selesai, atau Gagal untuk history
-        $semuaProyekQuery = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
-            ->whereHas('penawaranAktif', function ($query) {
-                $query->where('status', 'ACC');
-            });
+        // ----------------------------------------------------------------
+        // TAB "Semua Proyek"
+        // ----------------------------------------------------------------
+        $semuaProyekQuery = Proyek::with([
+            'penawaranAktif.penawaranDetail.barang.vendor',
+            'adminMarketing',
+            'pembayaran',
+        ])
+        ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
+        ->whereHas('penawaranAktif', fn($q) => $q->where('status', 'ACC'));
 
-        // Filter berdasarkan search
         if ($search) {
-            $semuaProyekQuery->where(function ($query) use ($search) {
-                $query->where('instansi', 'like', "%{$search}%")
-                      ->orWhere('kode_proyek', 'like', "%{$search}%")
-                      ->orWhereHas('proyekBarang', function ($subQuery) use ($search) {
-                          $subQuery->where('nama_barang', 'like', "%{$search}%");
-                      });
+            $semuaProyekQuery->where(function ($q) use ($search) {
+                $q->where('instansi', 'like', "%{$search}%")
+                  ->orWhere('kode_proyek', 'like', "%{$search}%")
+                  ->orWhereHas('proyekBarang', fn($sq) => $sq->where('nama_barang', 'like', "%{$search}%"));
             });
         }
 
-        // Sorting - hanya berdasarkan tanggal
-        if ($sortBy === 'asc') {
-            $semuaProyekQuery->orderBy('created_at', 'asc');
-        } else {
-            $semuaProyekQuery->orderBy('created_at', 'desc');
-        }
+        $sortBy === 'asc'
+            ? $semuaProyekQuery->orderBy('created_at', 'asc')
+            : $semuaProyekQuery->orderBy('created_at', 'desc');
 
-        $semuaProyek = $semuaProyekQuery->paginate(10, ['*'], 'proyek_page');
+        // Paginate DB query first, then batch only for current-page IDs
+        $semuaProyek        = $semuaProyekQuery->paginate(10, ['*'], 'proyek_page');
+        $proyekIds2         = $semuaProyek->pluck('id_proyek')->all();
+        $penawaranByProyek2 = $semuaProyek->pluck('penawaranAktif.id_penawaran', 'id_proyek')->all();
+        $hpsMap2            = $this->batchHpsMap($proyekIds2);
+        $bayarMap2          = $this->batchBayarMap($proyekIds2, $penawaranByProyek2);
 
-        // Hitung statistik untuk setiap proyek (per vendor)
-        $semuaProyek->getCollection()->transform(function ($proyek) {
-            // Ambil vendor yang terlibat dalam proyek ini
-            $vendors = $proyek->penawaranAktif->penawaranDetail
-                ->pluck('barang.vendor')
-                ->unique('id_vendor')
-                ->filter(); // Remove null values
+        $semuaProyek->getCollection()->transform(
+            fn($p) => $this->attachVendorsData($p, $hpsMap2, $bayarMap2, filterUnpaid: false)
+        );
 
-            $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
-                // Hitung total untuk vendor ini (menggunakan total_harga_hpp dari kalkulasi_hps)
-                $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
-                    ->where('id_vendor', $vendor->id_vendor)
-                    ->sum('total_harga_hpp');
-
-                // Hitung yang sudah dibayar untuk vendor ini
-                $totalDibayarApproved = $proyek->pembayaran
-                    ->where('id_vendor', $vendor->id_vendor)
-                    ->where('status_verifikasi', 'Approved')
-                    ->sum('nominal_bayar');
-
-                $sisaBayar = $totalVendor - $totalDibayarApproved;
-
-                return (object) [
-                    'vendor' => $vendor,
-                    'total_vendor' => $totalVendor,
-                    'total_dibayar_approved' => $totalDibayarApproved,
-                    'sisa_bayar' => $sisaBayar,
-                    'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
-                    'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
-                    'warning_hps' => $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null
-                ];
-            });
-
-            // Hitung total keseluruhan proyek berdasarkan modal vendor
-            $totalKeseluruhanModal = $proyek->vendors_data->sum('total_vendor');
-            $totalKeseluruhanDibayar = $proyek->vendors_data->sum('total_dibayar_approved');
-            $totalKeseluruhanSisa = $proyek->vendors_data->sum('sisa_bayar');
-            
-            $proyek->total_modal_vendor = $totalKeseluruhanModal;
-            $proyek->total_dibayar_approved = $totalKeseluruhanDibayar;
-            $proyek->sisa_bayar = $totalKeseluruhanSisa;
-            $proyek->persen_bayar = $totalKeseluruhanModal > 0 ? 
-                ($totalKeseluruhanDibayar / $totalKeseluruhanModal) * 100 : 0;
-            $proyek->status_lunas = $totalKeseluruhanSisa <= 0;
-
-            return $proyek;
-        });
-
-        // Filter berdasarkan status proyek (lunas/belum lunas) setelah perhitungan
+        // In-memory filter by lunas/belum_lunas after transform
         if ($proyekStatusFilter && $proyekStatusFilter !== 'all') {
-            $semuaProyek = $semuaProyek->filter(function ($proyek) use ($proyekStatusFilter) {
-                if ($proyekStatusFilter === 'lunas') {
-                    return $proyek->status_lunas;
-                } elseif ($proyekStatusFilter === 'belum_lunas') {
-                    return !$proyek->status_lunas;
-                }
-                return true;
-            });
+            $filtered = $semuaProyek->getCollection()->filter(function ($proyek) use ($proyekStatusFilter) {
+                return $proyekStatusFilter === 'lunas' ? $proyek->status_lunas : !$proyek->status_lunas;
+            })->values();
 
-            // Re-paginate setelah filter
-            $currentPage = request()->get('proyek_page', 1);
-            $perPage = 10;
-            $currentPageItems = $semuaProyek->slice(($currentPage - 1) * $perPage, $perPage);
+            $currentPageProyek = (int) request()->get('proyek_page', 1);
             $semuaProyek = new \Illuminate\Pagination\LengthAwarePaginator(
-                $currentPageItems,
-                $semuaProyek->count(),
+                $filtered->slice(($currentPageProyek - 1) * $perPage, $perPage)->values(),
+                $filtered->count(),
                 $perPage,
-                $currentPage,
+                $currentPageProyek,
                 ['path' => request()->url(), 'pageName' => 'proyek_page']
             );
         }
 
-        // Ambil semua pembayaran dengan filter
+        // ----------------------------------------------------------------
+        // TAB "Semua Pembayaran"
+        // ----------------------------------------------------------------
         $semuaPembayaranQuery = Pembayaran::with(['penawaran.proyek.adminMarketing', 'vendor'])
-            ->whereHas('penawaran.proyek', function ($query) {
-                $query->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
-                      ->whereHas('penawaranAktif', function ($subQuery) {
-                          $subQuery->where('status', 'ACC');
-                      });
+            ->whereHas('penawaran.proyek', function ($q) {
+                $q->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
+                  ->whereHas('penawaranAktif', fn($sq) => $sq->where('status', 'ACC'));
             });
 
-        // Filter pembayaran berdasarkan status
         if ($statusFilter && $statusFilter !== 'all') {
             $semuaPembayaranQuery->where('status_verifikasi', $statusFilter);
         }
 
-        // Filter pembayaran berdasarkan search
         if ($search) {
-            $semuaPembayaranQuery->where(function ($query) use ($search) {
-                $query->whereHas('penawaran.proyek', function ($subQuery) use ($search) {
-                    $subQuery->where('instansi', 'like', "%{$search}%")
-                             ->orWhere('kode_proyek', 'like', "%{$search}%")
-                             ->orWhereHas('proyekBarang', function ($subSubQuery) use ($search) {
-                                 $subSubQuery->where('nama_barang', 'like', "%{$search}%");
-                             });
-                })->orWhereHas('vendor', function ($subQuery) use ($search) {
-                    $subQuery->where('nama_vendor', 'like', "%{$search}%");
-                });
+            $semuaPembayaranQuery->where(function ($q) use ($search) {
+                $q->whereHas('penawaran.proyek', function ($sq) use ($search) {
+                    $sq->where('instansi', 'like', "%{$search}%")
+                       ->orWhere('kode_proyek', 'like', "%{$search}%")
+                       ->orWhereHas('proyekBarang', fn($ssq) => $ssq->where('nama_barang', 'like', "%{$search}%"));
+                })->orWhereHas('vendor', fn($sq) => $sq->where('nama_vendor', 'like', "%{$search}%"));
             });
         }
 
@@ -237,8 +269,8 @@ class PembayaranController extends Controller
             ->paginate(10, ['*'], 'pembayaran_page');
 
         return view('pages.purchasing.pembayaran', compact(
-            'proyekPerluBayar', 
-            'semuaPembayaran', 
+            'proyekPerluBayar',
+            'semuaPembayaran',
             'semuaProyek',
             'search',
             'statusFilter',
@@ -275,33 +307,28 @@ class PembayaranController extends Controller
         }
 
         // Ambil vendor yang terlibat dalam proyek ini
+        $hpsMapCreate  = $this->batchHpsMap([$proyek->id_proyek]);
+        $bayarMapCreate = $this->batchBayarMap(
+            [$proyek->id_proyek],
+            [$proyek->id_proyek => $proyek->penawaranAktif->id_penawaran]
+        );
+
         $vendors = $proyek->penawaranAktif->penawaranDetail
             ->pluck('barang.vendor')
             ->unique('id_vendor')
             ->filter()
-            ->map(function ($vendor) use ($proyek) {
-                // Hitung total untuk vendor ini (menggunakan total_harga_hpp dari kalkulasi_hps)
-                $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
-                    ->where('id_vendor', $vendor->id_vendor)
-                    ->sum('total_harga_hpp');
+            ->map(function ($vendor) use ($proyek, $hpsMapCreate, $bayarMapCreate) {
+                $totalVendor  = $hpsMapCreate[$proyek->id_proyek][$vendor->id_vendor] ?? 0;
+                $totalDibayar = $bayarMapCreate[$proyek->id_proyek][$vendor->id_vendor] ?? 0;
+                $sisaBayar    = $totalVendor - $totalDibayar;
 
-                // Hitung yang sudah dibayar untuk vendor ini (approved saja)
-                $totalDibayar = $proyek->pembayaran
-                    ->where('id_vendor', $vendor->id_vendor)
-                    ->where('status_verifikasi', 'Approved')
-                    ->sum('nominal_bayar');
-
-                $sisaBayar = $totalVendor - $totalDibayar;
-
-                $vendor->total_vendor = $totalVendor;
+                $vendor->total_vendor  = $totalVendor;
                 $vendor->total_dibayar = $totalDibayar;
-                $vendor->sisa_bayar = $sisaBayar;
+                $vendor->sisa_bayar    = $sisaBayar;
 
                 return $vendor;
             })
-            ->filter(function ($vendor) {
-                return $vendor->sisa_bayar > 0; // Hanya vendor yang belum lunas
-            });
+            ->filter(fn($vendor) => $vendor->sisa_bayar > 0);
 
         if ($vendors->isEmpty()) {
             return redirect()->route('purchasing.pembayaran')
@@ -320,50 +347,38 @@ class PembayaranController extends Controller
 
         // Calculate total dibayar untuk vendor yang dipilih atau semua vendor (hanya yang approved)
         if ($selectedVendor) {
-            $totalDibayar = $proyek->pembayaran
-                ->where('id_vendor', $selectedVendor->id_vendor)
-                ->where('status_verifikasi', 'Approved')
-                ->sum('nominal_bayar');
-                
-            // Untuk vendor yang dipilih, hitung sisa bayar berdasarkan total vendor tersebut
-            $sisaBayar = $selectedVendor->total_vendor - $totalDibayar;
-            
-            // Total modal vendor = modal vendor yang dipilih
+            $totalDibayar     = $bayarMapCreate[$proyek->id_proyek][$selectedVendor->id_vendor] ?? 0;
             $totalModalVendor = $selectedVendor->total_vendor;
+            $sisaBayar        = $totalModalVendor - $totalDibayar;
         } else {
-            // Untuk semua vendor combined
-            $totalDibayar = $proyek->pembayaran
-                ->where('status_verifikasi', 'Approved')
-                ->sum('nominal_bayar');
-                
-            // Calculate total vendor modal (total_harga_hpp dari kalkulasi_hps)
-            $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
-                ->sum('total_harga_hpp');
-                
-            // Calculate sisa bayar berdasarkan total modal vendor
-            $sisaBayar = $totalModalVendor - $totalDibayar;
+            // Untuk semua vendor combined (use pre-loaded maps)
+            $totalModalVendor = array_sum($hpsMapCreate[$proyek->id_proyek] ?? []);
+            $totalDibayar     = array_sum($bayarMapCreate[$proyek->id_proyek] ?? []);
+            $sisaBayar        = $totalModalVendor - $totalDibayar;
         }
 
         // Ambil breakdown modal per barang jika vendor dipilih
         $breakdownBarang = null;
+        $ppnDataTerakhir  = [];   // map: id_kalkulasi → item ppn dari pembayaran terakhir
         if ($selectedVendor) {
-            $breakdownBarang = KalkulasiHps::with(['barang'])
-                ->where('id_proyek', $proyek->id_proyek)
+            $breakdownBarang = $this->buildBreakdownBarang($proyek->id_proyek, $selectedVendor->id_vendor);
+
+            // Ambil ppn_data dari pembayaran terakhir untuk vendor+penawaran ini
+            $pembayaranTerakhir = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
                 ->where('id_vendor', $selectedVendor->id_vendor)
-                ->get()
-                ->map(function ($kalkulasi) {
-                    return (object) [
-                        'nama_barang' => $kalkulasi->barang->nama_barang ?? 'N/A',
-                        'satuan' => $kalkulasi->barang->satuan ?? 'N/A',
-                        'qty' => $kalkulasi->qty,
-                        'harga_vendor' => $kalkulasi->harga_vendor,
-                        'total_harga_hpp' => $kalkulasi->total_harga_hpp,
-                        'harga_akhir' => $kalkulasi->harga_akhir,
-                    ];
-                });
+                ->whereNotNull('ppn_data')
+                ->latest('id_pembayaran')
+                ->first();
+
+            if ($pembayaranTerakhir && !empty($pembayaranTerakhir->ppn_data['items'])) {
+                // Buat map id_kalkulasi_hps → item untuk lookup cepat di blade
+                foreach ($pembayaranTerakhir->ppn_data['items'] as $item) {
+                    $ppnDataTerakhir[$item['id_kalkulasi_hps']] = $item;
+                }
+            }
         }
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-form', compact('proyek', 'vendors', 'selectedVendor', 'totalDibayar', 'sisaBayar', 'totalModalVendor', 'breakdownBarang'));
+        return view('pages.purchasing.pembayaran-components.pembayaran-form', compact('proyek', 'vendors', 'selectedVendor', 'totalDibayar', 'sisaBayar', 'totalModalVendor', 'breakdownBarang', 'ppnDataTerakhir'));
     }
 
     /**
@@ -391,7 +406,13 @@ class PembayaranController extends Controller
             'metode_bayar' => 'required|string',
             'bukti_bayar' => 'required|array|min:1',
             'bukti_bayar.*' => 'file|mimes:jpg,jpeg,png,pdf|max:5120', // max 5MB per file
-            'catatan' => 'nullable|string'
+            'catatan' => 'nullable|string',
+            'ppn_items' => 'nullable|array',
+            'ppn_items.*.id_barang' => 'nullable|string',
+            'ppn_items.*.nama_barang' => 'nullable|string',
+            'ppn_items.*.harga' => 'nullable|numeric|min:0',
+            'ppn_items.*.ada_ppn' => 'nullable|in:1',
+            'ppn_items.*.persen_ppn' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor'])->findOrFail($request->id_proyek);
@@ -425,6 +446,51 @@ class PembayaranController extends Controller
                 }
             }
 
+            // Proses data PPN per item
+            $ppnData = null;
+            if ($request->has('ppn_items') && is_array($request->ppn_items)) {
+                $ppnItems = [];
+                $totalPpn = 0;
+                $totalSebelumPpn = 0;
+
+                foreach ($request->ppn_items as $idKalkulasi => $item) {
+                    $harga      = floatval($item['harga'] ?? 0);
+                    $adaPpn     = isset($item['ada_ppn']) && $item['ada_ppn'] == '1';
+                    $persenPpn  = $adaPpn ? floatval($item['persen_ppn'] ?? 11) : 0;
+
+                    // Ekstrak PPN dari harga yang sudah include PPN
+                    // harga_include_ppn = harga_sebelum_ppn * (1 + persen/100)
+                    // harga_sebelum_ppn = harga / (1 + persen/100)
+                    $hargaSebelumPpn = $adaPpn && $persenPpn > 0
+                        ? $harga / (1 + $persenPpn / 100)
+                        : $harga;
+                    $nominalPpn = $harga - $hargaSebelumPpn;
+
+                    $ppnItems[] = [
+                        'id_kalkulasi_hps' => $idKalkulasi,
+                        'id_barang'        => $item['id_barang'] ?? $idKalkulasi,
+                        'nama_barang'      => $item['nama_barang'] ?? '',
+                        'harga_total'      => $harga,
+                        'ada_ppn'          => $adaPpn,
+                        'persen_ppn'       => $adaPpn ? $persenPpn : null,
+                        'harga_sebelum_ppn'=> $adaPpn ? round($hargaSebelumPpn, 2) : null,
+                        'nominal_ppn'      => $adaPpn ? round($nominalPpn, 2) : null,
+                    ];
+
+                    if ($adaPpn) {
+                        $totalPpn       += $nominalPpn;
+                        $totalSebelumPpn += $hargaSebelumPpn;
+                    }
+                }
+
+                $ppnData = [
+                    'items'            => $ppnItems,
+                    'total_ppn'        => round($totalPpn, 2),
+                    'total_sebelum_ppn'=> round($totalSebelumPpn, 2),
+                    'ada_ppn'          => $totalPpn > 0,
+                ];
+            }
+
             // Simpan pembayaran
             $pembayaran = Pembayaran::create([
                 'id_penawaran' => $proyek->penawaranAktif->id_penawaran,
@@ -436,6 +502,7 @@ class PembayaranController extends Controller
                 'bukti_bayar' => $buktiPaths, // Model accessor will JSON-encode this
                 'catatan' => $request->catatan,
                 'status_verifikasi' => 'Pending', // Menunggu verifikasi admin keuangan
+                'ppn_data' => $ppnData,
             ]);
 
             // Check apakah semua vendor sudah lunas untuk update status proyek
@@ -502,20 +569,10 @@ class PembayaranController extends Controller
             ->sum('nominal_bayar');
 
         // Ambil breakdown modal per barang untuk vendor ini
-        $breakdownBarang = KalkulasiHps::with(['barang'])
-            ->where('id_proyek', $pembayaran->penawaran->proyek->id_proyek)
-            ->where('id_vendor', $pembayaran->id_vendor)
-            ->get()
-            ->map(function ($kalkulasi) {
-                return (object) [
-                    'nama_barang' => $kalkulasi->barang->nama_barang ?? 'N/A',
-                    'satuan' => $kalkulasi->barang->satuan ?? 'N/A',
-                    'qty' => $kalkulasi->qty,
-                    'harga_vendor' => $kalkulasi->harga_vendor,
-                    'total_harga_hpp' => $kalkulasi->total_harga_hpp,
-                    'harga_akhir' => $kalkulasi->harga_akhir,
-                ];
-            });
+        $breakdownBarang = $this->buildBreakdownBarang(
+            $pembayaran->penawaran->proyek->id_proyek,
+            $pembayaran->id_vendor
+        );
 
         return view('pages.purchasing.pembayaran-components.pembayaran-detail', compact('pembayaran', 'totalModalVendor', 'totalDibayarVendor', 'breakdownBarang'));
     }
@@ -536,7 +593,76 @@ class PembayaranController extends Controller
         $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
             ->sum('total_harga_hpp');
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-history', compact('proyek', 'riwayatPembayaran', 'totalModalVendor'));
+        // --- PPN Rekap per vendor ---
+        // Semua vendor yang ada di proyek ini ditampilkan, baik yang ada PPN maupun tidak.
+        $ppnRekap = [];  // [ id_vendor => [...] ]
+
+        // Pre-load semua barang per vendor dari KalkulasiHps (untuk fallback vendor tanpa ppn_data)
+        $kalkulasiPerVendor = KalkulasiHps::with('barang')
+            ->where('id_proyek', $proyek->id_proyek)
+            ->get()
+            ->groupBy('id_vendor');
+
+        // Gabungkan vendor dari riwayat pembayaran + vendor dari KalkulasiHps
+        $vendorIds = $riwayatPembayaran->pluck('id_vendor')->merge($kalkulasiPerVendor->keys())->unique();
+
+        // Kelompokkan pembayaran per vendor
+        $riwayatByVendor = $riwayatPembayaran->groupBy('id_vendor');
+
+        foreach ($vendorIds as $vendorId) {
+            $payments   = $riwayatByVendor->get($vendorId, collect());
+
+            // Cari pembayaran terbaru yang punya ppn_data
+            $latestWithPpn = $payments->filter(fn($p) => !empty($p->ppn_data['items']))->sortByDesc('id_pembayaran')->first();
+
+            // Nama vendor: dari pembayaran atau dari kalkulasi
+            $vendorNama = $payments->first()?->vendor?->nama_vendor
+                ?? optional($kalkulasiPerVendor->get($vendorId)?->first()?->barang?->vendor)->nama_vendor
+                ?? "Vendor #{$vendorId}";
+
+            // Kalkulasi akumulasi PPN hanya dari pembayaran Approved per vendor
+            $approvedPayments        = $payments->where('status_verifikasi', 'Approved');
+            $totalPpnApproved        = $approvedPayments->sum(fn($p) => floatval($p->ppn_data['total_ppn'] ?? 0));
+            $totalSebelumPpnApproved = $approvedPayments->sum(fn($p) => floatval($p->ppn_data['total_sebelum_ppn'] ?? 0));
+
+            if ($latestWithPpn) {
+                // Vendor punya data PPN dari pembayaran terakhir
+                $ppnItems = $latestWithPpn->ppn_data['items'];
+                $snapshotTanggal = $latestWithPpn->tanggal_bayar;
+                $snapshotId      = $latestWithPpn->id_pembayaran;
+            } else {
+                // Vendor belum pernah menyimpan ppn_data — fallback ke data barang dari KalkulasiHps
+                $kalkRows = $kalkulasiPerVendor->get($vendorId, collect());
+                $ppnItems = $kalkRows->map(fn($k) => [
+                    'id_kalkulasi_hps'  => $k->id_kalkulasi,
+                    'id_barang'         => $k->id_barang,
+                    'nama_barang'       => $k->barang->nama_barang ?? 'N/A',
+                    'harga_total'       => floatval($k->harga_akhir ?? $k->total_harga_hpp),
+                    'ada_ppn'           => false,
+                    'persen_ppn'        => null,
+                    'harga_sebelum_ppn' => null,
+                    'nominal_ppn'       => null,
+                ])->values()->all();
+
+                $snapshotTanggal = null;
+                $snapshotId      = null;
+            }
+
+            $ppnRekap[$vendorId] = [
+                'vendor_nama'          => $vendorNama,
+                'items'                => $ppnItems,
+                'total_ppn_approved'   => round($totalPpnApproved, 2),
+                'total_sebelum_ppn'    => round($totalSebelumPpnApproved, 2),
+                'ada_ppn'              => ($totalPpnApproved > 0),
+                'has_snapshot'         => $latestWithPpn !== null,
+                'snapshot_tanggal'     => $snapshotTanggal,
+                'snapshot_id'          => $snapshotId,
+            ];
+        }
+
+        return view('pages.purchasing.pembayaran-components.pembayaran-history', compact(
+            'proyek', 'riwayatPembayaran', 'totalModalVendor', 'ppnRekap'
+        ));
     }
 
     /**
@@ -624,22 +750,29 @@ class PembayaranController extends Controller
         $sisaBayar = $totalModalVendor - $totalDibayar;
 
         // Ambil breakdown modal per barang untuk vendor ini
-        $breakdownBarang = KalkulasiHps::with(['barang'])
-            ->where('id_proyek', $proyek->id_proyek)
-            ->where('id_vendor', $pembayaran->id_vendor)
-            ->get()
-            ->map(function ($kalkulasi) {
-                return (object) [
-                    'nama_barang' => $kalkulasi->barang->nama_barang ?? 'N/A',
-                    'satuan' => $kalkulasi->barang->satuan ?? 'N/A',
-                    'qty' => $kalkulasi->qty,
-                    'harga_vendor' => $kalkulasi->harga_vendor,
-                    'total_harga_hpp' => $kalkulasi->total_harga_hpp,
-                    'harga_akhir' => $kalkulasi->harga_akhir,
-                ];
-            });
+        $breakdownBarang = $this->buildBreakdownBarang($proyek->id_proyek, $pembayaran->id_vendor);
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-edit', compact('pembayaran', 'proyek', 'totalDibayar', 'sisaBayar', 'totalModalVendor', 'breakdownBarang'));
+        // Ambil ppn_data: dari pembayaran ini sendiri, atau fallback dari pembayaran lain
+        $ppnDataExisting = $pembayaran->ppn_data;
+        if (empty($ppnDataExisting)) {
+            $pembayaranDenganPpn = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
+                ->where('id_vendor', $pembayaran->id_vendor)
+                ->where('id_pembayaran', '!=', $id_pembayaran)
+                ->whereNotNull('ppn_data')
+                ->latest('id_pembayaran')
+                ->first();
+            $ppnDataExisting = $pembayaranDenganPpn?->ppn_data;
+        }
+
+        // Buat map id_kalkulasi_hps => item ppn untuk lookup di blade
+        $ppnMapExisting = [];
+        if (!empty($ppnDataExisting['items'])) {
+            foreach ($ppnDataExisting['items'] as $item) {
+                $ppnMapExisting[$item['id_kalkulasi_hps']] = $item;
+            }
+        }
+
+        return view('pages.purchasing.pembayaran-components.pembayaran-edit', compact('pembayaran', 'proyek', 'totalDibayar', 'sisaBayar', 'totalModalVendor', 'breakdownBarang', 'ppnDataExisting', 'ppnMapExisting'));
     }
 
     /**
@@ -671,10 +804,16 @@ class PembayaranController extends Controller
             'nominal_bayar' => 'required|numeric|min:0.01',
             'metode_bayar' => 'required|string',
             'bukti_bayar' => 'nullable|array',
-            'bukti_bayar.*' => 'file|mimes:jpg,jpeg,png,pdf|max:5120', // optional untuk update
+            'bukti_bayar.*' => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
             'delete_files' => 'nullable|array',
             'delete_files.*' => 'string',
-            'catatan' => 'nullable|string'
+            'catatan' => 'nullable|string',
+            'ppn_items' => 'nullable|array',
+            'ppn_items.*.id_barang' => 'nullable|string',
+            'ppn_items.*.nama_barang' => 'nullable|string',
+            'ppn_items.*.harga' => 'nullable|numeric|min:0',
+            'ppn_items.*.ada_ppn' => 'nullable|in:1',
+            'ppn_items.*.persen_ppn' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $proyek = $pembayaran->penawaran->proyek;
@@ -726,13 +865,56 @@ class PembayaranController extends Controller
             // Gabungkan file lama yang tersisa + file baru
             $finalFiles = array_merge($remainingFiles, $newlyUploadedFiles);
 
+            // Proses data PPN per item
+            $ppnData = null;
+            if ($request->has('ppn_items') && is_array($request->ppn_items)) {
+                $ppnItems    = [];
+                $totalPpn    = 0;
+                $totalSebelum = 0;
+
+                foreach ($request->ppn_items as $idKalkulasi => $item) {
+                    $harga     = floatval($item['harga'] ?? 0);
+                    $adaPpn    = isset($item['ada_ppn']) && $item['ada_ppn'] == '1';
+                    $persenPpn = $adaPpn ? floatval($item['persen_ppn'] ?? 11) : 0;
+
+                    $hargaSebelumPpn = $adaPpn && $persenPpn > 0
+                        ? $harga / (1 + $persenPpn / 100)
+                        : $harga;
+                    $nominalPpn = $harga - $hargaSebelumPpn;
+
+                    $ppnItems[] = [
+                        'id_kalkulasi_hps'  => $idKalkulasi,
+                        'id_barang'         => $item['id_barang'] ?? $idKalkulasi,
+                        'nama_barang'       => $item['nama_barang'] ?? '',
+                        'harga_total'       => $harga,
+                        'ada_ppn'           => $adaPpn,
+                        'persen_ppn'        => $adaPpn ? $persenPpn : null,
+                        'harga_sebelum_ppn' => $adaPpn ? round($hargaSebelumPpn, 2) : null,
+                        'nominal_ppn'       => $adaPpn ? round($nominalPpn, 2) : null,
+                    ];
+
+                    if ($adaPpn) {
+                        $totalPpn    += $nominalPpn;
+                        $totalSebelum += $hargaSebelumPpn;
+                    }
+                }
+
+                $ppnData = [
+                    'items'             => $ppnItems,
+                    'total_ppn'         => round($totalPpn, 2),
+                    'total_sebelum_ppn' => round($totalSebelum, 2),
+                    'ada_ppn'           => $totalPpn > 0,
+                ];
+            }
+
             // Update pembayaran
             $pembayaran->update([
-                'jenis_bayar' => $request->jenis_bayar,
-                'nominal_bayar' => $request->nominal_bayar,
+                'jenis_bayar'  => $request->jenis_bayar,
+                'nominal_bayar'=> $request->nominal_bayar,
                 'metode_bayar' => $request->metode_bayar,
-                'bukti_bayar' => $finalFiles, // Model accessor will JSON-encode
-                'catatan' => $request->catatan,
+                'bukti_bayar'  => $finalFiles,
+                'catatan'      => $request->catatan,
+                'ppn_data'     => $ppnData,
             ]);
 
             DB::commit();

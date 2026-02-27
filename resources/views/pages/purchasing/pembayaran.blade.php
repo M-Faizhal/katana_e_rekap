@@ -567,69 +567,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     @endif
 
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-blue-100 text-sm font-medium opacity-90">Menunggu Pembayaran</p>
-                    <p class="text-3xl font-bold mt-1">{{ $proyekPerluBayar->total() }}</p>
-                </div>
-                <div class="bg-blue-400/30 p-3 rounded-xl">
-                    <i class="fas fa-clock text-2xl"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-yellow-100 text-sm font-medium opacity-90">Pending Verifikasi</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ $semuaProyek->sum(function($proyek) { 
-                            return $proyek->pembayaran->where('status_verifikasi', 'Pending')->count(); 
-                        }) }}
-                    </p>
-                </div>
-                <div class="bg-yellow-400/30 p-3 rounded-xl">
-                    <i class="fas fa-hourglass-half text-2xl"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-green-100 text-sm font-medium opacity-90">Terverifikasi</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ $semuaProyek->sum(function($proyek) { 
-                            return $proyek->pembayaran->where('status_verifikasi', 'Approved')->count(); 
-                        }) }}
-                    </p>
-                </div>
-                <div class="bg-green-400/30 p-3 rounded-xl">
-                    <i class="fas fa-check-circle text-2xl"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-red-100 text-sm font-medium opacity-90">Ditolak</p>
-                    <p class="text-3xl font-bold mt-1">
-                        {{ $semuaProyek->sum(function($proyek) { 
-                            return $proyek->pembayaran->where('status_verifikasi', 'Ditolak')->count(); 
-                        }) }}
-                    </p>
-                </div>
-                <div class="bg-red-400/30 p-3 rounded-xl">
-                    <i class="fas fa-times-circle text-2xl"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Tabs Navigation -->
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100">
         <!-- Tab Headers -->

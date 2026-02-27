@@ -471,6 +471,7 @@
                     <h3 class="text-sm font-semibold text-purple-800 mb-3 flex items-center">
                         <i class="fas fa-chart-pie mr-2"></i>
                         Modal per Barang - {{ $selectedVendor->nama_vendor ?? 'Vendor' }} ({{ $breakdownBarang->count() }} item)
+                        <span class="ml-2 text-xs font-normal text-gray-500">— centang jika harga sudah <strong>include PPN</strong></span>
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($breakdownBarang as $item)
@@ -496,12 +497,77 @@
                                     <div class="bg-purple-500 h-1 rounded-full" style="width: {{ $persentaseModal }}%"></div>
                                 </div>
                             </div>
+
+                            {{-- PPN Checkbox --}}
+                            @php
+                                $ppnDefault  = $ppnDataTerakhir[$item->id_kalkulasi_hps] ?? null;
+                                $isChecked   = $ppnDefault && ($ppnDefault['ada_ppn'] ?? false);
+                                $persenDefault = $ppnDefault['persen_ppn'] ?? 11;
+                            @endphp
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                {{-- Hidden inputs selalu terkirim --}}
+                                <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][id_barang]"   value="{{ $item->id_kalkulasi_hps }}">
+                                <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][nama_barang]" value="{{ $item->nama_barang }}">
+                                <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][harga]"       value="{{ $item->total_harga_hpp }}">
+
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="checkbox"
+                                           name="ppn_items[{{ $item->id_kalkulasi_hps }}][ada_ppn]"
+                                           value="1"
+                                           data-harga="{{ $item->total_harga_hpp }}"
+                                           data-id="{{ $item->id_kalkulasi_hps }}"
+                                           class="ppn-checkbox w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                                           {{ $isChecked ? 'checked' : '' }}>
+                                    <span class="text-xs font-medium text-gray-700">Harga sudah include PPN</span>
+                                    @if($isChecked)
+                                        <span class="text-xs text-purple-500 italic">(dari pembayaran sebelumnya)</span>
+                                    @endif
+                                </label>
+
+                                {{-- Detail PPN — muncul saat checkbox dicentang --}}
+                                <div class="ppn-detail {{ $isChecked ? '' : 'hidden' }} mt-2 p-2 bg-yellow-50 rounded border border-yellow-200"
+                                     id="ppn-detail-{{ $item->id_kalkulasi_hps }}">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs text-yellow-700">PPN:</span>
+                                        <input type="number"
+                                               name="ppn_items[{{ $item->id_kalkulasi_hps }}][persen_ppn]"
+                                               value="{{ $persenDefault }}"
+                                               min="0" max="100" step="0.1"
+                                               class="ppn-persen w-14 text-xs border border-yellow-300 rounded px-1 py-0.5 text-center focus:ring-1 focus:ring-yellow-400"
+                                               data-id="{{ $item->id_kalkulasi_hps }}"
+                                               data-harga="{{ $item->total_harga_hpp }}">
+                                        <span class="text-xs text-yellow-700">%</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs mt-1">
+                                        <span class="text-yellow-700">Sebelum PPN:</span>
+                                        <span class="font-medium text-yellow-800" id="harga-before-ppn-{{ $item->id_kalkulasi_hps }}">-</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs mt-0.5">
+                                        <span class="text-yellow-700">Nominal PPN:</span>
+                                        <span class="font-bold text-orange-600" id="nominal-ppn-{{ $item->id_kalkulasi_hps }}">-</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         @endforeach
                     </div>
-                    <div class="mt-3 pt-3 border-t border-purple-200 flex justify-between items-center">
-                        <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
-                        <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
+
+                    {{-- Summary PPN total --}}
+                    <div class="mt-3 pt-3 border-t border-purple-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
+                            <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
+                        </div>
+                        <div id="ppn-summary" class="hidden mt-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-orange-700">Total sebelum PPN:</span>
+                                <span class="font-semibold text-orange-800" id="summary-sebelum-ppn">-</span>
+                            </div>
+                            <div class="flex justify-between text-sm mt-1">
+                                <span class="text-orange-700 font-bold">Total PPN (diekstrak):</span>
+                                <span class="font-bold text-orange-600 text-base" id="summary-total-ppn">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endif
@@ -845,6 +911,94 @@ document.addEventListener('DOMContentLoaded', function() {
             this.value = value;
         }
     });
+
+    // ---- PPN per-item logic ----
+    function formatRupiah(amount) {
+        return 'Rp ' + parseFloat(amount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function calcPpn(harga, persenPpn) {
+        // harga sudah include PPN → ekstrak
+        const hargaSebelum = harga / (1 + persenPpn / 100);
+        const nominalPpn   = harga - hargaSebelum;
+        return { hargaSebelum, nominalPpn };
+    }
+
+    function updatePpnItem(id) {
+        const checkbox   = document.querySelector(`.ppn-checkbox[data-id="${id}"]`);
+        const detailDiv  = document.getElementById(`ppn-detail-${id}`);
+        const persenInput= document.querySelector(`.ppn-persen[data-id="${id}"]`);
+        const beforeEl   = document.getElementById(`harga-before-ppn-${id}`);
+        const nominalEl  = document.getElementById(`nominal-ppn-${id}`);
+
+        if (!checkbox || !detailDiv) return;
+
+        const harga = parseFloat(checkbox.dataset.harga) || 0;
+        const persen = parseFloat(persenInput ? persenInput.value : 11) || 0;
+
+        if (checkbox.checked) {
+            detailDiv.classList.remove('hidden');
+            const { hargaSebelum, nominalPpn } = calcPpn(harga, persen);
+            if (beforeEl) beforeEl.textContent  = formatRupiah(hargaSebelum);
+            if (nominalEl) nominalEl.textContent = formatRupiah(nominalPpn);
+        } else {
+            detailDiv.classList.add('hidden');
+        }
+
+        updatePpnSummary();
+    }
+
+    function updatePpnSummary() {
+        const checkboxes = document.querySelectorAll('.ppn-checkbox');
+        let totalPpn = 0;
+        let totalSebelum = 0;
+        let anyChecked = false;
+
+        checkboxes.forEach(function(cb) {
+            if (cb.checked) {
+                anyChecked = true;
+                const id     = cb.dataset.id;
+                const harga  = parseFloat(cb.dataset.harga) || 0;
+                const persenInput = document.querySelector(`.ppn-persen[data-id="${id}"]`);
+                const persen = parseFloat(persenInput ? persenInput.value : 11) || 0;
+                const { hargaSebelum, nominalPpn } = calcPpn(harga, persen);
+                totalPpn    += nominalPpn;
+                totalSebelum += hargaSebelum;
+            }
+        });
+
+        const summaryDiv = document.getElementById('ppn-summary');
+        if (!summaryDiv) return;
+
+        if (anyChecked) {
+            summaryDiv.classList.remove('hidden');
+            const sebelumEl = document.getElementById('summary-sebelum-ppn');
+            const ppnEl     = document.getElementById('summary-total-ppn');
+            if (sebelumEl) sebelumEl.textContent = formatRupiah(totalSebelum);
+            if (ppnEl)     ppnEl.textContent     = formatRupiah(totalPpn);
+        } else {
+            summaryDiv.classList.add('hidden');
+        }
+    }
+
+    // Attach events to all PPN checkboxes
+    document.querySelectorAll('.ppn-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            updatePpnItem(this.dataset.id);
+        });
+        // Auto-trigger kalkulasi untuk item yang sudah pre-checked (dari pembayaran sebelumnya)
+        if (cb.checked) {
+            updatePpnItem(cb.dataset.id);
+        }
+    });
+
+    // Attach events to all PPN persen inputs
+    document.querySelectorAll('.ppn-persen').forEach(function(input) {
+        input.addEventListener('input', function() {
+            updatePpnItem(this.dataset.id);
+        });
+    });
+    // ---- end PPN logic ----
 });
 </script>
 @endpush
