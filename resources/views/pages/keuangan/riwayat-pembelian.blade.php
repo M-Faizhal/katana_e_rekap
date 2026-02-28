@@ -62,6 +62,10 @@
                     class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
                     <i class="fas fa-times mr-2"></i>Reset
                 </a>
+                <a href="{{ route('keuangan.riwayat-pembelian.export', request()->only(['search','status_filter','ppn_filter','sort_by'])) }}"
+                    class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-file-excel mr-2"></i>Export Excel
+                </a>
             </div>
         </form>
     </div>

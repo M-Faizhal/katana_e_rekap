@@ -234,6 +234,7 @@ Route::middleware('auth')->group(function () {
 
         // Riwayat Pembelian (rekap per proyek + PPN)
         Route::get('/riwayat-pembelian', [RiwayatPembelianController::class, 'index'])->name('keuangan.riwayat-pembelian');
+        Route::get('/riwayat-pembelian/export', [RiwayatPembelianController::class, 'export'])->name('keuangan.riwayat-pembelian.export');
 
     });
 
