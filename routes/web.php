@@ -222,6 +222,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/penagihan-dinas/{id}', [PenagihanDinasController::class, 'destroy'])->name('penagihan-dinas.destroy');
         Route::delete('/penagihan-dinas/{id}/dokumen/{jenis}', [PenagihanDinasController::class, 'deleteDokumen'])->name('penagihan-dinas.delete-dokumen');
         Route::delete('/penagihan-dinas/bukti-pembayaran/{buktiId}', [PenagihanDinasController::class, 'deleteBuktiPembayaran'])->name('penagihan-dinas.delete-bukti-pembayaran');
+        Route::put('/penagihan-dinas/bukti-pembayaran/{buktiId}', [PenagihanDinasController::class, 'updateBuktiPembayaran'])->name('penagihan-dinas.update-bukti-pembayaran');
+        Route::post('/penagihan-dinas/{id}/bukti-pembayaran', [PenagihanDinasController::class, 'storeBuktiPembayaran'])->name('penagihan-dinas.store-bukti-pembayaran');
+
+        // AJAX endpoints (JSON responses — no page reload)
+        Route::post('/penagihan-dinas/{id}/ajax-update', [PenagihanDinasController::class, 'ajaxUpdate'])->name('penagihan-dinas.ajax-update');
+        Route::post('/penagihan-dinas/{id}/ajax-store-bukti', [PenagihanDinasController::class, 'ajaxStoreBukti'])->name('penagihan-dinas.ajax-store-bukti');
+        Route::post('/penagihan-dinas/bukti-pembayaran/{buktiId}/ajax-update', [PenagihanDinasController::class, 'ajaxUpdateBukti'])->name('penagihan-dinas.ajax-update-bukti');
+        Route::match(['POST','DELETE'], '/penagihan-dinas/bukti-pembayaran/{buktiId}/ajax-delete', [PenagihanDinasController::class, 'ajaxDeleteBukti'])->name('penagihan-dinas.ajax-delete-bukti');
+        Route::match(['POST','DELETE'], '/penagihan-dinas/{id}/dokumen/{jenis}/ajax-delete', [PenagihanDinasController::class, 'ajaxDeleteDokumen'])->name('penagihan-dinas.ajax-delete-dokumen');
 
         // Riwayat Pembelian (rekap per proyek + PPN)
         Route::get('/riwayat-pembelian', [RiwayatPembelianController::class, 'index'])->name('keuangan.riwayat-pembelian');

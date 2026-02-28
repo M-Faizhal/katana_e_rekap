@@ -83,7 +83,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Total Harga</label>
-                            <p class="text-xl font-bold text-green-600">Rp {{ number_format((float)$penagihanDinas->proyek->harga_total ?? 0, 2, ',', '.') }}</p>
+                            <p class="text-xl font-bold text-green-600">Rp {{ number_format((float)$penagihanDinas->total_harga, 2, ',', '.') }}</p>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Dibuat</label>
@@ -97,7 +97,7 @@
                         </div>
                         @php
                             $totalBayar = $penagihanDinas->buktiPembayaran->sum('jumlah_bayar');
-                            $sisaPembayaran = ($penagihanDinas->proyek->harga_total ?? 0) - $totalBayar;
+                            $sisaPembayaran = (float)$penagihanDinas->total_harga - $totalBayar;
                         @endphp
                         @if($penagihanDinas->status_pembayaran === 'dp')
                         <div>
@@ -425,7 +425,7 @@
                         Rp {{ number_format($penagihanDinas->sisa_pembayaran, 2, ',', '.') }}
                     </div>
                     <div class="text-xs text-red-600 mt-1">
-                        Dari total: Rp {{ number_format($penagihanDinas->proyek->harga_total ?? 0, 2, ',', '.') }}
+                        Dari total: Rp {{ number_format((float)$penagihanDinas->total_harga, 2, ',', '.') }}
                     </div>
                 </div>
                 @endif
