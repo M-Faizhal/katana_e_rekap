@@ -138,6 +138,22 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <option value="{{ $marketing }}">{{ $marketing }}</option>
                     @endforeach
                 </select>
+                <select id="prioritasFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">Semua Prioritas</option>
+                    <option value="tinggi">Prioritas Tinggi (&lt;7 hari)</option>
+                    <option value="sedang">Prioritas Sedang (7–14 hari)</option>
+                    <option value="rendah">Prioritas Rendah (&gt;14 hari)</option>
+                    <option value="expired">Expired</option>
+                    <option value="none">Tanpa Deadline</option>
+                </select>
+                <select id="sortByFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">Urutkan</option>
+                    <option value="terbaru">Terbaru</option>
+                    <option value="terlama">Terlama</option>
+                    <option value="deadline_asc">Deadline Terdekat</option>
+                    <option value="deadline_desc">Deadline Terjauh</option>
+                    <option value="prioritas">Prioritas Tertinggi</option>
+                </select>
                 <button onclick="resetFilters()" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg sm:rounded-xl transition-colors duration-200">
                     <i class="fas fa-redo text-gray-600"></i>
                     <span class="hidden sm:inline ml-1">Reset</span>
@@ -151,7 +167,30 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
         <div id="proyekContainer" class="grid grid-cols-1 gap-4 sm:gap-6">
             @foreach($proyekData as $index => $potensi)
             <!-- Card {{ $index + 1 }} -->
-            <div class="proyek-card bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 cursor-pointer relative"
+            @php
+                $deadlineVal = $potensi['deadline'] ?? null;
+                $prioritasInfo = null;
+                $borderClass = 'border-gray-200';
+                if ($deadlineVal) {
+                    $today = \Carbon\Carbon::today();
+                    $deadlineCarbon = \Carbon\Carbon::parse($deadlineVal)->startOfDay();
+                    $hari = $today->diffInDays($deadlineCarbon, false);
+                    if ($hari < 0) {
+                        $prioritasInfo = ['label' => '💀 Expired', 'badge' => 'bg-black text-white'];
+                        $borderClass = 'border-black';
+                    } elseif ($hari < 7) {
+                        $prioritasInfo = ['label' => '🔴 Prioritas Tinggi (' . $hari . ' hari)', 'badge' => 'bg-red-100 text-red-800'];
+                        $borderClass = 'border-red-500';
+                    } elseif ($hari <= 14) {
+                        $prioritasInfo = ['label' => '🟡 Prioritas Sedang (' . $hari . ' hari)', 'badge' => 'bg-yellow-100 text-yellow-800'];
+                        $borderClass = 'border-yellow-400';
+                    } else {
+                        $prioritasInfo = ['label' => '🟢 Prioritas Rendah (' . $hari . ' hari)', 'badge' => 'bg-green-100 text-green-800'];
+                        $borderClass = 'border-green-400';
+                    }
+                }
+            @endphp
+            <div class="proyek-card bg-white border-2 {{ $borderClass }} rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 cursor-pointer relative"
                  data-status="{{ $potensi['status'] }}"
                  data-kabupaten="{{ strtolower($potensi['kabupaten']) }}"
                  data-instansi="{{ strtolower($potensi['instansi']) }}"
@@ -179,7 +218,11 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                                     @endif">
                                     {{ ucfirst($potensi['status']) }}
                                 </span>
-
+                                @if($prioritasInfo)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $prioritasInfo['badge'] }}">
+                                    {{ $prioritasInfo['label'] }}
+                                </span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -258,6 +301,13 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <span class="text-sm text-gray-500">Total Nilai Potensi:</span>
                         <span class="text-lg font-bold text-red-600">Rp {{ number_format($potensi['total_nilai'], 2, ',', '.') }}</span>
                     </div>
+
+                    @if($deadlineVal)
+                    <div class="flex justify-between items-center text-sm mt-1">
+                        <span class="text-gray-500"><i class="fas fa-calendar-alt mr-1"></i>Deadline:</span>
+                        <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($deadlineVal)->format('d M Y') }}</span>
+                    </div>
+                    @endif
 
                     <!-- Penawaran Info -->
                     @if(isset($potensi['penawaran']))
@@ -620,6 +670,8 @@ let totalPages = 1;
 const searchInput = document.getElementById('searchInput');
 const tahunFilter = document.getElementById('tahunFilter');
 const picMarketingFilter = document.getElementById('picMarketingFilter');
+const prioritasFilter = document.getElementById('prioritasFilter');
+const sortByFilter = document.getElementById('sortByFilter');
 const potensiContainer = document.getElementById('proyekContainer');
 const noResults = document.getElementById('noResults');
 const paginationInfo = document.getElementById('paginationInfo');
@@ -633,6 +685,12 @@ if (tahunFilter) {
 }
 if (picMarketingFilter) {
     picMarketingFilter.addEventListener('change', filterAndSort);
+}
+if (prioritasFilter) {
+    prioritasFilter.addEventListener('change', filterAndSort);
+}
+if (sortByFilter) {
+    sortByFilter.addEventListener('change', filterAndSort);
 }
 
 // Debounce function untuk search
@@ -712,12 +770,47 @@ function filterAndSort() {
         console.log('After PIC Marketing filter:', filtered.length, 'items remaining (was', beforePicFilter, ')');
     }
 
-    // Sort by tanggal terbaru (default)
-    filtered.sort((a, b) => {
-        const dateA = new Date(a.tanggal);
-        const dateB = new Date(b.tanggal);
-        return dateB - dateA;
-    });
+    // Apply prioritas deadline filter
+    const selectedPrioritas = prioritasFilter ? prioritasFilter.value : '';
+    if (selectedPrioritas) {
+        filtered = filtered.filter(proyek => {
+            const level = getPrioritasLevelPotensi(proyek.deadline);
+            if (selectedPrioritas === 'none') return !proyek.deadline;
+            return level === selectedPrioritas;
+        });
+        console.log('After prioritas filter:', filtered.length, 'items remaining');
+    }
+
+    // Sorting
+    const selectedSort = sortByFilter ? sortByFilter.value : '';
+    if (selectedSort) {
+        filtered.sort((a, b) => {
+            if (selectedSort === 'terbaru') {
+                return new Date(b.tanggal) - new Date(a.tanggal);
+            } else if (selectedSort === 'terlama') {
+                return new Date(a.tanggal) - new Date(b.tanggal);
+            } else if (selectedSort === 'deadline_asc') {
+                if (!a.deadline && !b.deadline) return 0;
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return a.deadline < b.deadline ? -1 : (a.deadline > b.deadline ? 1 : 0);
+            } else if (selectedSort === 'deadline_desc') {
+                if (!a.deadline && !b.deadline) return 0;
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return a.deadline > b.deadline ? -1 : (a.deadline < b.deadline ? 1 : 0);
+            } else if (selectedSort === 'prioritas') {
+                const order = { expired: 0, tinggi: 1, sedang: 2, rendah: 3 };
+                const la = a.deadline ? (order[getPrioritasLevelPotensi(a.deadline)] ?? 3) : 4;
+                const lb = b.deadline ? (order[getPrioritasLevelPotensi(b.deadline)] ?? 3) : 4;
+                return la - lb;
+            }
+            return 0;
+        });
+    } else {
+        // Sort by tanggal terbaru (default)
+        filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+    }
 
     console.log('Final filtered data:', filtered.length, 'items');
     console.log('Sample final data:', filtered.slice(0, 2).map(p => ({ kode: p.kode, instansi: p.instansi, status: p.status })));
@@ -750,6 +843,8 @@ function resetFilters() {
         console.log('Resetting PIC Marketing filter from:', picMarketingFilter.value);
         picMarketingFilter.value = '';
     }
+    if (prioritasFilter) prioritasFilter.value = '';
+    if (sortByFilter) sortByFilter.value = '';
 
     // Reset data to original
     console.log('Resetting currentData from', currentData.length, 'to', potensiData.length, 'items');
@@ -1079,6 +1174,7 @@ function viewDetail(id) {
         kabupaten: data.kabupaten,
         jenis_pengadaan: data.jenis_pengadaan,
         tanggal: formatTanggal(data.tanggal),
+        deadline: data.deadline || null,
         status: data.status,
         admin_marketing: data.admin_marketing,
         admin_purchasing: data.admin_purchasing,
@@ -1111,6 +1207,27 @@ function viewDetail(id) {
     setElementText('detailPotensi', formattedData.potensi);
     setElementText('detailTahunPotensi', formattedData.tahun_potensi);
     setElementText('detailTotalKeseluruhan', formatRupiah(formattedData.total_nilai));
+
+    // Set deadline & prioritas badge di detail modal
+    const detailDeadlineEl = document.getElementById('detailDeadline');
+    const detailPrioritasBadge = document.getElementById('detailPrioritasBadge');
+    if (detailDeadlineEl) {
+        if (formattedData.deadline) {
+            detailDeadlineEl.textContent = formatTanggal(formattedData.deadline);
+        } else {
+            detailDeadlineEl.textContent = '-';
+        }
+    }
+    if (detailPrioritasBadge) {
+        const prioritas = hitungPrioritasDeadline(formattedData.deadline);
+        if (prioritas) {
+            detailPrioritasBadge.textContent = prioritas.label;
+            detailPrioritasBadge.className = 'inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ' + prioritas.badgeClass;
+            detailPrioritasBadge.classList.remove('hidden');
+        } else {
+            detailPrioritasBadge.classList.add('hidden');
+        }
+    }
 
     // Update status badge
     const statusBadge = document.getElementById('detailStatusBadge');
@@ -1320,6 +1437,7 @@ function editProyek(id) {
         nama_instansi: data.instansi, // Mapping field
         jenis_pengadaan: data.jenis_pengadaan,
         tanggal: data.tanggal,
+        deadline: data.deadline || '',
         admin_marketing: data.admin_marketing,
         admin_purchasing: data.admin_purchasing,
         id_admin_marketing: data.id_admin_marketing,
@@ -1361,6 +1479,7 @@ function editProyek(id) {
         setFieldValue('editStatus', editData.status);
         setFieldValue('editCatatan', editData.catatan);
         setFieldValue('editTahunPotensi', editData.tahun_potensi);
+        setFieldValue('editDeadline', editData.deadline);
 
         // Handle potensi buttons
         if (typeof togglePotensiEdit === 'function') {
@@ -1799,6 +1918,54 @@ function formatTanggal(tanggal) {
 function ucfirst(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Hitung prioritas deadline
+ * Tinggi  : < 7 hari
+ * Sedang  : 7–14 hari
+ * Rendah  : > 14 hari
+ * Expired : sudah lewat
+ */
+
+/**
+ * Mengembalikan level prioritas deadline sebagai string:
+ * 'expired' | 'tinggi' | 'sedang' | 'rendah' | null
+ */
+function getPrioritasLevelPotensi(deadline) {
+    if (!deadline) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deadlineDate = new Date(deadline);
+    deadlineDate.setHours(0, 0, 0, 0);
+    const hari = Math.round((deadlineDate - today) / (1000 * 60 * 60 * 24));
+
+    if (hari < 0)       return 'expired';
+    if (hari < 7)       return 'tinggi';
+    if (hari <= 14)     return 'sedang';
+    return 'rendah';
+}
+
+function hitungPrioritasDeadline(deadline) {
+    if (!deadline) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deadlineDate = new Date(deadline);
+    deadlineDate.setHours(0, 0, 0, 0);
+    const diffMs = deadlineDate - today;
+    const hari = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    if (hari < 0) {
+        return { level: 'expired', label: '💀 Expired', badgeClass: 'bg-black text-white', borderClass: 'border-black', hari };
+    } else if (hari < 7) {
+        return { level: 'tinggi', label: '🔴 Prioritas Tinggi (' + hari + ' hari)', badgeClass: 'bg-red-100 text-red-800', borderClass: 'border-red-500', hari };
+    } else if (hari <= 14) {
+        return { level: 'sedang', label: '🟡 Prioritas Sedang (' + hari + ' hari)', badgeClass: 'bg-yellow-100 text-yellow-800', borderClass: 'border-yellow-500', hari };
+    } else {
+        return { level: 'rendah', label: '🟢 Prioritas Rendah (' + hari + ' hari)', badgeClass: 'bg-green-100 text-green-800', borderClass: 'border-green-500', hari };
+    }
 }
 
 // Toggle potensi buttons for edit modal

@@ -95,6 +95,7 @@ class ProyekController extends Controller
                 'jenis_pengadaan' => $proyek->jenis_pengadaan,
                 'tanggal' => $proyek->tanggal->format('Y-m-d'),
                 'deadline' => $proyek->deadline ? $proyek->deadline->format('Y-m-d') : null,
+                'prioritas_deadline' => $proyek->prioritas_deadline,
                 'admin_marketing' => $proyek->adminMarketing ? $proyek->adminMarketing->nama : '-',
                 'admin_purchasing' => $proyek->adminPurchasing ? $proyek->adminPurchasing->nama : '-',
                 'id_admin_marketing' => $proyek->id_admin_marketing,

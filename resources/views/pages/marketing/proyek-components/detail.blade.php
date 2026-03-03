@@ -42,6 +42,11 @@
                         <p id="detailTanggal" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                     <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Deadline</label>
+                        <p id="detailDeadline" class="text-lg font-semibold text-gray-800">-</p>
+                        <div id="detailDeadlineBadge" style="display:none" class="flex items-center gap-1.5 mt-0.5"></div>
+                    </div>
+                    <div class="space-y-1">
                         <label class="text-sm font-medium text-gray-500">Kabupaten/Kota</label>
                         <p id="detailKabupatenKota" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
@@ -332,6 +337,27 @@ function loadDetailData(data) {
     // Load basic information
     document.getElementById('detailIdProyek').textContent = data.kode || data.id_proyek || '-';
     document.getElementById('detailTanggal').textContent = data.tanggal || '-';
+
+    // Deadline + badge prioritas
+    const deadlineEl  = document.getElementById('detailDeadline');
+    const deadlineBdg = document.getElementById('detailDeadlineBadge');
+    if (data.deadline) {
+        const dl = new Date(data.deadline);
+        deadlineEl.textContent = dl.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+        const today = new Date(); today.setHours(0,0,0,0); dl.setHours(0,0,0,0);
+        const hari  = Math.round((dl - today) / 86400000);
+        let label, icon, cls;
+        if (hari < 0)        { label = 'Expired';                               icon = 'fa-skull';          cls = 'text-gray-700 bg-gray-100 border-gray-300'; }
+        else if (hari < 7)   { label = `Prioritas Tinggi — ${hari} hari lagi`;  icon = 'fa-fire';           cls = 'text-red-700 bg-red-100 border-red-300'; }
+        else if (hari <= 14) { label = `Prioritas Sedang — ${hari} hari lagi`;  icon = 'fa-clock';          cls = 'text-yellow-700 bg-amber-100 border-amber-300'; }
+        else                 { label = `Prioritas Rendah — ${hari} hari lagi`;  icon = 'fa-calendar-check'; cls = 'text-green-700 bg-green-100 border-green-300'; }
+        deadlineBdg.style.display = 'flex';
+        deadlineBdg.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ${cls}"><i class="fas ${icon}"></i>${label}</span>`;
+    } else {
+        deadlineEl.textContent  = 'Tidak ditentukan';
+        deadlineBdg.style.display = 'none';
+    }
+
     document.getElementById('detailKabupatenKota').textContent = data.kabupaten_kota || data.kabupaten || '-';
     document.getElementById('detailNamaInstansi').textContent = data.nama_instansi || data.instansi || '-';
     document.getElementById('detailJenisPengadaan').textContent = data.jenis_pengadaan || '-';

@@ -167,6 +167,14 @@
                             <input type="date" name="tanggal" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Deadline
+                            </label>
+                            <input type="date" name="deadline" id="deadlineTambah"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                            <div id="deadlinePrioritasTambah" style="display:none" class="mt-1.5 flex items-center gap-1.5 text-xs font-medium"></div>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kabupaten/Kota</label>
                             <input type="text" name="kabupaten_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota">
                         </div>
@@ -1229,6 +1237,7 @@ function collectTambahFormData() {
 
     // Data dasar
     data.tanggal = formData.get('tanggal');
+    data.deadline = formData.get('deadline') || null;
     data.kab_kota = formData.get('kabupaten_kota');
     data.instansi = formData.get('nama_instansi');
     data.jenis_pengadaan = formData.get('jenis_pengadaan');
@@ -1639,5 +1648,32 @@ function showInfoAlert(message, title = null) {
 function showConfirmAlert(message, title = null) {
     return showCustomAlert(message, 'confirm', title, true);
 }
+
+// ── Deadline Priority Preview ─────────────────────────────────────────────────
+function getDeadlinePrioritasInfo(deadlineStr) {
+    if (!deadlineStr) return null;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dl    = new Date(deadlineStr); dl.setHours(0,0,0,0);
+    const hari  = Math.round((dl - today) / 86400000);
+    if (hari < 0)   return { level:'expired', label:'Expired',          icon:'fa-skull',       cls:'text-gray-700 bg-gray-100 border-gray-300' };
+    if (hari < 7)   return { level:'tinggi',  label:`Prioritas Tinggi — ${hari} hari lagi`, icon:'fa-fire',        cls:'text-red-700 bg-red-100 border-red-300' };
+    if (hari <= 14) return { level:'sedang',  label:`Prioritas Sedang — ${hari} hari lagi`, icon:'fa-clock',       cls:'text-yellow-700 bg-amber-100 border-amber-300' };
+    return            { level:'rendah',  label:`Prioritas Rendah — ${hari} hari lagi`, icon:'fa-calendar-check', cls:'text-green-700 bg-green-100 border-green-300' };
+}
+
+function renderDeadlineBadge(containerId, deadlineStr) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const info = getDeadlinePrioritasInfo(deadlineStr);
+    if (!info) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = 'flex';
+    el.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ${info.cls}">
+        <i class="fas ${info.icon}"></i>${info.label}
+    </span>`;
+}
+
+document.getElementById('deadlineTambah')?.addEventListener('change', function() {
+    renderDeadlineBadge('deadlinePrioritasTambah', this.value);
+});
 
 </script>

@@ -83,13 +83,63 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                     <option value="selesai">Selesai</option>
                     <option value="gagal">Gagal</option>
                 </select>
+                <select id="prioritasFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">Semua Prioritas</option>
+                    <option value="tinggi">Prioritas Tinggi (&lt;7 hari)</option>
+                    <option value="sedang">Prioritas Sedang (7–14 hari)</option>
+                    <option value="rendah">Prioritas Rendah (&gt;14 hari)</option>
+                    <option value="expired">Expired</option>
+                    <option value="none">Tanpa Deadline</option>
+                </select>
                 <select id="sortBy" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Urutkan</option>
                     <option value="terbaru">Terbaru</option>
                     <option value="terlama">Terlama</option>
+                    <option value="deadline_asc">Deadline Terdekat</option>
+                    <option value="deadline_desc">Deadline Terjauh</option>
+                    <option value="prioritas">Prioritas Tertinggi</option>
                 </select>
             </div>
         </div>
+        <!-- Quick Prioritas Filter Buttons -->
+        <div class="mt-3 sm:mt-4">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs sm:text-sm text-gray-500 font-medium whitespace-nowrap">
+                    <i class="fas fa-flag mr-1"></i>Prioritas:
+                </span>
+                <button type="button" data-prioritas="expired"
+                    class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 transition-colors duration-200">
+                    <i class="fas fa-skull text-xs text-gray-500"></i>
+                    <span>Expired</span>
+                    <span id="count-expired" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-gray-200 text-gray-700">0</span>
+                </button>
+                <button type="button" data-prioritas="tinggi"
+                    class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 transition-colors duration-200">
+                    <i class="fas fa-fire text-xs text-red-500"></i>
+                    <span>Tinggi</span>
+                    <span id="count-tinggi" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-red-200 text-red-700">0</span>
+                </button>
+                <button type="button" data-prioritas="sedang"
+                    class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors duration-200">
+                    <i class="fas fa-clock text-xs text-amber-500"></i>
+                    <span>Sedang</span>
+                    <span id="count-sedang" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-amber-200 text-amber-700">0</span>
+                </button>
+                <button type="button" data-prioritas="rendah"
+                    class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 transition-colors duration-200">
+                    <i class="fas fa-calendar-check text-xs text-green-500"></i>
+                    <span>Rendah</span>
+                    <span id="count-rendah" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-green-200 text-green-700">0</span>
+                </button>
+                <button type="button" data-prioritas="none"
+                    class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-gray-200 text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                    <i class="fas fa-calendar-times text-xs text-gray-400"></i>
+                    <span>Tanpa Deadline</span>
+                    <span id="count-none" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-gray-200 text-gray-600">0</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Date range & quick filter row -->
         <div class="mt-3 sm:mt-4 flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-center">
             <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -125,7 +175,12 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
         <div id="proyekContainer" class="grid grid-cols-1 gap-4 sm:gap-6">
             @foreach($proyekData as $index => $proyek)
             <!-- Card {{ $index + 1 }} -->
-            <div class="proyek-card bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 cursor-pointer relative"
+            <div class="proyek-card bg-white border rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 cursor-pointer relative
+                @if(!empty($proyek['prioritas_deadline']['level']) && $proyek['prioritas_deadline']['level'] === 'tinggi') border-red-400 hover:border-red-500
+                @elseif(!empty($proyek['prioritas_deadline']['level']) && $proyek['prioritas_deadline']['level'] === 'expired') border-gray-400 hover:border-gray-500
+                @elseif(!empty($proyek['prioritas_deadline']['level']) && $proyek['prioritas_deadline']['level'] === 'sedang') border-amber-300 hover:border-amber-400
+                @else border-gray-200 hover:border-red-200
+                @endif"
                  data-status="{{ $proyek['status'] }}"
                  data-kabupaten="{{ strtolower($proyek['kabupaten']) }}"
                  data-instansi="{{ strtolower($proyek['instansi']) }}"
@@ -142,7 +197,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                                 <h3 class="text-base sm:text-lg font-bold text-gray-800">{{ $proyek['kode'] }}</h3>
                             </div>
 
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <span class="inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full
                                     @if($proyek['status'] === 'selesai') bg-green-100 text-green-800
                                     @elseif($proyek['status'] === 'pengiriman') bg-orange-100 text-orange-800
@@ -153,6 +208,34 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                                     @endif">
                                     {{ ucfirst($proyek['status']) }}
                                 </span>
+
+                                {{-- Badge Prioritas Deadline --}}
+                                @if(!empty($proyek['prioritas_deadline']['level']))
+                                @php
+                                    $p = $proyek['prioritas_deadline'];
+                                    $badgeCls = match($p['level']) {
+                                        'expired' => 'bg-gray-100 text-gray-700 border border-gray-300',
+                                        'tinggi'  => 'bg-red-100 text-red-700 border border-red-300',
+                                        'sedang'  => 'bg-amber-100 text-amber-700 border border-amber-300',
+                                        'rendah'  => 'bg-green-100 text-green-700 border border-green-300',
+                                        default   => 'bg-gray-100 text-gray-500 border border-gray-200',
+                                    };
+                                    $badgeIcon = match($p['level']) {
+                                        'expired' => 'fa-skull',
+                                        'tinggi'  => 'fa-fire',
+                                        'sedang'  => 'fa-clock',
+                                        'rendah'  => 'fa-calendar-check',
+                                        default   => 'fa-calendar',
+                                    };
+                                    $hariLabel = $p['hari'] < 0
+                                        ? 'Expired'
+                                        : ($p['hari'] === 0 ? 'Hari ini!' : $p['hari'] . ' hari lagi');
+                                @endphp
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full {{ $badgeCls }}">
+                                    <i class="fas {{ $badgeIcon }} text-xs"></i>
+                                    {{ $hariLabel }}
+                                </span>
+                                @endif
 
                             </div>
                         </div>
@@ -182,10 +265,18 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                     <div>
                         <p class="text-xs sm:text-sm text-gray-500 mb-1">Tanggal</p>
                         <p class="font-medium text-gray-800 text-sm sm:text-base">{{ \Carbon\Carbon::parse($proyek['tanggal'])->format('d M Y') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Deadline</p>
+                        @if(!empty($proyek['deadline']))
+                            <p class="font-medium text-gray-800 text-sm sm:text-base">{{ \Carbon\Carbon::parse($proyek['deadline'])->format('d M Y') }}</p>
+                        @else
+                            <p class="text-gray-400 italic text-sm">Tidak ditentukan</p>
+                        @endif
                     </div>
                     <div>
                         <p class="text-xs sm:text-sm text-gray-500 mb-1">Tahun Potensi</p>
@@ -386,23 +477,22 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
 .modal-content::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 3px;
-    // Placeholder - akan di-override oleh fungsi lengkap di script utama
-};
-.modal-content::-webkit-scrollbar-thumb:hover {
-window.goToPage = function(page) {
-    console.log('Early goToPage called - will be replaced by full version');
-    // Placeholder - akan di-override oleh fungsi lengkap di script utama
-};odal-open {
-    overflow: hidden;
-window.buatPenawaran = function(id) {
-    console.log('Early buatPenawaran called - will be replaced by full version');
-    // Placeholder - akan di-override oleh fungsi lengkap di script utama
-};  transition: all 0.2s ease-in-out;
 }
-window.viewDetail = function(id) {
-    console.log('Early viewDetail called - will be replaced by full version');
-    // Placeholder - akan di-override oleh fungsi lengkap di script utama
-};  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.modal-open {
+    overflow: hidden;
+}
+
+.proyek-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.proyek-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 639px) {
@@ -594,6 +684,14 @@ select.status-dropdown {
     width: 100% !important;
     margin: 0 !important;
 }
+
+/* Quick prioritas button active state */
+.quick-prioritas {
+    transition: all 0.15s ease-in-out;
+}
+.quick-prioritas.ring-2 {
+    font-weight: 600;
+}
 </style>
 
 <script>
@@ -611,6 +709,7 @@ let totalPages = 1;
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
+const prioritasFilter = document.getElementById('prioritasFilter');
 const sortBy = document.getElementById('sortBy');
 const dateFrom = document.getElementById('dateFrom');
 const dateTo = document.getElementById('dateTo');
@@ -625,6 +724,13 @@ if (searchInput) {
 }
 if (statusFilter) {
     statusFilter.addEventListener('change', () => { hasInteracted = true; filterAndSort(); });
+}
+if (prioritasFilter) {
+    prioritasFilter.addEventListener('change', () => {
+        hasInteracted = true;
+        updateQuickPrioritasActiveState(prioritasFilter.value);
+        filterAndSort();
+    });
 }
 if (sortBy) {
     sortBy.addEventListener('change', () => { hasInteracted = true; filterAndSort(); });
@@ -646,10 +752,88 @@ if (quickRangeButtons && quickRangeButtons.length) {
     });
 }
 
+// Quick prioritas filter buttons
+const quickPrioritasButtons = document.querySelectorAll('.quick-prioritas');
+if (quickPrioritasButtons && quickPrioritasButtons.length) {
+    quickPrioritasButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const p = btn.getAttribute('data-prioritas');
+            // Toggle: jika sudah aktif, reset
+            if (prioritasFilter && prioritasFilter.value === p) {
+                prioritasFilter.value = '';
+                updateQuickPrioritasActiveState('');
+            } else {
+                if (prioritasFilter) prioritasFilter.value = p;
+                updateQuickPrioritasActiveState(p);
+            }
+            hasInteracted = true;
+            filterAndSort();
+        });
+    });
+}
+
+// Update active state pada quick prioritas buttons
+function updateQuickPrioritasActiveState(activePrioritas) {
+    const buttons = document.querySelectorAll('.quick-prioritas');
+    const styles = {
+        expired: {
+            active:   'border-gray-500 bg-gray-200 text-gray-800 ring-2 ring-gray-400 ring-offset-1',
+            inactive: 'border-gray-300 text-gray-700 bg-white hover:bg-gray-100'
+        },
+        tinggi: {
+            active:   'border-red-500 bg-red-100 text-red-800 ring-2 ring-red-400 ring-offset-1',
+            inactive: 'border-red-300 text-red-700 bg-red-50 hover:bg-red-100'
+        },
+        sedang: {
+            active:   'border-amber-500 bg-amber-100 text-amber-800 ring-2 ring-amber-400 ring-offset-1',
+            inactive: 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100'
+        },
+        rendah: {
+            active:   'border-green-500 bg-green-100 text-green-800 ring-2 ring-green-400 ring-offset-1',
+            inactive: 'border-green-300 text-green-700 bg-green-50 hover:bg-green-100'
+        },
+        none: {
+            active:   'border-gray-400 bg-gray-200 text-gray-700 ring-2 ring-gray-300 ring-offset-1',
+            inactive: 'border-gray-200 text-gray-500 bg-gray-50 hover:bg-gray-100'
+        },
+    };
+    buttons.forEach(btn => {
+        const p = btn.getAttribute('data-prioritas');
+        const s = styles[p] || { active: '', inactive: '' };
+        // Hapus semua class active/inactive
+        const allClasses = [...(s.active.split(' ')), ...(s.inactive.split(' '))];
+        allClasses.forEach(c => c && btn.classList.remove(c));
+        // Tambahkan class yang sesuai
+        if (p === activePrioritas) {
+            s.active.split(' ').forEach(c => c && btn.classList.add(c));
+        } else {
+            s.inactive.split(' ').forEach(c => c && btn.classList.add(c));
+        }
+    });
+}
+
+// Hitung dan update badge counter pada quick prioritas buttons
+function updatePrioritasCounts() {
+    const counts = { expired: 0, tinggi: 0, sedang: 0, rendah: 0, none: 0 };
+    proyekData.forEach(p => {
+        const level = getPrioritasLevel(p.deadline);
+        if (!p.deadline) counts.none++;
+        else if (level === 'expired') counts.expired++;
+        else if (level === 'tinggi') counts.tinggi++;
+        else if (level === 'sedang') counts.sedang++;
+        else if (level === 'rendah') counts.rendah++;
+    });
+    Object.keys(counts).forEach(key => {
+        const el = document.getElementById('count-' + key);
+        if (el) el.textContent = counts[key];
+    });
+}
+
 // Inisialisasi: halaman kosong dulu sampai user filter/search
 window.addEventListener('DOMContentLoaded', () => {
     currentData = [];
     hasInteracted = false;
+    updatePrioritasCounts();
     displayResults();
     updatePaginationInfo();
     renderPagination();
@@ -720,6 +904,16 @@ function filterAndSort() {
         filtered = filtered.filter(proyek => proyek.status === selectedStatus);
     }
 
+    // Apply prioritas deadline filter
+    const selectedPrioritas = prioritasFilter ? prioritasFilter.value : '';
+    if (selectedPrioritas) {
+        filtered = filtered.filter(proyek => {
+            const level = getPrioritasLevel(proyek.deadline);
+            if (selectedPrioritas === 'none') return !proyek.deadline;
+            return level === selectedPrioritas;
+        });
+    }
+
     // Apply date range filter (pakai field tanggal proyek, format 'YYYY-MM-DD')
     const fromVal = dateFrom ? dateFrom.value : '';
     const toVal = dateTo ? dateTo.value : '';
@@ -743,6 +937,23 @@ function filterAndSort() {
                 return (a.tanggal < b.tanggal) ? 1 : (a.tanggal > b.tanggal ? -1 : 0);
             } else if (selectedSort === 'terlama') {
                 return (a.tanggal > b.tanggal) ? 1 : (a.tanggal < b.tanggal ? -1 : 0);
+            } else if (selectedSort === 'deadline_asc') {
+                // null deadline ke bawah, yang ada deadline terdekat dulu
+                if (!a.deadline && !b.deadline) return 0;
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return a.deadline < b.deadline ? -1 : (a.deadline > b.deadline ? 1 : 0);
+            } else if (selectedSort === 'deadline_desc') {
+                if (!a.deadline && !b.deadline) return 0;
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return a.deadline > b.deadline ? -1 : (a.deadline < b.deadline ? 1 : 0);
+            } else if (selectedSort === 'prioritas') {
+                // expired=0, tinggi=1, sedang=2, rendah=3, none=4
+                const prioritasOrder = { expired: 0, tinggi: 1, sedang: 2, rendah: 3 };
+                const la = a.deadline ? (prioritasOrder[getPrioritasLevel(a.deadline)] ?? 3) : 4;
+                const lb = b.deadline ? (prioritasOrder[getPrioritasLevel(b.deadline)] ?? 3) : 4;
+                return la - lb;
             }
             return 0;
         });
@@ -764,9 +975,13 @@ function resetFilters() {
     // Reset form elements
     if (searchInput) searchInput.value = '';
     if (statusFilter) statusFilter.value = '';
+    if (prioritasFilter) prioritasFilter.value = '';
     if (sortBy) sortBy.value = '';
     if (dateFrom) dateFrom.value = '';
     if (dateTo) dateTo.value = '';
+
+    // Reset active state quick prioritas buttons
+    updateQuickPrioritasActiveState('');
 
     // Reset interaksi user dan data
     hasInteracted = false;
@@ -1075,6 +1290,7 @@ function viewDetail(id) {
         kabupaten: data.kabupaten,
         jenis_pengadaan: data.jenis_pengadaan,
         tanggal: formatTanggal(data.tanggal),
+        deadline: data.deadline || null,
         status: data.status,
         admin_marketing: data.admin_marketing,
         admin_purchasing: data.admin_purchasing,
@@ -1107,6 +1323,29 @@ function viewDetail(id) {
     setElementText('detailPotensi', formattedData.potensi);
     setElementText('detailTahunPotensi', formattedData.tahun_potensi);
     setElementText('detailTotalKeseluruhan', formatRupiah(formattedData.total_nilai));
+
+    // Set deadline + badge prioritas
+    const deadlineEl  = document.getElementById('detailDeadline');
+    const deadlineBdg = document.getElementById('detailDeadlineBadge');
+    if (deadlineEl && deadlineBdg) {
+        if (formattedData.deadline) {
+            const dl = new Date(formattedData.deadline);
+            deadlineEl.textContent = dl.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+            const today = new Date(); today.setHours(0,0,0,0); dl.setHours(0,0,0,0);
+            const hari  = Math.round((dl - today) / 86400000);
+            let label, icon, cls;
+            if (hari < 0)        { label = 'Expired';                               icon = 'fa-skull';          cls = 'text-gray-700 bg-gray-100 border-gray-300'; }
+            else if (hari < 7)   { label = 'Prioritas Tinggi — ' + hari + ' hari lagi'; icon = 'fa-fire';       cls = 'text-red-700 bg-red-100 border-red-300'; }
+            else if (hari <= 14) { label = 'Prioritas Sedang — ' + hari + ' hari lagi'; icon = 'fa-clock';      cls = 'text-yellow-700 bg-amber-100 border-amber-300'; }
+            else                 { label = 'Prioritas Rendah — ' + hari + ' hari lagi'; icon = 'fa-calendar-check'; cls = 'text-green-700 bg-green-100 border-green-300'; }
+            deadlineBdg.style.display = 'flex';
+            deadlineBdg.innerHTML = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ' + cls + '"><i class="fas ' + icon + '"></i>' + label + '</span>';
+        } else {
+            deadlineEl.textContent = 'Tidak ditentukan';
+            deadlineBdg.style.display = 'none';
+            deadlineBdg.innerHTML = '';
+        }
+    }
 
     // Update status badge
     const statusBadge = document.getElementById('detailStatusBadge');
@@ -1311,11 +1550,12 @@ function editProyek(id) {
         kode: data.kode,
         nama_proyek: data.nama_proyek,
         kabupaten: data.kabupaten,
-        kabupaten_kota: data.kabupaten, // Mapping field
+        kabupaten_kota: data.kabupaten,
         instansi: data.instansi,
-        nama_instansi: data.instansi, // Mapping field
+        nama_instansi: data.instansi,
         jenis_pengadaan: data.jenis_pengadaan,
         tanggal: data.tanggal,
+        deadline: data.deadline || '',
         admin_marketing: data.admin_marketing,
         admin_purchasing: data.admin_purchasing,
         id_admin_marketing: data.id_admin_marketing,
@@ -1348,6 +1588,10 @@ function editProyek(id) {
 
         setFieldValue('editIdProyek', editData.kode);
         setFieldValue('editTanggal', editData.tanggal);
+        setFieldValue('editDeadline', editData.deadline);
+        if (typeof renderDeadlineBadgeEdit === 'function') {
+            renderDeadlineBadgeEdit('editDeadlinePrioritas', editData.deadline);
+        }
         setFieldValue('editKabupatenKota', editData.kabupaten);
         setFieldValue('editNamaInstansi', editData.instansi);
         setFieldValue('editNamaProyek', editData.nama_proyek);
@@ -1733,6 +1977,21 @@ function formatTanggal(tanggal) {
 function ucfirst(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Hitung level prioritas deadline dari string tanggal 'YYYY-MM-DD'
+ * Return: 'expired' | 'tinggi' | 'sedang' | 'rendah' | null (jika tidak ada deadline)
+ */
+function getPrioritasLevel(deadline) {
+    if (!deadline) return null;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dl    = new Date(deadline); dl.setHours(0,0,0,0);
+    const hari  = Math.round((dl - today) / 86400000);
+    if (hari < 0)   return 'expired';
+    if (hari < 7)   return 'tinggi';
+    if (hari <= 14) return 'sedang';
+    return 'rendah';
 }
 
 // Toggle potensi buttons for edit modal

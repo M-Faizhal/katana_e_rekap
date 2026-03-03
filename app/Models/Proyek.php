@@ -182,6 +182,29 @@ class Proyek extends Model
         return 0;
     }
 
+    /**
+     * Accessor prioritas deadline
+     * Tinggi  : < 7 hari
+     * Sedang  : 7–14 hari
+     * Rendah  : > 14 hari
+     * Expired : sudah lewat
+     */
+    public function getPrioritasDeadlineAttribute(): array
+    {
+        if (!$this->deadline) {
+            return ['level' => null, 'label' => 'Tanpa Deadline', 'color' => 'gray', 'hari' => null];
+        }
+
+        $hari = (int) now()->startOfDay()->diffInDays($this->deadline->startOfDay(), false);
+
+        return match(true) {
+            $hari < 0   => ['level' => 'expired', 'label' => 'Expired',       'color' => 'black',  'hari' => $hari],
+            $hari < 7   => ['level' => 'tinggi',  'label' => 'Prioritas Tinggi', 'color' => 'red',    'hari' => $hari],
+            $hari <= 14 => ['level' => 'sedang',  'label' => 'Prioritas Sedang', 'color' => 'yellow', 'hari' => $hari],
+            default     => ['level' => 'rendah',  'label' => 'Prioritas Rendah', 'color' => 'green',  'hari' => $hari],
+        };
+    }
+
     // Method untuk mendapatkan total nilai proyek dengan prioritas penawaran
     public function getTotalNilaiAttribute()
     {

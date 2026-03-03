@@ -68,6 +68,14 @@
                             <input type="date" id="editTanggal" name="tanggal" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Deadline
+                            </label>
+                            <input type="date" id="editDeadline" name="deadline"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                            <div id="editDeadlinePrioritas" style="display:none" class="mt-1.5 flex items-center gap-1.5 text-xs font-medium"></div>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kabupaten/Kota</label>
                             <input type="text" id="editKabupatenKota" name="kab_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota">
                         </div>
@@ -224,6 +232,8 @@ async function loadEditData(data) {
     setElementValue('editNamaInstansi', data.nama_instansi || data.instansi);
     setElementValue('editJenisPengadaan', data.jenis_pengadaan);
     setElementValue('editTanggal', data.tanggal);
+    setElementValue('editDeadline', data.deadline || '');
+    renderDeadlineBadgeEdit('editDeadlinePrioritas', data.deadline || '');
     setElementValue('editCatatan', data.catatan);
     setElementValue('editTahunPotensi', data.tahun_potensi);
     setElementValue('editStatus', data.status);
@@ -757,6 +767,7 @@ function collectEditFormData() {
     
     // Basic information
     formData.tanggal = document.getElementById('editTanggal')?.value || '';
+    formData.deadline = document.getElementById('editDeadline')?.value || null;
     formData.kab_kota = document.getElementById('editKabupatenKota')?.value || '';
     formData.instansi = document.getElementById('editNamaInstansi')?.value || '';
     formData.jenis_pengadaan = document.getElementById('editJenisPengadaan')?.value || '';
@@ -904,4 +915,27 @@ async function loadEditAdminPurchasingOptions() {
         console.error('Error loading edit PIC purchasing options:', error);
     }
 }
+
+// ── Deadline Priority Preview (Edit) ─────────────────────────────────────────
+function renderDeadlineBadgeEdit(containerId, deadlineStr) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!deadlineStr) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dl    = new Date(deadlineStr); dl.setHours(0,0,0,0);
+    const hari  = Math.round((dl - today) / 86400000);
+    let label, icon, cls;
+    if (hari < 0)   { label = 'Expired';                          icon = 'fa-skull';         cls = 'text-gray-700 bg-gray-100 border-gray-300'; }
+    else if (hari < 7)   { label = `Prioritas Tinggi — ${hari} hari lagi`; icon = 'fa-fire';  cls = 'text-red-700 bg-red-100 border-red-300'; }
+    else if (hari <= 14) { label = `Prioritas Sedang — ${hari} hari lagi`; icon = 'fa-clock'; cls = 'text-yellow-700 bg-amber-100 border-amber-300'; }
+    else                 { label = `Prioritas Rendah — ${hari} hari lagi`; icon = 'fa-calendar-check'; cls = 'text-green-700 bg-green-100 border-green-300'; }
+    el.style.display = 'flex';
+    el.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ${cls}">
+        <i class="fas ${icon}"></i>${label}
+    </span>`;
+}
+
+document.getElementById('editDeadline')?.addEventListener('change', function() {
+    renderDeadlineBadgeEdit('editDeadlinePrioritas', this.value);
+});
 </script>
