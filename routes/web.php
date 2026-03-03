@@ -13,6 +13,8 @@ use App\Http\Controllers\purchasing\PengirimanController;
 use App\Http\Controllers\keuangan\ApprovalController;
 use App\Http\Controllers\keuangan\PenagihanDinasController;
 use App\Http\Controllers\keuangan\RiwayatPembelianController;
+use App\Http\Controllers\keuangan\VerifikasiKostController;
+use App\Http\Controllers\marketing\PengajuanKostController;
 use App\Http\Controllers\marketing\ProyekController;
 use App\Http\Controllers\marketing\WilayahController;
 use App\Http\Controllers\marketing\PotensiController;
@@ -114,6 +116,15 @@ Route::middleware('auth')->group(function () {
         
         // Export Potensi
         Route::get('/potensi/export/excel', [PotensiExportController::class, 'exportExcel'])->name('marketing.potensi.export.excel');
+
+        // Pengajuan Kost Routes
+        Route::get('/pengajuan-kost', [PengajuanKostController::class, 'index'])->name('marketing.pengajuan-kost');
+        Route::post('/pengajuan-kost', [PengajuanKostController::class, 'store'])->name('marketing.pengajuan-kost.store');
+        Route::get('/pengajuan-kost/{id}', [PengajuanKostController::class, 'show'])->name('marketing.pengajuan-kost.show');
+        Route::put('/pengajuan-kost/{id}', [PengajuanKostController::class, 'update'])->name('marketing.pengajuan-kost.update');
+        Route::delete('/pengajuan-kost/{id}', [PengajuanKostController::class, 'destroy'])->name('marketing.pengajuan-kost.destroy');
+        Route::delete('/pengajuan-kost/bukti/{buktiId}', [PengajuanKostController::class, 'deleteBukti'])->name('marketing.pengajuan-kost.bukti.delete');
+        Route::get('/pengajuan-kost/bukti/{buktiId}/preview', [PengajuanKostController::class, 'previewBukti'])->name('marketing.pengajuan-kost.bukti.preview');
 
         // Penawaran Routes
         Route::get('/penawaran', [PenawaranController::class, 'index'])->name('marketing.penawaran');
@@ -235,6 +246,12 @@ Route::middleware('auth')->group(function () {
         // Riwayat Pembelian (rekap per proyek + PPN)
         Route::get('/riwayat-pembelian', [RiwayatPembelianController::class, 'index'])->name('keuangan.riwayat-pembelian');
         Route::get('/riwayat-pembelian/export', [RiwayatPembelianController::class, 'export'])->name('keuangan.riwayat-pembelian.export');
+
+        // Verifikasi Kost Routes
+        Route::get('/verifikasi-kost', [VerifikasiKostController::class, 'index'])->name('keuangan.verifikasi-kost');
+        Route::get('/verifikasi-kost/{id}', [VerifikasiKostController::class, 'show'])->name('keuangan.verifikasi-kost.show');
+        Route::post('/verifikasi-kost/{id}/approve', [VerifikasiKostController::class, 'approve'])->name('keuangan.verifikasi-kost.approve');
+        Route::post('/verifikasi-kost/{id}/reject', [VerifikasiKostController::class, 'reject'])->name('keuangan.verifikasi-kost.reject');
 
     });
 
