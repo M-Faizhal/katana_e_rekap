@@ -202,6 +202,140 @@
 </div>
 @endif
 
+<!-- PPN Rekap per Vendor -->
+@if(!empty($ppnRekap))
+<div class="bg-white rounded-lg shadow-lg mb-6">
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex items-center gap-3">
+            <div class="bg-amber-100 rounded-lg p-2">
+                <i class="fas fa-percentage text-amber-600 text-lg"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold text-gray-800">Rekap PPN per Vendor</h2>
+                <p class="text-sm text-gray-500">
+                    Semua vendor beserta status PPN per barang berdasarkan pembayaran terakhir
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-6 space-y-6">
+        @foreach($ppnRekap as $vendorId => $rekap)
+        @php
+            $hasSnapshot = $rekap['has_snapshot'] ?? false;
+        @endphp
+        <div class="border {{ $rekap['ada_ppn'] ? 'border-amber-200' : 'border-gray-200' }} rounded-xl overflow-hidden">
+
+            <!-- Vendor header -->
+            <div class="flex items-center justify-between px-5 py-3
+                {{ $rekap['ada_ppn'] ? 'bg-amber-50 border-b border-amber-200' : 'bg-gray-50 border-b border-gray-200' }}">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-store text-gray-500 text-sm"></i>
+                    <span class="font-semibold text-gray-800">{{ $rekap['vendor_nama'] }}</span>
+                    @if($rekap['ada_ppn'])
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                            <i class="fas fa-percentage mr-1"></i> Ada PPN
+                        </span>
+                    @elseif($hasSnapshot)
+                        {{-- Punya snapshot tapi semua item non-PPN --}}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-300">
+                            <i class="fas fa-check mr-1"></i> Non-PPN
+                        </span>
+                    @else
+                        {{-- Belum pernah input ppn_data —– tampilkan data dari Kalkulasi HPS --}}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-300">
+                            <i class="fas fa-question-circle mr-1"></i> Belum dikonfigurasi
+                        </span>
+                    @endif
+                </div>
+                <div class="text-xs text-gray-400">
+                    @if($hasSnapshot)
+                        Snapshot: pembayaran #{{ $rekap['snapshot_id'] }}
+                        &nbsp;|&nbsp;
+                        {{ $rekap['snapshot_tanggal'] instanceof \Carbon\Carbon
+                            ? $rekap['snapshot_tanggal']->format('d/m/Y')
+                            : $rekap['snapshot_tanggal'] }}
+                    @endif
+                </div>
+            </div>
+
+            <!-- Items table -->
+            @if(!empty($rekap['items']))
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nama Barang</th>
+                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Harga</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">PPN %</th>
+                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">DPP (Sebelum PPN)</th>
+                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Nominal PPN</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach($rekap['items'] as $item)
+                        <tr class="{{ $item['ada_ppn'] ? 'bg-amber-50/40' : '' }} hover:bg-gray-50 transition">
+                            <td class="px-4 py-2.5 text-gray-800 font-medium">
+                                {{ $item['nama_barang'] ?? '-' }}
+                            </td>
+                            <td class="px-4 py-2.5 text-right text-gray-700">
+                                Rp {{ number_format($item['harga_total'] ?? 0, 2, ',', '.') }}
+                            </td>
+                            <td class="px-4 py-2.5 text-center">
+                                @if($item['ada_ppn'])
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                        {{ $item['persen_ppn'] ?? 11 }}%
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-400">
+                                        Non-PPN
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2.5 text-right text-gray-600">
+                                @if($item['ada_ppn'])
+                                    Rp {{ number_format($item['harga_sebelum_ppn'] ?? 0, 2, ',', '.') }}
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2.5 text-right font-semibold {{ $item['ada_ppn'] ? 'text-amber-700' : 'text-gray-400' }}">
+                                @if($item['ada_ppn'])
+                                    Rp {{ number_format($item['nominal_ppn'] ?? 0, 2, ',', '.') }}
+                                @else
+                                    —
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    @if($rekap['ada_ppn'])
+                    <tfoot class="bg-amber-50 border-t-2 border-amber-200">
+                        <tr>
+                            <td colspan="3" class="px-4 py-2.5 text-right text-sm font-semibold text-gray-700">
+                                Total (dari pembayaran Approved):
+                            </td>
+                            <td class="px-4 py-2.5 text-right text-sm font-bold text-gray-800">
+                                Rp {{ number_format($rekap['total_sebelum_ppn'], 2, ',', '.') }}
+                            </td>
+                            <td class="px-4 py-2.5 text-right text-sm font-bold text-amber-700">
+                                Rp {{ number_format($rekap['total_ppn_approved'], 2, ',', '.') }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                    @endif
+                </table>
+            </div>
+            @else
+            <div class="px-5 py-4 text-sm text-gray-400 italic">Tidak ada data item.</div>
+            @endif
+
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <!-- Payment History -->
 <div class="bg-white rounded-lg shadow-lg">
     <div class="p-6 border-b border-gray-200">
@@ -231,20 +365,33 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nominal</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PPN</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bukti</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detail PPN</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 @foreach($riwayatPembayaran as $pembayaran)
+                @php
+                    $ppnRow = $pembayaran->ppn_data;
+                    $totalPpnRow = floatval($ppnRow['total_ppn'] ?? 0);
+                    $adaPpnRow   = $totalPpnRow > 0;
+                    $ppnItemsRow = $ppnRow['items'] ?? [];
+                    $rowId = 'ppn-detail-' . $pembayaran->id_pembayaran;
+                @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4">
                         <div class="text-sm text-gray-900">{{ $pembayaran->tanggal_bayar->format('d/m/Y') }}</div>
                         <div class="text-xs text-gray-500">{{ $pembayaran->created_at->format('H:i') }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-800">{{ $pembayaran->vendor->nama_vendor ?? '-' }}</div>
                     </td>
                     <td class="px-6 py-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -262,6 +409,21 @@
                             $persenNominal = $totalModalVendor > 0 ? ($pembayaran->nominal_bayar / $totalModalVendor) * 100 : 0;
                         @endphp
                         <div class="text-xs text-gray-500">{{ number_format($persenNominal, 1) }}% dari total</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        @if($adaPpnRow)
+                            <div class="text-xs font-semibold text-amber-700">
+                                Rp {{ number_format($totalPpnRow, 2, ',', '.') }}
+                            </div>
+                            @php
+                                $totalSebelumPpnRow = floatval($ppnRow['total_sebelum_ppn'] ?? 0);
+                            @endphp
+                            <div class="text-xs text-gray-400">
+                                DPP: Rp {{ number_format($totalSebelumPpnRow, 2, ',', '.') }}
+                            </div>
+                        @else
+                            <span class="text-xs text-gray-400">—</span>
+                        @endif
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm text-gray-900">{{ $pembayaran->metode_bayar }}</div>
@@ -285,13 +447,18 @@
                         @endif
                     </td>
                     <td class="px-6 py-4">
-                        @if($pembayaran->bukti_bayar)
-                        <a href="{{ Storage::url($pembayaran->bukti_bayar) }}" 
-                           target="_blank"
-                           class="inline-flex items-center text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-file-image mr-1"></i>
-                            <span class="text-sm">Lihat Bukti</span>
-                        </a>
+                        @php
+                            $buktiArray = $pembayaran->bukti_bayar_array;
+                        @endphp
+                        @if(!empty($buktiArray))
+                            @foreach($buktiArray as $idx => $buktiFile)
+                            <a href="{{ asset('storage/' . $buktiFile) }}"
+                               target="_blank"
+                               class="inline-flex items-center text-blue-600 hover:text-blue-800 text-xs mr-1">
+                                <i class="fas fa-file-image mr-1"></i>
+                                Bukti{{ count($buktiArray) > 1 ? ' ' . ($idx+1) : '' }}
+                            </a>
+                            @endforeach
                         @else
                         <span class="text-sm text-gray-400">-</span>
                         @endif
@@ -305,19 +472,116 @@
                         <span class="text-sm text-gray-400">-</span>
                         @endif
                     </td>
+                    <td class="px-6 py-4">
+                        @if(!empty($ppnItemsRow))
+                        <button type="button"
+                                onclick="togglePpnDetail('{{ $rowId }}')"
+                                class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md border
+                                    {{ $adaPpnRow ? 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100' : 'border-gray-300 text-gray-500 bg-gray-50 hover:bg-gray-100' }}">
+                            <i class="fas fa-list mr-1"></i>
+                            {{ count($ppnItemsRow) }} item
+                        </button>
+                        @else
+                        <span class="text-xs text-gray-400">—</span>
+                        @endif
+                    </td>
                 </tr>
+                {{-- Expandable PPN detail row --}}
+                @if(!empty($ppnItemsRow))
+                <tr id="{{ $rowId }}" class="hidden bg-amber-50/60">
+                    <td colspan="10" class="px-6 py-0">
+                        <div class="py-3">
+                            <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">
+                                <i class="fas fa-percentage mr-1"></i>
+                                Detail PPN — Pembayaran #{{ $pembayaran->id_pembayaran }}
+                                ({{ $pembayaran->tanggal_bayar->format('d/m/Y') }})
+                            </p>
+                            <table class="w-full text-xs border border-amber-200 rounded-lg overflow-hidden">
+                                <thead class="bg-amber-100">
+                                    <tr>
+                                        <th class="px-3 py-1.5 text-left font-medium text-amber-800">Nama Barang</th>
+                                        <th class="px-3 py-1.5 text-right font-medium text-amber-800">Harga (inc. PPN)</th>
+                                        <th class="px-3 py-1.5 text-center font-medium text-amber-800">PPN %</th>
+                                        <th class="px-3 py-1.5 text-right font-medium text-amber-800">DPP (Sebelum PPN)</th>
+                                        <th class="px-3 py-1.5 text-right font-medium text-amber-800">Nominal PPN</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-amber-100 bg-white">
+                                    @foreach($ppnItemsRow as $pItem)
+                                    <tr class="{{ $pItem['ada_ppn'] ? '' : 'opacity-60' }}">
+                                        <td class="px-3 py-1.5 text-gray-800">{{ $pItem['nama_barang'] ?? '-' }}</td>
+                                        <td class="px-3 py-1.5 text-right text-gray-700">
+                                            Rp {{ number_format($pItem['harga_total'] ?? 0, 2, ',', '.') }}
+                                        </td>
+                                        <td class="px-3 py-1.5 text-center">
+                                            @if($pItem['ada_ppn'])
+                                                <span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">
+                                                    {{ $pItem['persen_ppn'] ?? 11 }}%
+                                                </span>
+                                            @else
+                                                <span class="text-gray-400">—</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-1.5 text-right text-gray-600">
+                                            @if($pItem['ada_ppn'])
+                                                Rp {{ number_format($pItem['harga_sebelum_ppn'] ?? 0, 2, ',', '.') }}
+                                            @else
+                                                <span class="text-gray-400">—</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-1.5 text-right font-semibold {{ $pItem['ada_ppn'] ? 'text-amber-700' : 'text-gray-400' }}">
+                                            @if($pItem['ada_ppn'])
+                                                Rp {{ number_format($pItem['nominal_ppn'] ?? 0, 2, ',', '.') }}
+                                            @else
+                                                —
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                @if($adaPpnRow)
+                                <tfoot class="bg-amber-100 border-t border-amber-300">
+                                    <tr>
+                                        <td colspan="3" class="px-3 py-1.5 text-right font-bold text-amber-800">
+                                            Total PPN pembayaran ini:
+                                        </td>
+                                        <td class="px-3 py-1.5 text-right font-bold text-gray-700">
+                                            Rp {{ number_format(floatval($ppnRow['total_sebelum_ppn'] ?? 0), 2, ',', '.') }}
+                                        </td>
+                                        <td class="px-3 py-1.5 text-right font-bold text-amber-700">
+                                            Rp {{ number_format($totalPpnRow, 2, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                                @endif
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                @endif
                 @endforeach
             </tbody>
         </table>
         
         <!-- Summary Row -->
         <div class="bg-gray-50 px-6 py-3 border-t">
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center flex-wrap gap-2">
                 <div class="text-sm font-medium text-gray-700">
                     Total {{ count($riwayatPembayaran) }} transaksi pembayaran
                 </div>
-                <div class="text-sm font-bold text-gray-900">
-                    Total Dibayar: Rp {{ number_format($totalDibayar, 2, ',', '.') }}
+                <div class="flex items-center gap-4">
+                    @php
+                        $grandTotalPpn = $riwayatPembayaran->where('status_verifikasi', 'Approved')->sum(fn($p) => floatval($p->ppn_data['total_ppn'] ?? 0));
+                    @endphp
+                    @if($grandTotalPpn > 0)
+                    <div class="text-sm font-semibold text-amber-700">
+                        <i class="fas fa-percentage mr-1 opacity-70"></i>
+                        Total PPN (Approved): Rp {{ number_format($grandTotalPpn, 2, ',', '.') }}
+                    </div>
+                    @endif
+                    <div class="text-sm font-bold text-gray-900">
+                        Total Dibayar: Rp {{ number_format($totalDibayar, 2, ',', '.') }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -347,6 +611,14 @@
         @endif
     </div>
 </div>
+
+<script>
+function togglePpnDetail(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    row.classList.toggle('hidden');
+}
+</script>
 
 <!-- Action Buttons -->
 <div class="flex items-center justify-between pt-6">

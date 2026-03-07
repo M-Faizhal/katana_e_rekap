@@ -191,31 +191,53 @@
                     </div>
                 </dl>
                 
-                <!-- Bukti Pembayaran -->
-                @if($pembayaran->bukti_bayar)
+                <!-- Bukti Pembayaran (Multi-file) -->
+                @php $buktiBayarFiles = $pembayaran->bukti_bayar_array; @endphp
+                @if(count($buktiBayarFiles) > 0)
                 <div class="mt-6">
-                    <h4 class="text-sm font-medium text-gray-500 mb-2">Bukti Pembayaran:</h4>
-                    <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-gray-500 mb-3">
+                        Bukti Pembayaran
+                        <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                            {{ count($buktiBayarFiles) }} file
+                        </span>
+                    </h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        @foreach($buktiBayarFiles as $index => $file)
                         @php
-                            $fileExtension = pathinfo($pembayaran->bukti_bayar, PATHINFO_EXTENSION);
+                            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                            $isImage = in_array($ext, ['jpg', 'jpeg', 'png']);
+                            $fileUrl = asset('storage/' . $file);
+                            $fileName = basename($file);
                         @endphp
-                        
-                        @if(in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png']))
-                        <img src="{{ Storage::url($pembayaran->bukti_bayar) }}" 
-                             alt="Bukti Pembayaran" 
-                             class="w-full h-48 object-cover rounded-lg mb-3">
-                        @else
-                        <div class="flex items-center justify-center h-24 bg-gray-100 rounded-lg mb-3">
-                            <i class="fas fa-file-pdf text-red-500 text-3xl"></i>
+                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
+                            @if($isImage)
+                            <button type="button"
+                                    onclick="openBuktiModal('{{ $fileUrl }}', '{{ $fileName }}')"
+                                    class="w-full block">
+                                <img src="{{ $fileUrl }}"
+                                     alt="Bukti {{ $index + 1 }}"
+                                     class="w-full h-32 object-cover hover:opacity-90 transition-opacity">
+                            </button>
+                            @else
+                            <div class="flex items-center justify-center h-32 bg-red-50">
+                                <div class="text-center">
+                                    <i class="fas fa-file-pdf text-red-400 text-3xl mb-1"></i>
+                                    <p class="text-xs text-gray-500">PDF</p>
+                                </div>
+                            </div>
+                            @endif
+                            <div class="p-2">
+                                <p class="text-xs text-gray-600 truncate mb-1.5" title="{{ $fileName }}">{{ $fileName }}</p>
+                                <a href="{{ $fileUrl }}" target="_blank"
+                                   class="inline-flex items-center justify-center w-full px-2 py-1.5 text-xs font-medium rounded
+                                          {{ $isImage ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200' : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' }}
+                                          transition-colors">
+                                    <i class="fas {{ $isImage ? 'fa-eye' : 'fa-external-link-alt' }} mr-1"></i>
+                                    {{ $isImage ? 'Lihat' : 'Buka PDF' }}
+                                </a>
+                            </div>
                         </div>
-                        @endif
-                        
-                        <a href="{{ Storage::url($pembayaran->bukti_bayar) }}" 
-                           target="_blank"
-                           class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 w-full justify-center">
-                            <i class="fas fa-external-link-alt mr-2"></i>
-                            Buka Bukti Pembayaran
-                        </a>
+                        @endforeach
                     </div>
                 </div>
                 @endif
@@ -490,10 +512,50 @@
     @endif
 </div>
 
+<!-- Bukti Pembayaran Image Lightbox Modal -->
+<div id="buktiModal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4" onclick="closeBuktiModal()">
+    <div class="relative max-w-4xl max-h-full" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-2">
+            <p id="buktiModalTitle" class="text-white text-sm font-medium truncate max-w-xs"></p>
+            <div class="flex items-center gap-2 ml-4">
+                <a id="buktiModalLink" href="#" target="_blank"
+                   class="inline-flex items-center px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs rounded-lg transition-colors">
+                    <i class="fas fa-external-link-alt mr-1"></i> Buka di tab baru
+                </a>
+                <button onclick="closeBuktiModal()"
+                        class="inline-flex items-center justify-center w-8 h-8 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <img id="buktiModalImg" src="" alt="Bukti Pembayaran"
+             class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl">
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
+// Bukti Pembayaran Lightbox
+function openBuktiModal(url, filename) {
+    const modal = document.getElementById('buktiModal');
+    document.getElementById('buktiModalImg').src = url;
+    document.getElementById('buktiModalTitle').textContent = filename;
+    document.getElementById('buktiModalLink').href = url;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeBuktiModal() {
+    const modal = document.getElementById('buktiModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.getElementById('buktiModalImg').src = '';
+}
+
+// Close lightbox with Escape key (handled below with other modals)
+
 // Modal Functions
 function openApproveModal() {
     const modal = document.getElementById('approveModal');
@@ -599,6 +661,9 @@ document.getElementById('alasan_penolakan').addEventListener('input', function()
 document.addEventListener('keydown', function(e) {
     // Escape key to close modals
     if (e.key === 'Escape') {
+        if (!document.getElementById('buktiModal').classList.contains('hidden')) {
+            closeBuktiModal();
+        }
         if (!document.getElementById('approveModal').classList.contains('hidden')) {
             closeApproveModal();
         }

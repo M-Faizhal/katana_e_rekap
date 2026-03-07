@@ -17,18 +17,7 @@
                     </p>
                 </div>
             </div>
-            <div class="bg-red-700/30 rounded-lg p-3">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span class="text-red-200">Proyek:</span>
-                        <span class="font-semibold ml-2">{{ $proyek->nama_barang }}</span>
-                    </div>
-                    <div>
-                        <span class="text-red-200">Klien:</span>
-                        <span class="font-semibold ml-2">{{ $proyek->nama_klien }}</span>
-                    </div>
-                </div>
-            </div>
+           
         </div>
         <div class="hidden lg:block">
             <i class="fas fa-file-edit text-5xl opacity-20"></i>
@@ -263,19 +252,57 @@
                     <label for="bukti_bayar" class="block text-sm font-medium text-gray-700 mb-2">
                         Bukti Pembayaran
                     </label>
-                    <input type="file" name="bukti_bayar" id="bukti_bayar" 
-                           accept=".jpg,.jpeg,.png,.pdf"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                    <p class="mt-1 text-sm text-gray-500">Format: JPG, PNG, PDF. Maksimal 5MB. Kosongkan jika tidak ingin mengubah.</p>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-white hover:bg-gray-50 transition-colors" id="drop-zone-edit">
+                        <input type="file" name="bukti_bayar[]" id="bukti_bayar" 
+                               accept=".jpg,.jpeg,.png,.pdf"
+                               multiple
+                               class="hidden">
+                        <label for="bukti_bayar" class="cursor-pointer">
+                            <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2 block"></i>
+                            <span class="text-indigo-600 hover:text-indigo-500 font-medium text-sm">Upload file baru</span>
+                            <span class="text-gray-500 text-sm"> (bisa lebih dari 1)</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1">JPG, PNG, PDF (max 5MB per file). Kosongkan jika tidak ingin mengubah.</p>
+                    </div>
+                    <!-- New files preview -->
+                    <div id="new-file-list" class="mt-2 space-y-1"></div>
                     
-                    @if($pembayaran->bukti_bayar)
-                    <div class="mt-2 p-2 bg-gray-50 rounded border">
-                        <p class="text-sm text-gray-600">File saat ini:</p>
-                        <a href="{{ asset('storage/' . $pembayaran->bukti_bayar) }}" target="_blank" 
-                           class="text-blue-600 hover:text-blue-800 text-sm">
-                            <i class="fas fa-file mr-1"></i>
-                            Lihat file yang ada
-                        </a>
+                    @php $existingFiles = $pembayaran->bukti_bayar_array; @endphp
+                    @if(count($existingFiles) > 0)
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-paperclip mr-1"></i>
+                            File saat ini — centang untuk <span class="text-red-600 font-semibold">menghapus</span>:
+                        </p>
+                        <div class="space-y-2" id="existing-file-list">
+                            @foreach($existingFiles as $file)
+                            @php
+                                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                                $iconClass = 'fa-file text-gray-500';
+                                if ($ext === 'pdf') $iconClass = 'fa-file-pdf text-red-500';
+                                elseif (in_array($ext, ['jpg','jpeg','png'])) $iconClass = 'fa-file-image text-blue-500';
+                            @endphp
+                            <div class="existing-file-item flex items-center gap-3 p-2 rounded-lg border border-gray-200 bg-white transition-colors" data-file="{{ $file }}">
+                                <input type="checkbox" 
+                                       name="delete_files[]" 
+                                       value="{{ $file }}" 
+                                       id="del_{{ $loop->index }}"
+                                       class="delete-file-checkbox w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500 cursor-pointer flex-shrink-0">
+                                <i class="fas {{ $iconClass }} text-sm flex-shrink-0"></i>
+                                <a href="{{ asset('storage/' . $file) }}" target="_blank"
+                                   class="text-blue-600 hover:text-blue-800 text-sm underline truncate flex-1">
+                                    {{ basename($file) }}
+                                </a>
+                                <label for="del_{{ $loop->index }}" class="text-xs text-red-500 font-medium cursor-pointer flex-shrink-0 select-none">
+                                    Hapus
+                                </label>
+                            </div>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            File yang dicentang akan dihapus permanen saat klik "Update Pembayaran".
+                        </p>
                     </div>
                     @endif
                 </div>
@@ -290,6 +317,116 @@
                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                           placeholder="Catatan tambahan (opsional)">{{ old('catatan', $pembayaran->catatan) }}</textarea>
             </div>
+
+            {{-- PPN per Barang --}}
+            @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
+            <div class="mt-6 p-4 bg-gradient-to-r from-purple-50 to-yellow-50 rounded-lg border border-purple-200">
+                <h3 class="text-sm font-semibold text-purple-800 mb-1 flex items-center">
+                    <i class="fas fa-percent mr-2"></i>
+                    PPN per Barang
+                    <span class="ml-2 text-xs font-normal text-gray-500">— centang jika harga sudah <strong>include PPN</strong></span>
+                </h3>
+                @if(!empty($ppnDataExisting))
+                <p class="text-xs text-blue-600 mb-3 flex items-center">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Pre-filled dari data PPN yang sudah tersimpan.
+                </p>
+                @endif
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach($breakdownBarang as $item)
+                    @php
+                        $persentaseModal = $totalModalVendor > 0 ? ($item->total_harga_hpp / $totalModalVendor) * 100 : 0;
+                        $ppnItem   = $ppnMapExisting[$item->id_kalkulasi_hps] ?? null;
+                        $adaPpn    = !empty($ppnItem['ada_ppn']);
+                        $persenPpn = $ppnItem['persen_ppn'] ?? 11;
+                    @endphp
+                    <div class="bg-white rounded-lg p-3 border {{ $adaPpn ? 'border-yellow-300 ring-1 ring-yellow-200' : 'border-purple-200' }} shadow-sm">
+                        <h4 class="font-medium text-gray-900 text-sm mb-2">{{ $item->nama_barang }}</h4>
+                        <div class="space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Qty:</span>
+                                <span class="font-medium">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->satuan }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Modal:</span>
+                                <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Kontribusi:</span>
+                                <span class="font-medium text-purple-600">{{ number_format($persentaseModal, 1) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
+                                <div class="bg-purple-500 h-1 rounded-full" style="width: {{ $persentaseModal }}%"></div>
+                            </div>
+                        </div>
+
+                        {{-- PPN Checkbox --}}
+                        <div class="mt-3 pt-3 border-t border-gray-100">
+                            <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][id_barang]"   value="{{ $item->id_kalkulasi_hps }}">
+                            <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][nama_barang]" value="{{ $item->nama_barang }}">
+                            <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][harga]"       value="{{ $item->total_harga_hpp }}">
+
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="checkbox"
+                                       name="ppn_items[{{ $item->id_kalkulasi_hps }}][ada_ppn]"
+                                       value="1"
+                                       data-harga="{{ $item->total_harga_hpp }}"
+                                       data-id="{{ $item->id_kalkulasi_hps }}"
+                                       class="ppn-checkbox w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                                       {{ $adaPpn ? 'checked' : '' }}>
+                                <span class="text-xs font-medium text-gray-700">Harga sudah include PPN</span>
+                                @if($adaPpn)
+                                    <span class="text-xs text-purple-400 italic">(tersimpan)</span>
+                                @endif
+                            </label>
+
+                            <div class="ppn-detail {{ $adaPpn ? '' : 'hidden' }} mt-2 p-2 bg-yellow-50 rounded border border-yellow-200"
+                                 id="ppn-detail-{{ $item->id_kalkulasi_hps }}">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs text-yellow-700">PPN:</span>
+                                    <input type="number"
+                                           name="ppn_items[{{ $item->id_kalkulasi_hps }}][persen_ppn]"
+                                           value="{{ $persenPpn }}"
+                                           min="0" max="100" step="0.1"
+                                           class="ppn-persen w-14 text-xs border border-yellow-300 rounded px-1 py-0.5 text-center focus:ring-1 focus:ring-yellow-400"
+                                           data-id="{{ $item->id_kalkulasi_hps }}"
+                                           data-harga="{{ $item->total_harga_hpp }}">
+                                    <span class="text-xs text-yellow-700">%</span>
+                                </div>
+                                <div class="flex justify-between text-xs mt-1">
+                                    <span class="text-yellow-700">Sebelum PPN:</span>
+                                    <span class="font-medium text-yellow-800" id="harga-before-ppn-{{ $item->id_kalkulasi_hps }}">-</span>
+                                </div>
+                                <div class="flex justify-between text-xs mt-0.5">
+                                    <span class="text-yellow-700">Nominal PPN:</span>
+                                    <span class="font-bold text-orange-600" id="nominal-ppn-{{ $item->id_kalkulasi_hps }}">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                {{-- Summary PPN total --}}
+                <div class="mt-3 pt-3 border-t border-purple-200">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
+                        <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
+                    </div>
+                    <div id="ppn-summary-edit" class="{{ !empty($ppnDataExisting['ada_ppn']) ? '' : 'hidden' }} mt-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-orange-700">Total sebelum PPN:</span>
+                            <span class="font-semibold text-orange-800" id="summary-sebelum-ppn-edit">-</span>
+                        </div>
+                        <div class="flex justify-between text-sm mt-1">
+                            <span class="text-orange-700 font-bold">Total PPN (diekstrak):</span>
+                            <span class="font-bold text-orange-600 text-base" id="summary-total-ppn-edit">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Form Actions -->
             <div class="mt-8 flex items-center justify-between">
@@ -322,59 +459,6 @@
             </div>
         </form>
 
-        <!-- Breakdown Modal per Barang Section (Optional Display) -->
-        @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
-        <div class="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-            <h3 class="text-sm font-semibold text-purple-800 mb-3 flex items-center">
-                <i class="fas fa-chart-pie mr-2"></i>
-                Modal per Barang ({{ $breakdownBarang->count() }} item)
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                @foreach($breakdownBarang as $item)
-                @php
-                    $persentaseModal = $totalModalVendor > 0 ? ($item->total_harga_hpp / $totalModalVendor) * 100 : 0;
-                @endphp
-                <div class="bg-white rounded-lg p-3 border border-purple-200 shadow-sm">
-                    <h4 class="font-medium text-gray-900 text-sm mb-2">{{ $item->nama_barang }}</h4>
-                    <div class="space-y-1 text-xs">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Qty:</span>
-                            <span class="font-medium">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->satuan }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Modal:</span>
-                            <span class="font-bold text-green-600">Rp {{ number_format($item->total_harga_hpp, 2, ',', '.') }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Kontribusi:</span>
-                            <span class="font-medium text-purple-600">{{ number_format($persentaseModal, 1) }}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-1 mt-2">
-                            <div class="bg-purple-500 h-1 rounded-full" style="width: {{ $persentaseModal }}%"></div>
-                        </div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-            <div class="mt-3 pt-3 border-t border-purple-200 flex justify-between items-center">
-                <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
-                <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
-            </div>
-        </div>
-        @endif
-
-        <!-- Notes Section -->
-        <div class="mt-6">
-            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg p-4">
-                <p class="text-xs text-yellow-800 flex items-center">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <strong>Catatan:</strong> Pembayaran ke vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>, bukan harga vendor barang.
-                    @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
-                    <br>Detail breakdown per barang dapat dilihat pada card di atas untuk transparansi perhitungan modal vendor.
-                    @endif
-                </p>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -401,6 +485,200 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // For 'Cicilan', let user input manually
     });
+
+    // --- Multi-file upload for edit form ---
+    const fileInput = document.getElementById('bukti_bayar');
+    const newFileList = document.getElementById('new-file-list');
+    const dropZone = document.getElementById('drop-zone-edit');
+    let selectedFiles = new DataTransfer();
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function renderNewFileList() {
+        newFileList.innerHTML = '';
+        const files = selectedFiles.files;
+        if (files.length === 0) return;
+
+        const header = document.createElement('p');
+        header.className = 'text-xs font-medium text-gray-600 mt-1';
+        header.innerHTML = `<i class="fas fa-plus-circle text-green-500 mr-1"></i>File baru yang akan diupload (${files.length}):`;
+        newFileList.appendChild(header);
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const ext = file.name.split('.').pop().toLowerCase();
+            let iconClass = 'fa-file text-gray-500';
+            if (ext === 'pdf') iconClass = 'fa-file-pdf text-red-500';
+            else if (['jpg','jpeg','png'].includes(ext)) iconClass = 'fa-file-image text-blue-500';
+
+            const item = document.createElement('div');
+            item.className = 'flex items-center p-2 bg-green-50 rounded border border-green-200 text-sm';
+            item.innerHTML = `
+                <i class="fas ${iconClass} mr-2 text-xs"></i>
+                <span class="flex-1 truncate text-green-800">${file.name} <span class="text-xs text-gray-500">(${formatFileSize(file.size)})</span></span>
+                <button type="button" class="remove-new-file ml-2 text-red-500 hover:text-red-700" data-index="${i}">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            `;
+            newFileList.appendChild(item);
+        }
+    }
+
+    // Sync new files to input before form submit
+    const editForm = document.querySelector('form[enctype="multipart/form-data"]');
+    if (editForm) {
+        editForm.addEventListener('submit', function() {
+            if (fileInput && selectedFiles.files.length > 0) {
+                fileInput.files = selectedFiles.files;
+            }
+        });
+    }
+
+    // --- Visual feedback untuk checkbox hapus file lama ---
+    document.querySelectorAll('.delete-file-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const item = this.closest('.existing-file-item');
+            if (this.checked) {
+                item.classList.add('bg-red-50', 'border-red-300');
+                item.classList.remove('bg-white', 'border-gray-200');
+                item.querySelector('a').classList.add('line-through', 'text-red-400');
+                item.querySelector('a').classList.remove('text-blue-600');
+            } else {
+                item.classList.remove('bg-red-50', 'border-red-300');
+                item.classList.add('bg-white', 'border-gray-200');
+                item.querySelector('a').classList.remove('line-through', 'text-red-400');
+                item.querySelector('a').classList.add('text-blue-600');
+            }
+        });
+    });
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            for (let i = 0; i < this.files.length; i++) {
+                const file = this.files[i];
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`File "${file.name}" terlalu besar! Maksimal 5MB.`);
+                    this.value = '';
+                    return;
+                }
+                selectedFiles.items.add(file);
+            }
+            renderNewFileList();
+            this.value = '';
+        });
+
+        newFileList.addEventListener('click', function(e) {
+            const btn = e.target.closest('.remove-new-file');
+            if (!btn) return;
+            const index = parseInt(btn.getAttribute('data-index'));
+            const newDT = new DataTransfer();
+            for (let i = 0; i < selectedFiles.files.length; i++) {
+                if (i !== index) newDT.items.add(selectedFiles.files[i]);
+            }
+            selectedFiles = newDT;
+            renderNewFileList();
+        });
+
+        if (dropZone) {
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('bg-indigo-50', 'border-indigo-400');
+            });
+            dropZone.addEventListener('dragleave', function() {
+                this.classList.remove('bg-indigo-50', 'border-indigo-400');
+            });
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('bg-indigo-50', 'border-indigo-400');
+                for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                    const file = e.dataTransfer.files[i];
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    if (!['jpg','jpeg','png','pdf'].includes(ext)) {
+                        alert(`File "${file.name}" tidak didukung.`);
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert(`File "${file.name}" terlalu besar! Maksimal 5MB.`);
+                        return;
+                    }
+                    selectedFiles.items.add(file);
+                }
+                renderNewFileList();
+            });
+        }
+    }
+    // ---- PPN per-item logic (edit) ----
+    function formatRupiahEdit(amount) {
+        return 'Rp ' + parseFloat(amount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function calcPpnEdit(harga, persen) {
+        const sebelum = harga / (1 + persen / 100);
+        return { hargaSebelum: sebelum, nominalPpn: harga - sebelum };
+    }
+
+    function updatePpnItemEdit(id) {
+        const cb       = document.querySelector(`.ppn-checkbox[data-id="${id}"]`);
+        const detail   = document.getElementById(`ppn-detail-${id}`);
+        const persen   = document.querySelector(`.ppn-persen[data-id="${id}"]`);
+        const beforeEl = document.getElementById(`harga-before-ppn-${id}`);
+        const nomEl    = document.getElementById(`nominal-ppn-${id}`);
+        if (!cb || !detail) return;
+
+        const harga = parseFloat(cb.dataset.harga) || 0;
+        const p     = parseFloat(persen ? persen.value : 11) || 0;
+
+        if (cb.checked) {
+            detail.classList.remove('hidden');
+            const { hargaSebelum, nominalPpn } = calcPpnEdit(harga, p);
+            if (beforeEl) beforeEl.textContent = formatRupiahEdit(hargaSebelum);
+            if (nomEl)    nomEl.textContent    = formatRupiahEdit(nominalPpn);
+        } else {
+            detail.classList.add('hidden');
+        }
+        updatePpnSummaryEdit();
+    }
+
+    function updatePpnSummaryEdit() {
+        let totalPpn = 0, totalSebelum = 0, any = false;
+        document.querySelectorAll('.ppn-checkbox').forEach(function(cb) {
+            if (!cb.checked) return;
+            any = true;
+            const id    = cb.dataset.id;
+            const harga = parseFloat(cb.dataset.harga) || 0;
+            const p     = parseFloat((document.querySelector(`.ppn-persen[data-id="${id}"]`) || {}).value || 11) || 0;
+            const { hargaSebelum, nominalPpn } = calcPpnEdit(harga, p);
+            totalPpn    += nominalPpn;
+            totalSebelum += hargaSebelum;
+        });
+
+        const summaryDiv = document.getElementById('ppn-summary-edit');
+        if (!summaryDiv) return;
+        if (any) {
+            summaryDiv.classList.remove('hidden');
+            const s = document.getElementById('summary-sebelum-ppn-edit');
+            const t = document.getElementById('summary-total-ppn-edit');
+            if (s) s.textContent = formatRupiahEdit(totalSebelum);
+            if (t) t.textContent = formatRupiahEdit(totalPpn);
+        } else {
+            summaryDiv.classList.add('hidden');
+        }
+    }
+
+    document.querySelectorAll('.ppn-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', function() { updatePpnItemEdit(this.dataset.id); });
+        if (cb.checked) updatePpnItemEdit(cb.dataset.id); // auto-calc on load
+    });
+    document.querySelectorAll('.ppn-persen').forEach(function(inp) {
+        inp.addEventListener('input', function() { updatePpnItemEdit(this.dataset.id); });
+    });
+    // ---- end PPN logic ----
 });
 </script>
 @endsection

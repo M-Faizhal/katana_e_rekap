@@ -69,6 +69,63 @@ class Pengiriman extends Model
                !empty($this->tanda_terima);
     }
 
+    /**
+     * Ambil checklist data dari catatan_verifikasi (format: [CHECKLIST]{...})
+     * Tanpa migration — checklist disimpan sebagai prefix JSON di catatan_verifikasi
+     */
+    public function getChecklistDataAttribute(): array
+    {
+        if ($this->catatan_verifikasi && str_starts_with($this->catatan_verifikasi, '[CHECKLIST]')) {
+            $json = substr($this->catatan_verifikasi, strlen('[CHECKLIST]'));
+            $decoded = json_decode($json, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+        return [];
+    }
+
+    /**
+     * Hitung progress berdasarkan file (prioritas) + checklist (fallback)
+     * Tiap item bernilai 1 dari total 4
+     */
+    public function getProgressPersenAttribute(): int
+    {
+        $checklist = $this->checklist_data;
+        $fields = [
+            ['file' => 'foto_berangkat',  'check' => 'berangkat'],
+            ['file' => 'foto_perjalanan', 'check' => 'perjalanan'],
+            ['file' => 'foto_sampai',     'check' => 'sampai'],
+            ['file' => 'tanda_terima',    'check' => 'terima'],
+        ];
+        $done = 0;
+        foreach ($fields as $f) {
+            if (!empty($this->{$f['file']}) || !empty($checklist[$f['check']])) {
+                $done++;
+            }
+        }
+        return (int) round(($done / 4) * 100);
+    }
+
+    /**
+     * Jumlah item terpenuhi (file atau checklist)
+     */
+    public function getProgressCountAttribute(): int
+    {
+        $checklist = $this->checklist_data;
+        $fields = [
+            ['file' => 'foto_berangkat',  'check' => 'berangkat'],
+            ['file' => 'foto_perjalanan', 'check' => 'perjalanan'],
+            ['file' => 'foto_sampai',     'check' => 'sampai'],
+            ['file' => 'tanda_terima',    'check' => 'terima'],
+        ];
+        $done = 0;
+        foreach ($fields as $f) {
+            if (!empty($this->{$f['file']}) || !empty($checklist[$f['check']])) {
+                $done++;
+            }
+        }
+        return $done;
+    }
+
     // Relationship dengan User (untuk verified_by)
     public function verifiedBy()
     {

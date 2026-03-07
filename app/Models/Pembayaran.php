@@ -18,16 +18,68 @@ class Pembayaran extends Model
         'metode_bayar',
         'bukti_bayar',
         'catatan',
+        'ppn_data',
         'status_verifikasi',
         'diverifikasi_oleh',
         'tanggal_verifikasi',
     ];
 
     protected $casts = [
-        'nominal_bayar' => 'decimal:2',
-        'tanggal_bayar' => 'date',
+        'nominal_bayar'     => 'decimal:2',
+        'tanggal_bayar'     => 'date',
         'tanggal_verifikasi' => 'datetime',
+        'ppn_data'          => 'array',
     ];
+
+    /**
+     * Total nominal PPN dari pembayaran ini
+     */
+    public function getTotalPpnAttribute(): float
+    {
+        return (float) ($this->ppn_data['total_ppn'] ?? 0);
+    }
+
+    /**
+     * Apakah ada item yang kena PPN
+     */
+    public function getAdaPpnAttribute(): bool
+    {
+        if (empty($this->ppn_data['items'])) return false;
+        return collect($this->ppn_data['items'])->contains('ada_ppn', true);
+    }
+
+    /**
+     * Get bukti_bayar as array (handles both legacy string and new JSON array format)
+     */
+    public function getBuktiBayarArrayAttribute(): array
+    {
+        $value = $this->bukti_bayar;
+        if (empty($value)) {
+            return [];
+        }
+        $decoded = json_decode($value, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+        // Legacy single-file string
+        return [$value];
+    }
+
+    /**
+     * Set bukti_bayar: always store as JSON array
+     */
+    public function setBuktiBayarAttribute($value): void
+    {
+        if (is_array($value)) {
+            $this->attributes['bukti_bayar'] = json_encode(array_values($value));
+        } elseif (is_string($value) && $value !== '') {
+            // Check if already JSON
+            $decoded = json_decode($value, true);
+            $this->attributes['bukti_bayar'] = is_array($decoded) ? $value : json_encode([$value]);
+        } else {
+            $this->attributes['bukti_bayar'] = null;
+        }
+    }
 
     // Relationships
     public function penawaran()
@@ -45,10 +97,10 @@ class Pembayaran extends Model
         return $this->hasOneThrough(
             Proyek::class,
             Penawaran::class,
-            'id_penawaran', // Foreign key on penawaran table
-            'id_proyek', // Foreign key on proyek table
-            'id_penawaran', // Local key on pembayaran table
-            'id_proyek' // Local key on penawaran table
+            'id_penawaran',
+            'id_proyek',
+            'id_penawaran',
+            'id_proyek'
         );
     }
 

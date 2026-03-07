@@ -68,6 +68,14 @@
                             <input type="date" id="editTanggal" name="tanggal" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Deadline
+                            </label>
+                            <input type="date" id="editDeadline" name="deadline"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                            <div id="editDeadlinePrioritas" style="display:none" class="mt-1.5 flex items-center gap-1.5 text-xs font-medium"></div>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Kabupaten/Kota</label>
                             <input type="text" id="editKabupatenKota" name="kab_kota" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan kabupaten/kota">
                         </div>
@@ -224,6 +232,8 @@ async function loadEditData(data) {
     setElementValue('editNamaInstansi', data.nama_instansi || data.instansi);
     setElementValue('editJenisPengadaan', data.jenis_pengadaan);
     setElementValue('editTanggal', data.tanggal);
+    setElementValue('editDeadline', data.deadline || '');
+    renderDeadlineBadgeEdit('editDeadlinePrioritas', data.deadline || '');
     setElementValue('editCatatan', data.catatan);
     setElementValue('editTahunPotensi', data.tahun_potensi);
     setElementValue('editStatus', data.status);
@@ -291,7 +301,7 @@ function addEditItem(itemData = null) {
         qty = itemData.qty || itemData.jumlah || '';
         satuan = itemData.satuan || '';
         // Format harga satuan for Indonesian display if it exists
-        if (itemData.harga_satuan && itemData.harga_satuan !== null) {
+        if (itemData.harga_satuan !== null && itemData.harga_satuan !== undefined && itemData.harga_satuan !== '') {
             const price = parseFloat(itemData.harga_satuan);
             if (!isNaN(price)) {
                 // Format with Indonesian locale (dots for thousands, comma for decimals)
@@ -468,15 +478,17 @@ function formatNumberToIndonesian(number) {
 
 // Helper function to parse Indonesian formatted number to float
 function parseIndonesianNumber(value) {
-    if (!value || typeof value !== 'string') return 0;
-    
+    if (value === null || value === undefined || value === '') return 0;
+    if (typeof value === 'number') return value;
+
     // Clean the value: remove dots (thousand separators) and replace comma with dot for decimal
-    let cleanValue = value
+    let cleanValue = String(value)
         .trim()
         .replace(/\./g, '')    // Remove thousand separators (dots)
         .replace(/,/g, '.');   // Replace decimal comma with dot for parsing
-    
-    return parseFloat(cleanValue) || 0;
+
+    const parsed = parseFloat(cleanValue);
+    return isNaN(parsed) ? 0 : parsed;
 }
 
 function hitungTotalEdit(input) {
@@ -517,7 +529,8 @@ function formatHargaSatuanEdit(input) {
     let [integerPart, decimalPart] = value.split(',');
 
     // Format integer part with thousand separators (dots)
-    if (integerPart) {
+    // NOTE: use !== undefined/null check, NOT truthy check, so "0" is handled correctly
+    if (integerPart !== undefined && integerPart !== '') {
         // Add dots every 3 digits for thousand separators
         integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
@@ -525,9 +538,9 @@ function formatHargaSatuanEdit(input) {
     // Reconstruct the value
     if (decimalPart !== undefined) {
         // Allow unlimited decimal places
-        value = integerPart + ',' + decimalPart;
+        value = (integerPart ?? '') + ',' + decimalPart;
     } else {
-        value = integerPart || '';
+        value = integerPart ?? '';
     }
 
     // Update input value
@@ -754,6 +767,7 @@ function collectEditFormData() {
     
     // Basic information
     formData.tanggal = document.getElementById('editTanggal')?.value || '';
+    formData.deadline = document.getElementById('editDeadline')?.value || null;
     formData.kab_kota = document.getElementById('editKabupatenKota')?.value || '';
     formData.instansi = document.getElementById('editNamaInstansi')?.value || '';
     formData.jenis_pengadaan = document.getElementById('editJenisPengadaan')?.value || '';
@@ -784,9 +798,10 @@ function collectEditFormData() {
         }
         
         // Parse harga satuan (Indonesian format)
-        let hargaSatuan = 0;
-        if (hargaSatuanStr) {
-            hargaSatuan = parseIndonesianNumber(hargaSatuanStr);
+        let hargaSatuan = null;
+        if (hargaSatuanStr !== '') {
+            const parsed = parseIndonesianNumber(hargaSatuanStr);
+            hargaSatuan = isNaN(parsed) ? null : parsed;
         }
         
         daftarBarang.push({
@@ -900,4 +915,27 @@ async function loadEditAdminPurchasingOptions() {
         console.error('Error loading edit PIC purchasing options:', error);
     }
 }
+
+// ── Deadline Priority Preview (Edit) ─────────────────────────────────────────
+function renderDeadlineBadgeEdit(containerId, deadlineStr) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!deadlineStr) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dl    = new Date(deadlineStr); dl.setHours(0,0,0,0);
+    const hari  = Math.round((dl - today) / 86400000);
+    let label, icon, cls;
+    if (hari < 0)   { label = 'Expired';                          icon = 'fa-skull';         cls = 'text-gray-700 bg-gray-100 border-gray-300'; }
+    else if (hari < 7)   { label = `Prioritas Tinggi — ${hari} hari lagi`; icon = 'fa-fire';  cls = 'text-red-700 bg-red-100 border-red-300'; }
+    else if (hari <= 14) { label = `Prioritas Sedang — ${hari} hari lagi`; icon = 'fa-clock'; cls = 'text-yellow-700 bg-amber-100 border-amber-300'; }
+    else                 { label = `Prioritas Rendah — ${hari} hari lagi`; icon = 'fa-calendar-check'; cls = 'text-green-700 bg-green-100 border-green-300'; }
+    el.style.display = 'flex';
+    el.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ${cls}">
+        <i class="fas ${icon}"></i>${label}
+    </span>`;
+}
+
+document.getElementById('editDeadline')?.addEventListener('change', function() {
+    renderDeadlineBadgeEdit('editDeadlinePrioritas', this.value);
+});
 </script>

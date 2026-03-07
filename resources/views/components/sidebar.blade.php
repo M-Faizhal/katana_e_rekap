@@ -68,10 +68,15 @@
                             <span class="font-medium">Potensi</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('marketing.pengajuan-kost') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.pengajuan-kost*') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-money-bill w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Pengajuan Kost</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
-
-            <!-- Purchasing Dropdown -->
             <li x-data="{ open: {{ request()->routeIs('purchasing*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                         class="flex items-center justify-between w-full text-gray-800 hover:text-red-800 rounded-xl px-4 py-3 transition-all group {{ request()->routeIs('purchasing*') ? 'bg-red-200 text-red-800' : '' }}">
@@ -147,6 +152,30 @@
                            class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.penagihan') ? 'bg-red-100 text-red-800' : '' }}">
                             <i class="fas fa-file-invoice-dollar w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
                             <span class="font-medium">Penagihan Dinas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('keuangan.riwayat-pembelian') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.riwayat-pembelian') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-receipt w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Riwayat Pembelian</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('keuangan.verifikasi-kost') }}"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.verifikasi-kost*') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-money-bill w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Verifikasi Kost</span>
+                            @php
+                                try {
+                                    $countPendingKost = \App\Models\PengajuanKost::where('status', 'menunggu')->count();
+                                } catch (\Exception $e) {
+                                    $countPendingKost = 0;
+                                }
+                            @endphp
+                            @if($countPendingKost > 0)
+                                <span class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">{{ $countPendingKost }}</span>
+                            @endif
                         </a>
                     </li>
                 </ul>
@@ -307,6 +336,13 @@
                             <span class="font-medium">Potensi</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('marketing.pengajuan-kost') }}" onclick="closeMobileMenu()"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('marketing.pengajuan-kost*') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-money-bill w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Pengajuan Kost</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 
@@ -386,6 +422,20 @@
                            class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.penagihan') ? 'bg-red-100 text-red-800' : '' }}">
                             <i class="fas fa-file-invoice-dollar w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
                             <span class="font-medium">Penagihan Dinas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('keuangan.riwayat-pembelian') }}" onclick="closeMobileMenu()"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.riwayat-pembelian') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-receipt w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Riwayat Pembelian</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('keuangan.verifikasi-kost') }}" onclick="closeMobileMenu()"
+                           class="flex items-center space-x-3 text-gray-700 hover:text-red-800 rounded-lg px-4 py-2 text-sm transition-all group {{ request()->routeIs('keuangan.verifikasi-kost*') ? 'bg-red-100 text-red-800' : '' }}">
+                            <i class="fas fa-money-bill w-4 text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                            <span class="font-medium">Verifikasi Kost</span>
                         </a>
                     </li>
                 </ul>

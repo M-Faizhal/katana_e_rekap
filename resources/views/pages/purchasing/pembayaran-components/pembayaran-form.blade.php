@@ -434,28 +434,22 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Bukti Pembayaran <span class="text-red-500">*</span>
                         </label>
-                        <div class="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-white hover:bg-purple-50 transition-colors">
+                        <div class="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center bg-white hover:bg-purple-50 transition-colors" id="drop-zone">
                             <div class="mx-auto h-12 w-12 text-purple-400 mb-4">
                                 <i class="fas fa-cloud-upload-alt text-4xl"></i>
                             </div>
-                            <input type="file" name="bukti_bayar" id="bukti_bayar" required 
+                            <input type="file" name="bukti_bayar[]" id="bukti_bayar"
                                    accept=".jpg,.jpeg,.png,.pdf"
+                                   multiple
                                    class="hidden">
                             <label for="bukti_bayar" class="cursor-pointer">
                                 <span class="text-purple-600 hover:text-purple-500 font-medium">Upload file</span>
                                 <span class="text-gray-500"> atau drag & drop</span>
                             </label>
-                            <p class="text-xs text-gray-500 mt-2">JPG, JPEG, PNG, PDF (max 5MB)</p>
+                            <p class="text-xs text-gray-500 mt-2">JPG, JPEG, PNG, PDF (max 5MB per file, bisa lebih dari 1 file)</p>
                         </div>
-                        <div id="file-info" class="mt-3 hidden">
-                            <div class="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                                <i class="fas fa-file text-green-600 mr-2"></i>
-                                <span id="file-name" class="text-sm text-green-800 flex-1"></span>
-                                <button type="button" id="remove-file" class="text-red-500 hover:text-red-700 transition-colors">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <!-- File list container -->
+                        <div id="file-list" class="mt-3 space-y-2"></div>
                     </div>
                     
                     <!-- Catatan -->
@@ -468,13 +462,16 @@
                                   placeholder="Catatan tambahan (opsional)">{{ old('catatan') }}</textarea>
                     </div>
                 </div>
-                
-                <!-- Breakdown Modal per Barang Section (untuk selected vendor) -->
+            </div>
+            
+        </div>
+        <!-- Breakdown Modal per Barang Section (untuk selected vendor) -->
                 @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
-                <div class="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                <div class="mt-8 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
                     <h3 class="text-sm font-semibold text-purple-800 mb-3 flex items-center">
                         <i class="fas fa-chart-pie mr-2"></i>
                         Modal per Barang - {{ $selectedVendor->nama_vendor ?? 'Vendor' }} ({{ $breakdownBarang->count() }} item)
+                        <span class="ml-2 text-xs font-normal text-gray-500">— centang jika harga sudah <strong>include PPN</strong></span>
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         @foreach($breakdownBarang as $item)
@@ -500,51 +497,80 @@
                                     <div class="bg-purple-500 h-1 rounded-full" style="width: {{ $persentaseModal }}%"></div>
                                 </div>
                             </div>
+
+                            {{-- PPN Checkbox --}}
+                            @php
+                                $ppnDefault  = $ppnDataTerakhir[$item->id_kalkulasi_hps] ?? null;
+                                $isChecked   = $ppnDefault && ($ppnDefault['ada_ppn'] ?? false);
+                                $persenDefault = $ppnDefault['persen_ppn'] ?? 11;
+                            @endphp
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                {{-- Hidden inputs selalu terkirim --}}
+                                <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][id_barang]"   value="{{ $item->id_kalkulasi_hps }}">
+                                <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][nama_barang]" value="{{ $item->nama_barang }}">
+                                <input type="hidden" name="ppn_items[{{ $item->id_kalkulasi_hps }}][harga]"       value="{{ $item->total_harga_hpp }}">
+
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="checkbox"
+                                           name="ppn_items[{{ $item->id_kalkulasi_hps }}][ada_ppn]"
+                                           value="1"
+                                           data-harga="{{ $item->total_harga_hpp }}"
+                                           data-id="{{ $item->id_kalkulasi_hps }}"
+                                           class="ppn-checkbox w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                                           {{ $isChecked ? 'checked' : '' }}>
+                                    <span class="text-xs font-medium text-gray-700">Harga sudah include PPN</span>
+                                    @if($isChecked)
+                                        <span class="text-xs text-purple-500 italic">(dari pembayaran sebelumnya)</span>
+                                    @endif
+                                </label>
+
+                                {{-- Detail PPN — muncul saat checkbox dicentang --}}
+                                <div class="ppn-detail {{ $isChecked ? '' : 'hidden' }} mt-2 p-2 bg-yellow-50 rounded border border-yellow-200"
+                                     id="ppn-detail-{{ $item->id_kalkulasi_hps }}">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs text-yellow-700">PPN:</span>
+                                        <input type="number"
+                                               name="ppn_items[{{ $item->id_kalkulasi_hps }}][persen_ppn]"
+                                               value="{{ $persenDefault }}"
+                                               min="0" max="100" step="0.1"
+                                               class="ppn-persen w-14 text-xs border border-yellow-300 rounded px-1 py-0.5 text-center focus:ring-1 focus:ring-yellow-400"
+                                               data-id="{{ $item->id_kalkulasi_hps }}"
+                                               data-harga="{{ $item->total_harga_hpp }}">
+                                        <span class="text-xs text-yellow-700">%</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs mt-1">
+                                        <span class="text-yellow-700">Sebelum PPN:</span>
+                                        <span class="font-medium text-yellow-800" id="harga-before-ppn-{{ $item->id_kalkulasi_hps }}">-</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs mt-0.5">
+                                        <span class="text-yellow-700">Nominal PPN:</span>
+                                        <span class="font-bold text-orange-600" id="nominal-ppn-{{ $item->id_kalkulasi_hps }}">-</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         @endforeach
                     </div>
-                    <div class="mt-3 pt-3 border-t border-purple-200 flex justify-between items-center">
-                        <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
-                        <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
+
+                    {{-- Summary PPN total --}}
+                    <div class="mt-3 pt-3 border-t border-purple-200">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-purple-700">Total Modal Vendor:</span>
+                            <span class="text-sm font-bold text-purple-800">Rp {{ number_format($totalModalVendor, 2, ',', '.') }}</span>
+                        </div>
+                        <div id="ppn-summary" class="hidden mt-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-orange-700">Total sebelum PPN:</span>
+                                <span class="font-semibold text-orange-800" id="summary-sebelum-ppn">-</span>
+                            </div>
+                            <div class="flex justify-between text-sm mt-1">
+                                <span class="text-orange-700 font-bold">Total PPN (diekstrak):</span>
+                                <span class="font-bold text-orange-600 text-base" id="summary-total-ppn">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endif
-                
-                <!-- Info Enhanced -->
-                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg p-4">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-info-circle text-yellow-500 text-lg"></i>
-                        </div>
-                        <div class="ml-3">
-                            <h4 class="text-sm font-semibold text-yellow-800 mb-2">Informasi Penting</h4>
-                            <ul class="text-sm text-yellow-700 space-y-1">
-                                <li class="flex items-start">
-                                    <i class="fas fa-clock text-yellow-500 mr-2 mt-1 text-xs"></i>
-                                    Pembayaran akan berstatus "Pending" menunggu verifikasi admin keuangan
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fas fa-check-circle text-yellow-500 mr-2 mt-1 text-xs"></i>
-                                    Pastikan bukti pembayaran jelas dan valid
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fas fa-calendar-check text-yellow-500 mr-2 mt-1 text-xs"></i>
-                                    Admin keuangan akan memverifikasi dalam 1-2 hari kerja
-                                </li>
-                            </ul>
-                            <p class="text-xs text-yellow-800 flex items-center mt-2">
-                                <i class="fas fa-info-circle mr-2"></i>
-                                <strong>Catatan:</strong> Pembayaran ke vendor menggunakan <strong>harga akhir dari Kalkulasi HPS</strong>, bukan harga vendor barang.
-                                @if(isset($breakdownBarang) && $breakdownBarang && $breakdownBarang->count() > 0)
-                                <br>Detail breakdown per barang dapat dilihat pada card di atas untuk transparansi perhitungan modal vendor.
-                                @endif
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <!-- Action Buttons Enhanced -->
         <div class="flex items-center justify-between pt-8 border-t border-gray-200 mt-8">
             <a href="{{ route('purchasing.pembayaran') }}" 
@@ -617,39 +643,129 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // File upload handling
+    // Multi-file upload handling
     const fileInput = document.getElementById('bukti_bayar');
-    const fileInfo = document.getElementById('file-info');
-    const fileName = document.getElementById('file-name');
-    const removeFile = document.getElementById('remove-file');
+    const fileList = document.getElementById('file-list');
+    const dropZone = document.getElementById('drop-zone');
     
-    fileInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            const file = this.files[0];
-            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-            
-            // Check file size
-            if (file.size > maxSize) {
-                // Show error message
-                showFileError('Ukuran file terlalu besar! Maksimal 5MB. Ukuran file saat ini: ' + formatFileSize(file.size));
-                
-                // Clear the input
-                this.value = '';
-                fileInfo.classList.add('hidden');
-                return;
-            }
-            
-            // If file size is OK, show file info
-            fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
-            fileInfo.classList.remove('hidden');
-            hideFileError();
+    // Maintain a DataTransfer to allow removing individual files
+    let selectedFiles = new DataTransfer();
+
+    function renderFileList() {
+        fileList.innerHTML = '';
+        const files = selectedFiles.files;
+
+        if (files.length === 0) {
+            return;
         }
-    });
-    
-    removeFile.addEventListener('click', function() {
-        fileInput.value = '';
-        fileInfo.classList.add('hidden');
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const ext = file.name.split('.').pop().toLowerCase();
+            let iconClass = 'fa-file text-gray-500';
+            if (ext === 'pdf') iconClass = 'fa-file-pdf text-red-500';
+            else if (['jpg','jpeg','png'].includes(ext)) iconClass = 'fa-file-image text-blue-500';
+
+            const item = document.createElement('div');
+            item.className = 'flex items-center p-3 bg-green-50 rounded-lg border border-green-200';
+            item.innerHTML = `
+                <i class="fas ${iconClass} mr-2 text-sm"></i>
+                <span class="text-sm text-green-800 flex-1 truncate">${file.name} <span class="text-xs text-gray-500">(${formatFileSize(file.size)})</span></span>
+                <button type="button" class="remove-file-btn ml-2 text-red-500 hover:text-red-700 transition-colors" data-index="${i}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            fileList.appendChild(item);
+        }
+    }
+
+    // Sync files to input and validate on form submit
+    const pembayaranForm = document.querySelector('form[enctype="multipart/form-data"]');
+    if (pembayaranForm) {
+        pembayaranForm.addEventListener('submit', function(e) {
+            // Always sync selectedFiles DataTransfer to the actual file input before submit
+            fileInput.files = selectedFiles.files;
+
+            // Validate that at least one file was selected
+            if (selectedFiles.files.length === 0) {
+                e.preventDefault();
+                showFileError('Bukti pembayaran wajib diupload. Pilih minimal 1 file.');
+                dropZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+
+            hideFileError();
+        });
+    }
+
+    fileInput.addEventListener('change', function() {
+        let valid = true;
+        for (let i = 0; i < this.files.length; i++) {
+            const file = this.files[i];
+            if (file.size > 5 * 1024 * 1024) {
+                showFileError(`File "${file.name}" terlalu besar! Maksimal 5MB. Ukuran: ${formatFileSize(file.size)}`);
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) {
+            this.value = '';
+            return;
+        }
         hideFileError();
+        for (let i = 0; i < this.files.length; i++) {
+            selectedFiles.items.add(this.files[i]);
+        }
+        renderFileList();
+        // Reset input so the same file can be re-added later if needed
+        this.value = '';
+    });
+
+    // Remove individual file
+    fileList.addEventListener('click', function(e) {
+        const btn = e.target.closest('.remove-file-btn');
+        if (!btn) return;
+        const index = parseInt(btn.getAttribute('data-index'));
+        const newDT = new DataTransfer();
+        for (let i = 0; i < selectedFiles.files.length; i++) {
+            if (i !== index) newDT.items.add(selectedFiles.files[i]);
+        }
+        selectedFiles = newDT;
+        renderFileList();
+    });
+
+    // Drag & drop support
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('bg-purple-100', 'border-purple-500');
+    });
+    dropZone.addEventListener('dragleave', function() {
+        this.classList.remove('bg-purple-100', 'border-purple-500');
+    });
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('bg-purple-100', 'border-purple-500');
+        let valid = true;
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+            const file = e.dataTransfer.files[i];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['jpg','jpeg','png','pdf'].includes(ext)) {
+                showFileError(`File "${file.name}" tidak didukung. Gunakan JPG, PNG, atau PDF.`);
+                valid = false;
+                break;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showFileError(`File "${file.name}" terlalu besar! Maksimal 5MB.`);
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) return;
+        hideFileError();
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+            selectedFiles.items.add(e.dataTransfer.files[i]);
+        }
+        renderFileList();
     });
     
     // Helper function to format file size
@@ -795,6 +911,94 @@ document.addEventListener('DOMContentLoaded', function() {
             this.value = value;
         }
     });
+
+    // ---- PPN per-item logic ----
+    function formatRupiah(amount) {
+        return 'Rp ' + parseFloat(amount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function calcPpn(harga, persenPpn) {
+        // harga sudah include PPN → ekstrak
+        const hargaSebelum = harga / (1 + persenPpn / 100);
+        const nominalPpn   = harga - hargaSebelum;
+        return { hargaSebelum, nominalPpn };
+    }
+
+    function updatePpnItem(id) {
+        const checkbox   = document.querySelector(`.ppn-checkbox[data-id="${id}"]`);
+        const detailDiv  = document.getElementById(`ppn-detail-${id}`);
+        const persenInput= document.querySelector(`.ppn-persen[data-id="${id}"]`);
+        const beforeEl   = document.getElementById(`harga-before-ppn-${id}`);
+        const nominalEl  = document.getElementById(`nominal-ppn-${id}`);
+
+        if (!checkbox || !detailDiv) return;
+
+        const harga = parseFloat(checkbox.dataset.harga) || 0;
+        const persen = parseFloat(persenInput ? persenInput.value : 11) || 0;
+
+        if (checkbox.checked) {
+            detailDiv.classList.remove('hidden');
+            const { hargaSebelum, nominalPpn } = calcPpn(harga, persen);
+            if (beforeEl) beforeEl.textContent  = formatRupiah(hargaSebelum);
+            if (nominalEl) nominalEl.textContent = formatRupiah(nominalPpn);
+        } else {
+            detailDiv.classList.add('hidden');
+        }
+
+        updatePpnSummary();
+    }
+
+    function updatePpnSummary() {
+        const checkboxes = document.querySelectorAll('.ppn-checkbox');
+        let totalPpn = 0;
+        let totalSebelum = 0;
+        let anyChecked = false;
+
+        checkboxes.forEach(function(cb) {
+            if (cb.checked) {
+                anyChecked = true;
+                const id     = cb.dataset.id;
+                const harga  = parseFloat(cb.dataset.harga) || 0;
+                const persenInput = document.querySelector(`.ppn-persen[data-id="${id}"]`);
+                const persen = parseFloat(persenInput ? persenInput.value : 11) || 0;
+                const { hargaSebelum, nominalPpn } = calcPpn(harga, persen);
+                totalPpn    += nominalPpn;
+                totalSebelum += hargaSebelum;
+            }
+        });
+
+        const summaryDiv = document.getElementById('ppn-summary');
+        if (!summaryDiv) return;
+
+        if (anyChecked) {
+            summaryDiv.classList.remove('hidden');
+            const sebelumEl = document.getElementById('summary-sebelum-ppn');
+            const ppnEl     = document.getElementById('summary-total-ppn');
+            if (sebelumEl) sebelumEl.textContent = formatRupiah(totalSebelum);
+            if (ppnEl)     ppnEl.textContent     = formatRupiah(totalPpn);
+        } else {
+            summaryDiv.classList.add('hidden');
+        }
+    }
+
+    // Attach events to all PPN checkboxes
+    document.querySelectorAll('.ppn-checkbox').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            updatePpnItem(this.dataset.id);
+        });
+        // Auto-trigger kalkulasi untuk item yang sudah pre-checked (dari pembayaran sebelumnya)
+        if (cb.checked) {
+            updatePpnItem(cb.dataset.id);
+        }
+    });
+
+    // Attach events to all PPN persen inputs
+    document.querySelectorAll('.ppn-persen').forEach(function(input) {
+        input.addEventListener('input', function() {
+            updatePpnItem(this.dataset.id);
+        });
+    });
+    // ---- end PPN logic ----
 });
 </script>
 @endpush

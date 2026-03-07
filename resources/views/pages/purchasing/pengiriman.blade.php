@@ -507,48 +507,58 @@
                             
                             <!-- Status Dokumentasi -->
                             <div class="mt-3">
+                                @php
+                                    $docs = [
+                                        ['field' => 'foto_berangkat',  'check' => 'berangkat',  'label' => 'Berangkat', 'icon' => 'fas fa-camera'],
+                                        ['field' => 'foto_perjalanan', 'check' => 'perjalanan', 'label' => 'Perjalanan', 'icon' => 'fas fa-road'],
+                                        ['field' => 'foto_sampai',     'check' => 'sampai',     'label' => 'Sampai', 'icon' => 'fas fa-map-marker-alt'],
+                                        ['field' => 'tanda_terima',    'check' => 'terima',     'label' => 'TTD', 'icon' => 'fas fa-signature'],
+                                    ];
+                                    $clData = $pengiriman->checklist_data;
+                                @endphp
                                 <div class="flex flex-wrap gap-1">
-                                    @php
-                                        $docs = [
-                                            ['field' => 'foto_berangkat', 'label' => 'Berangkat', 'icon' => 'fas fa-camera'],
-                                            ['field' => 'foto_perjalanan', 'label' => 'Perjalanan', 'icon' => 'fas fa-road'],
-                                            ['field' => 'foto_sampai', 'label' => 'Sampai', 'icon' => 'fas fa-map-marker-alt'],
-                                            ['field' => 'tanda_terima', 'label' => 'TTD', 'icon' => 'fas fa-signature']
-                                        ];
-                                    @endphp
-                                    
                                     @foreach($docs as $doc)
-                                        @if($pengiriman->{$doc['field']})
-                                            <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 mr-1 mb-1">
-                                                <i class="{{ $doc['icon'] }} mr-1"></i>{{ $doc['label'] }}
-                                                <button onclick="viewFile('{{ $pengiriman->{$doc['field']} }}')" 
-                                                        class="ml-2 text-green-600 hover:text-green-800">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                            </div>
-                                        @else
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 mr-1 mb-1">
-                                                <i class="{{ $doc['icon'] }} mr-1"></i>{{ $doc['label'] }}
-                                            </span>
-                                        @endif
+                                    @php
+                                        $hasFile     = !empty($pengiriman->{$doc['field']});
+                                        $hasChecked  = !empty($clData[$doc['check']]);
+                                        $isDone      = $hasFile || $hasChecked;
+                                    @endphp
+                                    @if($hasFile)
+                                        {{-- Ada file — hijau dengan tombol lihat --}}
+                                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 mr-1 mb-1">
+                                            <i class="{{ $doc['icon'] }} mr-1"></i>{{ $doc['label'] }}
+                                            <button onclick="viewFile('{{ $pengiriman->{$doc['field']} }}')" 
+                                                    class="ml-1 text-green-600 hover:text-green-800">
+                                                <i class="fas fa-eye text-xs"></i>
+                                            </button>
+                                        </div>
+                                    @elseif($hasChecked)
+                                        {{-- Checklist saja (tanpa file) — biru --}}
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 mr-1 mb-1" title="Ditandai selesai (tanpa file)">
+                                            <i class="fas fa-check-square mr-1"></i>{{ $doc['label'] }}
+                                        </span>
+                                    @else
+                                        {{-- Belum ada sama sekali — abu --}}
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 mr-1 mb-1">
+                                            <i class="{{ $doc['icon'] }} mr-1"></i>{{ $doc['label'] }}
+                                        </span>
+                                    @endif
                                     @endforeach
                                 </div>
-                                
+
                                 @php
-                                    $totalDocs = 4;
-                                    $completedDocs = collect($docs)->filter(function($doc) use ($pengiriman) {
-                                        return $pengiriman->{$doc['field']};
-                                    })->count();
-                                    $progressPercent = ($completedDocs / $totalDocs) * 100;
+                                    $progressCount   = $pengiriman->progress_count;
+                                    $progressPercent = $pengiriman->progress_persen;
                                 @endphp
-                                
                                 <div class="mt-2">
                                     <div class="flex items-center justify-between text-xs text-gray-600 mb-1">
-                                        <span>Dokumentasi: {{ $completedDocs }}/{{ $totalDocs }}</span>
-                                        <span>{{ round($progressPercent) }}%</span>
+                                        <span>Progress: {{ $progressCount }}/4</span>
+                                        <span>{{ $progressPercent }}%</span>
                                     </div>
                                     <div class="w-full bg-gray-200 rounded-full h-2">
-                                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {{ $progressPercent }}%"></div>
+                                        <div class="h-2 rounded-full transition-all duration-300
+                                            {{ $progressPercent == 100 ? 'bg-green-500' : ($progressPercent >= 50 ? 'bg-blue-500' : 'bg-yellow-400') }}"
+                                             style="width: {{ $progressPercent }}%"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1292,54 +1302,89 @@ function updateDokumentasi(pengirimanId) {
             </div>
         `;
 
-        // Build dokumentasi fields dengan status file yang sudah ada
+        // Build dokumentasi fields dengan status file + checklist
+        const checklistKeys = {
+            foto_berangkat:  'berangkat',
+            foto_perjalanan: 'perjalanan',
+            foto_sampai:     'sampai',
+            tanda_terima:    'terima',
+        };
+
         const dokumentasiFields = [
             { 
                 name: 'foto_berangkat', 
                 label: 'Foto Keberangkatan', 
                 accept: '.jpg,.jpeg,.png',
                 icon: 'fas fa-camera',
-                current: pengiriman.foto_berangkat 
+                current: pengiriman.foto_berangkat,
+                checkKey: 'berangkat',
+                checkName: 'check_berangkat',
             },
             { 
                 name: 'foto_perjalanan', 
                 label: 'Foto Perjalanan', 
                 accept: '.jpg,.jpeg,.png',
                 icon: 'fas fa-road',
-                current: pengiriman.foto_perjalanan 
+                current: pengiriman.foto_perjalanan,
+                checkKey: 'perjalanan',
+                checkName: 'check_perjalanan',
             },
             { 
                 name: 'foto_sampai', 
                 label: 'Foto Sampai Tujuan', 
                 accept: '.jpg,.jpeg,.png',
                 icon: 'fas fa-map-marker-alt',
-                current: pengiriman.foto_sampai 
+                current: pengiriman.foto_sampai,
+                checkKey: 'sampai',
+                checkName: 'check_sampai',
             },
             { 
                 name: 'tanda_terima', 
                 label: 'Tanda Terima', 
                 accept: '.pdf,.jpg,.jpeg,.png',
                 icon: 'fas fa-signature',
-                current: pengiriman.tanda_terima 
+                current: pengiriman.tanda_terima,
+                checkKey: 'terima',
+                checkName: 'check_terima',
             }
         ];
 
+        // Parse checklist data dari catatan_verifikasi
+        let checklistData = {};
+        if (pengiriman.catatan_verifikasi && pengiriman.catatan_verifikasi.startsWith('[CHECKLIST]')) {
+            try {
+                checklistData = JSON.parse(pengiriman.catatan_verifikasi.replace('[CHECKLIST]', ''));
+            } catch(e) { checklistData = {}; }
+        }
+
         const fieldsHtml = dokumentasiFields.map(field => {
-            const hasFile = field.current && field.current.trim() !== '';
-            const statusBadge = hasFile ? 
-                `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-2">
-                    <i class="fas fa-check-circle mr-1"></i> File tersedia
-                </span>` :
-                `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mb-2">
-                    <i class="fas fa-times-circle mr-1"></i> Belum ada file
+            const hasFile    = field.current && field.current.trim() !== '';
+            const hasChecked = !!checklistData[field.checkKey];
+            const isDone     = hasFile || hasChecked;
+
+            // Status badge
+            let statusBadge = '';
+            if (hasFile) {
+                statusBadge = `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-2">
+                    <i class="fas fa-check-circle mr-1"></i> Ada File
                 </span>`;
-            
+            } else if (hasChecked) {
+                statusBadge = `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-2">
+                    <i class="fas fa-check-square mr-1"></i> Ditandai Selesai
+                </span>`;
+            } else {
+                statusBadge = `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mb-2">
+                    <i class="fas fa-times-circle mr-1"></i> Belum Ada
+                </span>`;
+            }
+
+            // Info file saat ini
             const currentFileInfo = hasFile ? 
                 `<div class="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center text-sm text-blue-700">
                             <i class="${field.icon} mr-2"></i>
-                            <span>File saat ini: ${field.current.split('/').pop()}</span>
+                            <span>File: ${field.current.split('/').pop()}</span>
                         </div>
                         <button type="button" onclick="viewFile('${field.current}')" 
                                 class="text-blue-600 hover:text-blue-800 text-sm">
@@ -1348,18 +1393,32 @@ function updateDokumentasi(pengirimanId) {
                     </div>
                 </div>` : '';
 
+            // Checkbox — hanya tampil jika belum ada file
+            const checkboxHtml = !hasFile ?
+                `<label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                    <input type="checkbox" name="${field.checkName}" value="1"
+                           ${hasChecked ? 'checked' : ''}
+                           class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="text-xs text-gray-600">
+                        Tandai <strong>${field.label}</strong> sudah selesai
+                        <span class="text-gray-400">(tanpa upload file)</span>
+                    </span>
+                </label>` : 
+                `<input type="hidden" name="${field.checkName}" value="${hasChecked ? '1' : '0'}">`;
+
             return `
-                <div class="border border-gray-200 rounded-lg p-4">
+                <div class="border ${isDone ? 'border-green-200 bg-green-50' : 'border-gray-200'} rounded-lg p-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="${field.icon} mr-2"></i>${field.label}
                     </label>
                     ${statusBadge}
                     <input type="file" name="${field.name}" accept="${field.accept}" 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                     <p class="text-xs text-gray-500 mt-1">
-                        ${hasFile ? 'Upload file baru untuk mengganti file yang ada' : 'Belum ada file, upload untuk menambahkan'}
+                        ${hasFile ? 'Upload baru untuk mengganti' : 'Maks 5MB — JPG/PNG' + (field.accept.includes('pdf') ? '/PDF' : '')}
                     </p>
                     ${currentFileInfo}
+                    ${checkboxHtml}
                 </div>
             `;
         }).join('');

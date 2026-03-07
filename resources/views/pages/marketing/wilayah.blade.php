@@ -268,7 +268,9 @@
                             </div>
                             <div class="flex items-center gap-1">
                                 <i class="fas fa-user-edit"></i>
-                                <span>{{ $wilayah['updated_by_name'] }}</span>
+                                <span title="Diperbarui oleh">
+                                    {{ $wilayah['updated_by_name'] !== 'System' ? $wilayah['updated_by_name'] : '-' }}
+                                </span>
                             </div>
                         </div>
                         <button onclick="tambahInstansiKeWilayah('{{ $wilayah['wilayah'] }}', '{{ $wilayah['provinsi'] }}')"
@@ -462,6 +464,11 @@
                 document.getElementById('detailNoTelp').textContent = data.no_telp || '-';
                 document.getElementById('detailEmail').textContent = data.email || '-';
                 document.getElementById('detailUpdatedAt').textContent = data.updated_at;
+                const updatedByEl = document.getElementById('detailUpdatedBy');
+                if (updatedByEl) {
+                    const updatedByName = data.updated_by_name && data.updated_by_name !== 'System' ? data.updated_by_name : null;
+                    updatedByEl.textContent = updatedByName ? 'oleh ' + updatedByName : '';
+                }
 
                 // Show modal
                 document.getElementById('modalDetailWilayah').classList.remove('hidden');

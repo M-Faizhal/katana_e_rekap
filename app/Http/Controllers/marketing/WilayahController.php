@@ -59,6 +59,20 @@ class WilayahController extends Controller
             list($namaWilayah, $adminMarketing) = explode('|||', $groupKey);
             $firstItem = $group->first();
 
+            // Ambil item dengan updated_at terbaru dalam grup ini
+            $latestItem = $group->sortByDesc('updated_at_timestamp')->first();
+
+            // Cari updated_by_name terbaik: ambil dari item terbaru yang bukan 'System'
+            $bestUpdatedByName = $group
+                ->sortByDesc('updated_at_timestamp')
+                ->first(function ($item) {
+                    return $item['updated_by_name'] !== 'System';
+                });
+
+            $updatedByName = $bestUpdatedByName
+                ? $bestUpdatedByName['updated_by_name']
+                : $latestItem['updated_by_name'];
+
             return [
                 'id' => $firstItem['id'],
                 'wilayah' => $namaWilayah,
@@ -69,9 +83,9 @@ class WilayahController extends Controller
                 'instansi_list' => $group->toArray(),
                 'jumlah_instansi' => $group->count(),
                 'total_proyek' => $group->sum('jumlah_proyek'),
-                'updated_at' => $firstItem['updated_at'],
-                'updated_at_timestamp' => $firstItem['updated_at_timestamp'],
-                'updated_by_name' => $firstItem['updated_by_name'],
+                'updated_at' => $latestItem['updated_at'],
+                'updated_at_timestamp' => $latestItem['updated_at_timestamp'],
+                'updated_by_name' => $updatedByName,
                 'created_at' => $firstItem['created_at']
             ];
         })->values()->toArray();

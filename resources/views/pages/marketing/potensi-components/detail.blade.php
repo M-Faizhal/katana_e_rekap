@@ -20,9 +20,12 @@
         <!-- Modal Body -->
         <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(100vh - 200px);">
             <!-- Status Badge -->
-            <div class="mb-6">
+            <div class="mb-6 flex flex-wrap items-center gap-2">
                 <span id="detailStatusBadge" class="inline-flex px-4 py-2 text-sm font-medium rounded-full">
                     <!-- Status will be set dynamically -->
+                </span>
+                <span id="detailPrioritasBadge" class="hidden inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full">
+                    <!-- Priority badge will be set dynamically -->
                 </span>
             </div>
 
@@ -68,6 +71,10 @@
                     <div class="space-y-1">
                         <label class="text-sm font-medium text-gray-500">Tahun Potensi</label>
                         <p id="detailTahunPotensi" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Deadline</label>
+                        <p id="detailDeadline" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                 </div>
             </div>

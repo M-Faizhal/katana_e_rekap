@@ -130,6 +130,9 @@ class HPSCalculator {
         const totalDiskon = calculated.nilai_diskon * qty;
         calculated.total_diskon = totalDiskon;
         
+        // 10. % DISKON = (NILAI DISKON / HARGA VENDOR) × 100
+        calculated.diskon_percent = hargaVendor > 0 ? (calculated.nilai_diskon / hargaVendor) * 100 : 0;
+        
         // 11. TOTAL HARGA = HARGA DISKON × QTY
         const totalHarga = hargaDiskon * qty;
         calculated.total_harga = totalHarga;

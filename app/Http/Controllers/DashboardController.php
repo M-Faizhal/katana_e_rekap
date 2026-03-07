@@ -4,16 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Proyek;
-use App\Models\Vendor;
-use App\Models\Barang;
-use App\Models\User;
-use App\Models\Penawaran;
-use App\Models\PenawaranDetail;
-use App\Models\Pembayaran;
-use App\Models\Pengiriman;
-use App\Models\KalkulasiHps;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -50,11 +41,16 @@ class DashboardController extends Controller
         // Get basic statistics
         $stats = $this->getDashboardStats();
 
-        // Get hutang vendor statistics (using same logic as laporan)
-        $hutangVendorStats = $this->getHutangVendorStats();
+        // --- Hutang Vendor: satu kali load, dua hasil ---
+        $hutangVendorResult = $this->getHutangVendorData();
+        $hutangVendorStats  = $hutangVendorResult['stats'];
+        $vendorDebts        = $hutangVendorResult['debts'];
 
-        // Get piutang dinas statistics (using same logic as laporan)
-        $piutangDinasStats = $this->getPiutangDinasStats();
+        // --- Piutang Dinas: satu kali load, tiga hasil ---
+        $piutangResult    = $this->getPiutangDinasData();
+        $piutangDinasStats  = $piutangResult['stats'];
+        $clientReceivables  = $piutangResult['receivables'];
+        $debtAgeAnalysis    = $piutangResult['debtAge'];
 
         // Override hutang statistics with more accurate calculation
         $stats['total_hutang'] = $hutangVendorStats['total_hutang'];
@@ -75,20 +71,11 @@ class DashboardController extends Controller
         $stats['piutang_jatuh_tempo_formatted'] = $piutangDinasStats['piutang_jatuh_tempo_formatted'];
         $stats['rata_rata_piutang_formatted'] = $piutangDinasStats['rata_rata_piutang_formatted'];
 
-        // Get monthly revenue data (default to current year)
+        // Get monthly revenue data (default to current year) â€” single grouped query
         $monthlyRevenue = $this->getMonthlyRevenue();
 
         // Get revenue per admin marketing
         $revenuePerPerson = $this->getRevenuePerPerson();
-
-        // Get vendor debts (hutang)
-        $vendorDebts = $this->getVendorDebts();
-
-        // Get client receivables (piutang)
-        $clientReceivables = $this->getClientReceivables();
-
-        // Get debt age analysis
-        $debtAgeAnalysis = $this->getDebtAgeAnalysis();
 
         // Get year range from project data (same as laporan)
         $yearRange = $this->getYearRange();
@@ -169,49 +156,31 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get monthly revenue data for chart
+     * Get monthly revenue data for chart â€” single GROUP BY query instead of 12 queries.
      * TIME BASIS: penawaran.tanggal_penawaran (when deal was accepted)
      */
     private function getMonthlyRevenue($year = null, $specificMonth = null)
     {
         $year = $year ?: Carbon::now()->year;
+
+        // One query: SUM per month
+        $rows = DB::table('kalkulasi_hps')
+            ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->selectRaw('MONTH(penawaran.tanggal_penawaran) as month, SUM(kalkulasi_hps.hps) as revenue')
+            ->where('penawaran.status', 'ACC')
+            ->whereYear('penawaran.tanggal_penawaran', $year)
+            ->when($specificMonth, fn($q) => $q->whereMonth('penawaran.tanggal_penawaran', $specificMonth))
+            ->groupByRaw('MONTH(penawaran.tanggal_penawaran)')
+            ->pluck('revenue', 'month'); // keyed by month number
+
         $monthlyData = [];
-
-        // If specific month is requested, only return that month's data
-        if ($specificMonth) {
-            $revenue = DB::table('kalkulasi_hps')
-                ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                ->where('penawaran.status', 'ACC')
-                ->whereMonth('penawaran.tanggal_penawaran', $specificMonth)
-                ->whereYear('penawaran.tanggal_penawaran', $year)
-                ->sum('kalkulasi_hps.hps') ?? 0;
-
-            // Still return 12 months but highlight the selected month
-            for ($month = 1; $month <= 12; $month++) {
-                $monthlyData[] = [
-                    'month' => $month,
-                    'month_name' => Carbon::create($year, $month, 1)->format('M'),
-                    'revenue' => $month == $specificMonth ? $revenue : 0
-                ];
-            }
-        } else {
-            // Return all months
-            for ($month = 1; $month <= 12; $month++) {
-                $revenue = DB::table('kalkulasi_hps')
-                    ->join('proyek', 'kalkulasi_hps.id_proyek', '=', 'proyek.id_proyek')
-                    ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
-                    ->where('penawaran.status', 'ACC')
-                    ->whereMonth('penawaran.tanggal_penawaran', $month)
-                    ->whereYear('penawaran.tanggal_penawaran', $year)
-                    ->sum('kalkulasi_hps.hps') ?? 0;
-
-                $monthlyData[] = [
-                    'month' => $month,
-                    'month_name' => Carbon::create($year, $month, 1)->format('M'),
-                    'revenue' => $revenue
-                ];
-            }
+        for ($month = 1; $month <= 12; $month++) {
+            $monthlyData[] = [
+                'month'      => $month,
+                'month_name' => Carbon::create($year, $month, 1)->format('M'),
+                'revenue'    => $rows[$month] ?? 0,
+            ];
         }
 
         return $monthlyData;
@@ -246,181 +215,106 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get hutang vendor statistics for dashboard
-     * Using EXACT same logic as LaporanController::getHutangVendorStatistics()
+     * Single load for hutang vendor â€” returns stats + top-4 debts list.
+     * Replaces the previous separate getHutangVendorStats() + getVendorDebts() calls.
+     *
+     * Key optimisations:
+     * - Single Eloquent load with eager-loading for all relations.
+     * - KalkulasiHps totals fetched in ONE grouped query for all projects, then keyed in PHP.
+     * - Pembayaran totals likewise fetched in ONE grouped query.
      */
-    private function getHutangVendorStats()
+    private function getHutangVendorData(): array
     {
-        // Menggunakan logika PERSIS SAMA dengan LaporanController
+        // 1. Load all relevant projects with needed relations (one query + eager loads)
+        $proyekList = Proyek::with([
+                'penawaranAktif.penawaranDetail.barang.vendor',
+                'pembayaran' => fn($q) => $q->where('status_verifikasi', 'Approved'),
+            ])
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
+            ->whereHas('penawaranAktif', fn($q) => $q->where('status', 'ACC'))
+            ->get();
+
+        $proyekIds = $proyekList->pluck('id_proyek')->all();
+
+        // 2. Batch: total_harga_hpp per (id_proyek, id_vendor)
+        $hppRows = DB::table('kalkulasi_hps')
+            ->selectRaw('id_proyek, id_vendor, SUM(total_harga_hpp) as total')
+            ->whereIn('id_proyek', $proyekIds)
+            ->groupBy('id_proyek', 'id_vendor')
+            ->get()
+            ->groupBy('id_proyek')          // Collection keyed by id_proyek
+            ->map(fn($rows) => $rows->pluck('total', 'id_vendor'));
+
+        // 3. Batch: nominal_bayar (Approved) per (id_proyek, id_vendor)
+        // pembayaran has no id_proyek — join via penawaran to get it
+        $bayarRows = DB::table('pembayaran')
+            ->join('penawaran', 'pembayaran.id_penawaran', '=', 'penawaran.id_penawaran')
+            ->selectRaw('penawaran.id_proyek, pembayaran.id_vendor, SUM(pembayaran.nominal_bayar) as total')
+            ->whereIn('penawaran.id_proyek', $proyekIds)
+            ->where('pembayaran.status_verifikasi', 'Approved')
+            ->groupBy('penawaran.id_proyek', 'pembayaran.id_vendor')
+            ->get()
+            ->groupBy('id_proyek')
+            ->map(fn($rows) => $rows->pluck('total', 'id_vendor'));
+
+        // 4. Build flat results list
+        $results    = collect();
         $totalHutang = 0;
         $jumlahHutangVendor = 0;
-        
-        // Ambil proyek yang perlu bayar dengan cara yang sama seperti LaporanController
-        $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->whereHas('penawaranAktif', function ($query) {
-                $query->where('status', 'ACC');
-            })
-            ->get()
-            ->map(function ($proyek) {
-                // Ambil vendor yang terlibat dalam proyek ini
-                $vendors = $proyek->penawaranAktif->penawaranDetail
-                    ->pluck('barang.vendor')
-                    ->unique('id_vendor')
-                    ->filter(); // Remove null values
 
-                $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
-                    $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->sum('total_harga_hpp');
+        foreach ($proyekList as $proyek) {
+            if (!$proyek->penawaranAktif) {
+                continue;
+            }
 
-                    $totalDibayarApproved = $proyek->pembayaran
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->where('status_verifikasi', 'Approved')
-                        ->sum('nominal_bayar');
+            $vendors = $proyek->penawaranAktif->penawaranDetail
+                ->pluck('barang.vendor')
+                ->filter()
+                ->unique('id_vendor');
 
-                    $sisaBayar = $totalVendor - $totalDibayarApproved;
+            $hppByVendor  = $hppRows[$proyek->id_proyek]  ?? collect();
+            $bayarByVendor = $bayarRows[$proyek->id_proyek] ?? collect();
 
-                    // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
-                    $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+            foreach ($vendors as $vendor) {
+                $totalVendor          = (float) ($hppByVendor[$vendor->id_vendor]  ?? 0);
+                $totalDibayarApproved = (float) ($bayarByVendor[$vendor->id_vendor] ?? 0);
+                $sisaBayar            = $totalVendor - $totalDibayarApproved;
+                $warningHps           = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+                $statusLunas          = $totalVendor > 0 && $sisaBayar <= 0;
 
-                    return (object) [
-                        'vendor' => $vendor,
-                        'total_vendor' => $totalVendor,
-                        'total_dibayar_approved' => $totalDibayarApproved,
-                        'sisa_bayar' => $sisaBayar,
-                        'persen_bayar' => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
-                        'status_lunas' => $totalVendor > 0 ? $sisaBayar <= 0 : false,
-                        'warning_hps' => $warning_hps,
-                        'proyek' => $proyek
-                    ];
-                })
-                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
-                ->filter(function ($vendorData) {
-                    return $vendorData->sisa_bayar > 0 || $vendorData->warning_hps;
-                });
+                if ($sisaBayar <= 0 && !$warningHps) {
+                    continue; // already paid, skip
+                }
 
-                return $proyek;
-            })
-            ->filter(function ($proyek) {
-                return $proyek->vendors_data->count() > 0; // Hanya proyek yang ada vendor belum lunas
-            });
-
-        // Hitung total hutang dan jumlah record
-        foreach ($proyekPerluBayar as $proyek) {
-            foreach ($proyek->vendors_data as $vendorData) {
-                $totalHutang += $vendorData->sisa_bayar;
+                $totalHutang += $sisaBayar;
                 $jumlahHutangVendor++;
+
+                $results->push((object) [
+                    'nama_vendor'           => $vendor->nama_vendor ?? 'Unknown',
+                    'jenis_perusahaan'      => $vendor->jenis_perusahaan ?? null,
+                    'email'                 => $vendor->email ?? null,
+                    'kode_proyek'           => $proyek->kode_proyek ?? '-',
+                    'instansi'              => $proyek->instansi ?? '-',
+                    'nama_klien'            => $proyek->nama_klien ?? '-',
+                    'total_vendor'          => $totalVendor,
+                    'total_dibayar_approved'=> $totalDibayarApproved,
+                    'sisa_bayar'            => $sisaBayar,
+                    'persen_bayar'          => $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0,
+                    'warning_hps'           => $warningHps,
+                    'status_lunas'          => $statusLunas,
+                    'oldest_date'           => $proyek->penawaranAktif->tanggal_penawaran ?? null,
+                ]);
             }
         }
 
-        $rataRataHutang = $jumlahHutangVendor > 0 ? $totalHutang / $jumlahHutangVendor : 0;
+        // 5. Build top-4 debts list
+        $top4 = $results->sortByDesc('sisa_bayar')->take(4)->map(function ($item) {
+            $daysOverdue = $item->oldest_date
+                ? Carbon::parse($item->oldest_date)->diffInDays(Carbon::now())
+                : 0;
 
-        return [
-            'total_hutang' => $totalHutang,
-            'jumlah_vendor' => $jumlahHutangVendor,
-            'rata_rata_hutang' => $rataRataHutang,
-            'total_hutang_formatted' => $this->formatRupiah($totalHutang),
-            'rata_rata_hutang_formatted' => $this->formatRupiah($rataRataHutang),
-        ];
-    }
-
-    /**
-     * Get vendor debts data - menggunakan logika yang sama dengan Laporan Hutang Vendor
-     */
-    private function getVendorDebts()
-    {
-        // Menggunakan logika PERSIS SAMA dengan LaporanController
-        $proyekPerluBayar = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing', 'pembayaran.vendor'])
-            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai'])
-            ->whereHas('penawaranAktif', function ($query) {
-                $query->where('status', 'ACC');
-            })
-            ->get()
-            ->map(function ($proyek) {
-                // Ambil vendor yang terlibat dalam proyek ini
-                $vendors = $proyek->penawaranAktif->penawaranDetail
-                    ->pluck('barang.vendor')
-                    ->unique('id_vendor')
-                    ->filter(); // Remove null values
-
-                $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek) {
-                    $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->sum('total_harga_hpp');
-
-                    $totalDibayarApproved = $proyek->pembayaran
-                        ->where('id_vendor', $vendor->id_vendor)
-                        ->where('status_verifikasi', 'Approved')
-                        ->sum('nominal_bayar');
-
-                    $sisaBayar = $totalVendor - $totalDibayarApproved;
-
-                    // Jika totalVendor = 0, tampilkan warning dan status_lunas = false
-                    $warning_hps = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
-                    
-                    $persenBayar = $totalVendor > 0 ? ($totalDibayarApproved / $totalVendor) * 100 : 0;
-                    $statusLunas = $totalVendor > 0 ? $sisaBayar <= 0 : false;
-
-                    return (object) [
-                        'vendor' => $vendor,
-                        'proyek' => $proyek,
-                        'total_vendor' => $totalVendor,
-                        'total_dibayar_approved' => $totalDibayarApproved,
-                        'sisa_bayar' => $sisaBayar,
-                        'persen_bayar' => $persenBayar,
-                        'status_lunas' => $statusLunas,
-                        'warning_hps' => $warning_hps,
-                        'oldest_date' => $proyek->penawaranAktif->tanggal_penawaran ?? null
-                    ];
-                })
-                // Filter: hanya vendor yang belum lunas atau data HPS belum diisi
-                ->filter(function ($vendorData) {
-                    return $vendorData->sisa_bayar > 0 || $vendorData->warning_hps;
-                });
-
-                return $proyek;
-            })
-            ->filter(function ($proyek) {
-                return $proyek->vendors_data->count() > 0; // Hanya proyek yang ada vendor belum lunas
-            });
-
-        // Flatten menjadi list vendor per proyek
-        $results = collect();
-        foreach ($proyekPerluBayar as $proyek) {
-            foreach ($proyek->vendors_data as $vendorData) {
-                $results->push($vendorData);
-            }
-        }
-
-        // Sort by sisa_bayar descending and limit to top 4
-        $vendorDebts = $results->sortByDesc('sisa_bayar')->take(4);
-
-        // Jika tidak ada hutang vendor aktual, tampilkan data untuk display saja
-        if ($vendorDebts->isEmpty()) {
-            return collect([
-                (object) [
-                    'vendor' => (object) ['nama_vendor' => 'Tidak ada hutang vendor', 'jenis_perusahaan' => null],
-                    'proyek' => (object) ['kode_proyek' => '-', 'instansi' => '-'],
-                    'total_vendor' => 0,
-                    'total_dibayar_approved' => 0,
-                    'sisa_bayar' => 0,
-                    'persen_bayar' => 100,
-                    'warning_hps' => null,
-                    'status_lunas' => true,
-                    'status' => 'Lunas',
-                    'days_overdue' => 0
-                ]
-            ]);
-        }
-
-        return $vendorDebts->map(function($item) {
-            // Calculate days overdue
-            $daysOverdue = $item->oldest_date ? Carbon::parse($item->oldest_date)->diffInDays(Carbon::now()) : 0;
-
-            // Determine status
             if ($item->warning_hps) {
-                $status = 'warning'; // HPS belum diisi
+                $status = 'warning';
             } elseif ($item->status_lunas) {
                 $status = 'Lunas';
             } elseif ($daysOverdue > 30) {
@@ -431,348 +325,229 @@ class DashboardController extends Controller
                 $status = 'normal';
             }
 
-            return (object) [
-                'nama_vendor' => $item->vendor->nama_vendor ?? 'Unknown',
-                'kode_proyek' => $item->proyek->kode_proyek ?? '-',
-                'instansi' => $item->proyek->instansi ?? '-',
-                'nama_klien' => $item->proyek->nama_klien ?? '-',
-                'jenis_perusahaan' => $item->vendor->jenis_perusahaan ?? null,
-                'email' => $item->vendor->email ?? null,
-                'total_vendor' => $item->total_vendor,
-                'total_dibayar_approved' => $item->total_dibayar_approved,
-                'sisa_bayar' => $item->sisa_bayar,
-                'persen_bayar' => $item->persen_bayar,
-                'warning_hps' => $item->warning_hps,
-                'status_lunas' => $item->status_lunas,
-                'status' => $status,
-                'days_overdue' => $daysOverdue,
-                'oldest_date' => $item->oldest_date
-            ];
+            return (object) array_merge((array) $item, [
+                'status'      => $status,
+                'days_overdue'=> $daysOverdue,
+            ]);
         });
+
+        if ($top4->isEmpty()) {
+            $top4 = collect([(object) [
+                'vendor'                 => (object) ['nama_vendor' => 'Tidak ada hutang vendor', 'jenis_perusahaan' => null],
+                'kode_proyek'            => '-',
+                'instansi'               => '-',
+                'total_vendor'           => 0,
+                'total_dibayar_approved' => 0,
+                'sisa_bayar'             => 0,
+                'persen_bayar'           => 100,
+                'warning_hps'            => null,
+                'status_lunas'           => true,
+                'status'                 => 'Lunas',
+                'days_overdue'           => 0,
+            ]]);
+        }
+
+        $rataRataHutang = $jumlahHutangVendor > 0 ? $totalHutang / $jumlahHutangVendor : 0;
+
+        return [
+            'stats' => [
+                'total_hutang'             => $totalHutang,
+                'jumlah_vendor'            => $jumlahHutangVendor,
+                'rata_rata_hutang'         => $rataRataHutang,
+                'total_hutang_formatted'   => $this->formatRupiah($totalHutang),
+                'rata_rata_hutang_formatted' => $this->formatRupiah($rataRataHutang),
+            ],
+            'debts' => $top4,
+        ];
     }
 
     /**
-     * Get piutang dinas statistics for dashboard
+     * Single load for piutang dinas â€” returns stats + top-4 receivables + debt-age list.
+     * Replaces getPiutangDinasStats(), getClientReceivables(), getDebtAgeAnalysis().
+     *
+     * Key optimisations:
+     * - ONE Eloquent load with all needed eager relations.
+     * - checkAllVendorsDelivered() replaced by a SINGLE batch query (pengiriman keyed in memory).
+     * - All three result sets built in a single pass over the same data.
      */
-    private function getPiutangDinasStats()
+    private function getPiutangDinasData(): array
     {
-        // Ambil semua proyek yang sudah di ACC dan hitung piutangnya (same logic as LaporanController)
-        $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
-            $query->where('status', 'ACC');
-        }, 'penagihanDinas.buktiPembayaran'])
-        ->whereHas('semuaPenawaran', function($query) {
-            $query->where('status', 'ACC');
-        })
-        ->get();
+        // 1. Load projects + relations once
+        $proyekAcc = Proyek::with([
+                'semuaPenawaran'         => fn($q) => $q->where('status', 'ACC'),
+                'semuaPenawaran.penawaranDetail.barang',   // for vendor IDs
+                'penagihanDinas.buktiPembayaran',
+            ])
+            ->whereHas('semuaPenawaran', fn($q) => $q->where('status', 'ACC'))
+            ->get();
 
-        $totalPiutang = 0;
+        // Collect all penawaran IDs for the batch pengiriman query
+        $allPenawaranIds = $proyekAcc->flatMap(fn($p) => $p->semuaPenawaran->pluck('id_penawaran'))->all();
+
+        // 2. Batch: for each penawaran, which vendor IDs have Sampai_Tujuan?
+        //    Result: [ id_penawaran => [id_vendor, ...] ]
+        $deliveredMap = DB::table('pengiriman')
+            ->whereIn('id_penawaran', $allPenawaranIds)
+            ->where('status_verifikasi', 'Sampai_Tujuan')
+            ->select('id_penawaran', 'id_vendor')
+            ->get()
+            ->groupBy('id_penawaran')
+            ->map(fn($rows) => $rows->pluck('id_vendor')->unique()->values()->all());
+
+        // 3. Build results in one pass
+        $totalPiutang      = 0;
         $piutangJatuhTempo = 0;
-        $jumlahProyek = 0;
+        $jumlahProyek      = 0;
+        $piutangList       = collect();
+        $debtAgeList       = collect();
 
         foreach ($proyekAcc as $proyek) {
             foreach ($proyek->semuaPenawaran as $penawaran) {
-                // Cek apakah semua vendor sudah mengirim barang (Sampai_Tujuan)
-                $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
-                
-                // Skip jika barang belum sampai semua
-                if (!$allVendorsDelivered) {
+                // Determine vendor IDs required for this penawaran
+                $requiredVendorIds = $penawaran->penawaranDetail
+                    ->pluck('barang.id_vendor')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if (empty($requiredVendorIds)) {
+                    continue; // no vendors linked â€” skip
+                }
+
+                // Check all vendors delivered (in-memory, no extra queries)
+                $deliveredVendors = $deliveredMap[$penawaran->id_penawaran] ?? [];
+                $allDelivered = empty(array_diff($requiredVendorIds, $deliveredVendors));
+
+                if (!$allDelivered) {
                     continue;
                 }
-                
-                // Cek apakah ada penagihan untuk penawaran ini
+
+                // Resolve penagihan
                 $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
 
+                $sisaPembayaran   = 0;
+                $status           = '';
+                $tanggalJatuhTempo = null;
+                $nomorInvoice     = '';
+                $totalBayar       = 0;
+                $daysOverdue      = 0;
+                $shouldInclude    = false;
+
                 if (!$penagihan) {
-                    // Belum ada penagihan sama sekali - semua jadi piutang
-                    $totalPiutang += $penawaran->total_penawaran ?? 0;
-                    $jumlahProyek++;
-                    // Anggap jatuh tempo jika sudah lebih dari 30 hari sejak ACC
-                    if ($penawaran->updated_at < now()->subDays(30)) {
-                        $piutangJatuhTempo += $penawaran->total_penawaran ?? 0;
-                    }
-                } else if ($penagihan->status_pembayaran != 'lunas') {
-                    // Ada penagihan tapi belum lunas
-                    $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
+                    $shouldInclude     = true;
+                    $sisaPembayaran    = $penawaran->total_penawaran ?? 0;
+                    $status            = 'belum_ditagih';
+                    $tanggalJatuhTempo = now()->addDays(30);
+                    $nomorInvoice      = 'Belum Ditagih';
+                    $daysOverdue       = 0;
+                } elseif ($penagihan->status_pembayaran !== 'lunas') {
+                    $totalBayar     = $penagihan->buktiPembayaran->sum('jumlah_bayar');
                     $sisaPembayaran = $penagihan->total_harga - $totalBayar;
 
                     if ($sisaPembayaran > 0) {
-                        $totalPiutang += $sisaPembayaran;
-                        $jumlahProyek++;
+                        $shouldInclude     = true;
+                        $status            = $penagihan->status_pembayaran;
+                        $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
+                        $nomorInvoice      = $penagihan->nomor_invoice;
 
-                        // Check if overdue
-                        if ($penagihan->tanggal_jatuh_tempo && $penagihan->tanggal_jatuh_tempo < now()) {
-                            $piutangJatuhTempo += $sisaPembayaran;
+                        if ($tanggalJatuhTempo) {
+                            try {
+                                $jtDate = Carbon::createFromFormat('Y-m-d', (string) $tanggalJatuhTempo);
+                                $daysOverdue = $jtDate->isPast() ? abs($jtDate->diffInDays(now())) : 0;
+                            } catch (\Exception $e) {
+                                $daysOverdue = 0;
+                            }
                         }
                     }
                 }
+
+                if (!$shouldInclude || $sisaPembayaran <= 0) {
+                    continue;
+                }
+
+                // --- Stats ---
+                $totalPiutang += $sisaPembayaran;
+                $jumlahProyek++;
+                if ($status === 'belum_ditagih') {
+                    if ($penawaran->updated_at < now()->subDays(30)) {
+                        $piutangJatuhTempo += $sisaPembayaran;
+                    }
+                } elseif ($tanggalJatuhTempo && $tanggalJatuhTempo < now()) {
+                    $piutangJatuhTempo += $sisaPembayaran;
+                }
+
+                // --- Receivables list ---
+                $totalHarga  = $penawaran->total_penawaran ?? 0;
+                $progress    = $totalHarga > 0 ? ($totalBayar / $totalHarga) * 100 : 0;
+                $statusColor = $daysOverdue > 0 ? 'overdue' : 'pending';
+
+                $piutangList->push((object) [
+                    'instansi'           => $proyek->instansi,
+                    'kode_proyek'        => $proyek->kode_proyek,
+                    'nomor_invoice'      => $nomorInvoice,
+                    'total_harga'        => $totalHarga,
+                    'total_dibayar'      => $totalBayar,
+                    'sisa_piutang'       => $sisaPembayaran,
+                    'progress'           => $progress,
+                    'tanggal_jatuh_tempo'=> $tanggalJatuhTempo,
+                    'status_pembayaran'  => $status,
+                    'days_overdue'       => $daysOverdue,
+                    'status'             => $statusColor,
+                    'hari_telat'         => $daysOverdue,
+                ]);
+
+                // --- Debt age list ---
+                if ($daysOverdue <= 0) {
+                    $ageCategory = '0-30 hari';
+                    $colorClass  = 'green';
+                    $statusText  = $status === 'belum_ditagih' ? 'Belum Ditagih' : 'Baik';
+                } elseif ($daysOverdue <= 30) {
+                    $ageCategory = '0-30 hari';  $colorClass = 'green';  $statusText = 'Baik';
+                } elseif ($daysOverdue <= 60) {
+                    $ageCategory = '30-60 hari'; $colorClass = 'yellow'; $statusText = 'Perhatian';
+                } elseif ($daysOverdue <= 90) {
+                    $ageCategory = '60-90 hari'; $colorClass = 'orange'; $statusText = 'Waspada';
+                } elseif ($daysOverdue <= 120) {
+                    $ageCategory = '90-120 hari';  $colorClass = 'red'; $statusText = 'Buruk';
+                } elseif ($daysOverdue <= 150) {
+                    $ageCategory = '120-150 hari'; $colorClass = 'red'; $statusText = 'Sangat Buruk';
+                } else {
+                    $ageCategory = '>150 hari'; $colorClass = 'red'; $statusText = 'Kritis';
+                }
+
+                $debtAgeList->push((object) [
+                    'instansi'            => $proyek->instansi,
+                    'kode_proyek'         => $proyek->kode_proyek,
+                    'nomor_invoice'       => $nomorInvoice,
+                    'total_harga'         => $totalHarga,
+                    'total_dibayar'       => $totalBayar,
+                    'outstanding_amount'  => $sisaPembayaran,
+                    'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
+                    'status_pembayaran'   => $status,
+                    'days_overdue'        => $daysOverdue,
+                    'age_category'        => $ageCategory,
+                    'color_class'         => $colorClass,
+                    'status_text'         => $statusText,
+                ]);
             }
         }
 
         $rataRataPiutang = $jumlahProyek > 0 ? $totalPiutang / $jumlahProyek : 0;
 
         return [
-            'total_piutang' => $totalPiutang,
-            'piutang_jatuh_tempo' => $piutangJatuhTempo,
-            'jumlah_proyek' => $jumlahProyek,
-            'rata_rata_piutang' => $rataRataPiutang,
-            'total_piutang_formatted' => $this->formatRupiah($totalPiutang),
-            'piutang_jatuh_tempo_formatted' => $this->formatRupiah($piutangJatuhTempo),
-            'rata_rata_piutang_formatted' => $this->formatRupiah($rataRataPiutang),
+            'stats' => [
+                'total_piutang'              => $totalPiutang,
+                'piutang_jatuh_tempo'        => $piutangJatuhTempo,
+                'jumlah_proyek'              => $jumlahProyek,
+                'rata_rata_piutang'          => $rataRataPiutang,
+                'total_piutang_formatted'    => $this->formatRupiah($totalPiutang),
+                'piutang_jatuh_tempo_formatted' => $this->formatRupiah($piutangJatuhTempo),
+                'rata_rata_piutang_formatted'   => $this->formatRupiah($rataRataPiutang),
+            ],
+            'receivables' => $piutangList->sortBy('tanggal_jatuh_tempo')->take(4),
+            'debtAge'     => $debtAgeList->sortByDesc('outstanding_amount')->take(8),
         ];
-    }
-
-    /**
-     * Get client receivables data - updated to match LaporanController logic
-     */
-    private function getClientReceivables()
-    {
-        // Ambil semua proyek yang sudah di ACC (same logic as LaporanController)
-        $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
-            $query->where('status', 'ACC');
-        }, 'penagihanDinas.buktiPembayaran'])
-        ->whereHas('semuaPenawaran', function($query) {
-            $query->where('status', 'ACC');
-        })
-        ->get();
-
-        // Transform ke format yang dibutuhkan untuk dashboard
-        $piutangList = collect();
-
-        foreach ($proyekAcc as $proyek) {
-            foreach ($proyek->semuaPenawaran as $penawaran) {
-                // Cek apakah semua vendor sudah mengirim barang (Sampai_Tujuan)
-                $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
-                
-                // Skip jika barang belum sampai semua
-                if (!$allVendorsDelivered) {
-                    continue;
-                }
-                
-                $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
-
-                $shouldInclude = false;
-                $sisaPembayaran = 0;
-                $status = '';
-                $tanggalJatuhTempo = null;
-                $nomorInvoice = '';
-                $totalBayar = 0;
-
-                if (!$penagihan) {
-                    // Belum ada penagihan sama sekali
-                    $shouldInclude = true;
-                    $sisaPembayaran = $penawaran->total_penawaran ?? 0;
-                    $status = 'belum_ditagih';
-                    $tanggalJatuhTempo = now()->addDays(30); // Default 30 hari dari sekarang
-                    $nomorInvoice = 'Belum Ditagih';
-                } else if ($penagihan->status_pembayaran != 'lunas') {
-                    // Ada penagihan tapi belum lunas
-                    $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
-                    $sisaPembayaran = $penagihan->total_harga - $totalBayar;
-
-                    if ($sisaPembayaran > 0) {
-                        $shouldInclude = true;
-                        $status = $penagihan->status_pembayaran;
-                        $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
-                        $nomorInvoice = $penagihan->nomor_invoice;
-                    }
-                }
-
-                if ($shouldInclude) {
-                    // Calculate progress and overdue status
-                    $totalHarga = $penawaran->total_penawaran ?? 0;
-                    $progress = $totalHarga > 0 ? ($totalBayar / $totalHarga) * 100 : 0;
-                    $daysOverdue = $tanggalJatuhTempo && $tanggalJatuhTempo < now() ? now()->diffInDays($tanggalJatuhTempo) : 0;
-                    $statusColor = $daysOverdue > 0 ? 'overdue' : 'pending';
-
-                    // Create receivable item matching dashboard format
-                    $piutangItem = (object)[
-                        'instansi' => $proyek->instansi,
-                        'kode_proyek' => $proyek->kode_proyek,
-                        'nomor_invoice' => $nomorInvoice,
-                        'total_harga' => $totalHarga,
-                        'total_dibayar' => $totalBayar,
-                        'sisa_piutang' => $sisaPembayaran,
-                        'progress' => $progress,
-                        'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
-                        'status_pembayaran' => $status,
-                        'days_overdue' => $daysOverdue,
-                        'status' => $statusColor,
-                        'hari_telat' => $daysOverdue
-                    ];
-
-                    $piutangList->push($piutangItem);
-                }
-            }
-        }
-
-        // Sort by due date (ascending) and limit to 4 for dashboard
-        return $piutangList->sortBy('tanggal_jatuh_tempo')->take(4);
-    }
-
-    /**
-     * Get debt age analysis for clients based on invoice due dates - using same logic as piutang dinas
-     */
-    private function getDebtAgeAnalysis()
-    {
-        // Ambil semua proyek yang sudah di ACC (same logic as piutang dinas)
-        $proyekAcc = Proyek::with(['semuaPenawaran' => function($query) {
-            $query->where('status', 'ACC');
-        }, 'penagihanDinas.buktiPembayaran'])
-        ->whereHas('semuaPenawaran', function($query) {
-            $query->where('status', 'ACC');
-        })
-        ->get();
-
-        // Transform ke format untuk debt age analysis
-        $debtAgeList = collect();
-
-        foreach ($proyekAcc as $proyek) {
-            foreach ($proyek->semuaPenawaran as $penawaran) {
-                // Cek apakah semua vendor sudah mengirim barang (Sampai_Tujuan)
-                $allVendorsDelivered = $this->checkAllVendorsDelivered($penawaran);
-                
-                // Skip jika barang belum sampai semua
-                if (!$allVendorsDelivered) {
-                    continue;
-                }
-                
-                $penagihan = $proyek->penagihanDinas->where('penawaran_id', $penawaran->id_penawaran)->first();
-
-                $shouldInclude = false;
-                $sisaPembayaran = 0;
-                $status = '';
-                $tanggalJatuhTempo = null;
-                $nomorInvoice = '';
-                $totalBayar = 0;
-                $daysOverdue = 0;
-
-                if (!$penagihan) {
-                    // Belum ada penagihan sama sekali
-                    $shouldInclude = true;
-                    $sisaPembayaran = $penawaran->total_penawaran ?? 0;
-                    $status = 'belum_ditagih';
-                    $tanggalJatuhTempo = now()->addDays(30); // Default 30 hari dari sekarang
-                    $nomorInvoice = 'Belum Ditagih';
-                    $daysOverdue = 0; // Belum telat karena belum ditagih
-                } else if ($penagihan->status_pembayaran != 'lunas') {
-                    // Ada penagihan tapi belum lunas
-                    $totalBayar = $penagihan->buktiPembayaran->sum('jumlah_bayar');
-                    $sisaPembayaran = $penagihan->total_harga - $totalBayar;
-
-                    if ($sisaPembayaran > 0) {
-                        $shouldInclude = true;
-                        $status = $penagihan->status_pembayaran;
-                        $tanggalJatuhTempo = $penagihan->tanggal_jatuh_tempo;
-                        $nomorInvoice = $penagihan->nomor_invoice;
-
-                        // Calculate days overdue
-                        if ($tanggalJatuhTempo) {
-                            try {
-                                $jatuhTempoDate = Carbon::createFromFormat('Y-m-d', (string)$tanggalJatuhTempo);
-                                if ($jatuhTempoDate->isPast()) {
-                                    $daysOverdue = abs($jatuhTempoDate->diffInDays(now()));
-                                } else {
-                                    $daysOverdue = 0;
-                                }
-                            } catch (\Exception $e) {
-                                $daysOverdue = 0;
-                            }
-                        } else {
-                            $daysOverdue = 0;
-                        }
-                    }
-                }
-
-                if ($shouldInclude && $sisaPembayaran > 0) {
-                    // Determine age category and color
-                    $ageCategory = '';
-                    $colorClass = '';
-                    $statusText = '';
-
-                    if ($daysOverdue <= 0) {
-                        $ageCategory = '0-30 hari';
-                        $colorClass = 'green';
-                        $statusText = $status == 'belum_ditagih' ? 'Belum Ditagih' : 'Baik';
-                    } elseif ($daysOverdue <= 30) {
-                        $ageCategory = '0-30 hari';
-                        $colorClass = 'green';
-                        $statusText = 'Baik';
-                    } elseif ($daysOverdue <= 60) {
-                        $ageCategory = '30-60 hari';
-                        $colorClass = 'yellow';
-                        $statusText = 'Perhatian';
-                    } elseif ($daysOverdue <= 90) {
-                        $ageCategory = '60-90 hari';
-                        $colorClass = 'orange';
-                        $statusText = 'Waspada';
-                    } elseif ($daysOverdue <= 120) {
-                        $ageCategory = '90-120 hari';
-                        $colorClass = 'red';
-                        $statusText = 'Buruk';
-                    } elseif ($daysOverdue <= 150) {
-                        $ageCategory = '120-150 hari';
-                        $colorClass = 'red';
-                        $statusText = 'Sangat Buruk';
-                    } else {
-                        $ageCategory = '>150 hari';
-                        $colorClass = 'red';
-                        $statusText = 'Kritis';
-                    }
-
-                    // Create debt age item
-                    $debtAgeItem = (object)[
-                        'instansi' => $proyek->instansi,
-                        'kode_proyek' => $proyek->kode_proyek,
-                        'nomor_invoice' => $nomorInvoice,
-                        'total_harga' => $penawaran->total_penawaran ?? 0,
-                        'total_dibayar' => $totalBayar,
-                        'outstanding_amount' => $sisaPembayaran,
-                        'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
-                        'status_pembayaran' => $status,
-                        'days_overdue' => $daysOverdue,
-                        'age_category' => $ageCategory,
-                        'color_class' => $colorClass,
-                        'status_text' => $statusText
-                    ];
-
-                    $debtAgeList->push($debtAgeItem);
-                }
-            }
-        }
-
-        // Sort by outstanding amount (descending) and limit to top 8
-        return $debtAgeList->sortByDesc('outstanding_amount')->take(8);
-    }
-
-    /**
-     * Check if all vendors have delivered their items for a penawaran
-     */
-    private function checkAllVendorsDelivered($penawaran)
-    {
-        // Get all unique vendor IDs from penawaran details
-        $vendorIds = $penawaran->penawaranDetail()
-            ->join('barang', 'penawaran_detail.id_barang', '=', 'barang.id_barang')
-            ->pluck('barang.id_vendor')
-            ->unique();
-
-        // If no vendors found, return false
-        if ($vendorIds->isEmpty()) {
-            return false;
-        }
-
-        // Check each vendor has delivered (status_verifikasi = Sampai_Tujuan)
-        foreach ($vendorIds as $vendorId) {
-            $pengiriman = $penawaran->pengiriman()
-                ->where('id_vendor', $vendorId)
-                ->where('status_verifikasi', 'Sampai_Tujuan')
-                ->exists();
-
-            if (!$pengiriman) {
-                return false; // At least one vendor hasn't delivered yet
-            }
-        }
-
-        return true; // All vendors have delivered
     }
 
     /**
