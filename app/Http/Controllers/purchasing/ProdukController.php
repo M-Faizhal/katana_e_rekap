@@ -302,6 +302,14 @@ class ProdukController extends Controller
         // Execute export (akan langsung download)
         return $export->export();
     }
+    public function exportProdukPurchasing(Request $request)
+    {
+        // Create export instance with filters
+        $export = new \App\Exports\ProdukPurchasingExport($request->all());
+        
+        // Execute export (akan langsung download)
+        return $export->export();
+    }
     
     /**
      * Clear product cache (call this when products are updated)

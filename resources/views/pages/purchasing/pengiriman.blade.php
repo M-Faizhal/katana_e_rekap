@@ -1319,6 +1319,7 @@ function updateDokumentasi(pengirimanId) {
                 current: pengiriman.foto_berangkat,
                 checkKey: 'berangkat',
                 checkName: 'check_berangkat',
+                required: false,
             },
             { 
                 name: 'foto_perjalanan', 
@@ -1328,6 +1329,7 @@ function updateDokumentasi(pengirimanId) {
                 current: pengiriman.foto_perjalanan,
                 checkKey: 'perjalanan',
                 checkName: 'check_perjalanan',
+                required: false,
             },
             { 
                 name: 'foto_sampai', 
@@ -1335,8 +1337,9 @@ function updateDokumentasi(pengirimanId) {
                 accept: '.jpg,.jpeg,.png',
                 icon: 'fas fa-map-marker-alt',
                 current: pengiriman.foto_sampai,
-                checkKey: 'sampai',
-                checkName: 'check_sampai',
+                checkKey: null,
+                checkName: null,
+                required: true,
             },
             { 
                 name: 'tanda_terima', 
@@ -1344,8 +1347,9 @@ function updateDokumentasi(pengirimanId) {
                 accept: '.pdf,.jpg,.jpeg,.png',
                 icon: 'fas fa-signature',
                 current: pengiriman.tanda_terima,
-                checkKey: 'terima',
-                checkName: 'check_terima',
+                checkKey: null,
+                checkName: null,
+                required: true,
             }
         ];
 
@@ -1359,7 +1363,7 @@ function updateDokumentasi(pengirimanId) {
 
         const fieldsHtml = dokumentasiFields.map(field => {
             const hasFile    = field.current && field.current.trim() !== '';
-            const hasChecked = !!checklistData[field.checkKey];
+            const hasChecked = field.checkKey ? !!checklistData[field.checkKey] : false;
             const isDone     = hasFile || hasChecked;
 
             // Status badge
@@ -1372,11 +1376,17 @@ function updateDokumentasi(pengirimanId) {
                 statusBadge = `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-2">
                     <i class="fas fa-check-square mr-1"></i> Ditandai Selesai
                 </span>`;
+            } else if (field.required) {
+                statusBadge = `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700 mb-2">
+                    <i class="fas fa-upload mr-1"></i> Belum Diupload
+                </span>`;
             } else {
                 statusBadge = `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mb-2">
                     <i class="fas fa-times-circle mr-1"></i> Belum Ada
                 </span>`;
             }
+
+          
 
             // Info file saat ini
             const currentFileInfo = hasFile ? 
@@ -1393,9 +1403,13 @@ function updateDokumentasi(pengirimanId) {
                     </div>
                 </div>` : '';
 
-            // Checkbox — hanya tampil jika belum ada file
-            const checkboxHtml = !hasFile ?
-                `<label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
+            // Checkbox — hanya tampil jika bukan field required DAN belum ada file
+            let checkboxHtml = '';
+            if (field.required) {
+                // Field wajib: tidak ada checkbox, file input wajib diisi jika belum ada file
+                checkboxHtml = '';
+            } else if (!hasFile && field.checkName) {
+                checkboxHtml = `<label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
                     <input type="checkbox" name="${field.checkName}" value="1"
                            ${hasChecked ? 'checked' : ''}
                            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
@@ -1403,20 +1417,32 @@ function updateDokumentasi(pengirimanId) {
                         Tandai <strong>${field.label}</strong> sudah selesai
                         <span class="text-gray-400">(tanpa upload file)</span>
                     </span>
-                </label>` : 
-                `<input type="hidden" name="${field.checkName}" value="${hasChecked ? '1' : '0'}">`;
+                </label>`;
+            } else if (hasFile && field.checkName) {
+                checkboxHtml = `<input type="hidden" name="${field.checkName}" value="${hasChecked ? '1' : '0'}">`;
+            }
+
+           
+
+            // Hint text bawah input
+            let hintText = '';
+            if (hasFile) {
+                hintText = 'Upload baru untuk mengganti';
+            } else if (field.required) {
+                hintText = '<span class="text-orange-600"><i class="fas fa-info-circle mr-1"></i>Harus upload file</span>';
+            } else {
+                hintText = 'Maks 5MB — JPG/PNG' + (field.accept.includes('pdf') ? '/PDF' : '');
+            }
 
             return `
-                <div class="border ${isDone ? 'border-green-200 bg-green-50' : 'border-gray-200'} rounded-lg p-4">
+                <div class="border rounded-lg p-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="${field.icon} mr-2"></i>${field.label}
+                        <i class="${field.icon} mr-2"></i>${field.label}${field.required ? ' <span class="text-orange-500 font-bold">*</span>' : ''}
                     </label>
-                    ${statusBadge}
+                    <div class="flex flex-wrap gap-1">${statusBadge}</div>
                     <input type="file" name="${field.name}" accept="${field.accept}" 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    <p class="text-xs text-gray-500 mt-1">
-                        ${hasFile ? 'Upload baru untuk mengganti' : 'Maks 5MB — JPG/PNG' + (field.accept.includes('pdf') ? '/PDF' : '')}
-                    </p>
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm mt-2">
+                    <p class="text-xs text-gray-500 mt-1">${hintText}</p>
                     ${currentFileInfo}
                     ${checkboxHtml}
                 </div>

@@ -75,7 +75,7 @@ class OmsetExportController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
 
         // Set judul
-        $sheet->setCellValue('A1', 'LAPORAN DATA OMSET TAHUN ' . $tahun);
+        $sheet->setCellValue('A1', 'LAPORAN DATA OMSET PROYEK TAHUN ' . $tahun);
         $sheet->mergeCells('A1:G1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);

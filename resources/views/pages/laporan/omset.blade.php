@@ -58,9 +58,9 @@
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-600 truncate">
                     @if(request()->has('all'))
-                        Omset Tahun Ini ({{ date('Y') }})
+                        Omset Potensi Tahun Ini ({{ date('Y') }})
                     @else
-                        Omset Tahun Potensi {{ $selectedYear }}
+                        Omset Potensi Tahun {{ $selectedYear }}
                     @endif
                 </h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">
@@ -79,9 +79,9 @@
             <div class="min-w-0">
                 <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-600 truncate">
                     @if(!request()->has('all') && $selectedYear != date('Y'))
-                        Omset Desember {{ $selectedYear }}
+                        Omset Potensi Desember {{ $selectedYear }}
                     @else
-                        Omset Bulan Ini ({{ \Carbon\Carbon::now()->translatedFormat('F') }})
+                        Omset Potensi Bulan Ini ({{ \Carbon\Carbon::now()->translatedFormat('F') }})
                     @endif
                 </h3>
                 <p class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">
@@ -103,7 +103,7 @@
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-gray-800">
-                        Perbandingan Omset: Internal vs Eksternal
+                        Perbandingan Omset Potensi: Internal vs Eksternal
                     </h3>
                     <p class="text-sm text-gray-500">
                         @if(request()->has('all'))
@@ -156,7 +156,7 @@
                 </div>
                 <div>
                     <h2 class="text-lg sm:text-xl font-bold text-gray-800">Top Marketing Internal</h2>
-                    <p class="text-sm sm:text-base text-gray-600 mt-1">Berdasarkan omset proyek yang ditangani</p>
+                    <p class="text-sm sm:text-base text-gray-600 mt-1">Berdasarkan omset potensi yang ditangani</p>
                 </div>
             </div>
         </div>
@@ -165,9 +165,9 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PIC</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Omset</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Omset Potensi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="marketingInternalTable">
@@ -186,7 +186,7 @@
                 </div>
                 <div>
                     <h2 class="text-lg sm:text-xl font-bold text-gray-800">Top Marketing Eksternal</h2>
-                    <p class="text-sm sm:text-base text-gray-600 mt-1">Berdasarkan omset proyek yang ditangani</p>
+                    <p class="text-sm sm:text-base text-gray-600 mt-1">Berdasarkan omset potensi yang ditangani</p>
                 </div>
             </div>
         </div>
@@ -195,9 +195,9 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PIC</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Omset</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Omset Potensi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="marketingEksternalTable">
@@ -250,7 +250,7 @@ function updateOmsetChart() {
     console.log('updateOmsetChart called with selectedYear:', selectedYear);
     
     try {
-        showNotification(`Memuat data omset tahun ${selectedYear === 'all' ? 'semua' : selectedYear}...`, 'info');
+        showNotification(`Memuat data omset potensi tahun ${selectedYear === 'all' ? 'semua' : selectedYear}...`, 'info');
         
         // Simple page redirect with year filter
         const params = new URLSearchParams();
@@ -525,7 +525,7 @@ function initializeLabelPieChart(omsetByLabel) {
         <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 mt-2">
             <div class="flex items-center gap-3">
                 <div class="w-4 h-4 rounded-full bg-gray-400 flex-shrink-0"></div>
-                <div class="font-semibold text-gray-600 text-base">Total Omset</div>
+                <div class="font-semibold text-gray-600 text-base">Total Omset Potensi</div>
             </div>
             <div class="text-right">
                 <div class="text-sm font-bold text-gray-800">Rp ${Math.round(total).toLocaleString('id-ID')}</div>
@@ -544,7 +544,7 @@ function exportOmset() {
     const selectedYear = document.getElementById('omsetChartYear').value;
     const yearParam = selectedYear !== 'all' ? selectedYear : new Date().getFullYear();
     
-    showNotification('Mengunduh laporan omset tahun ' + yearParam + '...', 'info');
+    showNotification('Mengunduh laporan omset potensi tahun ' + yearParam + '...', 'info');
     
     // Build URL with year parameter
     const url = '{{ route("laporan.export-omset-marketing") }}?year=' + yearParam;

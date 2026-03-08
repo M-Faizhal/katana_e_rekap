@@ -326,7 +326,12 @@
                             </p>
                             
                             <!-- Vendor Name -->
-                            <p class="text-xs text-gray-500 mt-auto">{{ $item->vendor->nama_vendor }}</p>
+                            <p class="text-xs text-gray-500">{{ $item->vendor->nama_vendor }}</p>
+                            
+                            <!-- Last Update -->
+                            <p class="text-xs text-gray-400 mt-auto pt-4">
+                                <i class="fas fa-clock mr-1"></i>{{ $item->updated_at->diffForHumans() }}
+                            </p>
                         </div>
                     </div>
                 @endforeach

@@ -1220,11 +1220,12 @@ function collectTambahFormData() {
 
         // Convert Indonesian formatted price to number (remove dots, replace comma with dot)
         let hargaSatuan = null;
-        if (hargaSatuanRaw) {
+        if (hargaSatuanRaw !== null && hargaSatuanRaw !== undefined && hargaSatuanRaw.trim() !== '') {
             const cleanValue = hargaSatuanRaw 
                 .replace(/\./g, '')    // Remove thousand separators (dots)
                 .replace(/,/g, '.');   // Replace decimal comma with dot
-            hargaSatuan = parseFloat(cleanValue) || null;
+            const parsed = parseFloat(cleanValue);
+            hargaSatuan = isNaN(parsed) ? null : parsed; // 0 tetap 0, bukan null
         }
 
         // Hanya tambahkan barang yang memiliki data minimal (nama, qty, satuan)

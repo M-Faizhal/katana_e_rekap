@@ -26,7 +26,7 @@
                 <i class="fas fa-chart-line text-white text-lg sm:text-xl"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Omset Tahun Ini</h3>
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate">Omset Proyek Tahun Ini</h3>
                 <p class="text-xl sm:text-2xl font-bold text-green-600 mb-1">Rp {{ $stats['omset_tahun_ini_formatted'] ?? '0' }}</p>
                 <div class="flex items-center space-x-1">
                     <i class="fas fa-arrow-{{ $stats['omset_growth'] >= 0 ? 'up' : 'down' }} text-{{ $stats['omset_growth'] >= 0 ? 'green' : 'red' }}-500 text-sm"></i>
@@ -101,7 +101,7 @@
                     <i class="fas fa-chart-line text-green-600"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Grafik Omset Per Bulan</h3>
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Grafik Omset Proyek Per Bulan</h3>
                     <p class="text-sm text-gray-600" id="dashboardChartInfo">Data untuk {{ date('Y') }}</p>
                 </div>
             </div>
@@ -127,7 +127,7 @@
                     <i class="fas fa-trophy text-yellow-600"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Omset Per PIC Marketing</h3>
+                    <h3 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Omset Proyek Per PIC Marketing</h3>
                     <p class="text-sm text-gray-600">Top performer PIC marketing</p>
                 </div>
             </div>

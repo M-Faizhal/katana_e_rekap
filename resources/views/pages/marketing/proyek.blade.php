@@ -109,31 +109,26 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                 </span>
                 <button type="button" data-prioritas="expired"
                     class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 transition-colors duration-200">
-                    <i class="fas fa-skull text-xs text-gray-500"></i>
                     <span>Expired</span>
                     <span id="count-expired" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-gray-200 text-gray-700">0</span>
                 </button>
                 <button type="button" data-prioritas="tinggi"
                     class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 transition-colors duration-200">
-                    <i class="fas fa-fire text-xs text-red-500"></i>
                     <span>Tinggi</span>
                     <span id="count-tinggi" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-red-200 text-red-700">0</span>
                 </button>
                 <button type="button" data-prioritas="sedang"
                     class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors duration-200">
-                    <i class="fas fa-clock text-xs text-amber-500"></i>
                     <span>Sedang</span>
                     <span id="count-sedang" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-amber-200 text-amber-700">0</span>
                 </button>
                 <button type="button" data-prioritas="rendah"
                     class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 transition-colors duration-200">
-                    <i class="fas fa-calendar-check text-xs text-green-500"></i>
                     <span>Rendah</span>
                     <span id="count-rendah" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-green-200 text-green-700">0</span>
                 </button>
                 <button type="button" data-prioritas="none"
                     class="quick-prioritas inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm rounded-full border border-gray-200 text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                    <i class="fas fa-calendar-times text-xs text-gray-400"></i>
                     <span>Tanpa Deadline</span>
                     <span id="count-none" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold rounded-full bg-gray-200 text-gray-600">0</span>
                 </button>
@@ -220,19 +215,12 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                                         'rendah'  => 'bg-green-100 text-green-700 border border-green-300',
                                         default   => 'bg-gray-100 text-gray-500 border border-gray-200',
                                     };
-                                    $badgeIcon = match($p['level']) {
-                                        'expired' => 'fa-skull',
-                                        'tinggi'  => 'fa-fire',
-                                        'sedang'  => 'fa-clock',
-                                        'rendah'  => 'fa-calendar-check',
-                                        default   => 'fa-calendar',
-                                    };
+                                    
                                     $hariLabel = $p['hari'] < 0
                                         ? 'Expired'
                                         : ($p['hari'] === 0 ? 'Hari ini!' : $p['hari'] . ' hari lagi');
                                 @endphp
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full {{ $badgeCls }}">
-                                    <i class="fas {{ $badgeIcon }} text-xs"></i>
                                     {{ $hariLabel }}
                                 </span>
                                 @endif
@@ -1334,10 +1322,10 @@ function viewDetail(id) {
             const today = new Date(); today.setHours(0,0,0,0); dl.setHours(0,0,0,0);
             const hari  = Math.round((dl - today) / 86400000);
             let label, icon, cls;
-            if (hari < 0)        { label = 'Expired';                               icon = 'fa-skull';          cls = 'text-gray-700 bg-gray-100 border-gray-300'; }
-            else if (hari < 7)   { label = 'Prioritas Tinggi — ' + hari + ' hari lagi'; icon = 'fa-fire';       cls = 'text-red-700 bg-red-100 border-red-300'; }
-            else if (hari <= 14) { label = 'Prioritas Sedang — ' + hari + ' hari lagi'; icon = 'fa-clock';      cls = 'text-yellow-700 bg-amber-100 border-amber-300'; }
-            else                 { label = 'Prioritas Rendah — ' + hari + ' hari lagi'; icon = 'fa-calendar-check'; cls = 'text-green-700 bg-green-100 border-green-300'; }
+            if (hari < 0)        { label = 'Expired';                                     cls = 'text-gray-700 bg-gray-100 border-gray-300'; }
+            else if (hari < 7)   { label = 'Prioritas Tinggi — ' + hari + ' hari lagi';        cls = 'text-red-700 bg-red-100 border-red-300'; }
+            else if (hari <= 14) { label = 'Prioritas Sedang — ' + hari + ' hari lagi';       cls = 'text-yellow-700 bg-amber-100 border-amber-300'; }
+            else                 { label = 'Prioritas Rendah — ' + hari + ' hari lagi'; cls = 'text-green-700 bg-green-100 border-green-300'; }
             deadlineBdg.style.display = 'flex';
             deadlineBdg.innerHTML = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ' + cls + '"><i class="fas ' + icon + '"></i>' + label + '</span>';
         } else {

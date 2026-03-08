@@ -483,8 +483,9 @@ class PengirimanController extends Controller
                 $newChecklist = [
                     'berangkat'  => $request->boolean('check_berangkat')  || !empty($oldChecklist['berangkat']),
                     'perjalanan' => $request->boolean('check_perjalanan') || !empty($oldChecklist['perjalanan']),
-                    'sampai'     => $request->boolean('check_sampai')     || !empty($oldChecklist['sampai']),
-                    'terima'     => $request->boolean('check_terima')     || !empty($oldChecklist['terima']),
+                    // foto_sampai & tanda_terima wajib file — tidak bisa via checkbox
+                    'sampai'     => !empty($oldChecklist['sampai']),
+                    'terima'     => !empty($oldChecklist['terima']),
                 ];
 
                 $updateData['catatan_verifikasi'] = '[CHECKLIST]' . json_encode($newChecklist);
@@ -498,8 +499,9 @@ class PengirimanController extends Controller
             $cl = $pengiriman->checklist_data;
             $adaBerangkat  = $pengiriman->foto_berangkat  || !empty($cl['berangkat']);
             $adaPerjalanan = $pengiriman->foto_perjalanan || !empty($cl['perjalanan']);
-            $adaSampai     = $pengiriman->foto_sampai     || !empty($cl['sampai']);
-            $adaTerima     = $pengiriman->tanda_terima    || !empty($cl['terima']);
+            // foto_sampai & tanda_terima wajib file — checklist tidak dihitung
+            $adaSampai     = (bool) $pengiriman->foto_sampai;
+            $adaTerima     = (bool) $pengiriman->tanda_terima;
 
             if ($adaBerangkat && $adaPerjalanan && $adaSampai && $adaTerima) {
                 $pengiriman->update(['status_verifikasi' => 'Sampai_Tujuan']);

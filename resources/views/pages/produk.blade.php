@@ -315,29 +315,34 @@
                             <!-- Harga yang Diharapkan (dari kalkulasi HPS) -->
                             @if(isset($item->harga_marketing) && $item->harga_marketing)
                                 <p class="text-xs sm:text-sm font-bold text-red-600 mb-1">
-                                    Rp {{ number_format($item->harga_marketing, 0, ',', '.') }} / {{ $item->satuan }}
+                                    Rp {{ number_format($item->harga_marketing, 2, ',', '.') }} / {{ $item->satuan }}
                                 </p>
                                 @if($item->harga_pasaran_inaproc)
-                                <p class="text-xs text-gray-400 line-through mb-1">
-                                    Inaproc: Rp {{ number_format($item->harga_pasaran_inaproc, 0, ',', '.') }}
+                                <p class="text-xs text-gray-400 mb-1">
+                                    Inaproc: Rp {{ number_format($item->harga_pasaran_inaproc, 2, ',', '.') }}
                                 </p>
                                 @endif
                             @else
                                 <!-- Harga Pasaran Inaproc (Red, Bold) -->
                                 @if($item->harga_pasaran_inaproc)
                                     <p class="text-xs sm:text-sm font-bold text-red-600 mb-1">
-                                        Rp {{ number_format($item->harga_pasaran_inaproc, 0, ',', '.') }} / {{ $item->satuan }} 
+                                        Rp {{ number_format($item->harga_pasaran_inaproc, 2, ',', '.') }} / {{ $item->satuan }} 
                                     </p>
                                 @endif
                                 
                                 <!-- Harga Vendor -->
                                 <p class="text-xs sm:text-sm text-gray-900 mb-1">
-                                    Rp {{ number_format($item->harga_vendor, 0, ',', '.') }} / {{ $item->satuan }}
+                                    Rp {{ number_format($item->harga_vendor, 2, ',', '.') }} / {{ $item->satuan }}
                                 </p>
                             @endif
                             
                             <!-- Vendor Name -->
-                            <p class="text-xs text-gray-500 mt-auto">{{ $item->vendor->nama_vendor }}</p>
+                            <p class="text-xs text-gray-500">{{ $item->vendor->nama_vendor }}</p>
+                            
+                            <!-- Last Update -->
+                            <p class="text-xs pt-4 text-gray-400 mt-auto">
+                                <i class="fas fa-clock mr-1"></i>{{ $item->updated_at->diffForHumans() }}
+                            </p>
                         </div>
                     </div>
                 @endforeach

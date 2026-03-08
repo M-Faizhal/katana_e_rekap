@@ -176,16 +176,16 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                     $deadlineCarbon = \Carbon\Carbon::parse($deadlineVal)->startOfDay();
                     $hari = $today->diffInDays($deadlineCarbon, false);
                     if ($hari < 0) {
-                        $prioritasInfo = ['label' => '💀 Expired', 'badge' => 'bg-black text-white'];
+                        $prioritasInfo = ['label' => 'Expired', 'badge' => 'bg-black text-white'];
                         $borderClass = 'border-black';
                     } elseif ($hari < 7) {
-                        $prioritasInfo = ['label' => '🔴 Prioritas Tinggi (' . $hari . ' hari)', 'badge' => 'bg-red-100 text-red-800'];
+                        $prioritasInfo = ['label' => 'Prioritas Tinggi (' . $hari . ' hari)', 'badge' => 'bg-red-100 text-red-800'];
                         $borderClass = 'border-red-500';
                     } elseif ($hari <= 14) {
-                        $prioritasInfo = ['label' => '🟡 Prioritas Sedang (' . $hari . ' hari)', 'badge' => 'bg-yellow-100 text-yellow-800'];
+                        $prioritasInfo = ['label' => 'Prioritas Sedang (' . $hari . ' hari)', 'badge' => 'bg-yellow-100 text-yellow-800'];
                         $borderClass = 'border-yellow-400';
                     } else {
-                        $prioritasInfo = ['label' => '🟢 Prioritas Rendah (' . $hari . ' hari)', 'badge' => 'bg-green-100 text-green-800'];
+                        $prioritasInfo = ['label' => 'Prioritas Rendah (' . $hari . ' hari)', 'badge' => 'bg-green-100 text-green-800'];
                         $borderClass = 'border-green-400';
                     }
                 }
