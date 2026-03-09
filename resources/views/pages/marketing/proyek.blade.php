@@ -16,9 +16,8 @@ function countTotal($data) {
     return count($data);
 }
 
-// Hitung statistik
+// Hitung statistik (hanya status yang ditampilkan di halaman ini)
 $totalProyek = countTotal($proyekData);
-$menungguCount = countByStatus($proyekData, 'menunggu');
 $penawaranCount = countByStatus($proyekData, 'penawaran');
 $pembayaranCount = countByStatus($proyekData, 'pembayaran');
 $pengirimanCount = countByStatus($proyekData, 'pengiriman');
@@ -76,8 +75,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <select id="statusFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Status</option>
-                    <option value="menunggu">Menunggu</option>
-                    <option value="penawaran">Penawaran</option>
+                    <option value="penawaran">Penawaran (ACC)</option>
                     <option value="pembayaran">Pembayaran</option>
                     <option value="pengiriman">Pengiriman</option>
                     <option value="selesai">Selesai</option>
@@ -201,7 +199,11 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                                     @elseif($proyek['status'] === 'menunggu') bg-gray-100 text-gray-800
                                     @else bg-red-100 text-red-800
                                     @endif">
-                                    {{ ucfirst($proyek['status']) }}
+                                    @if($proyek['status'] === 'penawaran')
+                                        Penawaran (ACC)
+                                    @else
+                                        {{ ucfirst($proyek['status']) }}
+                                    @endif
                                 </span>
 
                                 {{-- Badge Prioritas Deadline --}}
@@ -382,15 +384,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
     </div>
 </div>
 
-<!-- Floating Action Button -->
-@if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
-<button onclick="openModal('modalTambahProyek')" class="fixed bottom-4 right-4 sm:bottom-16 sm:right-16 bg-red-600 text-white w-12 h-12 sm:w-16 sm:h-16 rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 transform transition-all duration-200 flex items-center justify-center group z-50">
-    <i class="fas fa-plus text-lg sm:text-xl group-hover:rotate-180 transition-transform duration-300"></i>
-    <span class="absolute right-full mr-2 sm:mr-3 bg-gray-800 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap hidden sm:block">
-        Tambah Proyek
-    </span>
-</button>
-@endif
+
 
 <!-- Include Modal Components -->
 @include('pages.marketing.proyek-components.tambah')
@@ -889,7 +883,13 @@ function filterAndSort() {
     // Apply status filter
     const selectedStatus = statusFilter ? statusFilter.value : '';
     if (selectedStatus) {
-        filtered = filtered.filter(proyek => proyek.status === selectedStatus);
+        filtered = filtered.filter(proyek => {
+            if (selectedStatus === 'penawaran') {
+                // Penawaran ACC: status proyek = penawaran DAN status penawaran = ACC
+                return proyek.status === 'penawaran' && proyek.penawaran?.status === 'ACC';
+            }
+            return proyek.status === selectedStatus;
+        });
     }
 
     // Apply prioritas deadline filter

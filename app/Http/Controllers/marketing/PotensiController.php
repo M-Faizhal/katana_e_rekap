@@ -21,10 +21,23 @@ class PotensiController extends Controller
 {
     public function index()
     {
-        // Ambil data proyek yang ditandai sebagai potensi dengan status menunggu
+        // Ambil data proyek potensi:
+        // - Status Menunggu
+        // - Status Penawaran yang penawarannya masih Menunggu (belum ACC)
         $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
             ->where('potensi', 'ya')
-            ->where('status', 'menunggu')
+            ->where(function ($query) {
+                $query->where('status', 'Menunggu')
+                      ->orWhere(function ($q) {
+                          $q->where('status', 'Penawaran')
+                            ->whereHas('penawaranList', function ($p) {
+                                $p->where('status', 'Menunggu');
+                            })
+                            ->whereDoesntHave('penawaranList', function ($p) {
+                                $p->where('status', 'ACC');
+                            });
+                      });
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 

@@ -21,10 +21,20 @@ class ProyekController extends Controller
 {
     public function index()
     {
-        // Ambil semua data proyek dengan relasi admin marketing, purchasing, wilayah, dan proyek barang
-        // UBAH DARI orderBy('tanggal', 'asc') MENJADI orderBy('created_at', 'desc')
+        // Ambil proyek:
+        // - Status Penawaran yang penawarannya sudah ACC
+        // - Status Pembayaran, Pengiriman, Selesai, Gagal
         $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
-            ->orderBy('created_at', 'desc') // Proyek yang baru dibuat di atas
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    // Penawaran ACC: status proyek = Penawaran DAN ada penawaran dengan status ACC
+                    $q->where('status', 'Penawaran')
+                      ->whereHas('penawaranList', function ($p) {
+                          $p->where('status', 'ACC');
+                      });
+                })->orWhereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal']);
+            })
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Transform data untuk view

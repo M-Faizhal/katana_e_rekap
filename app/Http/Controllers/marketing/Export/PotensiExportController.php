@@ -25,7 +25,20 @@ class PotensiExportController extends Controller
         // Query data proyek dengan filter
         $query = Proyek::with(['wilayah', 'adminMarketing', 'proyekBarang'])
             ->where('potensi', 'ya')
-            ->where('status', 'Menunggu')  // Filter hanya status Menunggu
+            ->where(function ($q) {
+                // Status Menunggu
+                $q->where('status', 'Menunggu')
+                  // Atau status Penawaran yang penawarannya masih Menunggu (belum ACC)
+                  ->orWhere(function ($q2) {
+                      $q2->where('status', 'Penawaran')
+                         ->whereHas('penawaranList', function ($p) {
+                             $p->where('status', 'Menunggu');
+                         })
+                         ->whereDoesntHave('penawaranList', function ($p) {
+                             $p->where('status', 'ACC');
+                         });
+                  });
+            })
             ->orderBy('tanggal', 'desc');
 
         // Apply filters

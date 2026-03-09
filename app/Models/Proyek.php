@@ -158,6 +158,12 @@ class Proyek extends Model
         return $this->hasOne(Penawaran::class, 'id_proyek', 'id_proyek')->latest();
     }
 
+    // Relasi semua penawaran milik proyek (untuk whereHas query)
+    public function penawaranList()
+    {
+        return $this->hasMany(Penawaran::class, 'id_proyek', 'id_proyek');
+    }
+
     // Relationship untuk multiple barang per proyek
     public function proyekBarang()
     {

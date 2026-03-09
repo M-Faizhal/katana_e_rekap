@@ -588,9 +588,25 @@ public function exportTSV(Request $request)
         $selectedYear = $request ? $request->get('year') : null;
 
         // Base: SUM(proyek_barang.harga_total) joined to proyek via tahun_potensi
+        // Hanya proyek potensi: status Menunggu, atau Penawaran yang belum ada ACC
         $baseQuery = fn() => DB::table('proyek_barang')
             ->join('proyek', 'proyek_barang.id_proyek', '=', 'proyek.id_proyek')
-            ->where('proyek.status', '!=', 'Gagal');
+            ->where(function ($q) {
+                $q->where('proyek.status', 'Menunggu')
+                  ->orWhere(function ($q2) {
+                      $q2->where('proyek.status', 'Penawaran')
+                         ->whereExists(function ($sub) {
+                             $sub->from('penawaran')
+                                 ->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')
+                                 ->where('penawaran.status', 'Menunggu');
+                         })
+                         ->whereNotExists(function ($sub) {
+                             $sub->from('penawaran')
+                                 ->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')
+                                 ->where('penawaran.status', 'ACC');
+                         });
+                  });
+            });
 
         if ($selectedYear && $selectedYear !== 'all') {
             $year = (int) $selectedYear;
@@ -649,7 +665,22 @@ public function exportTSV(Request $request)
 
         $base = DB::table('proyek_barang')
             ->join('proyek', 'proyek_barang.id_proyek', '=', 'proyek.id_proyek')
-            ->where('proyek.status', '!=', 'Gagal');
+            ->where(function ($q) {
+                $q->where('proyek.status', 'Menunggu')
+                  ->orWhere(function ($q2) {
+                      $q2->where('proyek.status', 'Penawaran')
+                         ->whereExists(function ($sub) {
+                             $sub->from('penawaran')
+                                 ->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')
+                                 ->where('penawaran.status', 'Menunggu');
+                         })
+                         ->whereNotExists(function ($sub) {
+                             $sub->from('penawaran')
+                                 ->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')
+                                 ->where('penawaran.status', 'ACC');
+                         });
+                  });
+            });
 
         if ($selectedYear && $selectedYear === 'all') {
             // Semua tahun → group by tahun_potensi
@@ -713,7 +744,18 @@ public function exportTSV(Request $request)
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
             ->join('proyek_barang', 'proyek.id_proyek', '=', 'proyek_barang.id_proyek')
-            ->where('proyek.status', '!=', 'Gagal');
+            ->where(function ($q) {
+                $q->where('proyek.status', 'Menunggu')
+                  ->orWhere(function ($q2) {
+                      $q2->where('proyek.status', 'Penawaran')
+                         ->whereExists(function ($sub) {
+                             $sub->from('penawaran')->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')->where('penawaran.status', 'Menunggu');
+                         })
+                         ->whereNotExists(function ($sub) {
+                             $sub->from('penawaran')->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')->where('penawaran.status', 'ACC');
+                         });
+                  });
+            });
 
         $selectedYear = $request ? $request->get('year') : null;
         if ($selectedYear && $selectedYear !== 'all') {
@@ -758,7 +800,18 @@ public function exportTSV(Request $request)
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
             ->join('proyek_barang', 'proyek.id_proyek', '=', 'proyek_barang.id_proyek')
-            ->where('proyek.status', '!=', 'Gagal');
+            ->where(function ($q) {
+                $q->where('proyek.status', 'Menunggu')
+                  ->orWhere(function ($q2) {
+                      $q2->where('proyek.status', 'Penawaran')
+                         ->whereExists(function ($sub) {
+                             $sub->from('penawaran')->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')->where('penawaran.status', 'Menunggu');
+                         })
+                         ->whereNotExists(function ($sub) {
+                             $sub->from('penawaran')->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')->where('penawaran.status', 'ACC');
+                         });
+                  });
+            });
 
         // Filter by label: 'internal' also includes NULL labels
         if ($label === 'internal') {
@@ -800,7 +853,18 @@ public function exportTSV(Request $request)
         $base = DB::table('proyek_barang')
             ->join('proyek', 'proyek_barang.id_proyek', '=', 'proyek.id_proyek')
             ->join('users', 'proyek.id_admin_marketing', '=', 'users.id_user')
-            ->where('proyek.status', '!=', 'Gagal');
+            ->where(function ($q) {
+                $q->where('proyek.status', 'Menunggu')
+                  ->orWhere(function ($q2) {
+                      $q2->where('proyek.status', 'Penawaran')
+                         ->whereExists(function ($sub) {
+                             $sub->from('penawaran')->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')->where('penawaran.status', 'Menunggu');
+                         })
+                         ->whereNotExists(function ($sub) {
+                             $sub->from('penawaran')->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')->where('penawaran.status', 'ACC');
+                         });
+                  });
+            });
 
         if ($selectedYear && $selectedYear !== 'all') {
             $base->where('proyek.tahun_potensi', (int) $selectedYear);
@@ -831,7 +895,18 @@ public function exportTSV(Request $request)
         $query = DB::table('users')
             ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_purchasing')
             ->join('proyek_barang', 'proyek.id_proyek', '=', 'proyek_barang.id_proyek')
-            ->where('proyek.status', '!=', 'Gagal');
+            ->where(function ($q) {
+                $q->where('proyek.status', 'Menunggu')
+                  ->orWhere(function ($q2) {
+                      $q2->where('proyek.status', 'Penawaran')
+                         ->whereExists(function ($sub) {
+                             $sub->from('penawaran')->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')->where('penawaran.status', 'Menunggu');
+                         })
+                         ->whereNotExists(function ($sub) {
+                             $sub->from('penawaran')->whereColumn('penawaran.id_proyek', 'proyek.id_proyek')->where('penawaran.status', 'ACC');
+                         });
+                  });
+            });
 
         $selectedYear = $request ? $request->get('year') : null;
         if ($selectedYear && $selectedYear !== 'all') {
