@@ -71,7 +71,18 @@ class LaporanController extends Controller
         // Get year range from project data
         $yearRange = $this->getYearRange();
 
-        return view('pages.laporan.proyek', compact('stats', 'projects', 'filterOptions', 'chartData', 'yearRange'));
+        // Omset Proyek (ACC) split internal vs eksternal — untuk pie chart di halaman proyek
+        $proyekOmsetByLabel = $this->getProyekOmsetByLabel($request);
+        $proyekAdminMarketingInternal = $this->getProyekAdminMarketingOmsetByLabel($request, 'internal');
+        $proyekAdminMarketingEksternal = $this->getProyekAdminMarketingOmsetByLabel($request, 'eksternal');
+
+        $selectedYear = $request->get('year', date('Y'));
+
+        return view('pages.laporan.proyek', compact(
+            'stats', 'projects', 'filterOptions', 'chartData', 'yearRange',
+            'proyekOmsetByLabel', 'proyekAdminMarketingInternal', 'proyekAdminMarketingEksternal',
+            'selectedYear'
+        ));
     }
 
     /**
@@ -884,6 +895,81 @@ public function exportTSV(Request $request)
             'internal'  => (float) ($internal ?? 0),
             'eksternal' => (float) ($eksternal ?? 0),
         ];
+    }
+
+    // =========================================================================
+    // OMSET PROYEK (realisasi / sudah ACC) — untuk halaman Laporan Proyek
+    // =========================================================================
+
+    /**
+     * Omset Proyek split internal vs eksternal.
+     * Sumber: SUM(penawaran.total_penawaran) untuk proyek yang memiliki penawaran ACC.
+     * Filter by tanggal_penawaran (year).
+     */
+    private function getProyekOmsetByLabel(Request $request)
+    {
+        $selectedYear = $request ? $request->get('year') : null;
+
+        $base = DB::table('penawaran')
+            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+            ->join('users', 'proyek.id_admin_marketing', '=', 'users.id_user')
+            ->where('penawaran.status', 'ACC');
+
+        if ($selectedYear && $selectedYear !== 'all' && !$request->has('all')) {
+            $base->whereYear('penawaran.tanggal_penawaran', (int) $selectedYear);
+        }
+
+        $internal = (clone $base)
+            ->where(function ($q) {
+                $q->where('users.label', 'internal')->orWhereNull('users.label');
+            })
+            ->sum('penawaran.total_penawaran');
+
+        $eksternal = (clone $base)
+            ->where('users.label', 'eksternal')
+            ->sum('penawaran.total_penawaran');
+
+        return [
+            'internal'  => (float) ($internal ?? 0),
+            'eksternal' => (float) ($eksternal ?? 0),
+        ];
+    }
+
+    /**
+     * Top marketing omset proyek (ACC) by label (internal/eksternal).
+     * Sumber: SUM(penawaran.total_penawaran) per admin marketing.
+     */
+    private function getProyekAdminMarketingOmsetByLabel(Request $request, string $label)
+    {
+        $query = DB::table('users')
+            ->join('proyek', 'users.id_user', '=', 'proyek.id_admin_marketing')
+            ->join('penawaran', 'proyek.id_proyek', '=', 'penawaran.id_proyek')
+            ->where('penawaran.status', 'ACC');
+
+        if ($label === 'internal') {
+            $query->where(function ($q) {
+                $q->where('users.label', 'internal')->orWhereNull('users.label');
+            });
+        } else {
+            $query->where('users.label', $label);
+        }
+
+        $selectedYear = $request ? $request->get('year') : null;
+        if ($selectedYear && $selectedYear !== 'all' && !$request->has('all')) {
+            $query->whereYear('penawaran.tanggal_penawaran', (int) $selectedYear);
+        }
+
+        return $query->select(
+                'users.id_user',
+                'users.nama as name',
+                'users.label',
+                DB::raw('SUM(penawaran.total_penawaran) as total_omset'),
+                DB::raw('COUNT(DISTINCT proyek.id_proyek) as jumlah_proyek')
+            )
+            ->groupBy('users.id_user', 'users.nama', 'users.label')
+            ->orderBy('total_omset', 'desc')
+            ->limit(10)
+            ->get();
     }
 
     /**
