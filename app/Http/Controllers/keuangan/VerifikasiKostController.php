@@ -17,7 +17,7 @@ class VerifikasiKostController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $status = $request->input('status', 'menunggu'); // default tab: menunggu
+        $status = $request->input('status', 'menunggu');
 
         $query = PengajuanKost::with(['picMarketing', 'createdBy', 'buktiBayar'])
             ->orderBy('created_at', 'desc');
@@ -31,7 +31,7 @@ class VerifikasiKostController extends Controller
             });
         }
 
-        if ($status && in_array($status, ['menunggu', 'disetujui', 'ditolak'])) {
+        if ($status && in_array($status, ['menunggu', 'disetujui', 'revisi'])) {
             $query->where('status', $status);
         }
 
@@ -40,7 +40,7 @@ class VerifikasiKostController extends Controller
         $stats = [
             'menunggu'  => PengajuanKost::where('status', 'menunggu')->count(),
             'disetujui' => PengajuanKost::where('status', 'disetujui')->count(),
-            'ditolak'   => PengajuanKost::where('status', 'ditolak')->count(),
+            'revisi'    => PengajuanKost::where('status', 'revisi')->count(),
             'total'     => PengajuanKost::count(),
         ];
 
@@ -72,12 +72,21 @@ class VerifikasiKostController extends Controller
      */
     public function approve(Request $request, int $id)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (! $user->hasAnyRole(['superadmin', 'admin_keuangan'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses untuk menyetujui pengajuan.',
+            ], 403);
+        }
+
         $pengajuan = PengajuanKost::findOrFail($id);
 
         if ($pengajuan->status !== 'menunggu') {
             return response()->json([
                 'success' => false,
-                'message' => 'Pengajuan ini sudah pernah diverifikasi.',
+                'message' => 'Hanya pengajuan berstatus menunggu yang dapat disetujui.',
             ], 422);
         }
 
@@ -107,29 +116,38 @@ class VerifikasiKostController extends Controller
     }
 
     /**
-     * Tolak pengajuan kost
+     * Minta revisi pengajuan kost — pengaju harus memperbaiki dan mengajukan ulang
      */
-    public function reject(Request $request, int $id)
+    public function revision(Request $request, int $id)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (! $user->hasAnyRole(['superadmin', 'admin_keuangan'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses untuk meminta revisi pengajuan.',
+            ], 403);
+        }
+
         $pengajuan = PengajuanKost::findOrFail($id);
 
         if ($pengajuan->status !== 'menunggu') {
             return response()->json([
                 'success' => false,
-                'message' => 'Pengajuan ini sudah pernah diverifikasi.',
+                'message' => 'Hanya pengajuan berstatus menunggu yang dapat diminta revisi.',
             ], 422);
         }
 
         $validated = $request->validate([
             'catatan_keuangan' => 'required|string|max:1000',
         ], [
-            'catatan_keuangan.required' => 'Alasan penolakan wajib diisi.',
+            'catatan_keuangan.required' => 'Catatan/alasan revisi wajib diisi.',
         ]);
 
         DB::beginTransaction();
         try {
             $pengajuan->update([
-                'status'             => 'ditolak',
+                'status'             => 'revisi',
                 'verified_by'        => Auth::id(),
                 'tanggal_verifikasi' => now(),
                 'catatan_keuangan'   => $validated['catatan_keuangan'],
@@ -138,11 +156,11 @@ class VerifikasiKostController extends Controller
             DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => "Pengajuan {$pengajuan->kode_pengajuan} ditolak.",
+                'message' => "Pengajuan {$pengajuan->kode_pengajuan} dikembalikan untuk direvisi.",
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('VerifikasiKost reject error: ' . $e->getMessage());
+            Log::error('VerifikasiKost revision error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan.'], 500);
         }
     }

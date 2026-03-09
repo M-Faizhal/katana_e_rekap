@@ -9,7 +9,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Pengajuan Kost</h1>
-            <p class="text-red-100 text-sm sm:text-base">Kelola pengajuan biaya kost tim marketing</p>
+            <p class="text-red-100 text-sm sm:text-base">Kelola pengajuan biaya kost</p>
         </div>
         <div class="hidden sm:block">
             <i class="fas fa-house-user text-4xl lg:text-6xl opacity-80"></i>
@@ -31,8 +31,8 @@
         <div class="text-xs text-gray-500 mt-1">Disetujui</div>
     </div>
     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-        <div class="text-2xl font-bold text-red-600">{{ $stats['ditolak'] }}</div>
-        <div class="text-xs text-gray-500 mt-1">Ditolak</div>
+        <div class="text-2xl font-bold text-orange-500">{{ $stats['revisi'] }}</div>
+        <div class="text-xs text-gray-500 mt-1">Perlu Revisi</div>
     </div>
 </div>
 
@@ -43,7 +43,7 @@
         <form method="GET" action="{{ route('marketing.pengajuan-kost') }}" class="flex gap-2 flex-1">
             <input type="hidden" name="status" value="{{ request('status') }}">
             <input type="text" name="search" value="{{ request('search') }}"
-                   placeholder="Cari kode, lokasi, kota, atau PIC..."
+                   placeholder="Cari kode, lokasi, kota/kabupaten, atau PIC..."
                    class="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
             <button type="submit" class="bg-red-800 text-white px-4 py-2 rounded-xl text-sm hover:bg-red-700 transition">
                 <i class="fas fa-search"></i>
@@ -52,7 +52,7 @@
 
         {{-- Filter Status --}}
         <div class="flex gap-2 text-sm">
-            @foreach([''=>'Semua','menunggu'=>'Menunggu','disetujui'=>'Disetujui','ditolak'=>'Ditolak'] as $val=>$label)
+            @foreach([''=>'Semua','menunggu'=>'Menunggu','disetujui'=>'Disetujui','revisi'=>'Perlu Revisi'] as $val=>$label)
             <a href="{{ route('marketing.pengajuan-kost', array_merge(request()->query(), ['status'=>$val])) }}"
                class="px-3 py-2 rounded-xl border transition
                       {{ request('status', '') === $val ? 'bg-red-800 text-white border-red-800' : 'border-gray-200 text-gray-600 hover:border-red-300' }}">
@@ -79,7 +79,7 @@
                     <th class="px-4 py-3 text-left">Tgl Kegiatan</th>
                     <th class="px-4 py-3 text-left">PIC Marketing</th>
                     <th class="px-4 py-3 text-left">Lokasi</th>
-                    <th class="px-4 py-3 text-left">Kota</th>
+                    <th class="px-4 py-3 text-left">Kota/ Kabupaten</th>
                     <th class="px-4 py-3 text-right">Nominal</th>
                     <th class="px-4 py-3 text-center">Bukti</th>
                     <th class="px-4 py-3 text-center">Status</th>
@@ -90,7 +90,12 @@
                 @forelse($pengajuanList as $item)
                 <tr class="hover:bg-gray-50 transition">
                     <td class="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{{ $item->kode_pengajuan }}</td>
-                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $item->tanggal_kegiatan?->format('d/m/Y') ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
+                        {{ $item->tanggal_kegiatan?->format('d/m/Y') ?? '-' }}
+                        @if($item->tanggal_kegiatan_sampai && $item->tanggal_kegiatan_sampai != $item->tanggal_kegiatan)
+                            <span class="text-gray-400"> – {{ $item->tanggal_kegiatan_sampai->format('d/m/Y') }}</span>
+                        @endif
+                    </td>
                     <td class="px-4 py-3 text-gray-700">{{ $item->picMarketing->nama ?? '-' }}</td>
                     <td class="px-4 py-3 text-gray-700 max-w-[150px] truncate" title="{{ $item->lokasi }}">{{ $item->lokasi }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ $item->kota ?? '-' }}</td>
@@ -109,9 +114,9 @@
                                     class="text-blue-600 hover:text-blue-800 transition" title="Detail">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            @if($item->status === 'menunggu')
+                            @if($item->canEdit())
                             <button onclick="openEditModal({{ $item->id }})"
-                                    class="text-yellow-600 hover:text-yellow-800 transition" title="Edit">
+                                    class="text-yellow-600 hover:text-yellow-800 transition" title="{{ $item->status === 'revisi' ? 'Perbaiki & Ajukan Ulang' : 'Edit' }}">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button onclick="confirmDelete({{ $item->id }}, '{{ $item->kode_pengajuan }}')"
@@ -164,9 +169,17 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {{-- Tanggal Kegiatan --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Kegiatan <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Kegiatan Mulai <span class="text-red-500">*</span></label>
                         <input type="date" name="tanggal_kegiatan" id="tanggal_kegiatan"
                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" required>
+                    </div>
+
+                    {{-- Tanggal Kegiatan Sampai --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Kegiatan Selesai</label>
+                        <input type="date" name="tanggal_kegiatan_sampai" id="tanggal_kegiatan_sampai"
+                               class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
+                        <p class="text-xs text-gray-400 mt-0.5">Kosongkan jika hanya 1 hari</p>
                     </div>
 
                     {{-- Tanggal Pengajuan --}}
@@ -176,13 +189,13 @@
                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" required>
                     </div>
 
-                    {{-- PIC Marketing --}}
+                    {{-- PIC --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">PIC Marketing <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">PIC <span class="text-red-500">*</span></label>
                         <select name="pic_marketing_id" id="pic_marketing_id"
                                 class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" required>
                             <option value="">-- Pilih PIC --</option>
-                            @foreach($marketingUsers as $user)
+                            @foreach($allUsers as $user)
                             <option value="{{ $user->id_user }}">{{ $user->nama }}</option>
                             @endforeach
                         </select>
@@ -210,9 +223,9 @@
 
                     {{-- Kota --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Kota</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kota/ Kabupaten</label>
                         <input type="text" name="kota" id="kota" maxlength="100"
-                               placeholder="Kota tujuan dinas"
+                               placeholder="Kota/ Kabupaten tujuan dinas"
                                class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
                     </div>
 
@@ -335,6 +348,7 @@
         document.getElementById('nominal_display').value = '';
         document.getElementById('nominal').value = '';
         document.getElementById('tanggal_pengajuan').value = new Date().toISOString().split('T')[0];
+        document.getElementById('tanggal_kegiatan_sampai').value = '';
         document.getElementById('existingBuktiList').classList.add('hidden');
         document.getElementById('existingBuktiItems').innerHTML = '';
         openModal('formModal');
@@ -351,17 +365,19 @@
         if (!json.success) return;
         const d = json.data;
 
-        document.getElementById('formModalTitle').textContent = 'Edit Pengajuan Kost';
-        document.getElementById('submitBtnText').textContent = 'Perbarui';
+        const isRevisi = d.status === 'revisi';
+        document.getElementById('formModalTitle').textContent = isRevisi ? 'Perbaiki & Ajukan Ulang' : 'Edit Pengajuan Kost';
+        document.getElementById('submitBtnText').textContent  = isRevisi ? 'Ajukan Ulang' : 'Perbarui';
         document.getElementById('kostId').value = d.id;
-        document.getElementById('tanggal_kegiatan').value  = d.tanggal_kegiatan?.split('T')[0] ?? d.tanggal_kegiatan;
-        document.getElementById('tanggal_pengajuan').value = d.tanggal_pengajuan?.split('T')[0] ?? d.tanggal_pengajuan;
-        document.getElementById('pic_marketing_id').value  = d.pic_marketing_id;
-        document.getElementById('lokasi').value             = d.lokasi;
-        document.getElementById('kota').value               = d.kota ?? '';
-        document.getElementById('keterangan_kegiatan').value = d.keterangan_kegiatan ?? '';
+        document.getElementById('tanggal_kegiatan').value        = d.tanggal_kegiatan?.split('T')[0] ?? d.tanggal_kegiatan ?? '';
+        document.getElementById('tanggal_kegiatan_sampai').value = d.tanggal_kegiatan_sampai?.split('T')[0] ?? d.tanggal_kegiatan_sampai ?? '';
+        document.getElementById('tanggal_pengajuan').value       = d.tanggal_pengajuan?.split('T')[0] ?? d.tanggal_pengajuan ?? '';
+        document.getElementById('pic_marketing_id').value        = d.pic_marketing_id;
+        document.getElementById('lokasi').value                  = d.lokasi;
+        document.getElementById('kota').value                    = d.kota ?? '';
+        document.getElementById('keterangan_kegiatan').value     = d.keterangan_kegiatan ?? '';
         setNominal(d.nominal);
-        document.getElementById('catatan').value            = d.catatan ?? '';
+        document.getElementById('catatan').value                 = d.catatan ?? '';
 
         // Tampilkan bukti existing
         const listEl  = document.getElementById('existingBuktiList');
@@ -425,23 +441,43 @@
         const statusMap = {
             menunggu:  '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Menunggu</span>',
             disetujui: '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Disetujui</span>',
-            ditolak:   '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Ditolak</span>',
+            revisi:    '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">Perlu Revisi</span>',
         };
+
+        const tglKegiatan = d.tanggal_kegiatan_sampai && d.tanggal_kegiatan_sampai !== d.tanggal_kegiatan
+            ? `${formatDate(d.tanggal_kegiatan)} – ${formatDate(d.tanggal_kegiatan_sampai)}`
+            : formatDate(d.tanggal_kegiatan);
 
         const buktiHtml = (d.bukti_bayar && d.bukti_bayar.length)
             ? d.bukti_bayar.map(b => `<a href="${b.url}" target="_blank" class="flex items-center gap-1 text-blue-600 hover:underline text-xs"><i class="fas fa-file"></i>${b.file_name}</a>`).join('')
             : '<span class="text-gray-400">Tidak ada bukti</span>';
 
+        const revisiAlert = d.status === 'revisi' && d.catatan_keuangan ? `
+            <div class="bg-orange-50 border border-orange-200 rounded-xl p-3">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fas fa-exclamation-circle text-orange-500 text-sm"></i>
+                    <span class="text-xs font-semibold text-orange-700">Catatan Revisi dari Keuangan</span>
+                </div>
+                <div class="text-orange-800 text-sm">${d.catatan_keuangan}</div>
+                <div class="text-xs text-orange-500 mt-1">Oleh: ${d.verified_by?.nama ?? '-'} · ${formatDate(d.tanggal_verifikasi)}</div>
+            </div>` : (d.catatan_keuangan ? `
+            <div class="bg-gray-50 rounded-xl p-3">
+                <div class="text-xs text-gray-400 mb-1">Catatan Keuangan</div>
+                <div class="text-gray-700 text-sm">${d.catatan_keuangan}</div>
+                ${d.verified_by ? `<div class="text-xs text-gray-400 mt-1">Oleh: ${d.verified_by?.nama ?? '-'} · ${formatDate(d.tanggal_verifikasi)}</div>` : ''}
+            </div>` : '');
+
         document.getElementById('detailContent').innerHTML = `
+            ${revisiAlert}
             <div class="grid grid-cols-2 gap-3">
                 <div><div class="text-xs text-gray-400">Kode</div><div class="font-semibold text-gray-800">${d.kode_pengajuan}</div></div>
                 <div><div class="text-xs text-gray-400">Status</div><div>${statusMap[d.status] ?? d.status}</div></div>
-                <div><div class="text-xs text-gray-400">Tgl Kegiatan</div><div class="text-gray-700">${formatDate(d.tanggal_kegiatan)}</div></div>
+                <div class="col-span-2"><div class="text-xs text-gray-400">Tgl Kegiatan</div><div class="text-gray-700">${tglKegiatan}</div></div>
                 <div><div class="text-xs text-gray-400">Tgl Pengajuan</div><div class="text-gray-700">${formatDate(d.tanggal_pengajuan)}</div></div>
-                <div><div class="text-xs text-gray-400">PIC Marketing</div><div class="text-gray-700">${d.pic_marketing?.nama ?? '-'}</div></div>
+                <div><div class="text-xs text-gray-400">PIC</div><div class="text-gray-700">${d.pic_marketing?.nama ?? '-'}</div></div>
                 <div><div class="text-xs text-gray-400">Nominal</div><div class="font-semibold text-gray-800">Rp ${numFmt(d.nominal)}</div></div>
                 <div><div class="text-xs text-gray-400">Lokasi</div><div class="text-gray-700">${d.lokasi}</div></div>
-                <div><div class="text-xs text-gray-400">Kota</div><div class="text-gray-700">${d.kota ?? '-'}</div></div>
+                <div><div class="text-xs text-gray-400">Kota/ Kabupaten</div><div class="text-gray-700">${d.kota ?? '-'}</div></div>
                 <div class="col-span-2"><div class="text-xs text-gray-400">Keterangan</div><div class="text-gray-700">${d.keterangan_kegiatan ?? '-'}</div></div>
                 <div class="col-span-2"><div class="text-xs text-gray-400">Catatan</div><div class="text-gray-700">${d.catatan ?? '-'}</div></div>
             </div>
@@ -450,12 +486,6 @@
                 <div class="text-xs text-gray-400 mb-2">Bukti Pembayaran</div>
                 <div class="space-y-1">${buktiHtml}</div>
             </div>
-            ${d.catatan_keuangan ? `
-            <div class="bg-gray-50 rounded-xl p-3">
-                <div class="text-xs text-gray-400 mb-1">Catatan Keuangan</div>
-                <div class="text-gray-700 text-sm">${d.catatan_keuangan}</div>
-                ${d.verified_by ? `<div class="text-xs text-gray-400 mt-1">Oleh: ${d.verified_by?.nama ?? '-'} · ${formatDate(d.tanggal_verifikasi)}</div>` : ''}
-            </div>` : ''}
         `;
         openModal('detailModal');
     }

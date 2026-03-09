@@ -9,7 +9,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2">Verifikasi Kost</h1>
-            <p class="text-red-100 text-sm sm:text-base">Review dan setujui pengajuan biaya kost dari tim marketing</p>
+            <p class="text-red-100 text-sm sm:text-base">Review dan setujui pengajuan biaya kost</p>
         </div>
         <div class="hidden sm:block">
             <i class="fas fa-house-user text-4xl lg:text-6xl opacity-80"></i>
@@ -35,8 +35,8 @@
         <div class="text-xs text-gray-500 mt-1">Disetujui</div>
     </div>
     <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-        <div class="text-2xl font-bold text-red-600">{{ $stats['ditolak'] }}</div>
-        <div class="text-xs text-gray-500 mt-1">Ditolak</div>
+        <div class="text-2xl font-bold text-orange-500">{{ $stats['revisi'] }}</div>
+        <div class="text-xs text-gray-500 mt-1">Perlu Revisi</div>
     </div>
 </div>
 
@@ -47,7 +47,7 @@
         <form method="GET" action="{{ route('keuangan.verifikasi-kost') }}" class="flex gap-2 flex-1">
             <input type="hidden" name="status" value="{{ request('status', 'menunggu') }}">
             <input type="text" name="search" value="{{ request('search') }}"
-                   placeholder="Cari kode, lokasi, kota, atau PIC..."
+                   placeholder="Cari kode, lokasi, kota/kabupaten, atau PIC..."
                    class="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
             <button type="submit" class="bg-red-800 text-white px-4 py-2 rounded-xl text-sm hover:bg-red-700 transition">
                 <i class="fas fa-search"></i>
@@ -56,7 +56,7 @@
 
         {{-- Filter Status --}}
         <div class="flex gap-2 text-sm">
-            @foreach(['menunggu'=>'Menunggu','disetujui'=>'Disetujui','ditolak'=>'Ditolak',''=>'Semua'] as $val=>$label)
+            @foreach(['menunggu'=>'Menunggu','disetujui'=>'Disetujui','revisi'=>'Perlu Revisi',''=>'Semua'] as $val=>$label)
             <a href="{{ route('keuangan.verifikasi-kost', array_merge(request()->except('status'), ['status'=>$val])) }}"
                class="px-3 py-2 rounded-xl border transition
                       {{ $status === $val ? 'bg-red-800 text-white border-red-800' : 'border-gray-200 text-gray-600 hover:border-red-300' }}">
@@ -91,7 +91,12 @@
                 @forelse($pengajuanList as $item)
                 <tr class="hover:bg-gray-50 transition">
                     <td class="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{{ $item->kode_pengajuan }}</td>
-                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $item->tanggal_kegiatan?->format('d/m/Y') ?? '-' }}</td>
+                    <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
+                        {{ $item->tanggal_kegiatan?->format('d/m/Y') ?? '-' }}
+                        @if($item->tanggal_kegiatan_sampai && $item->tanggal_kegiatan_sampai != $item->tanggal_kegiatan)
+                            <span class="text-gray-400"> – {{ $item->tanggal_kegiatan_sampai->format('d/m/Y') }}</span>
+                        @endif
+                    </td>
                     <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $item->tanggal_pengajuan?->format('d/m/Y') ?? '-' }}</td>
                     <td class="px-4 py-3 text-gray-700">{{ $item->picMarketing->nama ?? '-' }}</td>
                     <td class="px-4 py-3 text-gray-700 max-w-[140px] truncate" title="{{ $item->lokasi }}">
@@ -112,14 +117,14 @@
                                     class="text-blue-600 hover:text-blue-800 transition" title="Detail">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            @if($item->status === 'menunggu')
+                            @if($item->status === 'menunggu' && in_array(auth()->user()->role, ['superadmin', 'admin_keuangan']))
                             <button onclick="openApproveModal({{ $item->id }}, '{{ $item->kode_pengajuan }}')"
                                     class="text-green-600 hover:text-green-800 transition" title="Setujui">
                                 <i class="fas fa-check-circle"></i>
                             </button>
-                            <button onclick="openRejectModal({{ $item->id }}, '{{ $item->kode_pengajuan }}')"
-                                    class="text-red-600 hover:text-red-800 transition" title="Tolak">
-                                <i class="fas fa-times-circle"></i>
+                            <button onclick="openRevisionModal({{ $item->id }}, '{{ $item->kode_pengajuan }}')"
+                                    class="text-orange-500 hover:text-orange-700 transition" title="Minta Revisi">
+                                <i class="fas fa-undo-alt"></i>
                             </button>
                             @endif
                         </div>
@@ -183,26 +188,26 @@
 </div>
 
 {{-- ════════════════════════════════════════════════════════════════════════════
-     MODAL TOLAK
+     MODAL MINTA REVISI
 ════════════════════════════════════════════════════════════════════════════ --}}
-<div id="rejectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+<div id="revisionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
         <div class="text-center mb-4">
-            <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i class="fas fa-times-circle text-red-600 text-2xl"></i>
+            <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-undo-alt text-orange-500 text-2xl"></i>
             </div>
-            <h3 class="text-lg font-bold text-gray-800">Tolak Pengajuan?</h3>
-            <p id="rejectMessage" class="text-sm text-gray-500 mt-1"></p>
+            <h3 class="text-lg font-bold text-gray-800">Minta Revisi?</h3>
+            <p id="revisionMessage" class="text-sm text-gray-500 mt-1"></p>
         </div>
         <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Alasan Penolakan <span class="text-red-500">*</span></label>
-            <textarea id="rejectCatatan" rows="3" placeholder="Tulis alasan penolakan..."
-                      class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none" required></textarea>
-            <p id="rejectError" class="text-red-500 text-xs mt-1 hidden">Alasan penolakan wajib diisi.</p>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Revisi <span class="text-red-500">*</span></label>
+            <textarea id="revisionCatatan" rows="3" placeholder="Jelaskan apa yang perlu diperbaiki..."
+                      class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none"></textarea>
+            <p id="revisionError" class="text-red-500 text-xs mt-1 hidden">Catatan revisi wajib diisi.</p>
         </div>
         <div class="flex gap-3">
-            <button onclick="closeModal('rejectModal')" class="flex-1 border border-gray-200 rounded-xl text-sm py-2 text-gray-600 hover:bg-gray-50 transition">Batal</button>
-            <button onclick="doReject()" class="flex-1 bg-red-600 text-white rounded-xl text-sm py-2 font-medium hover:bg-red-700 transition">Tolak</button>
+            <button onclick="closeModal('revisionModal')" class="flex-1 border border-gray-200 rounded-xl text-sm py-2 text-gray-600 hover:bg-gray-50 transition">Batal</button>
+            <button onclick="doRevision()" class="flex-1 bg-orange-500 text-white rounded-xl text-sm py-2 font-medium hover:bg-orange-600 transition">Minta Revisi</button>
         </div>
     </div>
 </div>
@@ -212,11 +217,12 @@
 @push('scripts')
 <script>
     const ROUTES = {
-        show:    (id) => `{{ url('keuangan/verifikasi-kost') }}/${id}`,
-        approve: (id) => `{{ url('keuangan/verifikasi-kost') }}/${id}/approve`,
-        reject:  (id) => `{{ url('keuangan/verifikasi-kost') }}/${id}/reject`,
+        show:     (id) => `{{ url('keuangan/verifikasi-kost') }}/${id}`,
+        approve:  (id) => `{{ url('keuangan/verifikasi-kost') }}/${id}/approve`,
+        revision: (id) => `{{ url('keuangan/verifikasi-kost') }}/${id}/revision`,
     };
-    const CSRF = "{{ csrf_token() }}";
+    const CSRF     = "{{ csrf_token() }}";
+    const CAN_VERIFY = {{ in_array(auth()->user()->role, ['superadmin', 'admin_keuangan']) ? 'true' : 'false' }};
 
     let activeId = null;
 
@@ -244,8 +250,12 @@
         const statusMap = {
             menunggu:  '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Menunggu</span>',
             disetujui: '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Disetujui</span>',
-            ditolak:   '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Ditolak</span>',
+            revisi:    '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">Perlu Revisi</span>',
         };
+
+        const tglKegiatan = d.tanggal_kegiatan_sampai && d.tanggal_kegiatan_sampai !== d.tanggal_kegiatan
+            ? `${formatDate(d.tanggal_kegiatan)} – ${formatDate(d.tanggal_kegiatan_sampai)}`
+            : formatDate(d.tanggal_kegiatan);
 
         const buktiHtml = (d.bukti_bayar && d.bukti_bayar.length)
             ? d.bukti_bayar.map(b => `<a href="${b.url}" target="_blank" class="flex items-center gap-1 text-blue-600 hover:underline text-xs"><i class="fas fa-file"></i>${b.file_name}</a>`).join('')
@@ -255,9 +265,9 @@
             <div class="grid grid-cols-2 gap-3">
                 <div><div class="text-xs text-gray-400">Kode</div><div class="font-semibold text-gray-800">${d.kode_pengajuan}</div></div>
                 <div><div class="text-xs text-gray-400">Status</div><div>${statusMap[d.status] ?? d.status}</div></div>
-                <div><div class="text-xs text-gray-400">Tgl Kegiatan</div><div class="text-gray-700">${formatDate(d.tanggal_kegiatan)}</div></div>
+                <div class="col-span-2"><div class="text-xs text-gray-400">Tgl Kegiatan</div><div class="text-gray-700">${tglKegiatan}</div></div>
                 <div><div class="text-xs text-gray-400">Tgl Pengajuan</div><div class="text-gray-700">${formatDate(d.tanggal_pengajuan)}</div></div>
-                <div><div class="text-xs text-gray-400">PIC Marketing</div><div class="text-gray-700">${d.pic_marketing?.nama ?? '-'}</div></div>
+                <div><div class="text-xs text-gray-400">PIC</div><div class="text-gray-700">${d.pic_marketing?.nama ?? '-'}</div></div>
                 <div><div class="text-xs text-gray-400">Diinput Oleh</div><div class="text-gray-700">${d.created_by?.nama ?? '-'}</div></div>
                 <div class="col-span-2"><div class="text-xs text-gray-400">Lokasi</div><div class="text-gray-700">${d.lokasi}${d.kota ? ', '+d.kota : ''}</div></div>
                 <div class="col-span-2"><div class="text-xs text-gray-400">Keterangan</div><div class="text-gray-700">${d.keterangan_kegiatan ?? '-'}</div></div>
@@ -271,7 +281,7 @@
             </div>
             ${d.catatan_keuangan ? `
             <div class="bg-gray-50 rounded-xl p-3">
-                <div class="text-xs text-gray-400 mb-1">Catatan Keuangan</div>
+                <div class="text-xs text-gray-400 mb-1">Catatan Sebelumnya</div>
                 <div class="text-gray-700 text-sm">${d.catatan_keuangan}</div>
                 <div class="text-xs text-gray-400 mt-1">Oleh: ${d.verified_by?.nama ?? '-'} · ${formatDate(d.tanggal_verifikasi)}</div>
             </div>` : ''}
@@ -279,11 +289,11 @@
 
         // Tombol aksi di footer jika masih menunggu
         const actionsEl = document.getElementById('detailActions');
-        if (d.status === 'menunggu') {
+        if (d.status === 'menunggu' && CAN_VERIFY) {
             actionsEl.innerHTML = `
-                <button onclick="closeModal('detailModal'); openRejectModal(${d.id}, '${d.kode_pengajuan}')"
-                        class="px-4 py-2 bg-red-100 text-red-700 rounded-xl text-sm hover:bg-red-200 transition">
-                    <i class="fas fa-times mr-1"></i> Tolak
+                <button onclick="closeModal('detailModal'); openRevisionModal(${d.id}, '${d.kode_pengajuan}')"
+                        class="px-4 py-2 bg-orange-100 text-orange-700 rounded-xl text-sm hover:bg-orange-200 transition">
+                    <i class="fas fa-undo-alt mr-1"></i> Minta Revisi
                 </button>
                 <button onclick="closeModal('detailModal'); openApproveModal(${d.id}, '${d.kode_pengajuan}')"
                         class="px-4 py-2 bg-green-600 text-white rounded-xl text-sm hover:bg-green-700 transition">
@@ -324,33 +334,33 @@
         }
     }
 
-    // ─── Reject ───────────────────────────────────────────────────────────────
-    function openRejectModal(id, kode) {
+    // ─── Revision ─────────────────────────────────────────────────────────────
+    function openRevisionModal(id, kode) {
         activeId = id;
-        document.getElementById('rejectMessage').textContent = `Pengajuan ${kode} akan ditolak.`;
-        document.getElementById('rejectCatatan').value = '';
-        document.getElementById('rejectError').classList.add('hidden');
-        openModal('rejectModal');
+        document.getElementById('revisionMessage').textContent = `Pengajuan ${kode} akan dikembalikan untuk direvisi.`;
+        document.getElementById('revisionCatatan').value = '';
+        document.getElementById('revisionError').classList.add('hidden');
+        openModal('revisionModal');
     }
 
-    async function doReject() {
-        const catatan = document.getElementById('rejectCatatan').value.trim();
+    async function doRevision() {
+        const catatan = document.getElementById('revisionCatatan').value.trim();
         if (!catatan) {
-            document.getElementById('rejectError').classList.remove('hidden');
+            document.getElementById('revisionError').classList.remove('hidden');
             return;
         }
-        document.getElementById('rejectError').classList.add('hidden');
+        document.getElementById('revisionError').classList.add('hidden');
 
         const fd = new FormData();
         fd.append('catatan_keuangan', catatan);
 
-        const resp = await fetch(ROUTES.reject(activeId), {
+        const resp = await fetch(ROUTES.revision(activeId), {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRF },
             body: fd,
         });
         const json = await resp.json();
-        closeModal('rejectModal');
+        closeModal('revisionModal');
         if (json.success) {
             showAlert(json.message);
             setTimeout(() => location.reload(), 1200);
