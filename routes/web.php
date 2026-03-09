@@ -251,7 +251,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/verifikasi-kost', [VerifikasiKostController::class, 'index'])->name('keuangan.verifikasi-kost');
         Route::get('/verifikasi-kost/{id}', [VerifikasiKostController::class, 'show'])->name('keuangan.verifikasi-kost.show');
         Route::post('/verifikasi-kost/{id}/approve', [VerifikasiKostController::class, 'approve'])->name('keuangan.verifikasi-kost.approve');
-        Route::post('/verifikasi-kost/{id}/reject', [VerifikasiKostController::class, 'reject'])->name('keuangan.verifikasi-kost.reject');
+        Route::post('/verifikasi-kost/{id}/revision', [VerifikasiKostController::class, 'revision'])->name('keuangan.verifikasi-kost.revision');
 
     });
 

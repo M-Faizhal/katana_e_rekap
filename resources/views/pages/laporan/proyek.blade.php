@@ -189,8 +189,103 @@
     </div>
 </div>
 
+<!-- Omset Proyek: Perbandingan Internal vs Eksternal -->
+<div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
+    <div class="p-4 sm:p-6 border-b border-gray-200">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-chart-pie text-purple-600 text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">
+                        Perbandingan Omset Proyek: Internal vs Eksternal
+                    </h3>
+                    <p class="text-sm text-gray-500">
+                        @if(request()->has('all'))
+                            Semua tahun Proyek sudah SP
+                        @else
+                            Tahun {{ $selectedYear }} proyek yang sudah SP
+                        @endif
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="p-4 sm:p-6">
+        <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+            {{-- Pie chart --}}
+            <div class="relative" style="width:260px;height:260px;flex-shrink:0;">
+                <canvas id="proyekLabelPieChart"></canvas>
+            </div>
+            {{-- Legend --}}
+            <div class="flex-1 max-w-sm w-full space-y-4 text-sm" id="proyekLabelPieLegend">
+                {{-- filled by JS --}}
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Top Marketing by Omset Proyek -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Top Marketing Internal -->
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+        <div class="p-4 sm:p-6 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-bullhorn text-red-600 text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-800">Top Marketing Internal</h2>
+                    <p class="text-sm sm:text-base text-gray-600 mt-1">Berdasarkan omset proyek yang ditangani</p>
+                </div>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PIC</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Omset Proyek</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="proyekMarketingInternalTable">
+                    <!-- filled by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
+    <!-- Top Marketing Eksternal -->
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+        <div class="p-4 sm:p-6 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-globe text-orange-600 text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-800">Top Marketing Eksternal</h2>
+                    <p class="text-sm sm:text-base text-gray-600 mt-1">Berdasarkan omset proyek yang ditangani</p>
+                </div>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PIC</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Omset Proyek</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="proyekMarketingEksternalTable">
+                    <!-- filled by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 <script>
 // Format currency function
@@ -558,5 +653,128 @@ valueChart = new Chart(valueCtx, {
         }
     }
 });
+
+// ============================================================
+// Pie Chart & Tabel Omset Proyek: Internal vs Eksternal
+// ============================================================
+
+(function() {
+    const proyekOmsetByLabel       = @json($proyekOmsetByLabel);
+    const proyekAdminInternal      = @json($proyekAdminMarketingInternal);
+    const proyekAdminEksternal     = @json($proyekAdminMarketingEksternal);
+
+    const internal  = proyekOmsetByLabel.internal  || 0;
+    const eksternal = proyekOmsetByLabel.eksternal || 0;
+    const total     = internal + eksternal;
+
+    // --- Pie / Doughnut Chart ---
+    const ctx = document.getElementById('proyekLabelPieChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Internal', 'Eksternal'],
+            datasets: [{
+                data: [internal, eksternal],
+                backgroundColor: ['#ef4444', '#f97316'],
+                borderColor: ['#fff', '#fff'],
+                borderWidth: 4,
+                hoverOffset: 10,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const val = context.parsed;
+                            const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                            return ' ' + context.label + ': Rp ' + Math.round(val).toLocaleString('id-ID') + ' (' + pct + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // --- Legend ---
+    const legend    = document.getElementById('proyekLabelPieLegend');
+    const pctInt    = total > 0 ? ((internal  / total) * 100).toFixed(1) : 0;
+    const pctExt    = total > 0 ? ((eksternal / total) * 100).toFixed(1) : 0;
+
+    legend.innerHTML = `
+        <div class="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-100">
+            <div class="flex items-center gap-3">
+                <div class="w-4 h-4 rounded-full bg-red-500 flex-shrink-0"></div>
+                <div>
+                    <div class="font-bold text-gray-800 text-base">Internal</div>
+                    <div class="text-xs text-gray-500">Marketing Internal</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-xl font-bold text-red-600">${pctInt}%</div>
+                <div class="text-sm font-semibold text-gray-700">Rp ${Math.round(internal).toLocaleString('id-ID')}</div>
+            </div>
+        </div>
+        <div class="flex items-center justify-between p-4 bg-orange-50 rounded-xl border border-orange-100">
+            <div class="flex items-center gap-3">
+                <div class="w-4 h-4 rounded-full bg-orange-500 flex-shrink-0"></div>
+                <div>
+                    <div class="font-bold text-gray-800 text-base">Eksternal</div>
+                    <div class="text-xs text-gray-500">Marketing Eksternal</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-xl font-bold text-orange-600">${pctExt}%</div>
+                <div class="text-sm font-semibold text-gray-700">Rp ${Math.round(eksternal).toLocaleString('id-ID')}</div>
+            </div>
+        </div>
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 mt-2">
+            <div class="flex items-center gap-3">
+                <div class="w-4 h-4 rounded-full bg-gray-400 flex-shrink-0"></div>
+                <div class="font-semibold text-gray-600 text-base">Total Omset Proyek</div>
+            </div>
+            <div class="text-right">
+                <div class="text-sm font-bold text-gray-800">Rp ${Math.round(total).toLocaleString('id-ID')}</div>
+            </div>
+        </div>
+    `;
+
+    // --- Tabel Marketing Internal ---
+    function buildProyekMarketingRows(data, accentColor) {
+        if (!data || data.length === 0) {
+            return `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">Tidak ada data</td></tr>`;
+        }
+        const bgClass   = accentColor === 'red' ? 'bg-red-100'    : 'bg-orange-100';
+        const textClass = accentColor === 'red' ? 'text-red-600'  : 'text-orange-600';
+        return data.map((admin, index) => `
+            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                <td class="px-4 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 ${bgClass} rounded-full flex items-center justify-center mr-3">
+                            <span class="text-xs font-medium ${textClass}">${index + 1}</span>
+                        </div>
+                        <div class="text-sm font-medium text-gray-900">${admin.name || 'N/A'}</div>
+                    </div>
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${admin.jumlah_proyek || 0} proyek
+                </td>
+                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Rp ${parseInt(admin.total_omset || 0).toLocaleString('id-ID')}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    const tblInternal  = document.getElementById('proyekMarketingInternalTable');
+    const tblEksternal = document.getElementById('proyekMarketingEksternalTable');
+    if (tblInternal)  tblInternal.innerHTML  = buildProyekMarketingRows(proyekAdminInternal,  'red');
+    if (tblEksternal) tblEksternal.innerHTML = buildProyekMarketingRows(proyekAdminEksternal, 'orange');
+})();
+
 </script>
 @endsection

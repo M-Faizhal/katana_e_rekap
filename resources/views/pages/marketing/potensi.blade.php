@@ -56,7 +56,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             <div class="flex-1">
                 <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-600 mb-1">Total Potensi</h3>
                 <p id="totalPotensiCount" class="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-600">{{ $totalPotensi }}</p>
-                <p id="totalPotensiLabel" class="text-xs sm:text-sm text-gray-500 mt-1">Potensi yang sedang menunggu</p>
+                <p id="totalPotensiLabel" class="text-xs sm:text-sm text-gray-500 mt-1">Menunggu &amp; Penawaran (belum ACC)</p>
             </div>
         </div>
     </div>
@@ -1853,7 +1853,7 @@ function updateStatistics() {
         if (selectedTahun) {
             totalPotensiLabel.textContent = `Potensi tahun ${selectedTahun}`;
         } else {
-            totalPotensiLabel.textContent = 'Potensi yang sedang menunggu';
+            totalPotensiLabel.textContent = 'Menunggu & Penawaran (belum ACC)';
         }
     }
     

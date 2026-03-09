@@ -29,7 +29,19 @@ class OmsetMarketingExportController extends Controller
         // Menggunakan proyek_barang.harga_total + tahun_potensi,
         // konsisten dengan LaporanController
         $query = Proyek::with(['wilayah', 'adminMarketing', 'proyekBarang'])
-            ->where('status', '!=', 'Gagal')
+            ->where(function ($q) {
+                // Hanya proyek potensi: Menunggu, atau Penawaran yang belum ada ACC
+                $q->where('status', 'Menunggu')
+                  ->orWhere(function ($q2) {
+                      $q2->where('status', 'Penawaran')
+                         ->whereHas('penawaranList', function ($p) {
+                             $p->where('status', 'Menunggu');
+                         })
+                         ->whereDoesntHave('penawaranList', function ($p) {
+                             $p->where('status', 'ACC');
+                         });
+                  });
+            })
             ->orderBy('tahun_potensi', 'asc')
             ->orderBy('tanggal', 'asc');
 
