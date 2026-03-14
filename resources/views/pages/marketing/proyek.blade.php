@@ -178,8 +178,8 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                  data-kabupaten="{{ strtolower($proyek['kabupaten']) }}"
                  data-instansi="{{ strtolower($proyek['instansi']) }}"
                  data-tanggal="{{ $proyek['tanggal'] }}"
-                 onclick="buatPenawaran({{ $proyek['id'] }})"
-                 title="Klik untuk membuat penawaran">
+                 onclick="window.location.href='{{ route('chat.proyek', $proyek['id']) }}'"
+                 title="Klik untuk membuka chat proyek">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                     <div class="flex items-center space-x-3 mb-3 sm:mb-0">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">

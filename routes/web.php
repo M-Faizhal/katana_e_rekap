@@ -22,6 +22,7 @@ use App\Http\Controllers\marketing\PenawaranController;
 use App\Http\Controllers\marketing\Export\PotensiExportController;
 use App\Http\Controllers\marketing\Export\OmsetExportController;
 use App\Http\Controllers\marketing\Export\OmsetMarketingExportController;
+use App\Http\Controllers\ProjectChatController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 
@@ -254,6 +255,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/verifikasi-kost/{id}/revision', [VerifikasiKostController::class, 'revision'])->name('keuangan.verifikasi-kost.revision');
 
     });
+
+    // ─── Project Chat ─────────────────────────────────────────────────────────
+    Route::get('/chat/proyek/{idProyek}', [ProjectChatController::class, 'index'])->name('chat.proyek');
+    Route::post('/chat/proyek/{idProyek}/send', [ProjectChatController::class, 'send'])->name('chat.proyek.send');
+    Route::get('/chat/file/{fileId}/download', [ProjectChatController::class, 'downloadFile'])->name('chat.file.download');
 
     Route::get('/produk/export', [ProdukController::class, 'export'])->name('produk.export');
     Route::get('/produk', [ProdukController::class, 'index_produk_marketing'])->name('produk.marketing');
