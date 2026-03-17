@@ -25,6 +25,7 @@ use App\Http\Controllers\marketing\Export\OmsetMarketingExportController;
 use App\Http\Controllers\ProjectChatController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 // Health check endpoint for Docker
 Route::get('/health', function () {
@@ -283,5 +284,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/verifikasi-proyek/{id}', [VerifikasiProyekController::class, 'show'])->name('superadmin.verifikasi-proyek.detail');
         Route::put('/verifikasi-proyek/{id}/verify', [VerifikasiProyekController::class, 'verify'])->name('superadmin.verifikasi-proyek.verify');
         Route::get('/verifikasi-proyek-history', [VerifikasiProyekController::class, 'history'])->name('superadmin.verifikasi-proyek.history');
+    });
+
+    // Surat Penawaran Routes
+    Route::get('/surat-penawaran', function () {
+        return view('pages.files.surat-penawaran');
+    });
+
+    Route::get('/surat-penawaran/download', function () {
+        $pdf = Pdf::loadView('pages.files.surat-penawaran');
+        return $pdf->download('surat-penawaran.pdf');
     });
 });

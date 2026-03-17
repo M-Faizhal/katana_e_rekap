@@ -12,88 +12,69 @@
   body {
     font-family: 'Times New Roman', Times, serif;
     font-size: 10pt;
-    background: #e0e0e0;
-    display: flex;
-    justify-content: center;
-    padding: 10px;
+    margin: 0;
+    padding: 0;
+    background: #fff;
   }
 
   .page {
-    width: 210mm;
-    min-height: 297mm;
-    background: #fff;
     position: relative;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   }
 
-  /* Corner Decorations (image-based for PDF) */
+  /* Corner Decorations */
   .corner-tl, .corner-br {
     position: absolute;
-    width: 80px;
-    height: 80px;
     z-index: 0;
-    background: none;
   }
 
-  /* Top-right corner decoration */
   .corner-tl {
     top: 0;
     right: 0;
-    left: auto;
     width: 140px;
     height: 100px;
+    position: fixed;
   }
 
-  /* Bottom-left corner decoration */
   .corner-br {
     bottom: 0;
     left: 0;
-    right: auto;
     width: 140px;
     height: 140px;
+    position: fixed;
   }
 
   .corner-img {
     width: 100%;
     height: 100%;
-    display: block;
     object-fit: cover;
   }
 
-  /* Header */
-  .header {
-    display: flex;
-    align-items: center;
-    padding: 18px 0px 18px 0px;
+  /* Header menggunakan Tabel */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 18px 0px 18px 50px;
     border-bottom: 5px solid #C62828;
-    position: relative;
     z-index: 1;
+    background: white;
   }
-
-  .logo-box {
-    display: flex;
-    align-items: center;
-    gap: 0;
+  .header-table {
+    width: 100%;
+    border-collapse: collapse;
   }
-
-  .logo-icon {
-    width: 80px;
-    height: 80px;
-    position: relative;
-    margin-right: 10px;
-    margin-left: 50px;
-
+  .header-table td {
+    vertical-align: middle;
   }
-
-  /* Use actual logo from assets */
   .logo-img {
     width: 80px;
     height: 80px;
     display: block;
-    object-fit: contain;
   }
-
   .company-name {
     font-family: Arial, sans-serif;
     font-size: 22px;
@@ -101,14 +82,12 @@
     color: #222;
     line-height: 1.1;
     letter-spacing: 1px;
-  }
-  .company-name span {
-    display: block;
+    margin-left: 10px;
   }
 
   /* Body content */
   .content {
-    padding: 20px 80px 70px 80px;
+    padding: 140px 80px 150px 80px; /* Ditambahkan padding atas bawah agar tidak tertutup header/footer tetap */
     position: relative;
     z-index: 1;
   }
@@ -118,13 +97,13 @@
     font-size: 10pt;
     font-weight: bold;
     text-decoration: underline;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     letter-spacing: 1px;
   }
 
   .meta-table {
     width: 100%;
-    margin-bottom: 18px;
+    margin-bottom: 10px;
   }
   .meta-table tr td {
     padding: 1px 0;
@@ -140,13 +119,11 @@
   }
 
   .recipient {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     font-size: 10pt;
-    line-height: 1.7;
+    line-height: 1.3;
   }
-  .recipient .name-line {
-    font-weight: normal;
-  }
+  .recipient .name-line { font-weight: normal; }
   .recipient .underline {
     text-decoration: underline;
     letter-spacing: 2px;
@@ -154,20 +131,22 @@
     margin-top: 2px;
   }
 
-  .perihal {
-    margin-bottom: 14px;
+  /* Mengganti Flex di perihal dengan Table */
+  .perihal-table {
+    margin-bottom: 10px;
     font-size: 10pt;
-    display: flex;
-    gap: 4px;
   }
-  .perihal .label { white-space: nowrap; }
-  .perihal .text { font-weight: bold; }
+  .perihal-table td {
+    vertical-align: top;
+  }
+  .perihal-label { width: 60px; white-space: nowrap; }
+  .perihal-text { font-weight: bold; }
 
   .paragraph {
     font-size: 10pt;
-    line-height: 1.7;
+    line-height: 1.4;
     text-align: justify;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     text-indent: 40px;
   }
 
@@ -175,13 +154,13 @@
   .product-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 14px 0;
+    margin: 8px 0;
     font-size: 10pt;
   }
   .product-table th {
     background: #BDBDBD;
     color: #111;
-    padding: 10px 5px;
+    padding: 8px 5px;
     text-align: center;
     border: 1px solid #444;
     font-weight: bold;
@@ -203,135 +182,170 @@
   /* Bullet list */
   .bullet-list {
     font-size: 10pt;
-    line-height: 1.7;
-    margin: 6px 0 10px 20px;
+    line-height: 1.4;
+    margin: 4px 0 8px 20px;
     text-align: justify;
   }
   .bullet-list li {
     margin-bottom: 4px;
-    list-style: none;
-    padding-left: 12px;
-    position: relative;
-  }
-  .bullet-list li::before {
-    content: "-";
-    position: absolute;
-    left: 0;
   }
 
-  /* Signature */
-  .signature-block {
-    margin-top: 18px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    padding-right: 40px;
+  /* Signature - Menggunakan tabel untuk layout ke kanan */
+  .signature-table {
+    width: 100%;
+    margin-top: 10px;
+  }
+  .sig-block {
+    text-align: center;
   }
   .sig-company {
     font-weight: bold;
     font-size: 10pt;
     margin-bottom: 4px;
-    text-align: center;
-  }
-  .sig-stamp-area {
-    width: 140px;
-    height: 80px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-  }
-  .sig-stamp {
-    width: 100px;
-    height: 100px;
-    border: 3px solid #c0392b;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 7pt;
-    font-weight: bold;
-    text-align: center;
-    color: #c0392b;
-    position: relative;
-    opacity: 0.7;
   }
   .sig-name {
     font-weight: bold;
     font-size: 10pt;
-    text-align: center;
     text-decoration: underline;
+    margin-top: 50px; /* Jarak untuk ttd/stempel */
   }
   .sig-title {
     font-size: 10pt;
-    text-align: center;
   }
 
-  /* Footer */
-  .footer {
-    background: #111;
-    color: #fff;
-    padding: 14px 30px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 30px;
-    margin-top: 10px;
+  /* Footer menggunakan Tabel menggantikan Grid & Flex */
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: transparent;
+    color: #000;
+    padding: 4px 30px 20px 100px;
     font-size: 9pt;
+    z-index: 10;
+    box-sizing: border-box;
   }
-  .footer-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
+  .footer-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .footer-table td {
+    width: 50%;
+    vertical-align: top;
+    padding-bottom: 10px;
   }
   .footer-icon {
-    color: #c0392b;
-    font-size: 14px;
-    margin-top: 1px;
-    flex-shrink: 0;
+    float: left;
+    width: 35px;
+    height: 35px;
+    text-align: center;
+    border: 1.5px solid #c0392b;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .footer-icon img {
+    width: 18px;
+    height: 18px;
+    margin-top: 8px;
+  }
+  .footer-text-block {
+    margin-left: 45px;
   }
   .footer-label {
-    color: #aaa;
-    font-size: 8pt;
+    color: #000;
+    font-size: 10pt;
     margin-bottom: 2px;
   }
   .footer-value {
     color: #c0392b;
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   @media print {
-    body { background: none; padding: 0; }
-    .page { box-shadow: none; }
+    body { background: none; padding: 0; margin: 0; }
+    .page { box-shadow: none; margin: 0; width: 100%; height: auto; }
   }
 </style>
 </head>
 <body>
-<div class="page">
 
-  <!-- Corner decorations (images) -->
+  <!-- Corner decorations FIXED diseluruh halaman -->
   <div class="corner-tl">
-    <img class="corner-img" src="images/corner-top-right.png" alt="">
+    <img class="corner-img" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/kanan-atas.png'))) }}" alt="">
   </div>
   <div class="corner-br">
-    <img class="corner-img" src="images/corner-bottom-left.png" alt="">
+    <img class="corner-img" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/kiri-bawah.png'))) }}" alt="">
   </div>
 
-  <!-- Header -->
-  <div class="header">
-    <div class="logo-box">
-      <div class="logo-icon">
-        <img class="logo-img" src="{{ asset('images/logo.png') }}" alt="Logo PT. Kamil Tria Niaga">
-      </div>
-      <div class="company-name">
-        <span>KAMIL TRIA</span>
-        <span>NIAGA</span>
-      </div>
-    </div>
-  </div>
+  <!-- Header FIXED -->
+  <header>
+    <table class="header-table">
+      <tr>
+        <td style="width: 80px;">
+          <img class="logo-img" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/logo.png'))) }}" alt="Logo">
+        </td>
+        <td>
+          <div class="company-name">
+            KAMIL TRIA<br>NIAGA
+          </div>
+        </td>
+      </tr>
+    </table>
+  </header>
 
-  <!-- Content -->
-  <div class="content">
+  <!-- Footer FIXED -->
+  <footer>
+    <table class="footer-table">
+      <tr>
+        <!-- Kolom Pertama -->
+        <td style="padding-right: 10px;">
+          <div>
+            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-text-block">
+              <div class="footer-label">Address Head Office</div>
+              <div class="footer-value">Magersari Permai Blok AW-23 RT. 024 RW. 007,<br>Sidoarjo, Jawa Timur</div>
+            </div>
+          </div>
+        </td>
+        <!-- Kolom Kedua -->
+        <td>
+          <div>
+            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTIwIDRIMGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCA0bC04IDUtOC01VjZsOCA1IDgtNXYyeiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-text-block">
+              <div class="footer-label">Email</div>
+              <div class="footer-value">kamiltrianiaga@gmail.com</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <!-- Kolom Ketiga -->
+        <td style="padding-top: 15px; padding-right: 10px;">
+          <div>
+            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-text-block">
+              <div class="footer-label">Address Branch Office</div>
+              <div class="footer-value">Jl. H. Abu No.57 3, RT.3/RW.7, Cipete Sel,<br>Kec. Cilandak, DKI Jakarta</div>
+            </div>
+          </div>
+        </td>
+        <!-- Kolom Keempat -->
+        <td style="padding-top: 15px;">
+          <div>
+            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTYuNjIgMTAuNzljMS40NCAyLjgzIDMuNzYgNS4xNCA2LjU5IDYuNTlsMi4yLTIuMmMuMjctLjI3LjY3LS4zNiAxLjAyLS4yNCAxLjEyLjM3IDIuMzMuNTcgMy41Ny41Ny41NSAwIDEgLjQ1IDEgMVYyMGMwIC41NS0uNDUgMS0xIDEtOS4zOSAwLTE3LTcuNjEtMTctMTcgMC0uNTUuNDUtMSAxLTFoMy41Yy41NSAwIDEgLjQ1IDEgMSAwIDEuMjUuMiAyLjQ1LjU3IDMuNTcuMTEuMzUuMDMuNzQtLjI1IDEuMDJsLTIuMiAyLjJWMTAuNzl6Ii8+PC9zdmc+==" alt=""></div>
+            <div class="footer-text-block">
+              <div class="footer-label">Phone</div>
+              <div class="footer-value">0851-5523-2320</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </footer>
+
+  <!-- Content WAJIB diletakkan di bawah element fixed -->
+  <main class="content">
 
     <div class="surat-title">SURAT PENAWARAN</div>
 
@@ -356,10 +370,13 @@
       <div class="underline">K A B U P A T E N &nbsp; S I D O A R J O</div>
     </div>
 
-    <div class="perihal">
-      <span class="label">Perihal &nbsp;: &nbsp;</span>
-      <span class="text">Penawaran Barang Untuk Badan Penanggulangan Bencana Daerah</span>
-    </div>
+    <!-- Perihal -->
+    <table class="perihal-table">
+      <tr>
+        <td class="perihal-label">Perihal &nbsp;: &nbsp;</td>
+        <td class="perihal-text">Penawaran Barang Untuk Badan Penanggulangan Bencana Daerah</td>
+      </tr>
+    </table>
 
     <p class="paragraph">
       Melalui Surat ini, kami dari PT. Kamil Tria Niaga sebagai perusahaan yang bergerak dalam bidang penyedia
@@ -388,14 +405,14 @@
           <td class="center">3 Unit</td>
           <td class="right">Rp 10.300.000</td>
           <td class="right">Rp 30.900.000</td>
-          <td><a href="https://katalog.inaproc.id/kamil-tria-senso-stihl-18-inch" target="_blank">https://katalog.inaproc.id/kamil-tria-senso-stihl-18-inch</a></td>
+          <td><a href="https://katalog.inaproc.id/kamil-tria-senso-stihl-18-inch" target="_blank">Link</a></td>
         </tr>
         <tr>
           <td>Chainsaw Stihl 20 inch</td>
           <td class="center">2 Unit</td>
           <td class="right">Rp 10.300.000</td>
           <td class="right">Rp 20.600.000</td>
-          <td><a href="https://katalog.inaproc.id/kamil-tria-senso-stihl-20-inch" target="_blank">https://katalog.inaproc.id/kamil-tria-senso-stihl-20-inch</a></td>
+          <td><a href="https://katalog.inaproc.id/kamil-tria-senso-stihl-20-inch" target="_blank">Link</a></td>
         </tr>
       </tbody>
     </table>
@@ -416,52 +433,20 @@
       semua ketentuan yang tercantum dalam berkas.
     </p>
 
-    <!-- Signature -->
-    <div class="signature-block">
-      <div style="text-align:center;">
-        <div class="sig-company">PT. KAMIL TRIA NIAGA</div>
-        <div class="sig-stamp-area">
-          
-        </div>
-        <div class="sig-name">MAHENDA ABDILLAH KAMIL, S.Stat</div>
-        <div class="sig-title">Direktur</div>
-      </div>
-    </div>
+    <!-- Signature menggunakan Table -->
+    <table class="signature-table">
+      <tr>
+        <td style="width: 60%;"></td> <!-- Kosong buat geser ke kanan -->
+        <td style="width: 40%;" class="sig-block">
+          <div class="sig-company">PT. KAMIL TRIA NIAGA</div>
+          <br><br>
+          <div class="sig-name">MAHENDA ABDILLAH KAMIL, S.Stat</div>
+          <div class="sig-title">Direktur</div>
+        </td>
+      </tr>
+    </table>
 
-  </div><!-- end content -->
+  </main><!-- end content -->
 
-  <!-- Footer -->
-  <div class="footer">
-    <div class="footer-item">
-      <span class="footer-icon">📍</span>
-      <div>
-        <div class="footer-label">Address Head Office</div>
-        <div class="footer-value">Magersari Permai Blok AW-23 RT. 024 RW. 007,<br>Sidoarjo, Jawa Timur</div>
-      </div>
-    </div>
-    <div class="footer-item">
-      <span class="footer-icon">✉</span>
-      <div>
-        <div class="footer-label">Email</div>
-        <div class="footer-value">kamiltrianiaga@gmail.com</div>
-      </div>
-    </div>
-    <div class="footer-item">
-      <span class="footer-icon">📍</span>
-      <div>
-        <div class="footer-label">Address Branch Office</div>
-        <div class="footer-value">Jl. H. Abu No.57 3, RT.3/RW.7, Cipete Sel, Kec. Cilandak,<br>Kota Jakarta Selatan, DKI Jakarta</div>
-      </div>
-    </div>
-    <div class="footer-item">
-      <span class="footer-icon">📞</span>
-      <div>
-        <div class="footer-label">Phone</div>
-        <div class="footer-value">0851-5523-2320</div>
-      </div>
-    </div>
-  </div>
-
-</div>
 </body>
 </html>
