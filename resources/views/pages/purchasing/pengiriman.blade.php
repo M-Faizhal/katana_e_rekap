@@ -138,19 +138,29 @@
 
     <!-- Tab Navigation -->
     <div class="border-b border-gray-200 mb-6">
-        <nav class="-mb-px flex space-x-8">
-            <button id="tabReady" onclick="switchTab('ready')" 
-                    class="border-red-500 text-red-600 tab-active whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-box mr-2"></i>Ready Kirim
-            </button>
-            <button id="tabProses" onclick="switchTab('proses')" 
-                    class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-truck mr-2"></i>Dalam Proses
-            </button>
-            <button id="tabSelesai" onclick="switchTab('selesai')" 
-                    class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
-                <i class="fas fa-check-circle mr-2"></i>Sampai/Selesai
-            </button>
+        <nav class="-mb-px flex items-center justify-between">
+            <div class="flex space-x-8">
+                <button id="tabReady" onclick="switchTab('ready')" 
+                        class="border-red-500 text-red-600 tab-active whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-box mr-2"></i>Ready Kirim
+                </button>
+                <button id="tabProses" onclick="switchTab('proses')" 
+                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-truck mr-2"></i>Dalam Proses
+                </button>
+                <button id="tabSelesai" onclick="switchTab('selesai')" 
+                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-check-circle mr-2"></i>Sampai/Selesai
+                </button>
+            </div>
+
+            <!-- Right aligned tab -->
+            <div class="flex">
+                <button id="tabSurat" onclick="switchTab('surat')" 
+                        class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-file-signature mr-2"></i>Pembuatan Surat Pengiriman
+                </button>
+            </div>
         </nav>
     </div>
 
@@ -856,6 +866,100 @@
             </div>
         @endif
     </div>
+
+    <!-- Tab Content: Pembuatan Surat Pengiriman -->
+    <div id="contentSurat" class="tab-content hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Pembuatan Surat Pengiriman</h3>
+                <p class="text-sm text-gray-600">Daftar proyek dengan status <span class="font-medium">Pengiriman</span> & <span class="font-medium">Selesai</span> untuk pembuatan Surat Jalan dan Tanda Terima</p>
+            </div>
+
+            <!-- Search Bar (reuse query param search) -->
+            <div class="flex gap-2">
+                <form method="GET" class="flex gap-2">
+                    <input type="hidden" name="tab" value="surat">
+                    <div class="relative">
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Cari proyek..." 
+                               class="px-4 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                        <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    @if(request('search'))
+                    <a href="{{ route('purchasing.pengiriman') }}?tab=surat" 
+                       class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 whitespace-nowrap">
+                        <i class="fas fa-times mr-1"></i>
+                        Reset
+                    </a>
+                    @endif
+                </form>
+            </div>
+        </div>
+
+        @if(($suratPengirimanList->count() ?? 0) > 0)
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No Proyek</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instansi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kab/Kota</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PIC Purchasing</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($suratPengirimanList as $proyek)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                {{ $proyek->kode_proyek }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $proyek->instansi }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $proyek->kab_kota ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $proyek->adminPurchasing->name ?? $proyek->adminPurchasing->nama ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @php
+                                    $badge = $proyek->status === 'Selesai' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                                @endphp
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $badge }}">
+                                    {{ $proyek->status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <a href="{{ route('purchasing.pengiriman.surat', $proyek->id_proyek) }}" 
+                                   class="inline-flex items-center px-3 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-medium rounded-lg">
+                                    <i class="fas fa-file-alt mr-2"></i>
+                                    Buat Surat jalan &amp; Tanda Terima
+                                </a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4">
+                {{ $suratPengirimanList->appends(request()->query())->links() }}
+            </div>
+        @else
+            <div class="text-center py-10 text-gray-500">
+                <i class="fas fa-file-signature text-4xl mb-3"></i>
+                <p class="font-medium">Belum ada proyek untuk pembuatan surat</p>
+                <p class="text-sm">Proyek dengan status Pengiriman / Selesai akan muncul di sini</p>
+            </div>
+        @endif
+    </div>
 </div>
 
 <!-- Modal Buat Pengiriman -->
@@ -991,18 +1095,18 @@
                 
                 <!-- Tab Content Info -->
                 <div id="contentInfo" class="detail-tab-content">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="bg-white p-4 rounded-lg border border-gray-200">
                             <h4 class="font-semibold text-gray-900 mb-3">Informasi Proyek</h4>
                             <div id="infoProyekDetail" class="space-y-2 text-sm">
                                 <!-- Info proyek akan diisi via JavaScript -->
                             </div>
                         </div>
                         
-                        <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="bg-white p-4 rounded-lg border border-gray-200">
                             <h4 class="font-semibold text-gray-900 mb-3">Detail Pengiriman</h4>
                             <div id="infoPengirimanDetailSelesai" class="space-y-2 text-sm">
-                                <!-- Info pengiriman akan diisi via JavaScript -->
+                              <!-- Info pengiriman akan diisi via JavaScript -->
                             </div>
                         </div>
                     </div>
@@ -1115,8 +1219,8 @@ function switchTab(tabName) {
         content.classList.add('hidden');
     });
 
-    // Remove active class from all tabs
-    document.querySelectorAll('nav button').forEach(tab => {
+    // Remove active class from all tab buttons only
+    document.querySelectorAll('button[id^="tab"]').forEach(tab => {
         tab.classList.remove('border-red-500', 'text-red-600', 'tab-active');
         tab.classList.add('border-transparent', 'text-gray-500');
     });
@@ -1363,7 +1467,7 @@ function updateDokumentasi(pengirimanId) {
 
         const fieldsHtml = dokumentasiFields.map(field => {
             const hasFile    = field.current && field.current.trim() !== '';
-            const hasChecked = field.checkKey ? !!checklistData[field.checkKey] : false;
+            const hasChecked  = field.checkKey ? !!checklistData[field.checkKey] : false;
             const isDone     = hasFile || hasChecked;
 
             // Status badge
@@ -1385,8 +1489,6 @@ function updateDokumentasi(pengirimanId) {
                     <i class="fas fa-times-circle mr-1"></i> Belum Ada
                 </span>`;
             }
-
-          
 
             // Info file saat ini
             const currentFileInfo = hasFile ? 
@@ -1421,8 +1523,6 @@ function updateDokumentasi(pengirimanId) {
             } else if (hasFile && field.checkName) {
                 checkboxHtml = `<input type="hidden" name="${field.checkName}" value="${hasChecked ? '1' : '0'}">`;
             }
-
-           
 
             // Hint text bawah input
             let hintText = '';

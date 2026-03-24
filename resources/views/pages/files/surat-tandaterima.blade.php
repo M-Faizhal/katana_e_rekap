@@ -7,6 +7,15 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  /*
+   * ============================================================
+   * KUNCI MULTI-HALAMAN:
+   * - thead diulang tiap halaman (display: table-header-group)
+   * - hindari baris tabel kepotong (page-break-inside: avoid)
+   * - blok tanda tangan jangan kepotong halaman
+   * ============================================================
+   */
+
   @page {
     size: A4;
     margin-top: 130px;
@@ -94,21 +103,23 @@
   }
 
   /* ============================================================
-   * TANDA TERIMA STYLES
+   * TANDA TERIMA STYLES (disesuaikan agar mirip contoh)
    * ============================================================ */
   .tt-title {
     text-align: center;
-    font-size: 13pt;
+    font-size: 12pt;
     font-weight: bold;
-    text-decoration: underline;
-    margin-bottom: 10px;
     letter-spacing: 1px;
+    margin: 20px 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #000;
+    border-top: 1px solid #000;
   }
 
   .tt-nomor {
     text-align: center;
     font-size: 10pt;
-    margin-bottom: 16px;
+    margin: 10px 0 18px;
   }
 
   .tt-tanggal {
@@ -118,83 +129,86 @@
   }
 
   .tt-info-row {
-    display: flex;
     font-size: 10pt;
-    margin-bottom: 3px;
-    line-height: 1.6;
+    margin-bottom: 2px;
+    line-height: 1.3;
   }
-  .tt-info-label {
-    min-width: 100px;
-    font-weight: normal;
-  }
-  .tt-info-colon {
-    margin-right: 8px;
-  }
+  .tt-info-label,
+  .tt-info-colon,
   .tt-info-value {
-    flex: 1;
+    display: inline-block;
+    vertical-align: top;
   }
+  .tt-info-label { width: 85px; }
+  .tt-info-colon { width: 10px; }
+  .tt-info-value { width: calc(100% - 95px); }
 
   /* Table */
   .tt-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 6px;
-    margin-bottom: 30px;
     font-size: 10pt;
+
+    /* DomPDF multi-page */
+    page-break-inside: auto;
+  }
+  .tt-table thead {
+    display: table-header-group;
+  }
+  .tt-table tfoot {
+    display: table-footer-group;
+  }
+  .tt-table tr {
+    page-break-inside: avoid;
+  }
+
+  /* Hindari properti yang sering diabaikan DomPDF */
+  /* break-inside: avoid;  <-- dihilangkan */
+
+  .tt-table th,
+  .tt-table td {
+    border: 1px solid #000;
+    padding: 4px 6px;
   }
   .tt-table th {
-    background: #fff;
-    border: 1px solid #333;
-    padding: 5px 8px;
     text-align: center;
     font-weight: bold;
-    font-size: 10pt;
-  }
-  .tt-table td {
-    border: 1px solid #333;
-    padding: 5px 8px;
-    font-size: 10pt;
-    vertical-align: top;
   }
   .tt-table td.center { text-align: center; }
 
   /* Signature Section */
   .sig-section {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
+    width: 100%;
+    margin-top: 70px;
     font-size: 10pt;
+
+    /* jangan sampai kepotong halaman */
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
-  .sig-block {
+  .sig-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .sig-td {
+    width: 50%;
     text-align: center;
-    min-width: 180px;
+    vertical-align: top;
   }
-  .sig-block-title {
-    font-weight: bold;
-    margin-bottom: 4px;
-    font-size: 10pt;
-  }
-  .sig-block-company {
-    font-weight: bold;
-    font-size: 10pt;
-    margin-bottom: 4px;
-  }
+  .sig-block-title { margin-bottom: 2px; }
+  .sig-block-company { font-weight: bold; }
   .sig-space {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 85px;
+    margin: 6px auto;
   }
   .sig-name-line {
-    border-top: 1px solid #333;
-    padding-top: 4px;
     font-weight: bold;
-    font-size: 10pt;
-    text-align: center;
+    margin-top: 30px;
   }
   .sig-dots {
-    font-size: 10pt;
-    letter-spacing: 2px;
+    margin-top: 34px;
+    font-weight: bold;
   }
 
   /* ============================================================
@@ -252,12 +266,37 @@
   @media print {
     body { background: none; padding: 0; margin: 0; }
     .content {
+      /* @page sudah atur margin, jadi padding kiri-kanan saja */
       padding: 20px 80px;
     }
   }
 </style>
 </head>
 <body>
+
+  @php
+    $nomorSurat  = $surat['nomor_surat'] ?? null;
+    $tempatSurat = $surat['tempat_surat'] ?? null;
+    $tanggalRaw  = $surat['tanggal_surat'] ?? null; // Y-m-d (string)
+
+    $tanggalSurat = '-';
+    if (!empty($tanggalRaw)) {
+      try {
+        $tanggalSurat = \Carbon\Carbon::parse($tanggalRaw)->translatedFormat('d F Y');
+      } catch (\Throwable $e) {
+        $tanggalSurat = $tanggalRaw;
+      }
+    }
+
+    $penerima = $surat['penerima'] ?? ($proyek->instansi ?? '-');
+    $wilayah = $surat['wilayah'] ?? ($proyek->kab_kota ?? null);
+    $pengirimNama = $surat['pengirim'] ?? '-';
+
+    // Default tempat surat mengikuti footer (Sidoarjo) jika kosong
+    $tempatTgl = trim(($tempatSurat ?: 'Sidoarjo') . ', ' . $tanggalSurat);
+
+    $penerimaFull = trim($penerima . (empty($wilayah) ? '' : (' ' . $wilayah)));
+  @endphp
 
   <!-- Corner decorations -->
   <div class="corner-tl">
@@ -284,7 +323,7 @@
   </header>
 
   <!-- Footer FIXED -->
-  <footer>
+ <footer>
     <table class="footer-table">
       <tr>
         <td>
@@ -338,16 +377,15 @@
     <div class="tt-title">TANDA TERIMA</div>
 
     <!-- Nomor Surat -->
-    <div class="tt-nomor">DISPAR/22.468/KTN/X/2025</div>
+    <div class="tt-nomor">{{ $nomorSurat ?: '-' }}</div>
 
     <!-- Tanggal -->
-    <div class="tt-tanggal">Sidoarjo, 3 Oktober 2025</div>
+    <div class="tt-tanggal">{{ $tempatTgl }}</div>
 
     <!-- Info Penerima -->
     <div class="tt-info-row">
       <span class="tt-info-label">Terima Oleh</span>
-      <span class="tt-info-colon">:</span>
-      <span class="tt-info-value">Dinas Pariwisata dan Ekonomi Kreatif</span>
+      <span class="tt-info-value">: {{ $penerima }} {{ $wilayah }}</span>
     </div>
     <div class="tt-info-row">
       <span class="tt-info-label">Berupa</span>
@@ -366,43 +404,42 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td class="center">1</td>
-          <td>Loker 12 Pintu</td>
-          <td class="center">Unit</td>
-          <td class="center">17</td>
-        </tr>
-        <tr>
-          <td class="center">2</td>
-          <td>Lemari Arsip Besi Slidding Kaca</td>
-          <td class="center">Unit</td>
-          <td class="center">7</td>
-        </tr>
-        <tr>
-          <td class="center">3</td>
-          <td>Lemari Buffet Buku/Lemari Panjang 3,25 Meter</td>
-          <td class="center">Unit</td>
-          <td class="center">3</td>
-        </tr>
+        @forelse(($items ?? []) as $idx => $it)
+          <tr>
+            <td class="center">{{ $idx + 1 }}</td>
+            <td>{{ $it['nama_barang'] ?? '-' }}</td>
+            <td class="center">{{ $it['satuan'] ?? '-' }}</td>
+            <td class="center">{{ $it['qty'] ?? 0 }}</td>
+          </tr>
+        @empty
+          <tr>
+            <td class="center">1</td>
+            <td>-</td>
+            <td class="center">-</td>
+            <td class="center">0</td>
+          </tr>
+        @endforelse
       </tbody>
     </table>
 
-    <!-- Tanda Tangan -->
+    <!-- Tanda Tangan (disusun seperti contoh menggunakan table) -->
     <div class="sig-section">
-      <div class="sig-block">
-        <div class="sig-block-title">Pengirim</div>
-        <div class="sig-block-company">PT. KAMIL TRIA NIAGA</div>
-        <div class="sig-space">
-          <!-- Tempat tanda tangan / stempel -->
-        </div>
-        <div class="sig-name-line">ARISTO RAMADHANI</div>
-      </div>
-      <div class="sig-block">
-        <div class="sig-block-title">Penerima</div>
-        <div class="sig-block-company">DINAS PARIWISATA DAN EKONOMI KREATIF</div>
-        <div class="sig-space"></div>
-        <div class="sig-dots">.................................</div>
-      </div>
+      <table class="sig-table">
+        <tr>
+          <td class="sig-td">
+            <div class="sig-block-title">Pengirim</div>
+            <div class="sig-block-company">PT. KAMIL TRIA NIAGA</div>
+            <div class="sig-space"></div>
+            <div class="sig-name-line">{{ strtoupper($pengirimNama ?: '-') }}</div>
+          </td>
+          <td class="sig-td">
+            <div class="sig-block-title">Penerima</div>
+            <div class="sig-block-company">{{ strtoupper($penerimaFull) }}</div>
+            <div class="sig-space"></div>
+            <div class="sig-dots">....................................</div>
+          </td>
+        </tr>
+      </table>
     </div>
 
   </main>

@@ -7,10 +7,14 @@ use Illuminate\Http\Request;
 use App\Models\Proyek;
 use App\Models\Penawaran;
 use App\Models\Pengiriman;
+use App\Models\PenawaranDetail;
+use App\Models\SuratTandaTerima;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use iio\libmergepdf\Merger;
 
 class PengirimanController extends Controller
 {
@@ -192,11 +196,32 @@ class PengirimanController extends Controller
             fn($p) => $this->attachBarangList($p)
         );
 
+        // ----------------------------------------------------------------
+        // TAB: Pembuatan Surat Pengiriman (tampilan saja)
+        // ----------------------------------------------------------------
+        $suratPengirimanQuery = Proyek::with([
+                'adminPurchasing',
+            ])
+            ->whereIn('status', ['Pengiriman', 'Selesai']);
+
+        if ($search) {
+            $suratPengirimanQuery->where(function ($q) use ($search) {
+                $q->where('instansi', 'like', "%{$search}%")
+                  ->orWhere('kode_proyek', 'like', "%{$search}%")
+                  ->orWhere('kab_kota', 'like', "%{$search}%");
+            });
+        }
+
+        $suratPengirimanList = $suratPengirimanQuery
+            ->orderBy('id_proyek', 'asc')
+            ->paginate(10, ['*'], 'surat_page');
+
         return view('pages.purchasing.pengiriman', compact(
             'proyekReady',
             'proyekReadyPaginated',
             'pengirimanBerjalan',
             'pengirimanSelesai',
+            'suratPengirimanList',
             'search',
             'activeTab'
         ));
@@ -225,6 +250,18 @@ class PengirimanController extends Controller
 
         $pengiriman->barang_list = $barangList;
         return $pengiriman;
+    }
+
+    /**
+     * Halaman pembuatan Surat Jalan & Tanda Terima (tampilan saja).
+     */
+    public function surat($proyekId)
+    {
+        $proyek = Proyek::with(['adminPurchasing'])->findOrFail($proyekId);
+
+        $suratTandaTerima = SuratTandaTerima::where('id_proyek', $proyek->id_proyek)->first();
+
+        return view('pages.purchasing.pengiriman-components.pembuatan-surat', compact('proyek', 'suratTandaTerima'));
     }
 
     /**
@@ -737,5 +774,248 @@ class PengirimanController extends Controller
             'message' => "Cleanup completed. {$deletedCount} orphaned files deleted.",
             'deleted_count' => $deletedCount
         ]);
+    }
+
+    /**
+     * Preview PDF Tanda Terima (inline).
+     */
+    public function previewTandaTerima(Request $request, $proyekId)
+    {
+        $payload = $this->buildTandaTerimaPayload($request, $proyekId, true);
+        $pdf     = Pdf::loadView('pages.files.surat-tandaterima', $payload);
+        $content = $this->mergeTandaTerimaWithLampiran($pdf->output(), $payload['suratDb'] ?? null);
+
+        return response($content, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="tanda-terima-preview.pdf"',
+        ]);
+    }
+
+    /**
+     * Download PDF Tanda Terima (attachment).
+     */
+    public function downloadTandaTerima(Request $request, $proyekId)
+    {
+        $payload  = $this->buildTandaTerimaPayload($request, $proyekId, true);
+        $pdf      = Pdf::loadView('pages.files.surat-tandaterima', $payload);
+        $content  = $this->mergeTandaTerimaWithLampiran($pdf->output(), $payload['suratDb'] ?? null);
+        $filename = 'tanda-terima-' . ($payload['proyek']->kode_proyek ?? $proyekId) . '.pdf';
+
+        return response($content, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Simpan metadata Tanda Terima + upload lampiran PDF.
+     * (dipakai oleh halaman pembuatan surat nanti)
+     */
+    public function storeTandaTerima(Request $request, $proyekId)
+    {
+        $validated = $request->validate([
+            'nomor_surat'     => 'nullable|string|max:255',
+            'tempat_surat'    => 'nullable|string|max:255',
+            'tanggal_surat'   => 'nullable|date',
+            'id_penawaran'    => 'nullable|integer',
+            'lampiran_pdfs'   => 'nullable',
+            'lampiran_pdfs.*' => 'file|mimes:pdf|max:10240',
+        ]);
+
+        $proyek = Proyek::findOrFail($proyekId);
+
+        $dbFields = collect($validated)->except(['lampiran_pdfs'])->toArray();
+
+        $surat = SuratTandaTerima::updateOrCreate(
+            ['id_proyek' => $proyek->id_proyek],
+            array_merge($dbFields, ['id_proyek' => $proyek->id_proyek])
+        );
+
+        if ($request->hasFile('lampiran_pdfs')) {
+            // Baca raw JSON langsung dari DB
+            $rawRow   = DB::table('surat_tanda_terima')->where('id_surat_tanda_terima', $surat->id_surat_tanda_terima)->value('lampiran_files');
+            $existing = [];
+            if ($rawRow) {
+                $decoded  = json_decode($rawRow, true);
+                $existing = is_array($decoded) ? $decoded : [];
+            }
+
+            foreach ($request->file('lampiran_pdfs') as $file) {
+                if (!$file || !$file->isValid()) continue;
+
+                $safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $file->getClientOriginalName());
+                $filename = time() . '_' . uniqid() . '_' . $safeName;
+                $path     = $file->storeAs('tanda-terima/lampiran', $filename, 'public');
+
+                $existing[] = [
+                    'path'          => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'uploaded_at'   => now()->toDateTimeString(),
+                    'size'          => $file->getSize(),
+                ];
+            }
+
+            DB::table('surat_tanda_terima')
+                ->where('id_surat_tanda_terima', $surat->id_surat_tanda_terima)
+                ->update(['lampiran_files' => json_encode(array_values($existing))]);
+        }
+
+        $surat = SuratTandaTerima::find($surat->id_surat_tanda_terima);
+
+        // Jika dipanggil via form biasa, lakukan redirect (bukan JSON)
+        if (!$request->expectsJson()) {
+            return redirect()
+                ->route('purchasing.pengiriman.surat', ['proyekId' => $proyek->id_proyek])
+                ->with('success', 'Tanda terima berhasil disimpan.');
+        }
+
+        return response()->json([
+            'success'        => true,
+            'message'        => 'Tanda terima berhasil disimpan.',
+            'data'           => $surat,
+            'lampiran_files' => $surat->lampiran_files_list,
+        ]);
+    }
+
+    /**
+     * Hapus 1 lampiran dari surat tanda terima.
+     */
+    public function deleteTandaTerimaLampiran(Request $request, $proyekId)
+    {
+        $request->validate(['path' => 'required|string']);
+
+        $surat = SuratTandaTerima::where('id_proyek', $proyekId)->firstOrFail();
+        $path  = $request->input('path');
+
+        $rawRow = DB::table('surat_tanda_terima')->where('id_surat_tanda_terima', $surat->id_surat_tanda_terima)->value('lampiran_files');
+        $files  = [];
+        if ($rawRow) {
+            $decoded = json_decode($rawRow, true);
+            $files   = is_array($decoded) ? $decoded : [];
+        }
+
+        $newFiles = [];
+        foreach ($files as $f) {
+            if (($f['path'] ?? null) === $path) {
+                if ($path && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+                continue;
+            }
+            $newFiles[] = $f;
+        }
+
+        DB::table('surat_tanda_terima')
+            ->where('id_surat_tanda_terima', $surat->id_surat_tanda_terima)
+            ->update(['lampiran_files' => json_encode(array_values($newFiles))]);
+
+        $surat = SuratTandaTerima::find($surat->id_surat_tanda_terima);
+
+        return response()->json([
+            'success'        => true,
+            'message'        => 'Lampiran berhasil dihapus.',
+            'lampiran_files' => $surat->lampiran_files_list,
+        ]);
+    }
+
+    private function buildTandaTerimaPayload(Request $request, $proyekId, bool $preferDb = false): array
+    {
+        $proyek = Proyek::with(['adminPurchasing', 'penawaranAktif.penawaranDetail'])->findOrFail($proyekId);
+
+        $penawaran = $proyek->penawaranAktif;
+        if (!$penawaran) {
+            $penawaran = Penawaran::where('id_proyek', $proyek->id_proyek)->orderBy('id_penawaran', 'desc')->first();
+        }
+
+        $details = $penawaran
+            ? PenawaranDetail::with('barang')->where('id_penawaran', $penawaran->id_penawaran)->get()
+            : collect();
+
+        $suratDb = $preferDb
+            ? SuratTandaTerima::where('id_proyek', $proyek->id_proyek)->first()
+            : null;
+
+        $get = fn (string $k, $fallback = null) => $request->query($k, $fallback);
+
+        $nomor   = $get('nomor_surat',   $suratDb?->nomor_surat);
+        $tempat  = $get('tempat_surat',  $suratDb?->tempat_surat);
+
+        $tanggalDb = $suratDb?->tanggal_surat;
+        $tanggalDbStr = null;
+        if ($tanggalDb instanceof \DateTimeInterface) {
+            $tanggalDbStr = $tanggalDb->format('Y-m-d');
+        } elseif (is_string($tanggalDb) && $tanggalDb !== '') {
+            $tanggalDbStr = $tanggalDb;
+        }
+
+        $tanggal = $get('tanggal_surat', $tanggalDbStr);
+
+        $items = $details->map(function ($d) {
+            return [
+                'nama_barang' => $d->barang?->nama_barang ?? $d->nama_barang,
+                'satuan'      => $d->satuan,
+                'qty'         => (int) $d->qty,
+            ];
+        })->values();
+
+        return [
+            'proyek'  => $proyek,
+            'penawaran' => $penawaran,
+            'items'   => $items,
+            'surat'   => [
+                'nomor_surat'   => $nomor,
+                'tempat_surat'  => $tempat,
+                'tanggal_surat' => $tanggal,
+                'penerima'      => $proyek->instansi,
+                'pengirim'      => $proyek->adminPurchasing?->name ?? $proyek->adminPurchasing?->nama,
+            ],
+            'suratDb' => $suratDb,
+        ];
+    }
+
+    private function mergeTandaTerimaWithLampiran(string $ttPdfContent, $suratDb = null): string
+    {
+        $lampiranList = [];
+
+        try {
+            if ($suratDb) {
+                $rawRow = DB::table('surat_tanda_terima')
+                    ->where('id_surat_tanda_terima', $suratDb->id_surat_tanda_terima)
+                    ->value('lampiran_files');
+
+                if ($rawRow) {
+                    $decoded      = json_decode($rawRow, true);
+                    $lampiranList = is_array($decoded) ? $decoded : [];
+                }
+            }
+        } catch (\Throwable $e) {
+            // silent
+        }
+
+        if (empty($lampiranList)) {
+            return $ttPdfContent;
+        }
+
+        try {
+            $merger = new Merger();
+            $merger->addRaw($ttPdfContent);
+
+            foreach ($lampiranList as $f) {
+                $path = $f['path'] ?? null;
+                if (!$path) continue;
+
+                $absolutePath = storage_path('app/public/' . ltrim($path, '/\\'));
+                if (!file_exists($absolutePath)) continue;
+
+                $raw = file_get_contents($absolutePath);
+                if (!$raw || strlen($raw) === 0) continue;
+
+                $merger->addRaw($raw);
+            }
+
+            return $merger->merge();
+        } catch (\Throwable $e) {
+            return $ttPdfContent;
+        }
     }
 }

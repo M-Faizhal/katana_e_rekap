@@ -192,6 +192,18 @@ Route::middleware('auth')->group(function () {
 
         // Pengiriman Routes
         Route::get('/pengiriman', [PengirimanController::class, 'index'])->name('purchasing.pengiriman');
+        Route::get('/pengiriman/surat/{proyekId}', [PengirimanController::class, 'surat'])->name('purchasing.pengiriman.surat');
+
+        // Surat Tanda Terima (PDF + metadata + lampiran)
+        Route::get('/pengiriman/surat/{proyekId}/tanda-terima/preview', [PengirimanController::class, 'previewTandaTerima'])
+            ->name('purchasing.pengiriman.tanda-terima.preview');
+        Route::get('/pengiriman/surat/{proyekId}/tanda-terima/download', [PengirimanController::class, 'downloadTandaTerima'])
+            ->name('purchasing.pengiriman.tanda-terima.download');
+        Route::post('/pengiriman/surat/{proyekId}/tanda-terima', [PengirimanController::class, 'storeTandaTerima'])
+            ->name('purchasing.pengiriman.tanda-terima.store');
+        Route::delete('/pengiriman/surat/{proyekId}/tanda-terima/lampiran', [PengirimanController::class, 'deleteTandaTerimaLampiran'])
+            ->name('purchasing.pengiriman.tanda-terima.lampiran.delete');
+
         Route::get('/pengiriman/{id}/detail', [PengirimanController::class, 'getDetailWithFiles'])->name('purchasing.pengiriman.detail');
         Route::post('/pengiriman', [PengirimanController::class, 'store'])->name('purchasing.pengiriman.store');
         Route::get('/pengiriman/{id}/edit', [PengirimanController::class, 'edit'])->name('purchasing.pengiriman.edit');
