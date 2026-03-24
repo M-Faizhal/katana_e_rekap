@@ -87,7 +87,7 @@
 
   /* Body content */
   .content {
-    padding: 140px 80px 150px 80px; /* Ditambahkan padding atas bawah agar tidak tertutup header/footer tetap */
+    padding: 140px 80px 150px 80px;
     position: relative;
     z-index: 1;
   }
@@ -190,7 +190,7 @@
     margin-bottom: 4px;
   }
 
-  /* Signature - Menggunakan tabel untuk layout ke kanan */
+  /* Signature */
   .signature-table {
     width: 100%;
     margin-top: 10px;
@@ -207,13 +207,13 @@
     font-weight: bold;
     font-size: 10pt;
     text-decoration: underline;
-    margin-top: 50px; /* Jarak untuk ttd/stempel */
+    margin-top: 50px;
   }
   .sig-title {
     font-size: 10pt;
   }
 
-  /* Footer menggunakan Tabel menggantikan Grid & Flex */
+  /* Footer */
   footer {
     position: fixed;
     bottom: 0;
@@ -344,44 +344,67 @@
     </table>
   </footer>
 
-  <!-- Content WAJIB diletakkan di bawah element fixed -->
+  <!-- Content -->
   <main class="content">
 
     <div class="surat-title">SURAT PENAWARAN</div>
+
+    @php
+      /**
+       * Helper format tanggal Indonesia
+       * Input: string tanggal apapun yang bisa di-parse Carbon
+       * Output: "24 Maret 2026"
+       */
+      $bulanId = [
+        1  => 'Januari',   2  => 'Februari', 3  => 'Maret',
+        4  => 'April',     5  => 'Mei',       6  => 'Juni',
+        7  => 'Juli',      8  => 'Agustus',   9  => 'September',
+        10 => 'Oktober',   11 => 'November',  12 => 'Desember',
+      ];
+
+      $formatTanggalId = function(?string $tanggal) use ($bulanId): string {
+        if (empty($tanggal)) return '-';
+        try {
+          $dt = \Carbon\Carbon::parse($tanggal);
+          return $dt->day . ' ' . ($bulanId[$dt->month] ?? '') . ' ' . $dt->year;
+        } catch (\Throwable $e) {
+          return $tanggal;
+        }
+      };
+    @endphp
 
     <table class="meta-table">
       <tr>
         <td class="label">Nomor</td>
         <td class="colon">:</td>
-        <td>428/SPw/KTN/I/2026</td>
-        <td class="meta-row-right">Sidoarjo, 06 Februari 2026</td>
+        <td>{{ $surat['nomor'] ?? '-' }}</td>
+        <td class="meta-row-right">{{ $surat['tempat_tanggal'] ?? '-' }}</td>
       </tr>
       <tr>
         <td class="label">Lampiran</td>
         <td class="colon">:</td>
-        <td colspan="2">1 (satu) berkas</td>
+        <td colspan="2">{{ $surat['lampiran'] ?? '-' }}</td>
       </tr>
     </table>
 
     <div class="recipient">
       <div>Kepada Yth,</div>
-      <div class="name-line">Kepala Dinas Badan Penanggulangan Bencana Daerah</div>
-      <div>Jl. Sultan Agung No. 19 Gadjah Timur Magersari Sidoarjo</div>
-      <div class="underline">K A B U P A T E N &nbsp; S I D O A R J O</div>
+      <div class="name-line">{{ $surat['kepada'] ?? '-' }}</div>
+      <div>{{ $surat['alamat_klien'] ?? '-' }}</div>
+      <div class="underline">{{ $surat['wilayah_klien'] ?? '-' }}</div>
     </div>
 
     <!-- Perihal -->
     <table class="perihal-table">
       <tr>
         <td class="perihal-label">Perihal &nbsp;: &nbsp;</td>
-        <td class="perihal-text">Penawaran Barang Untuk Badan Penanggulangan Bencana Daerah</td>
+        <td class="perihal-text">{{ $surat['perihal'] ?? '-' }}</td>
       </tr>
     </table>
 
     <p class="paragraph">
       Melalui Surat ini, kami dari PT. Kamil Tria Niaga sebagai perusahaan yang bergerak dalam bidang penyedia
-      barang dan jasa di ruang lingkup pemerintah ingin memberikan penawaran kepada Kepala Badan
-      Penanggulangan Bencana Daerah Kabupaten Sidoarjo.
+      barang dan jasa di ruang lingkup pemerintah ingin memberikan penawaran kepada <span> {{ $surat['kepada'] ?? '-' }}</span>.
     </p>
 
     <p class="paragraph">
@@ -400,20 +423,49 @@
         </tr>
       </thead>
       <tbody>
+        @php
+          $rows = $items ?? null;
+          if (!$rows) {
+            $rows = [
+              [
+                'nama_barang'  => '-',
+                'qty'          => '0',
+                'satuan'       => '-',
+                'harga_satuan' => 0,
+                'subtotal'     => 0,
+                'link'         => '-',
+              ],
+            ];
+          }
+        @endphp
+
+        @foreach($rows as $row)
         <tr>
-          <td>Chainsaw Stihl 18 inch</td>
-          <td class="center">3 Unit</td>
-          <td class="right">Rp 10.300.000</td>
-          <td class="right">Rp 30.900.000</td>
-          <td><a href="https://katalog.inaproc.id/kamil-tria-senso-stihl-18-inch" target="_blank">Link</a></td>
+          <td>{{ $row['nama_barang'] ?? '-' }}</td>
+          <td class="center">{{ $row['qty'] ?? '-' }} {{ $row['satuan'] ?? '' }}</td>
+          <td class="right">
+            @if(isset($row['harga_satuan']) && is_numeric($row['harga_satuan']))
+              Rp {{ number_format($row['harga_satuan'], 0, ',', '.') }}
+            @else
+              {{ $row['harga_satuan'] ?? '-' }}
+            @endif
+          </td>
+          <td class="right">
+            @if(isset($row['subtotal']) && is_numeric($row['subtotal']))
+              Rp {{ number_format($row['subtotal'], 0, ',', '.') }}
+            @else
+              {{ $row['subtotal'] ?? '-' }}
+            @endif
+          </td>
+          <td>
+            @if(!empty($row['link']))
+              <a href="{{ $row['link'] }}" target="_blank">Link</a>
+            @else
+              -
+            @endif
+          </td>
         </tr>
-        <tr>
-          <td>Chainsaw Stihl 20 inch</td>
-          <td class="center">2 Unit</td>
-          <td class="right">Rp 10.300.000</td>
-          <td class="right">Rp 20.600.000</td>
-          <td><a href="https://katalog.inaproc.id/kamil-tria-senso-stihl-20-inch" target="_blank">Link</a></td>
-        </tr>
+        @endforeach
       </tbody>
     </table>
 
@@ -423,8 +475,16 @@
     </p>
 
     <ul class="bullet-list">
-      <li>Kami akan melaksanakan pekerjaan tersebut dengan jangka waktu pelaksanaan pekerjaan selama kurang dari 14 (Empat Belas) Hari Kalender.</li>
-      <li>Penawaran ini berlaku selama 14 (Empat Belas) Hari kalender sejak tanggal 06 Februari 2026 sampai dengan 20 Februari 2026, dan harga bisa berubah sewaktu-waktu.</li>
+      <li>Kami akan melaksanakan pekerjaan tersebut dengan jangka waktu pelaksanaan pekerjaan selama <b>{{ $surat['jangka_waktu'] ?? '-' }}</b>.</li>
+      <li>
+        Penawaran ini berlaku selama 14 (Empat Belas) Hari kalender
+        @if(!empty($surat['sejak']) && !empty($surat['sampai']))
+          sejak tanggal {{ $formatTanggalId($surat['sejak']) }} sampai dengan {{ $formatTanggalId($surat['sampai']) }},
+        @else
+          sejak tanggal - sampai dengan -,
+        @endif
+        dan harga bisa berubah sewaktu-waktu.
+      </li>
     </ul>
 
     <p class="paragraph">
@@ -433,10 +493,10 @@
       semua ketentuan yang tercantum dalam berkas.
     </p>
 
-    <!-- Signature menggunakan Table -->
+    <!-- Signature -->
     <table class="signature-table">
       <tr>
-        <td style="width: 60%;"></td> <!-- Kosong buat geser ke kanan -->
+        <td style="width: 60%;"></td>
         <td style="width: 40%;" class="sig-block">
           <div class="sig-company">PT. KAMIL TRIA NIAGA</div>
           <br><br>

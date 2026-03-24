@@ -295,4 +295,14 @@ Route::middleware('auth')->group(function () {
         $pdf = Pdf::loadView('pages.files.surat-penawaran');
         return $pdf->download('surat-penawaran.pdf');
     });
+
+    // Surat Penawaran dinamis (berdasarkan proyek) - preview & download PDF
+    Route::get('/marketing/penawaran/{proyekId}/surat-penawaran', [PenawaranController::class, 'previewSuratPenawaran'])
+        ->name('marketing.penawaran.surat-penawaran.preview');
+    Route::get('/marketing/penawaran/{proyekId}/surat-penawaran/download', [PenawaranController::class, 'downloadSuratPenawaran'])
+        ->name('marketing.penawaran.surat-penawaran.download');
+    Route::post('/marketing/penawaran/{proyekId}/surat-penawaran', [PenawaranController::class, 'storeSuratPenawaran'])
+        ->name('marketing.penawaran.surat-penawaran.store');
+    Route::delete('/marketing/penawaran/{proyekId}/surat-penawaran/lampiran', [PenawaranController::class, 'deleteSuratPenawaranLampiran'])
+        ->name('marketing.penawaran.surat-penawaran.lampiran.delete');
 });
