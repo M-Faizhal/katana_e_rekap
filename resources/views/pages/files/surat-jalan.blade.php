@@ -166,11 +166,12 @@
     border-collapse: separate;
   }
   .address-box {
-    display: table-cell;
-    width: 50%;
-    border: none;
-    vertical-align: top;
-  }
+  display: table-cell;
+  width: 50%;
+  max-width: 0;  /* ← tambah ini */
+  border: none;
+  vertical-align: top;
+}
   .box-header {
     background: #BDBDBD;
     font-weight: bold;
@@ -179,14 +180,8 @@
     border: none;
     display: block;
   }
-  .box-body {
-    padding: 8px 10px;
-    font-size: 10pt;
-    line-height: 1.6;
-    min-height: 80px;
-    border: none;
-    display: block;
-  }
+  .box-body { padding: 8px 10px; font-size: 10pt; line-height: 1.6; min-height: 80px; border: none; display: block; word-break: break-word; overflow-wrap: break-word; }
+
   .box-body .party-name {
     font-weight: bold;
     text-decoration: underline;
@@ -218,13 +213,8 @@
     font-weight: bold;
     font-size: 9.5pt;
   }
-  .do-table td {
-    padding: 1px 6px;
-    border: 1px solid #000;
-    vertical-align: middle;
-    font-size: 9.5pt;
-    line-height: 1.2;
-  }
+  .do-table td { padding: 1px 6px; border: 1px solid #000; vertical-align: middle; font-size: 9.5pt; line-height: 1.2; word-break: break-word; overflow-wrap: break-word; }
+
   .do-table td.center { text-align: center; }
   .do-table tr:nth-child(even) td { background: transparent; }
 

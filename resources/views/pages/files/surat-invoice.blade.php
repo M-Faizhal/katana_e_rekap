@@ -150,7 +150,7 @@
   .bill-ship-table td { vertical-align: top; width: 50%; padding-right: 18px; }
   .bill-ship-table td:last-child { padding-right: 0; padding-left: 18px; }
   .bill-ship-label { font-weight: bold; font-size: 10pt; margin-bottom: 4px; }
-  .bill-ship-col { font-size: 10pt; line-height: 1.4; }
+  .bill-ship-col { font-size: 10pt; line-height: 1.4; word-break: break-word; overflow-wrap: break-word; }
 
   /* Main Table */
   .inv-table {
@@ -169,12 +169,8 @@
     font-size: 10pt;
     line-height: 1.3;
   }
-  .inv-table td {
-    padding: 6px 8px;
-    border: 1px solid #999;
-    vertical-align: top;
-    font-size: 10pt;
-  }
+  .inv-table td { padding: 6px 8px; border: 1px solid #999; vertical-align: top; font-size: 10pt; word-break: break-word; overflow-wrap: break-word; }
+
   .inv-table td.center { text-align: center; vertical-align: middle; }
   .inv-table td.right { text-align: right; vertical-align: middle; }
 
