@@ -26,6 +26,7 @@ use App\Http\Controllers\ProjectChatController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\keuangan\InvoiceProyekController;
 
 // Health check endpoint for Docker
 Route::get('/health', function () {
@@ -327,4 +328,14 @@ Route::middleware('auth')->group(function () {
         ->name('marketing.penawaran.surat-penawaran.store');
     Route::delete('/marketing/penawaran/{proyekId}/surat-penawaran/lampiran', [PenawaranController::class, 'deleteSuratPenawaranLampiran'])
         ->name('marketing.penawaran.surat-penawaran.lampiran.delete');
+
+    // Invoice Proyek (form + PDF)
+    Route::get('/pembuatan-invoice/{proyekId}', [InvoiceProyekController::class, 'create'])
+        ->name('keuangan.pembuatan-invoice-proyek');
+    Route::post('/pembuatan-invoice/{proyekId}', [InvoiceProyekController::class, 'store'])
+        ->name('keuangan.pembuatan-invoice-proyek.store');
+    Route::get('/pembuatan-invoice/{proyekId}/preview', [InvoiceProyekController::class, 'preview'])
+        ->name('keuangan.pembuatan-invoice-proyek.preview');
+    Route::get('/pembuatan-invoice/{proyekId}/download', [InvoiceProyekController::class, 'download'])
+        ->name('keuangan.pembuatan-invoice-proyek.download');
 });

@@ -126,18 +126,16 @@
     font-size: 9.5pt;
   }
 
+  .inv-right-block { text-align: right; justify-content: space-between;  }
   .inv-date {
     font-size: 10pt;
     font-weight: bold;
     color: #032846;
-    text-align: right;
     white-space: nowrap;
   }
-
   .inv-no {
-    text-align: right;
     font-size: 10pt;
-    margin-bottom: 14px;
+    margin-top: 70px;
   }
 
   /* Divider line under company block */
@@ -146,6 +144,13 @@
     border-top: 1px solid #aaa;
     margin-bottom: 12px;
   }
+
+  /* BILL TO / SHIP TO (use table for DomPDF stability) */
+  .bill-ship-table { width: 100%; border-collapse: collapse; margin-top: 12px; margin-bottom: 14px; table-layout: fixed; }
+  .bill-ship-table td { vertical-align: top; width: 50%; padding-right: 18px; }
+  .bill-ship-table td:last-child { padding-right: 0; padding-left: 18px; }
+  .bill-ship-label { font-weight: bold; font-size: 10pt; margin-bottom: 4px; }
+  .bill-ship-col { font-size: 10pt; line-height: 1.4; }
 
   /* Main Table */
   .inv-table {
@@ -174,7 +179,6 @@
   .inv-table td.right { text-align: right; vertical-align: middle; }
 
   .item-name {
-    font-weight: bold;
     margin-bottom: 2px;
   }
   .item-sub {
@@ -249,8 +253,10 @@
   }
 
   .approved-block {
+    display: inline-block;
     text-align: center;
     font-size: 10pt;
+    margin-left: auto;
   }
   .approved-label {
     font-size: 10pt;
@@ -273,6 +279,19 @@
   .approved-title {
     font-size: 10pt;
   }
+
+  /* Make right info block stable in DomPDF */
+  .inv-top-table { width: 100%; border-collapse: collapse; }
+  .inv-top-table td { vertical-align: top; }
+  .inv-top-left { width: 70%; }
+  .inv-top-right { width: 30%; text-align: right; }
+
+  /* Bottom (payment left + approved right) using table for DomPDF */
+  .bottom-table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+  .bottom-table td { vertical-align: top; }
+  .bottom-left { width: 60%; }
+  .bottom-right { width: 40%; text-align: right; }
+  .approved-block { display: inline-block; text-align: center; font-size: 10pt; }
 
   /* ============================================================
    * FOOTER
@@ -367,7 +386,7 @@
             <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
             <div class="footer-text-block">
               <div class="footer-label">Address Head Office</div>
-              <div class="footer-value">Magersari Permai Blok AW-23 RT. 024 RW. 007,<br>Sidoarjo, Jawa Timur</div>
+              <div class="footer-value">Magersari Permai Blok AW-23 RT. 024,<br>Sidoarjo, Jawa Timur</div>
             </div>
           </div>
         </td>
@@ -409,25 +428,72 @@
   <!-- ============================================================ -->
   <main class="content">
 
+    @php
+      $tanggal = isset($invoice) && $invoice->tanggal_surat
+          ? \Carbon\Carbon::parse($invoice->tanggal_surat)->translatedFormat('d F Y')
+          : '';
+      $nomor = $invoice->nomor_surat ?? '';
+
+      $billInstansi = $invoice->bill_to_instansi ?? '';
+      $billAlamat = $invoice->bill_to_alamat ?? '';
+      $shipInstansi = $invoice->ship_to_instansi ?? '';
+      $shipAlamat = $invoice->ship_to_alamat ?? '';
+
+      $splitLines = function ($text) {
+          $text = trim((string)$text);
+          if ($text === '') return [];
+          $text = str_replace(["\r\n", "\r"], "\n", $text);
+          return array_values(array_filter(array_map('trim', explode("\n", $text)), fn($l) => $l !== ''));
+      };
+    @endphp
+
     <!-- Judul INVOICE -->
     <div class="inv-title">INVOICE</div>
 
-    <!-- Company Info + Tanggal -->
-    <div class="inv-top-row">
-      <div class="inv-company-block">
-        <div class="inv-company-name">PT. KAMIL TRIA NIAGA</div>
-        <div>Magersari Permai Blok AW-23 RT. 024</div>
-        <div>RW. 007, Sidoarjo</div>
-        <div>085155232320</div>
-        <div><a href="mailto:kamiltrianiaga@gmail.com">kamiltrianiaga@gmail.com</a></div>
-      </div>
-      <div>
-        <div class="inv-date">08 Desember 2025</div>
-      </div>
-    </div>
+    <table class="inv-top-table">
+      <tr>
+        <td class="inv-top-left">
+          <div class="inv-company-block">
+            <div class="inv-company-name">PT. KAMIL TRIA NIAGA</div>
+            <div>Magersari Permai Blok AW-23 RT. 024</div>
+            <div>RW. 007, Sidoarjo</div>
+            <div>085155232320</div>
+            <div><a href="mailto:kamiltrianiaga@gmail.com">kamiltrianiaga@gmail.com</a></div>
+          </div>
+        </td>
+        <td class="inv-top-right">
+          <div class="inv-date">{{ $tanggal }}</div>
+          <div class="inv-no">{{ $nomor }}</div>
+        </td>
+      </tr>
+    </table>
 
-    <!-- Nomor Invoice -->
-    <div class="inv-no">060/INV/KTN/XII/2025</div>
+    <table class="bill-ship-table">
+      <tr>
+        <td>
+          <div class="bill-ship-col">
+            <div class="bill-ship-label">BILL TO</div>
+            @if($billInstansi)
+              <div>{{ $billInstansi }}</div>
+            @endif
+            @foreach($splitLines($billAlamat) as $line)
+              <div>{{ $line }}</div>
+            @endforeach
+          </div>
+        </td>
+        <td>
+          <div class="bill-ship-col">
+            <div class="bill-ship-label">SHIP TO</div>
+            @if($shipInstansi)
+              <div>{{ $shipInstansi }}</div>
+            @endif
+            @foreach($splitLines($shipAlamat) as $line)
+              <div>{{ $line }}</div>
+            @endforeach
+          </div>
+        </td>
+      </tr>
+    </table>
 
     <!-- Tabel Invoice -->
     <table class="inv-table">
@@ -442,58 +508,70 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td class="center">1</td>
-          <td>
-            <div class="item-name">a/n ARIF KURNIADI</div>
-            <div class="item-sub">Dinas Pertanian</div>
-            <div class="item-desc-title">Transportasi dan Penginapan<br>Madura 3-5 Desember 2025, dengan rincian :</div>
-            <div class="item-desc">- Penginapan, tgl 3 s.d 5 Desember 2025<br>&nbsp;&nbsp;1 Orang x 1.200.000 = 1.200.000</div>
-            <div class="item-desc">- Biaya Transportasi, tgl 3 s.d 5<br>&nbsp;&nbsp;Desember 2025<br>&nbsp;&nbsp;1 Orang x 1.400.000 = 1.400.000</div>
-            <div class="item-note-title">Keterangan :</div>
-            <div class="item-desc">-Penginapan di Azana Style Hotel dan Myze Hotel<br>-Transportasi Menggunakan Hiace</div>
-          </td>
-          <td class="center">1</td>
-          <td class="center">Package</td>
-          <td class="right">Rp 2.600.000</td>
-          <td class="right">Rp 2.600.000</td>
-        </tr>
+        @foreach(($details ?? []) as $i => $d)
+          @php
+            $harga = (float)($d['harga_satuan'] ?? 0);
+            $subtotal = (float)($d['subtotal'] ?? 0);
+            $keteranganHtml = $d['keterangan_html'] ?? null;
+          @endphp
+          <tr>
+            <td class="center">{{ $i + 1 }}</td>
+            <td>
+              <div class="item-name">{{ $d['nama_barang'] ?? '-' }}</div>
+              @if(!empty($keteranganHtml))
+                <div class="item-desc">{!! $keteranganHtml !!}</div>
+              @endif
+            </td>
+            <td class="center">{{ $d['qty'] ?? '-' }}</td>
+            <td class="center">{{ $d['satuan'] ?? '-' }}</td>
+            <td class="right">Rp {{ number_format($harga, 0, ',', '.') }}</td>
+            <td class="right">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
+          </tr>
+        @endforeach
+
         <!-- Terbilang + Total Row -->
         <tr class="terbilang-row">
           <td colspan="4" style="border-right: 1px solid #999; vertical-align: middle;">
             <div class="terbilang-label">Terbilang:</div>
-            <div class="terbilang-value">Dua Juta Enam Ratus Ribu Rupiah</div>
+            <div class="terbilang-value">
+              {{ function_exists('terbilang') ? terbilang((float)($total ?? 0)) : '' }}
+            </div>
           </td>
           <td class="total-label" style="border: 1px solid #999; vertical-align: middle;">
             <strong>TOTAL (Rp)</strong>
             <span>(Sudah Termasuk Pajak)</span>
           </td>
           <td class="total-value" style="border: 1px solid #999; vertical-align: middle; padding-right: 8px;">
-            Rp 2.600.000
+            Rp {{ number_format((float)($total ?? 0), 0, ',', '.') }}
           </td>
         </tr>
       </tbody>
     </table>
 
     <!-- Bottom: Pembayaran + Approved By -->
-    <div class="bottom-section">
-      <div class="payment-box">
-        <div>Pembayaran transfer ke :</div>
-        <div>&nbsp;</div>
-        <div>Bank Mandiri Cab. Sidoarjo</div>
-        <div>A/c 141-00-3180688-8</div>
-        <div>A/n PT. Kamil Tria Niaga</div>
-      </div>
-
-      <div class="approved-block">
-        <div class="approved-label">Approved By</div>
-        <div class="approved-sig-space">
-          <!-- Tanda tangan / stempel -->
-        </div>
-        <div class="approved-name">Mahenda Abdillah Kamil, S.Stat</div>
-        <div class="approved-title">Direktur</div>
-      </div>
-    </div>
+    <table class="bottom-table">
+      <tr>
+        <td class="bottom-left">
+          <div class="payment-box">
+            <div>Pembayaran transfer ke :</div>
+            <div>&nbsp;</div>
+            <div>Bank Mandiri Cab. Sidoarjo</div>
+            <div>A/c 141-00-3180688-8</div>
+            <div>A/n PT. Kamil Tria Niaga</div>
+          </div>
+        </td>
+        <td class="bottom-right">
+          <div class="approved-block">
+            <div class="approved-label">Approved By</div>
+            <div class="approved-sig-space">
+              <!-- Tanda tangan / stempel -->
+            </div>
+            <div class="approved-name">Mahenda Abdillah Kamil, S.Stat</div>
+            <div class="approved-title">Direktur</div>
+          </div>
+        </td>
+      </tr>
+    </table>
 
   </main>
 

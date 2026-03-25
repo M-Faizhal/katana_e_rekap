@@ -122,6 +122,31 @@ class PenagihanDinasController extends Controller
         );
         $proyekBelumBayar->appends(request()->query());
 
+        /**
+         * Pembuatan Invoice tab: semua proyek yang punya penawaran ACC
+         * (lebih longgar daripada "Belum Bayar", tidak peduli sudah ditagih atau belum).
+         */
+        $proyekAccInvoiceQuery = Proyek::with([
+            'semuaPenawaran' => function ($query) {
+                $query->where('status', 'ACC');
+            },
+            // Ambil penagihan dinas (jika ada) untuk menampilkan status pembayaran di tab invoice
+            'penagihanDinas' => function ($q) {
+                $q->latest('id');
+            },
+        ])->whereHas('semuaPenawaran', function ($query) {
+            $query->where('status', 'ACC');
+        });
+
+        if ($search) {
+            $proyekAccInvoiceQuery->where(function ($q) use ($search) {
+                $q->where('kode_proyek', 'like', '%' . $search . '%')
+                  ->orWhere('instansi', 'like', '%' . $search . '%');
+            });
+        }
+
+        $proyekAccInvoice = $proyekAccInvoiceQuery->orderByDesc('id_proyek')->paginate(10, ['*'], 'acc_invoice_page');
+
         // Pagination untuk DP with search
         $proyekDpQuery = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
             ->where('status_pembayaran', 'dp');
@@ -165,7 +190,8 @@ class PenagihanDinasController extends Controller
         return view('pages.keuangan.penagihan', compact(
             'proyekBelumBayar', 
             'proyekDp', 
-            'proyekLunas'
+            'proyekLunas',
+            'proyekAccInvoice'
         ));
     }
 
