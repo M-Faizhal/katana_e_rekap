@@ -212,6 +212,16 @@ Route::middleware('auth')->group(function () {
         Route::put('/pengiriman/{id}/verify', [PengirimanController::class, 'verify'])->name('purchasing.pengiriman.verify');
         Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy'])->name('purchasing.pengiriman.destroy');
         Route::post('/pengiriman/cleanup-files', [PengirimanController::class, 'cleanupOrphanedFiles'])->name('purchasing.pengiriman.cleanup');
+
+        // Surat Jalan (PDF + metadata + lampiran)
+        Route::get('/pengiriman/surat/{proyekId}/surat-jalan/preview', [PengirimanController::class, 'previewSuratJalan'])
+            ->name('purchasing.pengiriman.surat-jalan.preview');
+        Route::get('/pengiriman/surat/{proyekId}/surat-jalan/download', [PengirimanController::class, 'downloadSuratJalan'])
+            ->name('purchasing.pengiriman.surat-jalan.download');
+        Route::post('/pengiriman/surat/{proyekId}/surat-jalan', [PengirimanController::class, 'storeSuratJalan'])
+            ->name('purchasing.pengiriman.surat-jalan.store');
+        Route::delete('/pengiriman/surat/{proyekId}/surat-jalan/lampiran', [PengirimanController::class, 'deleteSuratJalanLampiran'])
+            ->name('purchasing.pengiriman.surat-jalan.lampiran.delete');
     });
 
     // Keuangan Routes

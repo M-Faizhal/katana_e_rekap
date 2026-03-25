@@ -9,7 +9,7 @@
         <div class="flex items-start justify-between gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-bold">Pembuatan Surat Pengiriman</h1>
-                <p class="text-red-100 mt-1 text-sm sm:text-base">Buat Surat Jalan dan Tanda Terima dalam 1 halaman (2 form terpisah)</p>
+                <p class="text-red-100 mt-1 text-sm sm:text-base">Buat Surat Jalan dan Tanda Terima</p>
             </div>
             <div class="hidden sm:block">
                 <a href="{{ route('purchasing.pengiriman', ['tab' => 'surat']) }}"
@@ -68,52 +68,120 @@
                         </h2>
                         <p class="text-sm text-gray-600 mt-1">Isi data untuk membuat Surat Jalan.</p>
                     </div>
-                    <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">UI saja</span>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('purchasing.pengiriman.surat-jalan.preview', $proyek->id_proyek) }}" target="_blank"
+                           class="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg">
+                            Preview PDF
+                        </a>
+                        <a href="{{ route('purchasing.pengiriman.surat-jalan.download', $proyek->id_proyek) }}"
+                           class="text-xs px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded-lg">
+                            Download PDF
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <form action="#" method="POST" class="p-6 space-y-4">
+            <form id="form-sj" action="{{ route('purchasing.pengiriman.surat-jalan.store', $proyek->id_proyek) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
                 @csrf
                 <input type="hidden" name="id_proyek" value="{{ $proyek->id_proyek }}">
+                <input type="hidden" name="id_penawaran" value="{{ $suratJalan->id_penawaran ?? $proyek->penawaranAktif->id_penawaran ?? '' }}">
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Surat Jalan</label>
-                    <input type="text" name="no_surat_jalan" 
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Surat</label>
+                    <input type="date" name="tanggal_surat" value="{{ old('tanggal_surat', optional($suratJalan->tanggal_surat ?? null)->format('Y-m-d')) }}"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                    @error('tanggal_surat')
+                        <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Surat</label>
-                        <input type="date" name="tanggal_surat"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Klien</label>
+                        <input type="text" name="nama_klien" value="{{ old('nama_klien', $suratJalan->nama_klien ?? $proyek->nama_klien ?? '') }}"
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                        @error('nama_klien')
+                            <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Kirim</label>
-                        <input type="date" name="tanggal_kirim"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Klien</label>
+                        <input type="text" name="nomor_klien" value="{{ old('nomor_klien', $suratJalan->nomor_klien ?? $proyek->kontak_klien ?? '') }}"
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                        @error('nomor_klien')
+                            <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Kirim</label>
-                    <textarea name="alamat_kirim" rows="3" 
-                              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Klien</label>
+                    <textarea name="alamat_klien" rows="3"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">{{ old('alamat_klien', $suratJalan->alamat_klien ?? '') }}</textarea>
+                    @error('alamat_klien')
+                        <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Catatan (opsional)</label>
-                    <textarea name="catatan" rows="3" 
-                              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Special Instruction / Comment (Rich Text)</label>
+                    <div class="border border-gray-300 rounded-lg overflow-hidden">
+                        <div class="flex items-center gap-2 px-2 py-2 bg-gray-50 border-b border-gray-200">
+                            <button type="button" class="sj-rt-btn text-xs px-2 py-1 bg-white border rounded" data-cmd="bold"><b>B</b></button>
+                            <button type="button" class="sj-rt-btn text-xs px-2 py-1 bg-white border rounded" data-cmd="italic"><i>I</i></button>
+                            <button type="button" class="sj-rt-btn text-xs px-2 py-1 bg-white border rounded" data-cmd="insertUnorderedList">• List</button>
+                        </div>
+                        <div id="sj-rt" contenteditable="true" class="min-h-[120px] px-4 py-3 text-sm focus:outline-none">{!! old('special_instruction', $suratJalan->special_instruction ?? '') !!}</div>
+                    </div>
+                    <input type="hidden" name="special_instruction" id="sj-rt-hidden" value="{{ old('special_instruction', $suratJalan->special_instruction ?? '') }}">
+                    @error('special_instruction')
+                        <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Lampiran PDF (opsional)</label>
+                    <input type="file" name="lampiran_pdfs[]" multiple accept="application/pdf"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <div class="text-xs text-gray-500 mt-1">Boleh upload lebih dari 1 file PDF. Akan digabungkan ke belakang PDF Surat Jalan saat download/preview.</div>
+                    @error('lampiran_pdfs.*')
+                        <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                @php
+                    $lampiranListSJ = $suratJalan?->lampiran_files_list ?? [];
+                @endphp
+
+                <div class="border rounded-lg p-4 bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm font-medium text-gray-800">Lampiran tersimpan</div>
+                        <div class="text-xs text-gray-500">{{ count($lampiranListSJ) }} file</div>
+                    </div>
+
+                    <div class="mt-3 space-y-2">
+                        @if (empty($lampiranListSJ))
+                            <div class="text-sm text-gray-500">Belum ada lampiran.</div>
+                        @else
+                            @foreach ($lampiranListSJ as $f)
+                                <div class="flex items-center justify-between gap-2 bg-white border rounded-lg px-3 py-2" data-path="{{ $f['path'] ?? '' }}">
+                                    <div class="min-w-0">
+                                        <div class="text-sm text-gray-800 truncate">{{ $f['original_name'] ?? basename($f['path'] ?? '-') }}</div>
+                                        <div class="text-xs text-gray-500">{{ $f['uploaded_at'] ?? '' }}</div>
+                                    </div>
+                                    <button type="button" class="btn-delete-lampiran-sj text-xs px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg"
+                                            data-path="{{ $f['path'] ?? '' }}">
+                                        Hapus
+                                    </button>
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>
                 </div>
 
                 <div class="pt-2 flex items-center justify-end gap-2">
-                    <button type="button" disabled
-                            class="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg text-sm font-medium cursor-not-allowed">
-                        Preview
-                    </button>
-                    <button type="submit" disabled
-                            class="px-4 py-2 bg-red-700/60 text-white rounded-lg text-sm font-medium cursor-not-allowed">
+                    <button type="submit"
+                            class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg text-sm font-medium">
                         Simpan Surat Jalan
                     </button>
                 </div>
@@ -241,7 +309,35 @@
 (function() {
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
 
-    async function deleteLampiran(path, btn) {
+    // ---- Rich text (Surat Jalan) ----
+    const rt = document.getElementById('sj-rt');
+    const rtHidden = document.getElementById('sj-rt-hidden');
+    const formSj = document.getElementById('form-sj');
+
+    function syncRt() {
+        if (!rt || !rtHidden) return;
+        rtHidden.value = rt.innerHTML;
+    }
+
+    document.querySelectorAll('.sj-rt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cmd = btn.getAttribute('data-cmd');
+            if (!cmd) return;
+            document.execCommand(cmd, false, null);
+            syncRt();
+        });
+    });
+
+    if (rt) {
+        rt.addEventListener('input', syncRt);
+        rt.addEventListener('blur', syncRt);
+    }
+
+    if (formSj) {
+        formSj.addEventListener('submit', syncRt);
+    }
+
+    async function deleteLampiran(url, path, btn) {
         if (!path) return;
         if (!confirm('Hapus lampiran ini?')) return;
 
@@ -249,7 +345,7 @@
         btn.textContent = 'Menghapus...';
 
         try {
-            const res = await fetch('{{ route('purchasing.pengiriman.tanda-terima.lampiran.delete', $proyek->id_proyek) }}', {
+            const res = await fetch(url, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -264,7 +360,6 @@
                 throw new Error(data.message || 'Gagal menghapus lampiran');
             }
 
-            // remove row
             const row = btn.closest('[data-path]');
             if (row) row.remove();
         } catch (e) {
@@ -274,8 +369,22 @@
         }
     }
 
+    // ---- Delete lampiran Surat Jalan ----
+    document.querySelectorAll('.btn-delete-lampiran-sj').forEach(btn => {
+        btn.addEventListener('click', () => deleteLampiran(
+            '{{ route('purchasing.pengiriman.surat-jalan.lampiran.delete', $proyek->id_proyek) }}',
+            btn.getAttribute('data-path'),
+            btn
+        ));
+    });
+
+    // ---- Delete lampiran Tanda Terima (existing) ----
     document.querySelectorAll('.btn-delete-lampiran').forEach(btn => {
-        btn.addEventListener('click', () => deleteLampiran(btn.getAttribute('data-path'), btn));
+        btn.addEventListener('click', () => deleteLampiran(
+            '{{ route('purchasing.pengiriman.tanda-terima.lampiran.delete', $proyek->id_proyek) }}',
+            btn.getAttribute('data-path'),
+            btn
+        ));
     });
 })();
 </script>

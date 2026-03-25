@@ -49,7 +49,7 @@
   }
 
   /* ============================================================
-   * HEADER — fixed
+   * HEADER — fixed (TIDAK DIUBAH)
    * ============================================================ */
   header {
     position: fixed;
@@ -94,17 +94,19 @@
   }
 
   /* ============================================================
-   * DO HEADER ROW
+   * 1. DO HEADER ROW — sejajar horizontal: company info & DO title
    * ============================================================ */
   .do-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    display: table;
+    width: 100%;
     margin-bottom: 16px;
   }
   .do-company-block {
+    display: table-cell;
     font-size: 10pt;
     line-height: 1.5;
+    vertical-align: top;
+    width: 50%;
   }
   .do-company-block .company-title {
     font-weight: bold;
@@ -113,10 +115,15 @@
   }
   .do-company-block a {
     color: #1a0dab;
-    font-size: 9pt;
+    font-size: 10pt;
   }
   .do-title-block {
+    display: table-cell;
     text-align: right;
+    vertical-align: top;
+    width: 50%;
+    padding-top: 0;
+    margin-top: 0;
   }
   .do-title {
     font-family: Arial, sans-serif;
@@ -126,6 +133,9 @@
     letter-spacing: 2px;
     line-height: 1;
     margin-bottom: 8px;
+    margin-top: 0;
+    padding-top: 0;
+    display: block;
   }
   .do-meta-table {
     border-collapse: collapse;
@@ -146,29 +156,36 @@
   }
 
   /* ============================================================
-   * SHIP FROM / SHIP TO
+   * 2. SHIP FROM / SHIP TO — sejajar horizontal, tanpa border luar
    * ============================================================ */
   .address-row {
-    display: flex;
-    gap: 10px;
+    display: table;
+    width: 100%;
     margin-bottom: 12px;
+    border-spacing: 10px 0;
+    border-collapse: separate;
   }
   .address-box {
-    flex: 1;
-    border: 1px solid #999;
+    display: table-cell;
+    width: 50%;
+    border: none;
+    vertical-align: top;
   }
   .box-header {
     background: #BDBDBD;
     font-weight: bold;
     font-size: 10pt;
     padding: 4px 8px;
-    border-bottom: 1px solid #999;
+    border: none;
+    display: block;
   }
   .box-body {
     padding: 8px 10px;
     font-size: 10pt;
     line-height: 1.6;
     min-height: 80px;
+    border: none;
+    display: block;
   }
   .box-body .party-name {
     font-weight: bold;
@@ -186,72 +203,64 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 10px;
-    font-size: 10pt;
+    font-size: 9.5pt;
     page-break-inside: auto;
   }
-  .do-table thead {
-    display: table-header-group;
-  }
-  .do-table tbody {
-    display: table-row-group;
-  }
-  .do-table tr {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
+  .do-table thead { display: table-header-group; }
+  .do-table tbody { display: table-row-group; }
+  .do-table tr { page-break-inside: avoid; break-inside: avoid; }
   .do-table th {
     background: #BDBDBD;
     color: #111;
-    padding: 6px 5px;
+    padding: 2px 5px;
     text-align: center;
-    border: 1px solid #555;
+    border: 1px solid #000;
     font-weight: bold;
-    font-size: 10pt;
+    font-size: 9.5pt;
   }
   .do-table td {
-    padding: 4px 8px;
-    border: 1px solid #999;
+    padding: 1px 6px;
+    border: 1px solid #000;
     vertical-align: middle;
-    font-size: 10pt;
+    font-size: 9.5pt;
+    line-height: 1.2;
   }
   .do-table td.center { text-align: center; }
-  .do-table tr:nth-child(even) td { background: #f9f9f9; }
+  .do-table tr:nth-child(even) td { background: transparent; }
 
   /* ============================================================
    * COMMENTS
    * ============================================================ */
   .comments-block {
-    border: 1px solid #999;
-    font-size: 9.5pt;
-    line-height: 1.5;
-    margin-bottom: 16px;
+    border: 1px solid #000;
+    font-size: 10pt;
+    line-height: 1.35;
+    margin-top: 8px;
+    margin-bottom: 14px;
   }
   .comments-header {
     background: #BDBDBD;
     font-weight: bold;
-    padding: 4px 8px;
-    border-bottom: 1px solid #999;
+    padding: 2px 8px;
+    border-bottom: 1px solid #000;
     font-size: 10pt;
   }
   .comments-body {
-    padding: 6px 8px;
+    padding: 4px 10px;
   }
   .comments-section-title {
     font-weight: bold;
     margin-bottom: 2px;
-    font-size: 9.5pt;
+    font-size: 10pt;
+    padding-left: 12px;
   }
   .comments-list {
     list-style: none;
-    padding-left: 10px;
+    padding-left: 26px;
     margin: 0;
   }
-  .comments-list li {
-    margin-bottom: 1px;
-  }
-  .comments-list li::before {
-    content: "- ";
-  }
+  .comments-list li { margin-bottom: 1px; }
+  .comments-list li::before { content: "- "; }
 
   /* ============================================================
    * KOTA & TANGGAL
@@ -263,42 +272,46 @@
   }
 
   /* ============================================================
-   * SIGNATURE ROW
+   * 3. SIGNATURE ROW — Pengirim & Penerima sejajar horizontal
    * ============================================================ */
   .signature-row {
-    display: flex;
-    justify-content: space-between;
+    display: table;
+    width: 100%;
     margin-bottom: 10px;
     page-break-inside: avoid;
     break-inside: avoid;
   }
   .sig-block {
+    display: table-cell;
     text-align: center;
-    width: 45%;
+    width: 50%;
+    vertical-align: top;
   }
   .sig-label {
     font-size: 10pt;
     font-weight: bold;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
+    display: block;
   }
   .sig-space {
-    height: 70px;
+    height: 60px;
+    display: block;
   }
   .sig-name-line {
-    border-top: 1px solid #333;
     padding-top: 2px;
     font-size: 10pt;
     font-weight: bold;
     display: inline-block;
-    min-width: 180px;
+    width: 200px;
   }
   .sig-sub {
-    font-size: 9.5pt;
-    margin-top: 2px;
+    font-size: 10pt;
+    margin-top: 1px;
+    display: block;
   }
 
   /* ============================================================
-   * FOOTER — fixed
+   * FOOTER — fixed (TIDAK DIUBAH)
    * ============================================================ */
   footer {
     position: fixed;
@@ -308,7 +321,7 @@
     background: white;
     color: #000;
     padding: 6px 30px 14px 100px;
-    font-size: 9pt;
+    font-size: 10pt;
     z-index: 10;
     box-sizing: border-box;
   }
@@ -340,13 +353,13 @@
   }
   .footer-label {
     color: #000;
-    font-size: 9pt;
+    font-size: 10pt;
     margin-bottom: 1px;
   }
   .footer-value {
     color: #c0392b;
     line-height: 1.3;
-    font-size: 9pt;
+    font-size: 10pt;
   }
 
   @media print {
@@ -357,6 +370,46 @@
 </head>
 <body>
 
+  @php
+    $doNumber   = $surat['do'] ?? ($proyek->kode_proyek ?? '-');
+    $tanggalRaw = $surat['tanggal_surat'] ?? null;
+
+    $tanggalSurat = '-';
+    if (!empty($tanggalRaw)) {
+      try {
+        $tanggalSurat = \Carbon\Carbon::parse($tanggalRaw)->translatedFormat('d F Y');
+      } catch (\Throwable $e) {
+        $tanggalSurat = $tanggalRaw;
+      }
+    }
+
+    $tanggalShort = '-';
+    if (!empty($tanggalRaw)) {
+      try {
+        $tanggalShort = \Carbon\Carbon::parse($tanggalRaw)->format('d/m/Y');
+      } catch (\Throwable $e) {
+        $tanggalShort = $tanggalRaw;
+      }
+    }
+
+    $shipFrom = $surat['ship_from'] ?? [];
+    $shipFromNama   = $shipFrom['nama'] ?? 'PT. Kamil Tria Niaga';
+    $shipFromAlamat = $shipFrom['alamat'] ?? 'Magersari No.23-24 Blok AW, Magersari, Kec.\nSidoarjo, Kabupaten Sidoarjo, Jawa Timur 61212';
+
+    $namaKlien   = $surat['nama_klien'] ?? ($proyek->nama_klien ?? $proyek->instansi ?? '-');
+    $alamatKlien = $surat['alamat_klien'] ?? '-';
+    $nomorKlien  = $surat['nomor_klien'] ?? ($proyek->kontak_klien ?? '-');
+
+    $pengirimNama = $surat['pengirim'] ?? ($proyek->adminPurchasing?->name ?? $proyek->adminPurchasing?->nama ?? '-');
+    $pengirimHp   = $surat['pengirim_no_telepon'] ?? ($proyek->adminPurchasing?->no_telepon ?? '-');
+
+    $special = $surat['special_instruction'] ?? null;
+
+    $tempatTgl = trim('Sidoarjo, ' . $tanggalSurat);
+
+    $itemsList = is_iterable($items ?? null) ? $items : [];
+  @endphp
+
   <!-- Corner decorations -->
   <div class="corner-tl">
     <img class="corner-img" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/kanan-atas.png'))) }}" alt="">
@@ -365,7 +418,7 @@
     <img class="corner-img" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/kiri-bawah.png'))) }}" alt="">
   </div>
 
-  <!-- Header FIXED -->
+  <!-- Header FIXED — tidak diubah -->
   <header>
     <table class="header-table">
       <tr>
@@ -381,7 +434,7 @@
     </table>
   </header>
 
-  <!-- Footer FIXED -->
+  <!-- Footer FIXED — tidak diubah -->
   <footer>
     <table class="footer-table">
       <tr>
@@ -432,7 +485,7 @@
   <!-- ============================================================ -->
   <main class="content">
 
-    <!-- DO Header: Company Info + DO Title -->
+    <!-- 1. DO Header: Company Info (kiri) sejajar horizontal dengan DO Title (kanan) -->
     <div class="do-header-row">
       <div class="do-company-block">
         <div class="company-title">PT. KAMIL TRIA NIAGA</div>
@@ -446,35 +499,32 @@
         <table class="do-meta-table">
           <tr>
             <td class="meta-label">DATE</td>
-            <td class="meta-value">06/11/2025</td>
+            <td class="meta-value">{{ $tanggalShort }}</td>
           </tr>
           <tr>
             <td class="meta-label">DO #</td>
-            <td class="meta-value">500</td>
+            <td class="meta-value">{{ $doNumber }}</td>
           </tr>
         </table>
       </div>
     </div>
 
-    <!-- Ship From & Ship To -->
+    <!-- 2. Ship From & Ship To — sejajar horizontal, tanpa border luar -->
     <div class="address-row">
       <div class="address-box">
         <div class="box-header">SHIP FROM</div>
         <div class="box-body">
-          <div class="party-name">PT Kamil Tria Niaga</div>
-          <div>Magersari No.23-24 Blok AW, Magersari, Kec.</div>
-          <div>Sidoarjo, Kabupaten Sidoarjo, Jawa Timur 61212</div>
-          <div class="phone">+62 896-6804-5776</div>
+          <div class="party-name">{{ $shipFromNama }}</div>
+          @if(!empty($pengirimHp))<div class="phone">{{ $pengirimHp }}</div>@endif
+          <div>{!! nl2br(e($shipFromAlamat)) !!}</div>
         </div>
       </div>
       <div class="address-box">
         <div class="box-header">SHIP TO</div>
         <div class="box-body">
-          <div class="party-name">SMKN 1 Kuta Selatan - Bali</div>
-          <div>Jalan Gedong Sari, By Pass Ngurah Rai, Nusa</div>
-          <div>Dua, Benoa, Kec. Kuta Sel., Kabupaten Badung,</div>
-          <div>Bali 80361</div>
-          <div class="phone">+62 851-0085-7139</div>
+          <div class="party-name">{{ $namaKlien }}</div>
+          @if(!empty($nomorKlien))<div class="phone">{{ $nomorKlien }}</div>@endif
+          <div>{!! nl2br(e($alamatKlien)) !!}</div>
         </div>
       </div>
     </div>
@@ -489,66 +539,19 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td class="center">1</td>
-          <td>Analog circuit training kit</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">2</td>
-          <td>alat pelatihan dasar kelistrikan (Electricity Fundamental Training System)</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">3</td>
-          <td>Alat Pelatihan Elektronika Dasar (basic electronic trainer)</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">4</td>
-          <td>Aplikasi PLC pada Traffic Light</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">5</td>
-          <td>Elektronika dan Digital Trainer</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">6</td>
-          <td>IoT Trainer</td>
-          <td class="center">2</td>
-        </tr>
-        <tr>
-          <td class="center">7</td>
-          <td>Portable Solar Power Experiment Box</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">8</td>
-          <td>Programmable Logic Controller Training Set</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">9</td>
-          <td>Proximity Sensor Training Set</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">10</td>
-          <td>HMI/SCADA Training System</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">11</td>
-          <td>PLC dan HMI Trainer</td>
-          <td class="center">1</td>
-        </tr>
-        <tr>
-          <td class="center">12</td>
-          <td>Trainer Solar panel</td>
-          <td class="center">2</td>
-        </tr>
+        @forelse($itemsList as $idx => $it)
+          <tr>
+            <td class="center">{{ $idx + 1 }}</td>
+            <td>{{ $it['nama_barang'] ?? '-' }}</td>
+            <td class="center">{{ $it['qty'] ?? 0 }}</td>
+          </tr>
+        @empty
+          <tr>
+            <td class="center">1</td>
+            <td>-</td>
+            <td class="center">0</td>
+          </tr>
+        @endforelse
       </tbody>
     </table>
 
@@ -556,32 +559,38 @@
     <div class="comments-block">
       <div class="comments-header">Comments Or Special Instructions</div>
       <div class="comments-body">
-        <div class="comments-section-title">Pengiriman</div>
-        <ul class="comments-list">
-          <li>sebelum pengiriman dimohon untuk menghubungi +62 896-6804-5776</li>
-          <li>Pengiriman dilakukan pada jam kerja<br>&nbsp;&nbsp;&nbsp;senin – Jum'at 08.00 – 14.00</li>
-        </ul>
+        @if(!empty($special))
+          {!! $special !!}
+        @else
+          <div class="comments-section-title">Pengiriman</div>
+          <ul class="comments-list">
+            <li>sebelum pengiriman dimohon untuk menghubungi {{ $pengirimHp }}</li>
+            <li>Pengiriman dilakukan pada jam kerja<br>&nbsp;&nbsp;&nbsp;Senin – Jum'at 08.00 – 14.00</li>
+          </ul>
+        @endif
       </div>
     </div>
 
     <!-- Kota & Tanggal -->
-    <div class="kota-tanggal">Sidoarjo, 06 November 2025</div>
+    <div class="kota-tanggal">{{ $tempatTgl }}</div>
 
-    <!-- Signature -->
+    <!-- 3. Signature — Pengirim & Penerima sejajar horizontal -->
     <div class="signature-row">
       <div class="sig-block">
         <div class="sig-label">Pengirim</div>
         <div class="sig-space"></div>
+        <br>
         <div>
-          <span class="sig-name-line">( &nbsp;&nbsp;&nbsp;&nbsp; Aristo R. &nbsp;&nbsp;&nbsp;&nbsp; )</span>
+          <span class="sig-name-line">(      {{ $pengirimNama }}      )</span>
         </div>
         <div class="sig-sub">PT. Kamil Tria Niaga</div>
       </div>
       <div class="sig-block">
         <div class="sig-label">Penerima</div>
         <div class="sig-space"></div>
+        <br>
         <div>
-          <span class="sig-name-line">( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )</span>
+          <span class="sig-name-line">( _________________________ )</span>
         </div>
       </div>
     </div>

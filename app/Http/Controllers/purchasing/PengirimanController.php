@@ -9,6 +9,7 @@ use App\Models\Penawaran;
 use App\Models\Pengiriman;
 use App\Models\PenawaranDetail;
 use App\Models\SuratTandaTerima;
+use App\Models\SuratJalan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -260,8 +261,9 @@ class PengirimanController extends Controller
         $proyek = Proyek::with(['adminPurchasing'])->findOrFail($proyekId);
 
         $suratTandaTerima = SuratTandaTerima::where('id_proyek', $proyek->id_proyek)->first();
+        $suratJalan       = SuratJalan::where('id_proyek', $proyek->id_proyek)->first();
 
-        return view('pages.purchasing.pengiriman-components.pembuatan-surat', compact('proyek', 'suratTandaTerima'));
+        return view('pages.purchasing.pengiriman-components.pembuatan-surat', compact('proyek', 'suratTandaTerima', 'suratJalan'));
     }
 
     /**
@@ -918,6 +920,147 @@ class PengirimanController extends Controller
         ]);
     }
 
+    /**
+     * Preview PDF Surat Jalan (inline).
+     */
+    public function previewSuratJalan(Request $request, $proyekId)
+    {
+        $payload = $this->buildSuratJalanPayload($request, $proyekId, true);
+        $pdf     = Pdf::loadView('pages.files.surat-jalan', $payload);
+        $content = $this->mergeSuratJalanWithLampiran($pdf->output(), $payload['suratDb'] ?? null);
+
+        return response($content, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="surat-jalan-preview.pdf"',
+        ]);
+    }
+
+    /**
+     * Download PDF Surat Jalan (attachment).
+     */
+    public function downloadSuratJalan(Request $request, $proyekId)
+    {
+        $payload  = $this->buildSuratJalanPayload($request, $proyekId, true);
+        $pdf      = Pdf::loadView('pages.files.surat-jalan', $payload);
+        $content  = $this->mergeSuratJalanWithLampiran($pdf->output(), $payload['suratDb'] ?? null);
+        $filename = 'surat-jalan-' . ($payload['proyek']->kode_proyek ?? $proyekId) . '.pdf';
+
+        return response($content, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Simpan metadata Surat Jalan + upload lampiran.
+     */
+    public function storeSuratJalan(Request $request, $proyekId)
+    {
+        $validated = $request->validate([
+            'tanggal_surat'        => 'nullable|date',
+            'nama_klien'           => 'nullable|string|max:255',
+            'alamat_klien'         => 'nullable|string',
+            'nomor_klien'          => 'nullable|string|max:50',
+            'special_instruction'  => 'nullable|string',
+            'id_penawaran'         => 'nullable|integer',
+            'lampiran_pdfs'        => 'nullable',
+            'lampiran_pdfs.*'      => 'file|mimes:pdf|max:10240',
+        ]);
+
+        $proyek = Proyek::with(['adminPurchasing'])->findOrFail($proyekId);
+
+        $dbFields = collect($validated)->except(['lampiran_pdfs'])->toArray();
+
+        $surat = SuratJalan::updateOrCreate(
+            ['id_proyek' => $proyek->id_proyek],
+            array_merge($dbFields, ['id_proyek' => $proyek->id_proyek])
+        );
+
+        if ($request->hasFile('lampiran_pdfs')) {
+            $rawRow   = DB::table('surat_jalan')->where('id_surat_jalan', $surat->id_surat_jalan)->value('lampiran_files');
+            $existing = [];
+            if ($rawRow) {
+                $decoded  = json_decode($rawRow, true);
+                $existing = is_array($decoded) ? $decoded : [];
+            }
+
+            foreach ($request->file('lampiran_pdfs') as $file) {
+                if (!$file || !$file->isValid()) continue;
+
+                $safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $file->getClientOriginalName());
+                $filename = time() . '_' . uniqid() . '_' . $safeName;
+                $path     = $file->storeAs('surat-jalan/lampiran', $filename, 'public');
+
+                $existing[] = [
+                    'path'          => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                    'uploaded_at'   => now()->toDateTimeString(),
+                    'size'          => $file->getSize(),
+                ];
+            }
+
+            DB::table('surat_jalan')
+                ->where('id_surat_jalan', $surat->id_surat_jalan)
+                ->update(['lampiran_files' => json_encode(array_values($existing))]);
+        }
+
+        $surat = SuratJalan::find($surat->id_surat_jalan);
+
+        if (!$request->expectsJson()) {
+            return redirect()
+                ->route('purchasing.pengiriman.surat', ['proyekId' => $proyek->id_proyek])
+                ->with('success', 'Surat jalan berhasil disimpan.');
+        }
+
+        return response()->json([
+            'success'        => true,
+            'message'        => 'Surat jalan berhasil disimpan.',
+            'data'           => $surat,
+            'lampiran_files' => $surat->lampiran_files_list,
+        ]);
+    }
+
+    /**
+     * Hapus 1 lampiran dari surat jalan.
+     */
+    public function deleteSuratJalanLampiran(Request $request, $proyekId)
+    {
+        $request->validate(['path' => 'required|string']);
+
+        $surat = SuratJalan::where('id_proyek', $proyekId)->firstOrFail();
+        $path  = $request->input('path');
+
+        $rawRow = DB::table('surat_jalan')->where('id_surat_jalan', $surat->id_surat_jalan)->value('lampiran_files');
+        $files  = [];
+        if ($rawRow) {
+            $decoded = json_decode($rawRow, true);
+            $files   = is_array($decoded) ? $decoded : [];
+        }
+
+        $newFiles = [];
+        foreach ($files as $f) {
+            if (($f['path'] ?? null) === $path) {
+                if ($path && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+                continue;
+            }
+            $newFiles[] = $f;
+        }
+
+        DB::table('surat_jalan')
+            ->where('id_surat_jalan', $surat->id_surat_jalan)
+            ->update(['lampiran_files' => json_encode(array_values($newFiles))]);
+
+        $surat = SuratJalan::find($surat->id_surat_jalan);
+
+        return response()->json([
+            'success'        => true,
+            'message'        => 'Lampiran berhasil dihapus.',
+            'lampiran_files' => $surat->lampiran_files_list,
+        ]);
+    }
+
     private function buildTandaTerimaPayload(Request $request, $proyekId, bool $preferDb = false): array
     {
         $proyek = Proyek::with(['adminPurchasing', 'penawaranAktif.penawaranDetail'])->findOrFail($proyekId);
@@ -1016,6 +1159,120 @@ class PengirimanController extends Controller
             return $merger->merge();
         } catch (\Throwable $e) {
             return $ttPdfContent;
+        }
+    }
+
+    private function buildSuratJalanPayload(Request $request, $proyekId, bool $preferDb = false): array
+    {
+        $proyek = Proyek::with(['adminPurchasing', 'penawaranAktif.penawaranDetail'])->findOrFail($proyekId);
+
+        $penawaran = $proyek->penawaranAktif;
+        if (!$penawaran) {
+            $penawaran = Penawaran::where('id_proyek', $proyek->id_proyek)->orderBy('id_penawaran', 'desc')->first();
+        }
+
+        $details = $penawaran
+            ? PenawaranDetail::with('barang')->where('id_penawaran', $penawaran->id_penawaran)->get()
+            : collect();
+
+        $suratDb = $preferDb
+            ? SuratJalan::where('id_proyek', $proyek->id_proyek)->first()
+            : null;
+
+        $get = fn (string $k, $fallback = null) => $request->query($k, $fallback);
+
+        $tanggalDb = $suratDb?->tanggal_surat;
+        $tanggalDbStr = null;
+        if ($tanggalDb instanceof \DateTimeInterface) {
+            $tanggalDbStr = $tanggalDb->format('Y-m-d');
+        } elseif (is_string($tanggalDb) && $tanggalDb !== '') {
+            $tanggalDbStr = $tanggalDb;
+        }
+        $tanggal = $get('tanggal_surat', $tanggalDbStr);
+
+        $namaKlien   = $get('nama_klien',   $suratDb?->nama_klien);
+        $alamatKlien = $get('alamat_klien', $suratDb?->alamat_klien);
+        $nomorKlien  = $get('nomor_klien',  $suratDb?->nomor_klien);
+
+        $special = $get('special_instruction', $suratDb?->special_instruction);
+
+        $items = $details->map(function ($d) {
+            return [
+                'nama_barang' => $d->barang?->nama_barang ?? $d->nama_barang,
+                'satuan'      => $d->satuan,
+                'qty'         => (int) $d->qty,
+            ];
+        })->values();
+
+        return [
+            'proyek'    => $proyek,
+            'penawaran' => $penawaran,
+            'items'     => $items,
+            'surat'     => [
+                'tanggal_surat'       => $tanggal,
+                // DO diambil dari proyek.kode_proyek
+                'do'                  => $proyek->kode_proyek,
+                // ship from statis
+                'ship_from'           => [
+                    'nama'   => 'PT. Kamil Tria Niaga',
+                    'alamat' => "Magersari No.23-24 Blok AW, Magersari, Kec.\nSidoarjo, Kabupaten Sidoarjo, Jawa Timur 61212",
+                ],
+                // ship to (klien)
+                'nama_klien'          => $namaKlien,
+                'alamat_klien'        => $alamatKlien,
+                'nomor_klien'         => $nomorKlien,
+                // pengirim dari admin purchasing
+                'pengirim'            => $proyek->adminPurchasing?->name ?? $proyek->adminPurchasing?->nama,
+                'pengirim_no_telepon' => $proyek->adminPurchasing?->no_telepon,
+                'special_instruction' => $special,
+            ],
+            'suratDb'   => $suratDb,
+        ];
+    }
+
+    private function mergeSuratJalanWithLampiran(string $sjPdfContent, $suratDb = null): string
+    {
+        $lampiranList = [];
+
+        try {
+            if ($suratDb) {
+                $rawRow = DB::table('surat_jalan')
+                    ->where('id_surat_jalan', $suratDb->id_surat_jalan)
+                    ->value('lampiran_files');
+
+                if ($rawRow) {
+                    $decoded      = json_decode($rawRow, true);
+                    $lampiranList = is_array($decoded) ? $decoded : [];
+                }
+            }
+        } catch (\Throwable $e) {
+            // silent
+        }
+
+        if (empty($lampiranList)) {
+            return $sjPdfContent;
+        }
+
+        try {
+            $merger = new Merger();
+            $merger->addRaw($sjPdfContent);
+
+            foreach ($lampiranList as $f) {
+                $path = $f['path'] ?? null;
+                if (!$path) continue;
+
+                $absolutePath = storage_path('app/public/' . ltrim($path, '/\\'));
+                if (!file_exists($absolutePath)) continue;
+
+                $raw = file_get_contents($absolutePath);
+                if (!$raw || strlen($raw) === 0) continue;
+
+                $merger->addRaw($raw);
+            }
+
+            return $merger->merge();
+        } catch (\Throwable $e) {
+            return $sjPdfContent;
         }
     }
 }
