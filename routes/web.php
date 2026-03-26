@@ -190,6 +190,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/pembayaran/history/{id_proyek}', [PembayaranController::class, 'history'])->name('purchasing.pembayaran.history');
         Route::get('/pembayaran/suggestion/{id_proyek}', [PembayaranController::class, 'calculateSuggestion'])->name('purchasing.pembayaran.suggestion');
         Route::post('/pembayaran/cleanup-files', [PembayaranController::class, 'cleanupOrphanedFiles'])->name('purchasing.pembayaran.cleanup');
+        Route::get('/pembayaran/pembuatan-surat-po/{id_proyek}/{id_vendor}', [PembayaranController::class, 'pembuatanSuratPo'])->name('purchasing.pembayaran.pembuatan-surat-po');
+
+        // Surat PO (Draft + Preview)
+        Route::post('/pembayaran/pembuatan-surat-po/{id_proyek}/{id_vendor}', [PembayaranController::class, 'simpanSuratPo'])->name('purchasing.pembayaran.pembuatan-surat-po.simpan');
+        Route::get('/pembayaran/pembuatan-surat-po/{id_proyek}/{id_vendor}/preview', [PembayaranController::class, 'previewSuratPoPdf'])->name('purchasing.pembayaran.pembuatan-surat-po.preview');
+        Route::delete('/pembayaran/pembuatan-surat-po/{id_proyek}/{id_vendor}/lampiran', [PembayaranController::class, 'deleteSuratPoLampiran'])->name('purchasing.pembayaran.pembuatan-surat-po.lampiran.delete');
 
         // Pengiriman Routes
         Route::get('/pengiriman', [PengirimanController::class, 'index'])->name('purchasing.pengiriman');

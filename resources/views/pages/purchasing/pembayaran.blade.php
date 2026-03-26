@@ -11,13 +11,10 @@
 <script>
 // Toggle Vendor Details Dropdown - Enhanced Version
 function toggleVendorDetails(elementId) {
-    console.log('Toggling vendor details for:', elementId); // Debug log
+    console.log('Toggling vendor details for:', elementId);
     
     const vendorDetails = document.getElementById(`vendor-details-${elementId}`);
     const chevronIcon = document.getElementById(`chevron-${elementId}`);
-    
-    console.log('Vendor details element:', vendorDetails); // Debug log
-    console.log('Chevron icon element:', chevronIcon); // Debug log
     
     if (!vendorDetails) {
         console.error('Vendor details element not found for ID:', `vendor-details-${elementId}`);
@@ -25,34 +22,29 @@ function toggleVendorDetails(elementId) {
     }
     
     if (vendorDetails.classList.contains('hidden')) {
-        // Show the details
         vendorDetails.classList.remove('hidden');
         vendorDetails.classList.add('animate-fadeIn');
         if (chevronIcon) {
             chevronIcon.style.transform = 'rotate(180deg)';
         }
-        console.log('Showing vendor details for:', elementId);
     } else {
-        // Hide the details
         vendorDetails.classList.add('hidden');
         vendorDetails.classList.remove('animate-fadeIn');
         if (chevronIcon) {
             chevronIcon.style.transform = 'rotate(0deg)';
         }
-        console.log('Hiding vendor details for:', elementId);
     }
 }
-
 // Tab Navigation Functions
 function openTab(evt, tabName) {
     // Hide all tab content
-    const tabcontent = document.getElementsByClassName("tab-content");
+    const tabcontent = Array.from(document.getElementsByClassName("tab-content"));
     for (let i = 0; i < tabcontent.length; i++) {
         tabcontent[i].style.display = "none";
     }
     
     // Remove active class from all tab buttons
-    const tabbuttons = document.getElementsByClassName("tab-button");
+    const tabbuttons = Array.from(document.getElementsByClassName("tab-button"));
     for (let i = 0; i < tabbuttons.length; i++) {
         tabbuttons[i].classList.remove("border-red-500", "text-red-600", "bg-white");
         tabbuttons[i].classList.add("border-transparent", "text-gray-500", "bg-gray-50");
@@ -114,14 +106,12 @@ function showProyekDetail(proyek) {
     const approvedCount = proyek.pembayaran ? proyek.pembayaran.filter(p => p.status_verifikasi === 'Approved').length : 0;
     const ditolakCount = proyek.pembayaran ? proyek.pembayaran.filter(p => p.status_verifikasi === 'Ditolak').length : 0;
     
-    // Get current user info from Laravel
     const currentUserRole = '{{ $currentUser->role }}';
     const currentUserId = {{ $currentUser->id_user }};
     const canAccess = currentUserRole === 'admin_purchasing' && proyek.id_admin_purchasing == currentUserId;
     
     modalContent.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Informasi Proyek -->
             <div class="space-y-3">
                 <h4 class="font-medium text-gray-900 border-b pb-1">Informasi Proyek</h4>
                 <div class="space-y-2 text-sm">
@@ -135,7 +125,6 @@ function showProyekDetail(proyek) {
                 </div>
             </div>
             
-            <!-- Informasi Pembayaran -->
             <div class="space-y-3">
                 <h4 class="font-medium text-gray-900 border-b pb-1">Informasi Pembayaran</h4>
                 <div class="space-y-2 text-sm">
@@ -155,7 +144,6 @@ function showProyekDetail(proyek) {
                     </div>
                 </div>
                 
-                <!-- Progress Bar -->
                 <div class="mt-3">
                     <div class="w-full bg-gray-200 rounded-full h-3">
                         <div class="bg-blue-600 h-3 rounded-full" style="width: ${Math.min(proyek.persen_bayar || 0, 100)}%"></div>
@@ -164,7 +152,6 @@ function showProyekDetail(proyek) {
             </div>
         </div>
         
-        <!-- Statistik Pembayaran -->
         <div class="mt-6">
             <h4 class="font-medium text-gray-900 border-b pb-1 mb-3">Statistik Pembayaran</h4>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -188,7 +175,6 @@ function showProyekDetail(proyek) {
         </div>
         
         ${!canAccess && currentUserRole !== 'admin_purchasing' ? `
-            <!-- Access Info Banner for Non-Admin -->
             <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div class="flex items-center">
                     <i class="fas fa-info-circle text-blue-500 mr-2"></i>
@@ -200,7 +186,6 @@ function showProyekDetail(proyek) {
         ` : ''}
         
         ${!canAccess && currentUserRole === 'admin_purchasing' ? `
-            <!-- Access Info Banner for Other Admin Purchasing -->
             <div class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <div class="flex items-center">
                     <i class="fas fa-lock text-orange-500 mr-2"></i>
@@ -211,7 +196,6 @@ function showProyekDetail(proyek) {
             </div>
         ` : ''}
         
-        <!-- Action Buttons -->
         <div class="mt-6 flex flex-wrap gap-2">
             ${canAccess && !proyek.status_lunas ? `
                 <a href="/purchasing/pembayaran/create/${proyek.id_proyek}" 
@@ -261,8 +245,6 @@ function openBuktiModal(files, namaBarang) {
     title.textContent = 'Bukti Pembayaran';
     subtitle.textContent = namaBarang || '';
 
-    // files sudah berupa URL lengkap dari asset() yang di-generate di Blade
-    // Pisahkan gambar dan PDF berdasarkan ekstensi URL
     const imageFiles = [];
     const pdfFiles = [];
     files.forEach(function(url) {
@@ -287,7 +269,6 @@ function openBuktiModal(files, namaBarang) {
     } else {
         html += `<p class="text-xs text-gray-500 mb-4"><i class="fas fa-paperclip mr-1"></i>${files.length} file bukti pembayaran</p>`;
 
-        // Tampilan grid gambar
         if (imageFiles.length > 0) {
             html += `<div class="mb-5">
                 <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -313,7 +294,6 @@ function openBuktiModal(files, namaBarang) {
             </div>`;
         }
 
-        // Daftar PDF
         if (pdfFiles.length > 0) {
             html += `<div>
                 <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -358,7 +338,6 @@ function closeBuktiModal() {
     document.body.style.overflow = '';
 }
 
-// Lightbox — currentLightboxImages berisi URL lengkap dari asset()
 function openLightbox(idx) {
     if (currentLightboxImages.length === 0) return;
     currentLightboxIndex = idx;
@@ -392,16 +371,14 @@ function nextLightboxImage(event) {
 document.addEventListener('DOMContentLoaded', function() {
     const activeTab = '{{ $activeTab ?? "perlu-bayar" }}';
     
-    // Show the tab from backend/URL parameter
     const tabButton = document.querySelector(`button[onclick*="tab-${activeTab}"]`);
     if (tabButton) {
-        // Manually trigger the tab display
-        const tabcontent = document.getElementsByClassName("tab-content");
+        const tabcontent = Array.from(document.getElementsByClassName("tab-content"));
         for (let i = 0; i < tabcontent.length; i++) {
             tabcontent[i].style.display = "none";
         }
         
-        const tabbuttons = document.getElementsByClassName("tab-button");
+        const tabbuttons = Array.from(document.getElementsByClassName("tab-button"));
         for (let i = 0; i < tabbuttons.length; i++) {
             tabbuttons[i].classList.remove("border-red-500", "text-red-600", "bg-white");
             tabbuttons[i].classList.add("border-transparent", "text-gray-500", "bg-gray-50");
@@ -411,18 +388,15 @@ document.addEventListener('DOMContentLoaded', function() {
         tabButton.classList.remove("border-transparent", "text-gray-500", "bg-gray-50");
         tabButton.classList.add("border-red-500", "text-red-600", "bg-white");
     } else {
-        // Default: show first tab
         document.getElementById("defaultOpen").click();
     }
 });
 
 // Close all dropdowns when clicking outside
 document.addEventListener('click', function(event) {
-    // Check if the click is outside of any dropdown button or content
     if (!event.target.closest('[onclick*="toggleVendorDetails"]') && 
         !event.target.closest('[id*="vendor-details-"]')) {
         
-        // Find all open dropdowns and close them
         const openDropdowns = document.querySelectorAll('[id*="vendor-details-"]:not(.hidden)');
         openDropdowns.forEach(dropdown => {
             const elementId = dropdown.id.replace('vendor-details-', '');
@@ -479,26 +453,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeTab = urlParams.get('tab');
     
     if (activeTab) {
-        // Remove active state from all tabs
         document.querySelectorAll('.tab-button').forEach(button => {
             button.classList.remove('border-red-500', 'text-red-600', 'bg-white');
             button.classList.add('border-transparent', 'text-gray-500', 'bg-gray-50');
         });
         
-        // Hide all tab contents
         document.querySelectorAll('.tab-content').forEach(content => {
             content.style.display = 'none';
         });
         
-        // Show active tab
         if (activeTab === 'semua-proyek') {
-            openTab({target: document.querySelector('button[onclick="openTab(event, \'tab-semua-proyek\')"]')}, 'tab-semua-proyek');
+            const btn = document.querySelector("button[onclick*=\"tab-semua-proyek\"]");
+            if (btn) openTab({ currentTarget: btn, isTrusted: false }, 'tab-semua-proyek');
         } else if (activeTab === 'semua-pembayaran') {
-            openTab({target: document.querySelector('button[onclick="openTab(event, \'tab-semua-pembayaran\')"]')}, 'tab-semua-pembayaran');
+            const btn = document.querySelector("button[onclick*=\"tab-semua-pembayaran\"]");
+            if (btn) openTab({ currentTarget: btn, isTrusted: false }, 'tab-semua-pembayaran');
+        } else if (activeTab === 'pembuatan-surat-po') {
+            const btn = document.querySelector("button[onclick*=\"tab-pembuatan-surat-po\"]");
+            if (btn) openTab({ currentTarget: btn, isTrusted: false }, 'tab-pembuatan-surat-po');
         } else {
-            openTab({target: document.querySelector('button[onclick="openTab(event, \'tab-perlu-bayar\')"]')}, 'tab-perlu-bayar');
+            const btn = document.querySelector("button[onclick*=\"tab-perlu-bayar\"]");
+            if (btn) openTab({ currentTarget: btn, isTrusted: false }, 'tab-perlu-bayar');
         }
     }
+
+    // PO vendor select dynamic link update
+    document.querySelectorAll('.po-vendor-select').forEach(function(select) {
+        select.addEventListener('change', function() {
+            const proyekId = this.dataset.proyek;
+            const vendorId = this.value;
+            const btn = document.querySelector(`.po-create-btn[data-proyek="${proyekId}"]`);
+            if (btn && vendorId) {
+                btn.href = `/purchasing/pembayaran/pembuatan-surat-po/${proyekId}/${vendorId}`;
+            }
+        });
+    });
 });
 </script>
 
@@ -596,7 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </button>
                 <button onclick="openTab(event, 'tab-semua-pembayaran')"
-                        class="tab-button flex-1 py-2 sm:py-4 px-2 sm:px-6 border-b-3 font-semibold text-xs sm:text-sm md:text-base focus:outline-none transition-all duration-300 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 bg-gray-50 rounded-tr-2xl">
+                        class="tab-button flex-1 py-2 sm:py-4 px-2 sm:px-6 border-b-3 font-semibold text-xs sm:text-sm md:text-base focus:outline-none transition-all duration-300 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 bg-gray-50">
                     <div class="flex items-center justify-center gap-1 sm:gap-2">
                         <i class="fas fa-receipt text-xs sm:text-sm md:text-base"></i>
                         <span class="hidden sm:inline">Semua Pembayaran</span>
@@ -604,6 +593,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="bg-gray-200 text-gray-700 text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[1.2rem] h-5 flex items-center justify-center">
                             {{ $semuaPembayaran->total() }}
                         </span>
+                    </div>
+                </button>
+                <!-- NEW TAB: Pembuatan Surat PO -->
+                <button onclick="openTab(event, 'tab-pembuatan-surat-po')"
+                        class="tab-button flex-1 py-2 sm:py-4 px-2 sm:px-6 border-b-3 font-semibold text-xs sm:text-sm md:text-base focus:outline-none transition-all duration-300 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 bg-gray-50 rounded-tr-2xl">
+                    <div class="flex items-center justify-center gap-1 sm:gap-2">
+                        <i class="fas fa-file-signature text-xs sm:text-sm md:text-base"></i>
+                        <span class="hidden sm:inline">Pembuatan Surat PO</span>
+                        <span class="sm:hidden">Surat PO</span>
                     </div>
                 </button>
             </nav>
@@ -1663,7 +1661,148 @@ document.addEventListener('DOMContentLoaded', function() {
             @endif
         </div>
     </div>
-</div>
+    </div>
+
+    <!-- Tab Content 4: Pembuatan Surat PO -->
+    <div id="tab-pembuatan-surat-po" class="tab-content" style="display:none;">
+        <div class="p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Pembuatan Surat PO</h2>
+                    <p class="text-gray-600 mt-1">Pilih proyek, lalu pilih vendor untuk membuat Surat Purchase Order (PO).</p>
+                </div>
+
+                <div class="w-full sm:w-auto">
+                    <form method="GET" action="{{ route('purchasing.pembayaran') }}" class="flex gap-2">
+                        <input type="hidden" name="tab" value="pembuatan-surat-po">
+                        <input type="text" name="po_search" value="{{ $poSearch ?? '' }}"
+                               placeholder="Cari kode proyek / instansi / nama..."
+                               class="w-full sm:w-80 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                            <i class="fas fa-search mr-2"></i>Cari
+                        </button>
+                        @if(!empty($poSearch))
+                            <a href="{{ route('purchasing.pembayaran', ['tab' => 'pembuatan-surat-po']) }}"
+                               class="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                                Reset
+                            </a>
+                        @endif
+                    </form>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                @if(isset($proyekPo) && $proyekPo->count() > 0)
+                <div class="space-y-4">
+                    @foreach($proyekPo as $proyek)
+                    @php
+                        $vendorsForPo = $proyek->vendors_data ?? collect();
+                    @endphp
+
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div class="p-4 cursor-pointer" onclick="toggleVendorDetails('po-{{ $proyek->id_proyek }}')">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <div class="w-3 h-3 rounded-full 
+                                            @if($proyek->status == 'Pembayaran') bg-blue-500
+                                            @elseif($proyek->status == 'Pengiriman') bg-purple-500
+                                            @elseif($proyek->status == 'Selesai') bg-green-500
+                                            @elseif($proyek->status == 'Gagal') bg-red-500
+                                            @else bg-gray-500 @endif">
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900">{{ $proyek->nama_barang }}</h3>
+                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                            {{ $proyek->kode_proyek }}
+                                        </span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div class="space-y-1">
+                                            <p class="text-gray-600">
+                                                <i class="fas fa-building text-gray-400 mr-2"></i>
+                                                {{ $proyek->instansi }} - {{ $proyek->kab_kota }}
+                                            </p>
+                                            <p class="text-gray-600">
+                                                <i class="fas fa-file-contract text-gray-400 mr-2"></i>
+                                                No. Penawaran: {{ $proyek->penawaranAktif->no_penawaran ?? '-' }}
+                                            </p>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <p class="text-gray-600">
+                                                <span class="font-medium">Jumlah Vendor:</span>
+                                                <span class="font-semibold text-blue-700">{{ $vendorsForPo->count() }}</span>
+                                            </p>
+                                            <p class="text-gray-600">
+                                                <span class="font-medium">Dibuat:</span>
+                                                {{ optional($proyek->created_at)->format('d/m/Y H:i') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ml-4">
+                                    <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="chevron-po-{{ $proyek->id_proyek }}"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="vendor-details-po-{{ $proyek->id_proyek }}" class="hidden border-t border-gray-100 bg-gray-50">
+                            <div class="p-4">
+                                <h4 class="font-medium text-gray-900 mb-3">Pilih Vendor</h4>
+
+                                @if($vendorsForPo->count() === 0)
+                                    <div class="p-4 rounded-lg bg-yellow-50 border border-yellow-200 text-sm text-yellow-800">
+                                        Vendor belum tersedia (pastikan penawaran ACC dan data vendor ter-load).
+                                    </div>
+                                @else
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        @foreach($vendorsForPo as $vendorData)
+                                            <div class="p-3 border border-gray-200 rounded-lg bg-white flex items-center justify-between gap-3">
+                                                <div>
+                                                    <div class="font-semibold text-gray-900">{{ $vendorData->vendor->nama_vendor ?? '-' }}</div>
+                                                </div>
+                                                <a href="{{ route('purchasing.pembayaran.pembuatan-surat-po', ['id_proyek' => $proyek->id_proyek, 'id_vendor' => $vendorData->vendor->id_vendor]) }}"
+                                                   class="inline-flex items-center px-3 py-2 rounded-lg bg-red-700 text-white text-sm font-medium hover:bg-red-800">
+                                                    <i class="fas fa-file-alt mr-2"></i>
+                                                    Buat Surat PO
+                                                </a>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                @if($proyekPo->hasPages())
+                    <div class="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div class="text-sm text-gray-600">
+                                <span class="font-medium">Menampilkan {{ $proyekPo->firstItem() ?? 0 }} - {{ $proyekPo->lastItem() ?? 0 }}</span>
+                                dari <span class="font-semibold text-gray-800">{{ $proyekPo->total() }}</span> proyek
+                            </div>
+                            <div class="flex justify-center">
+                                {{ $proyekPo->appends(request()->query())->links() }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @else
+                <div class="text-center py-12">
+                    <div class="mx-auto h-12 w-12 text-gray-400">
+                        <i class="fas fa-file-signature text-4xl"></i>
+                    </div>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada proyek</h3>
+                    <p class="mt-1 text-sm text-gray-500">Belum ada proyek yang bisa dibuatkan PO.</p>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
 
 <!-- Modal Detail Proyek -->
 <div id="proyekDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
