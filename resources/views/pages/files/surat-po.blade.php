@@ -2,9 +2,8 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Surat Penawaran - PT. Kamil Tria Niaga</title>
+<title>Surat PO - PT. Kamil Tria Niaga</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   @page {
     size: A4;
@@ -25,11 +24,11 @@
    * CORNER DECORATIONS
    * ============================================================ */
   .corner-tl {
-    position: fixed; top: 0; right: 0;
+    position: fixed; top: -130px; right: 0;
     width: 140px; height: 100px; z-index: 20;
   }
   .corner-br {
-    position: fixed; bottom: 0; left: 0;
+    position: fixed; bottom: -135px; left: 0;
     width: 140px; height: 140px; z-index: 20;
   }
   .corner-img { width: 100%; height: 100%; object-fit: cover; }
@@ -38,7 +37,7 @@
    * HEADER — fixed
    * ============================================================ */
   header {
-    position: fixed; top: 0; left: 0; right: 0;
+    position: fixed; top: -130px; left: 0; right: 0;
     padding: 14px 0 14px 50px;
     border-bottom: 5px solid #C62828;
     background: white;
@@ -59,7 +58,7 @@
    * CONTENT
    * ============================================================ */
   .content {
-    padding: 130px 60px 135px 60px;
+    padding: 0px 60px 0px 60px;
   }
 
   /* ============================================================
@@ -175,7 +174,7 @@
   /* Comments */
   .comments-block { border: 1px solid #999; font-size: 9.5pt; line-height: 1.6; width: 100%; }
   .comments-header { background: #BDBDBD; font-weight: bold; padding: 4px 8px; border-bottom: 1px solid #999; font-size: 10pt; }
-  .comments-body { padding: 8px 10px; }
+  .comments-body { padding: 8px 10px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word;}
   .comments-section-title { font-weight: bold; margin-top: 7px; margin-bottom: 2px; font-size: 10pt; }
   .comments-section-title:first-child { margin-top: 0; }
   .comments-list { list-style: disc; padding-left: 14px; margin: 0; line-height: 1.6; }
@@ -212,7 +211,7 @@
    * FOOTER — fixed
    * ============================================================ */
   footer {
-    position: fixed; bottom: 0; left: 0; right: 0;
+    position: fixed; bottom: -135px; left: 0; right: 0;
     background: white; color: #000;
     padding: 6px 30px 14px 100px;
     font-size: 9pt; z-index: 10; box-sizing: border-box;
@@ -231,7 +230,6 @@
 
   @media print {
     body { background: none; }
-    .content { padding: 20px 60px; }
   }
 </style>
 </head>
@@ -277,7 +275,7 @@
             <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTIwIDRIMGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCA0bC04IDUtOC01VjZsOCA1IDgtNXYyeiIvPjwvc3ZnPg==" alt=""></div>
             <div class="footer-text-block">
               <div class="footer-label">Email</div>
-              <div class="footer-value"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4e252f2327223a3c272f20272f292f0e29232f2722602d2123">[email&#160;protected]</a></div>
+              <div class="footer-value">kamiltrianiaga@gmail.com</div>
             </div>
           </div>
         </td>
@@ -458,7 +456,7 @@
     </table>
 
     <!-- SIGNATURE -->
-    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+    <table style="width:100%; border-collapse:collapse; margin-top:10px; break-inside: avoid;">
       <tr>
         <td style="text-align:right; padding:0;">
           <table style="border-collapse:collapse; display:inline-table;">

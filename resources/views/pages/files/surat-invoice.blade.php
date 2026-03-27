@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Invoice - PT. Kamil Tria Niaga</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   @page {
     size: A4;
@@ -28,7 +27,7 @@
    * ============================================================ */
   .corner-tl {
     position: fixed;
-    top: 0;
+    top: -130px;
     right: 0;
     width: 140px;
     height: 100px;
@@ -36,7 +35,7 @@
   }
   .corner-br {
     position: fixed;
-    bottom: 0;
+    bottom: -135px;
     left: 0;
     width: 140px;
     height: 140px;
@@ -53,7 +52,7 @@
    * ============================================================ */
   header {
     position: fixed;
-    top: 0;
+    top: -130px;
     left: 0;
     right: 0;
     padding: 14px 0 14px 50px;
@@ -88,7 +87,7 @@
    * CONTENT
    * ============================================================ */
   .content {
-    padding: 130px 80px 135px 80px;
+    padding: 0px 60px 0px 60px;
     position: relative;
     z-index: 0;
   }
@@ -169,7 +168,7 @@
     font-size: 10pt;
     line-height: 1.3;
   }
-  .inv-table td { padding: 6px 8px; border: 1px solid #999; vertical-align: top; font-size: 10pt; word-break: break-word; overflow-wrap: break-word; }
+  .inv-table td { padding: 6px 8px; border: 1px solid #999; vertical-align: top; font-size: 10pt;   overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; break-inside: avoid;}
 
   .inv-table td.center { text-align: center; vertical-align: middle; }
   .inv-table td.right { text-align: right; vertical-align: middle; }
@@ -283,7 +282,7 @@
   .inv-top-right { width: 30%; text-align: right; }
 
   /* Bottom (payment left + approved right) using table for DomPDF */
-  .bottom-table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+  .bottom-table { width: 100%; border-collapse: collapse; margin-top: 18px; break-inside: avoid;}
   .bottom-table td { vertical-align: top; }
   .bottom-left { width: 60%; }
   .bottom-right { width: 40%; text-align: right; }
@@ -294,7 +293,7 @@
    * ============================================================ */
   footer {
     position: fixed;
-    bottom: 0;
+    bottom: -135px;
     left: 0;
     right: 0;
     background: white;
@@ -343,7 +342,6 @@
 
   @media print {
     body { background: none; padding: 0; margin: 0; }
-    .content { padding: 20px 80px; }
   }
 </style>
 </head>
@@ -562,7 +560,7 @@
             <div class="approved-sig-space">
               <!-- Tanda tangan / stempel -->
             </div>
-            <div class="approved-name">Mahenda Abdillah Kamil, S.Stat</div>
+            <div class="approved-name">BUSTANUDIN KAMIL, S.T</div>
             <div class="approved-title">Direktur</div>
           </div>
         </td>

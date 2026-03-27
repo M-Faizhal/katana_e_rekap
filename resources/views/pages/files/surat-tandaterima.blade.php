@@ -5,16 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tanda Terima - PT. Kamil Tria Niaga</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /*
-   * ============================================================
-   * KUNCI MULTI-HALAMAN:
-   * - thead diulang tiap halaman (display: table-header-group)
-   * - hindari baris tabel kepotong (page-break-inside: avoid)
-   * - blok tanda tangan jangan kepotong halaman
-   * ============================================================
-   */
 
   @page {
     size: A4;
@@ -37,7 +28,7 @@
    * ============================================================ */
   .corner-tl {
     position: fixed;
-    top: 0;
+    top: -130px;
     right: 0;
     width: 140px;
     height: 100px;
@@ -45,7 +36,7 @@
   }
   .corner-br {
     position: fixed;
-    bottom: 0;
+    bottom: -135px;
     left: 0;
     width: 140px;
     height: 140px;
@@ -62,7 +53,7 @@
    * ============================================================ */
   header {
     position: fixed;
-    top: 0;
+    top: -130px;
     left: 0;
     right: 0;
     padding: 14px 0 14px 50px;
@@ -97,7 +88,7 @@
    * CONTENT
    * ============================================================ */
   .content {
-    padding: 130px 80px 135px 80px;
+    padding: 0px 60px 0px 60px;
     position: relative;
     z-index: 0;
   }
@@ -110,7 +101,7 @@
     font-size: 12pt;
     font-weight: bold;
     letter-spacing: 1px;
-    margin: 20px 0 6px;
+    margin: 10px 0 6px;
     padding-bottom: 4px;
     border-bottom: 2px solid #000;
     border-top: 1px solid #000;
@@ -216,7 +207,7 @@
    * ============================================================ */
   footer {
     position: fixed;
-    bottom: 0;
+    bottom: -135px;
     left: 0;
     right: 0;
     background: white;     
@@ -265,10 +256,6 @@
 
   @media print {
     body { background: none; padding: 0; margin: 0; }
-    .content {
-      /* @page sudah atur margin, jadi padding kiri-kanan saja */
-      padding: 20px 80px;
-    }
   }
 </style>
 </head>
@@ -423,7 +410,7 @@
     </table>
 
     <!-- Tanda Tangan (disusun seperti contoh menggunakan table) -->
-    <div class="sig-section">
+    <div class="sig-section" style="break-inside: avoid;">
       <table class="sig-table">
         <tr>
           <td class="sig-td">

@@ -5,30 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Surat Penawaran - PT. Kamil Tria Niaga</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /*
-   * ============================================================
-   * KUNCI MULTI-HALAMAN:
-   * 1. @page mendefinisikan margin atas/bawah halaman sebesar
-   *    tinggi header + tinggi footer (+ sedikit padding ekstra).
-   * 2. Header & footer pakai position:fixed dengan top/bottom:0
-   *    dan z-index tinggi — browser print engine akan me-render
-   *    ulang elemen fixed di setiap halaman.
-   * 3. .content TIDAK boleh pakai padding-top/bottom sendiri
-   *    karena sudah diurus oleh @page margin.
-   * ============================================================
-   */
 
   @page {
     size: A4;
-    /* 
-      margin-top  = tinggi header (header padding 18+18 + border 5 + logo 80 ≈ 121px)
-                    + sedikit ruang napas → pakai 130px
-      margin-bottom = tinggi footer (2 baris × ~50px + padding ≈ 120px)
-                    → pakai 130px
-      margin-left / margin-right bebas sesuai kebutuhan
-    */
     margin-top: 130px;
     margin-bottom: 135px;
     margin-left: 0;
@@ -48,7 +28,7 @@
    * ============================================================ */
   .corner-tl {
     position: fixed;
-    top: 0;
+    top: -130px;
     right: 0;
     width: 140px;
     height: 100px;
@@ -56,7 +36,7 @@
   }
   .corner-br {
     position: fixed;
-    bottom: 0;
+    bottom: -135px;
     left: 0;
     width: 140px;
     height: 140px;
@@ -74,17 +54,14 @@
    * ============================================================ */
   header {
     position: fixed;
-    top: 0;
+    top: -130px;
     left: 0;
     right: 0;
-    /* Tinggi total header:
-       padding-top 18 + padding-bottom 18 + logo 80 + border 5 = 121px
-       Beri sedikit ruang: 121px sudah cukup, kita biarkan natural */
+
     padding: 14px 0 14px 50px;
     border-bottom: 5px solid #C62828;
     background: white;
     z-index: 15;
-    /* Penting: overflow hidden agar tidak meluber */
     overflow: hidden;
   }
   .header-table {
@@ -109,15 +86,10 @@
     margin-left: 10px;
   }
 
-  /* ============================================================
-   * CONTENT — padding mengikuti @page margin secara natural
-   * Jangan set padding-top/bottom di sini; @page sudah handle.
-   * Tapi untuk tampilan di BROWSER (non-print) kita tetap beri
-   * padding agar tidak tertutup header/footer.
-   * ============================================================ */
+
   .content {
     /* Untuk preview di browser: */
-    padding: 130px 80px 135px 80px;
+    padding: 0px 60px 0px 60px;
     position: relative;
     z-index: 0;
   }
@@ -244,7 +216,7 @@
    * ============================================================ */
   footer {
     position: fixed;
-    bottom: 0;
+    bottom: -135px;
     left: 0;
     right: 0;
     background: white;     
@@ -522,7 +494,7 @@
         <td style="width: 40%;" class="sig-block">
           <div class="sig-company">PT. KAMIL TRIA NIAGA</div>
           <br><br>
-          <div class="sig-name">MAHENDA ABDILLAH KAMIL, S.Stat</div>
+          <div class="sig-name">BUSTANUDIN KAMIL, S.T</div>
           <div class="sig-title">Direktur</div>
         </td>
       </tr>

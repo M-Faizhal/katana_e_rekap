@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Surat Jalan - PT. Kamil Tria Niaga</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   @page {
     size: A4;
@@ -28,7 +27,7 @@
    * ============================================================ */
   .corner-tl {
     position: fixed;
-    top: 0;
+    top: -130px;
     right: 0;
     width: 140px;
     height: 100px;
@@ -36,7 +35,7 @@
   }
   .corner-br {
     position: fixed;
-    bottom: 0;
+    bottom: -135px;
     left: 0;
     width: 140px;
     height: 140px;
@@ -53,7 +52,7 @@
    * ============================================================ */
   header {
     position: fixed;
-    top: 0;
+    top: -130px;
     left: 0;
     right: 0;
     padding: 14px 0 14px 50px;
@@ -88,7 +87,7 @@
    * CONTENT
    * ============================================================ */
   .content {
-    padding: 130px 60px 135px 60px;
+    padding: 0px 60px 0px 60px;
     position: relative;
     z-index: 0;
   }
@@ -164,6 +163,8 @@
     margin-bottom: 12px;
     border-spacing: 10px 0;
     border-collapse: separate;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   .address-box {
   display: table-cell;
@@ -227,6 +228,10 @@
     line-height: 1.35;
     margin-top: 8px;
     margin-bottom: 14px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   .comments-header {
     background: #BDBDBD;
@@ -305,7 +310,7 @@
    * ============================================================ */
   footer {
     position: fixed;
-    bottom: 0;
+    bottom: -135px;
     left: 0;
     right: 0;
     background: white;
@@ -562,6 +567,7 @@
     </div>
 
     <!-- Kota & Tanggal -->
+    <div style="break-inside: avoid;">
     <div class="kota-tanggal">{{ $tempatTgl }}</div>
 
     <!-- 3. Signature — Pengirim & Penerima sejajar horizontal -->
@@ -583,6 +589,7 @@
           <span class="sig-name-line">( _________________________ )</span>
         </div>
       </div>
+    </div>
     </div>
 
   </main>
