@@ -546,12 +546,18 @@
     <table class="bottom-table">
       <tr>
         <td class="bottom-left">
+          @php
+              $rekeningDefault = "Bank Mandiri Cab. Sidoarjo\nA/c 141-00-3180688-8\nA/n PT. Kamil Tria Niaga";
+              $rekeningLines = array_filter(
+                  array_map('trim', explode("\n", str_replace("\r\n", "\n", $invoice->rekening ?? $rekeningDefault)))
+              );
+          @endphp
           <div class="payment-box">
-            <div>Pembayaran transfer ke :</div>
-            <div>&nbsp;</div>
-            <div>Bank Mandiri Cab. Sidoarjo</div>
-            <div>A/c 141-00-3180688-8</div>
-            <div>A/n PT. Kamil Tria Niaga</div>
+              <div>Pembayaran transfer ke :</div>
+              <div>&nbsp;</div>
+              @foreach($rekeningLines as $line)
+                  <div>{{ $line }}</div>
+              @endforeach
           </div>
         </td>
         <td class="bottom-right">

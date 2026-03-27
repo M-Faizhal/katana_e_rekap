@@ -456,14 +456,50 @@
     </table>
 
     <!-- SIGNATURE -->
-    <table style="width:100%; border-collapse:collapse; margin-top:10px; break-inside: avoid;">
-      <tr>
-        <td style="text-align:right; padding:0;">
-          <table style="border-collapse:collapse; display:inline-table;">
-            <tr>
-              <td style="text-align:center; min-width:180px; padding:0 20px;">
-                <div class="sig-dept">PURCHASING</div>
-                <div class="sig-company-name">PT. KAMIL TRIA NIAGA</div>
-                <div class="sig-space"></div>
-                <br>
-                <div class="sig-name-line">( &nbsp;&nbsp;&nbsp;&nbsp; {{ $proyek->adminPurchasing->nama ?? $suratPo->purchasing->name ?? '........................' }} &nbsp;&nbsp;&nbsp;&nbsp; )</di
+<table style="width:100%; border-collapse:collapse; margin-top:20px; break-inside: avoid;">
+  <tr>
+    <td style="width:100%; text-align:right; vertical-align:top;">
+
+      <table style="border-collapse:collapse; display:inline-table;">
+        <tr>
+          <td style="text-align:center; min-width:200px; padding:0 20px;">
+
+            <!-- DEPT -->
+            <div style="font-weight:bold; font-size:12px;">
+              PURCHASING
+            </div>
+
+            <!-- COMPANY -->
+            <div style="font-weight:bold; font-size:12px;">
+              PT. KAMIL TRIA NIAGA
+            </div>
+
+            <!-- SIGNATURE IMAGE -->
+            @if(!empty($suratPo->ttd_purchasing))
+            <div style="margin-top:10px;">
+              <img src="{{ public_path('storage/'.$suratPo->ttd_purchasing) }}"
+                   style="height:80px;">
+            </div>
+            @else
+            <div style="height:80px;"></div>
+            @endif
+
+            <!-- NAME LINE -->
+            <div style="margin-top:5px;">
+              ( ........................................ )
+            </div>
+
+            <!-- NAME -->
+            <div style="font-weight:bold;">
+              {{ $proyek->adminPurchasing->nama ?? $suratPo->purchasing->name ?? 'ARISTO R.' }}
+            </div>
+
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
+
+  </main>

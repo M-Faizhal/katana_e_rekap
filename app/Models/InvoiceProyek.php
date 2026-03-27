@@ -22,6 +22,7 @@ class InvoiceProyek extends Model
         'bill_to_alamat',
         'ship_to_instansi',
         'ship_to_alamat',
+        'rekening',
     ];
 
     protected $casts = [

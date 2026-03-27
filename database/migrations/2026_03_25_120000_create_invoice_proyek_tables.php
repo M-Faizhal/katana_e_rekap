@@ -22,6 +22,7 @@ return new class extends Migration
 
             $table->string('ship_to_instansi')->nullable();
             $table->text('ship_to_alamat')->nullable();
+            $table->text('rekening')->nullable();
 
             $table->timestamps();
 

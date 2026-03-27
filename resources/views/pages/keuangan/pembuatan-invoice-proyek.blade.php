@@ -98,6 +98,18 @@
                         @enderror
                     </div>
                 </div>
+                <div class="border rounded-xl p-4">
+                    <div class="text-sm font-semibold text-gray-900 mb-3">Informasi Pembayaran</div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Rekening Transfer</label>
+                        <textarea name="rekening" rows="3"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            >{{ old('rekening', $invoice->rekening ?? "Bank Mandiri Cab. Sidoarjo\nA/c 141-00-3180688-8\nA/n PT. Kamil Tria Niaga") }}</textarea>
+                        @error('rekening')
+                            <div class="text-xs text-red-600 mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
 
                 <div class="border rounded-xl p-4">
                     <div class="text-sm font-semibold text-gray-900 mb-3">Ship To</div>

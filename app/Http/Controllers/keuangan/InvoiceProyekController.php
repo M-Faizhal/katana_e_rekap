@@ -63,6 +63,7 @@ class InvoiceProyekController extends Controller
             'bill_to_alamat' => 'nullable|string',
             'ship_to_instansi' => 'nullable|string|max:255',
             'ship_to_alamat' => 'nullable|string',
+            'rekening' => 'nullable|string',
             'items' => 'array',
             'items.*.id_penawaran_detail' => 'nullable|exists:penawaran_detail,id_detail',
             'items.*.keterangan_html' => 'nullable|string',
@@ -88,6 +89,8 @@ class InvoiceProyekController extends Controller
                     'bill_to_alamat' => $request->bill_to_alamat,
                     'ship_to_instansi' => $request->ship_to_instansi,
                     'ship_to_alamat' => $request->ship_to_alamat,
+                    'rekening' => $request->rekening,
+
                 ]
             );
 
