@@ -139,6 +139,17 @@ class PenawaranController extends Controller
             if ($suratPenawaranUploaded) {
                 $penawaran->status = 'ACC';
                 $penawaran->save();
+
+                // Notifikasi: Penawaran ACC (ke semua role)
+                try {
+                    app(\App\Services\NotificationService::class)->penawaranAcc($penawaran->fresh(['proyek']));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Notification penawaranAcc failed: ' . $e->getMessage(), [
+                        'id_penawaran' => $penawaran->id_penawaran,
+                        'id_proyek' => $penawaran->id_proyek,
+                    ]);
+                    // Jangan gagalkan proses upload/ACC hanya karena notifikasi gagal
+                }
             }
 
             DB::commit();
@@ -212,6 +223,17 @@ class PenawaranController extends Controller
             if ($suratPenawaranUploaded) {
                 $penawaran->status = 'ACC';
                 $penawaran->save();
+
+                // Notifikasi: Penawaran ACC (ke semua role)
+                try {
+                    app(\App\Services\NotificationService::class)->penawaranAcc($penawaran->fresh(['proyek']));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Notification penawaranAcc failed: ' . $e->getMessage(), [
+                        'id_penawaran' => $penawaran->id_penawaran,
+                        'id_proyek' => $penawaran->id_proyek,
+                    ]);
+                    // Jangan gagalkan proses upload/ACC hanya karena notifikasi gagal
+                }
             }
 
             DB::commit();
@@ -553,17 +575,26 @@ class PenawaranController extends Controller
 
         $get = fn (string $k, $fallback = null) => $request->query($k, $fallback);
 
+        $optionalCarbonFormat = function ($value, string $format = 'Y-m-d') {
+            if (empty($value)) return null;
+            try {
+                return \Carbon\Carbon::parse($value)->format($format);
+            } catch (\Throwable $e) {
+                return (string) $value;
+            }
+        };
+
         $nomor        = $get('nomor_surat',             $suratDb?->nomor_surat);
         $tempat       = $get('tempat_surat',            $suratDb?->tempat_surat);
-        $tanggal      = $get('tanggal_surat',           $suratDb?->tanggal_surat?->format('Y-m-d'));
+        $tanggal      = $get('tanggal_surat',           $optionalCarbonFormat($suratDb?->tanggal_surat));
         $kepada       = $get('kepada',                  $suratDb?->kepada);
         $alamatKlien  = $get('alamat_klien',            $suratDb?->alamat_klien);
         $wilayahKlien = $get('wilayah_klien',           $suratDb?->wilayah_klien);
         $perihal      = $get('perihal',                 $suratDb?->perihal);
         $lampiran     = $get('lampiran',                $suratDb?->lampiran);
         $jangka       = $get('jangka_waktu_pengerjaan', $suratDb?->jangka_waktu_pengerjaan);
-        $sejak        = $get('berlaku_sejak',           $suratDb?->berlaku_sejak?->format('Y-m-d'));
-        $sampai       = $get('berlaku_sampai',          $suratDb?->berlaku_sampai?->format('Y-m-d'));
+        $sejak        = $get('berlaku_sejak',           $optionalCarbonFormat($suratDb?->berlaku_sejak));
+        $sampai       = $get('berlaku_sampai',          $optionalCarbonFormat($suratDb?->berlaku_sampai));
 
         $tempatTanggal = null;
         if (!empty($tempat) && !empty($tanggal)) {

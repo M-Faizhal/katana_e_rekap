@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use iio\libmergepdf\Merger;
+use App\Services\NotificationService;
 
 class PengirimanController extends Controller
 {
@@ -337,6 +338,9 @@ class PengirimanController extends Controller
                 'file_surat_jalan' => $filePath,
                 'status_verifikasi' => 'Pending'
             ]);
+
+            // Notifikasi: pengiriman dibuat (ke PIC marketing proyek)
+            app(NotificationService::class)->pengirimanCreated($pengiriman->fresh(['penawaran.proyek']));
 
             // Update status proyek berdasarkan kondisi vendor
             $this->updateProjectStatusOnShipping($penawaran->proyek);

@@ -15,6 +15,7 @@ use App\Models\SuratPo;
 use App\Models\SuratPoItem;
 use Barryvdh\DomPDF\Facade\Pdf;
 use iio\libmergepdf\Merger;
+use App\Services\NotificationService;
 
 class PembayaranController extends Controller
 {
@@ -520,6 +521,9 @@ class PembayaranController extends Controller
                 'status_verifikasi' => 'Pending',
                 'ppn_data'          => $ppnData,
             ]);
+
+            // Notifikasi: pembayaran diajukan (keuangan)
+            app(NotificationService::class)->pembayaranSubmitted($pembayaran->fresh(['penawaran.proyek']));
 
             $allVendorsData = $proyek->penawaranAktif->penawaranDetail
                 ->groupBy('barang.id_vendor')

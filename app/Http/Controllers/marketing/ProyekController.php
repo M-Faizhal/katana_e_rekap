@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Exception;
+use App\Services\NotificationService;
 
 class ProyekController extends Controller
 {
@@ -506,9 +507,15 @@ class ProyekController extends Controller
             }
 
             // Update status
+            $oldStatus = $proyek->status;
             $proyek->update([
                 'status' => $request->status
             ]);
+
+            // Notifikasi: status proyek berubah (ke PIC)
+            if ($oldStatus !== $request->status) {
+                app(NotificationService::class)->proyekStatusChanged($proyek->fresh(), (string) $oldStatus, (string) $request->status);
+            }
 
             Log::info('Status proyek berhasil diubah', [
                 'proyek_id' => $id,

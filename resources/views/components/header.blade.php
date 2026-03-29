@@ -35,6 +35,59 @@
 
             <!-- Notifications -->
             <div class="relative">
+                @auth
+                    @php
+                        $unreadCount = auth()->user()->unreadNotifications()->count();
+                        $recentNotifications = auth()->user()->notifications()->latest()->limit(5)->get();
+                    @endphp
+
+                    <button type="button"
+                        class="relative p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                        onclick="toggleNotifMenu()"
+                        aria-label="Notifications">
+                        <i class="fas fa-bell text-lg"></i>
+                        @if($unreadCount > 0)
+                            <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                                {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                            </span>
+                        @endif
+                    </button>
+
+                    <div id="notifMenu" class="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-lg border border-gray-100 hidden z-50 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                            <p class="font-semibold text-gray-800">Notifikasi</p>
+                            <a href="{{ route('notifications.index') }}" class="text-sm text-red-600 hover:text-red-700">Lihat Semua</a>
+                        </div>
+
+                        <div class="max-h-96 overflow-auto">
+                            @forelse($recentNotifications as $n)
+                                <a href="{{ data_get($n->data, 'url', route('notifications.index')) }}"
+                                   class="block px-4 py-3 border-b border-gray-50 hover:bg-gray-50 {{ $n->read_at ? '' : 'bg-red-50/30' }}">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-semibold text-gray-800 truncate">{{ data_get($n->data, 'title', 'Notifikasi') }}</p>
+                                            <p class="text-xs text-gray-600 mt-1 break-words">{{ data_get($n->data, 'message', '-') }}</p>
+                                            <p class="text-[11px] text-gray-400 mt-1">{{ $n->created_at?->diffForHumans() }}</p>
+                                        </div>
+                                        @if(!$n->read_at)
+                                            <span class="mt-1 w-2 h-2 rounded-full bg-red-600 shrink-0"></span>
+                                        @endif
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="px-4 py-6 text-sm text-gray-500 text-center">Tidak ada notifikasi.</div>
+                            @endforelse
+                        </div>
+
+                        <div class="px-4 py-3 bg-gray-50 flex items-center justify-between">
+                            <form method="POST" action="{{ route('notifications.readAll') }}">
+                                @csrf
+                                <button type="submit" class="text-sm text-gray-700 hover:text-gray-900">Tandai semua dibaca</button>
+                            </form>
+                            
+                        </div>
+                    </div>
+                @endauth
             </div>
 
             <!-- User Menu -->
@@ -111,6 +164,12 @@ function closeMobileMenu() {
     }
 }
 
+// Notification Menu Toggle
+function toggleNotifMenu() {
+    const el = document.getElementById('notifMenu');
+    if (el) el.classList.toggle('hidden');
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle button
@@ -132,6 +191,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!userMenuContainer && userMenu && !userMenu.classList.contains('hidden')) {
             userMenu.classList.add('hidden');
+        }
+    });
+
+    // Close notif menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const notifMenu = document.getElementById('notifMenu');
+        const insideNotif = event.target.closest('#notifMenu') || event.target.closest('button[aria-label="Notifications"]');
+        if (!insideNotif && notifMenu && !notifMenu.classList.contains('hidden')) {
+            notifMenu.classList.add('hidden');
         }
     });
 

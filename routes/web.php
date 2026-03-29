@@ -27,6 +27,7 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\keuangan\InvoiceProyekController;
+use App\Http\Controllers\NotificationController;
 
 // Health check endpoint for Docker
 Route::get('/health', function () {
@@ -344,4 +345,9 @@ Route::middleware('auth')->group(function () {
         ->name('keuangan.pembuatan-invoice-proyek.preview');
     Route::get('/pembuatan-invoice/{proyekId}/download', [InvoiceProyekController::class, 'download'])
         ->name('keuangan.pembuatan-invoice-proyek.download');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
