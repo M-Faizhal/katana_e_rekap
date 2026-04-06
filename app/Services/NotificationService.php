@@ -15,6 +15,9 @@ use App\Notifications\PengajuanKostSubmittedNotification;
 use App\Notifications\PengirimanCreatedNotification;
 use App\Notifications\PenawaranAccNotification;
 use App\Notifications\ProyekStatusChangedNotification;
+use App\Notifications\ProyekBelumBayarBaruNotification;
+use App\Notifications\ProyekSiapVerifikasiBaruNotification;
+use App\Notifications\ProyekVerifiedNotification;
 use Illuminate\Support\Collection;
 
 class NotificationService
@@ -138,6 +141,54 @@ class NotificationService
         $user = User::find($marketingId);
         if ($user) {
             $user->notify(new PengirimanCreatedNotification($pengiriman));
+        }
+    }
+
+    /**
+     * (7) Proyek masuk daftar "Belum Bayar" -> admin keuangan + superadmin.
+     */
+    public function proyekBelumBayarBaru(Proyek $proyek): void
+    {
+        /** @var \Illuminate\Support\Collection<int, \App\Models\User> $users */
+        $users = $this->usersByRoles(['admin_keuangan', 'superadmin']);
+        foreach ($users as $user) {
+            /** @var \App\Models\User $user */
+            $user->notify(new ProyekBelumBayarBaruNotification($proyek));
+        }
+    }
+
+    /**
+     * (8) Proyek masuk daftar "Verifikasi Proyek" -> superadmin + manager marketing.
+     */
+    public function proyekSiapVerifikasiBaru(Proyek $proyek): void
+    {
+        /** @var \Illuminate\Support\Collection<int, \App\Models\User> $superadmins */
+        $superadmins = $this->usersByRoles(['superadmin']);
+
+        /** @var \Illuminate\Support\Collection<int, \App\Models\User> $managers */
+        $managers = User::query()
+            ->where('role', 'admin_marketing')
+            ->where('jabatan', 'manager_marketing')
+            ->get();
+
+        $users = $superadmins->merge($managers)->unique('id_user')->values();
+
+        foreach ($users as $user) {
+            /** @var \App\Models\User $user */
+            $user->notify(new ProyekSiapVerifikasiBaruNotification($proyek));
+        }
+    }
+
+    /**
+     * (9) Proyek diverifikasi (status Selesai/Gagal) -> semua user.
+     */
+    public function proyekVerified(Proyek $proyek, string $newStatus): void
+    {
+        /** @var \Illuminate\Support\Collection<int, \App\Models\User> $users */
+        $users = User::query()->get();
+        foreach ($users as $user) {
+            /** @var \App\Models\User $user */
+            $user->notify(new ProyekVerifiedNotification($proyek, $newStatus));
         }
     }
 }

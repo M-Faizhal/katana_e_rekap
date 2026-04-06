@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use App\Services\NotificationService;
 use App\Models\Proyek;
-use App\Models\Pengiriman;
-use App\Models\PenagihanDinas;
-use App\Models\Pembayaran;
 use Carbon\Carbon;
 
 class VerifikasiProyekController extends Controller
@@ -51,6 +51,37 @@ class VerifikasiProyekController extends Controller
         ->whereNotIn('status', ['Selesai', 'Gagal'])
         ->orderBy('updated_at', 'desc')
         ->paginate(10);
+
+        // Notifikasi jika ada proyek baru yang masuk daftar verifikasi proyek
+        // (Snapshot disimpan di cache, agar tidak mengirim berulang-ulang)
+        try {
+            $cacheKey = 'notif:verifikasiProyek:snapshot:v1';
+
+            $prevIds = Cache::get($cacheKey, []);
+            if (!is_array($prevIds)) {
+                $prevIds = [];
+            }
+
+            // Ambil semua id proyek dari paginator halaman ini (anggap cukup karena order desc).
+            $currentIds = $proyekVerifikasi->getCollection()
+                ->pluck('id_proyek')
+                ->filter()
+                ->values()
+                ->all();
+
+            $newIds = array_values(array_diff($currentIds, $prevIds));
+
+            if (!empty($newIds)) {
+                $notifService = app(NotificationService::class);
+                foreach ($proyekVerifikasi->getCollection()->whereIn('id_proyek', $newIds) as $proyek) {
+                    $notifService->proyekSiapVerifikasiBaru($proyek);
+                }
+            }
+
+            Cache::put($cacheKey, $currentIds, now()->addDays(30));
+        } catch (\Throwable $e) {
+            Log::warning('Gagal membuat notifikasi verifikasi proyek baru: ' . $e->getMessage());
+        }
 
         return view('pages.superadmin.verifikasi-proyek', compact('proyekVerifikasi'));
     }
@@ -163,6 +194,13 @@ class VerifikasiProyekController extends Controller
             ]);
 
             DB::commit();
+
+            // Notifikasi: proyek berhasil diverifikasi (status Selesai/Gagal) -> semua user
+            try {
+                app(NotificationService::class)->proyekVerified($proyek->fresh(), $statusProyek);
+            } catch (\Throwable $e) {
+                Log::warning('Gagal mengirim notifikasi verifikasi proyek: ' . $e->getMessage());
+            }
 
             $message = $request->action === 'selesai' 
                 ? 'Proyek berhasil diverifikasi sebagai SELESAI.' 

@@ -10,7 +10,10 @@ use App\Models\Proyek;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use App\Services\NotificationService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PenagihanDinasController extends Controller
 {
@@ -121,6 +124,38 @@ class PenagihanDinasController extends Controller
             ]
         );
         $proyekBelumBayar->appends(request()->query());
+
+        // Notifikasi jika ada proyek baru yang masuk daftar $proyekBelumBayar
+        // (Snapshot disimpan di cache, agar tidak mengirim berulang-ulang)
+        try {
+            $cacheKey = 'notif:proyekBelumBayar:snapshot:v1';
+
+            $prevIds = Cache::get($cacheKey, []);
+            if (!is_array($prevIds)) {
+                $prevIds = [];
+            }
+
+            $currentIds = $proyekBelumBayarCollection
+                ->pluck('id_proyek')
+                ->filter()
+                ->values()
+                ->all();
+
+            $newIds = array_values(array_diff($currentIds, $prevIds));
+
+            if (!empty($newIds)) {
+                $notifService = app(NotificationService::class);
+
+                foreach ($proyekBelumBayarCollection->whereIn('id_proyek', $newIds) as $proyek) {
+                    $notifService->proyekBelumBayarBaru($proyek);
+                }
+            }
+
+            // simpan snapshot terbaru (TTL 30 hari)
+            Cache::put($cacheKey, $currentIds, now()->addDays(30));
+        } catch (\Throwable $e) {
+            Log::warning('Gagal membuat notifikasi proyekBelumBayar baru: ' . $e->getMessage());
+        }
 
         /**
          * Pembuatan Invoice tab: semua proyek yang punya penawaran ACC

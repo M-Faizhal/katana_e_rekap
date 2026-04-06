@@ -70,6 +70,24 @@ Daftar notification class yang dibuat:
    - Trigger: purchasing membuat pengiriman
    - Penerima: PIC marketing proyek
 
+8. `ProyekBelumBayarBaruNotification.php`
+   - Event: `proyek_belum_bayar_baru`
+   - Trigger: proyek baru masuk daftar belum bayar
+   - Penerima: `admin_keuangan`, `superadmin`
+   - Message: `Ada Penagihan Baru untuk Proyek {kode_proyek} untuk klien {instansi}- {kab_kota}`
+
+9. `ProyekSiapVerifikasiBaruNotification.php`
+   - Event: `proyek_siapp_verifikasi_baru`
+   - Trigger: proyek baru siap diverifikasi
+   - Penerima: `superadmin`, `admin_marketing` (dengan `jabatan=manager_marketing`)
+   - Message: `Ada Proyek Baru yang siap diverifikasi: {kode_proyek} untuk klien {instansi}- {kab_kota}`
+
+10. `ProyekVerifiedNotification.php`
+    - Event: `proyek_verified`
+    - Trigger: proyek diverifikasi menjadi `Selesai` atau `Gagal`
+    - Penerima: semua user
+    - Message: `Proyek {kode_proyek} ({instansi}- {kab_kota}) telah diverifikasi menjadi status {status}.`
+
 Semua notification memakai channel:
 - `via() => ['database']`
 
@@ -90,6 +108,9 @@ Method yang tersedia:
 - `pembayaranSubmitted(Pembayaran $pembayaran)`
 - `pembayaranApproved(Pembayaran $pembayaran)`
 - `pengirimanCreated(Pengiriman $pengiriman)`
+- `proyekBelumBayarBaru(Proyek $proyek)`
+- `proyekSiapVerifikasiBaru(Proyek $proyek)`
+- `proyekVerified(Proyek $proyek, string $status)`
 
 ---
 
@@ -156,6 +177,55 @@ Perubahan:
 - Setelah pengiriman dibuat, sistem mengirim notifikasi ke PIC marketing proyek:
   - `NotificationService::pengirimanCreated(...)`
 
+### G. Penagihan Dinas (Belum Bayar)
+File:
+- `app/Http/Controllers/keuangan/PenagihanDinasController.php`
+
+Perubahan:
+- Saat ada **proyek baru** yang masuk daftar **Belum Bayar** (`$proyekBelumBayarCollection`), sistem mengirim notifikasi ke:
+  - `admin_keuangan`, `superadmin`
+
+Notification:
+- `App\Notifications\ProyekBelumBayarBaruNotification`
+  - Event: `proyek_belum_bayar_baru`
+  - Message: `Ada Penagihan Baru untuk Proyek {kode_proyek} untuk klien {instansi}- {kab_kota}`
+
+Catatan:
+- Deteksi “data baru” memakai **snapshot cache** agar tidak mengirim berulang saat halaman dibuka.
+
+### H. Verifikasi Proyek (Siap Diverifikasi)
+File:
+- `app/Http/Controllers/superadmin/VerifikasiProyekController.php`
+
+Perubahan:
+- Saat ada **proyek baru** yang muncul di daftar **Verifikasi Proyek** (`$proyekVerifikasi`), sistem mengirim notifikasi ke:
+  - `superadmin`
+  - `admin_marketing` dengan `jabatan=manager_marketing`
+
+Notification:
+- `App\Notifications\ProyekSiapVerifikasiBaruNotification`
+  - Event: `proyek_siapp_verifikasi_baru`
+  - Message: `Ada Proyek Baru yang siap diverifikasi: {kode_proyek} untuk klien {instansi}- {kab_kota}`
+
+Catatan:
+- Deteksi “data baru” memakai **snapshot cache** agar tidak mengirim berulang saat halaman dibuka.
+
+### I. Verifikasi Proyek (Hasil Verifikasi: Selesai / Gagal)
+File:
+- `app/Http/Controllers/superadmin/VerifikasiProyekController.php`
+
+Perubahan:
+- Saat proyek divalidasi dan status diubah menjadi `Selesai` atau `Gagal`, sistem mengirim notifikasi ke:
+  - semua user
+
+Notification:
+- `App\Notifications\ProyekVerifiedNotification`
+  - Event: `proyek_verified`
+  - Message: `Proyek {kode_proyek} ({instansi}- {kab_kota}) telah diverifikasi menjadi status {status}.`
+
+Catatan:
+- Pemanggilan notifikasi dibungkus `try/catch` agar proses verifikasi tidak gagal jika notifikasi bermasalah.
+
 ---
 
 ## 4) UI / Frontend
@@ -218,6 +288,15 @@ Perubahan konten message yang terakhir disesuaikan:
 - `PengajuanKostSubmittedNotification`
   - Message menyebut kode pengajuan + "Oleh: {nama PIC Marketing}".
 
+- `ProyekBelumBayarBaruNotification`
+  - Message: `Ada Penagihan Baru untuk Proyek {kode_proyek} untuk klien {instansi}- {kab_kota}`
+
+- `ProyekSiapVerifikasiBaruNotification`
+  - Message: `Ada Proyek Baru yang siap diverifikasi: {kode_proyek} untuk klien {instansi}- {kab_kota}`
+
+- `ProyekVerifiedNotification`
+  - Message: `Proyek {kode_proyek} ({instansi}- {kab_kota}) telah diverifikasi menjadi status {status}.`
+
 ---
 
 ## 8) Catatan Testing
@@ -239,6 +318,9 @@ Perubahan konten message yang terakhir disesuaikan:
 5) Purchasing submit pembayaran -> notifikasi `pembayaran_submitted` ke keuangan.
 6) Keuangan approve -> notifikasi `pembayaran_approved` ke PIC purchasing.
 7) Purchasing buat pengiriman -> notifikasi `pengiriman_created` ke PIC marketing.
+8) Proyek baru masuk daftar belum bayar -> notifikasi `proyek_belum_bayar_baru` ke `admin_keuangan` dan `superadmin`.
+9) Proyek baru siap diverifikasi -> notifikasi `proyek_siapp_verifikasi_baru` ke `superadmin` dan `admin_marketing` (manager).
+10) Verifikasi proyek jadi Selesai/Gagal -> notifikasi `proyek_verified` ke semua user.
 
 ---
 
