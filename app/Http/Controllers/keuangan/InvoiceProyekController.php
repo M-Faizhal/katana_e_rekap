@@ -134,55 +134,45 @@ class InvoiceProyekController extends Controller
     }
 
     private function buildPdfData($proyekId): array
-{
-    $user = Auth::user();
-    if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
-        abort(403, 'Akses ditolak.');
-    }
-
-    $proyek = Proyek::with([
-        'semuaPenawaran' => function ($q) {
-            $q->where('status', 'ACC')->latest('id_penawaran');
-        },
-        'semuaPenawaran.penawaranDetail'
-    ])->where('id_proyek', $proyekId)->firstOrFail();
-
-    $penawaran = $proyek->semuaPenawaran->first();
-    if (!$penawaran) {
-        abort(404, 'Penawaran ACC tidak ditemukan.');
-    }
-
-    $invoice = InvoiceProyek::with(['items', 'items.penawaranDetail'])
-        ->where('id_proyek', $proyek->id_proyek)
-        ->where('id_penawaran', $penawaran->id_penawaran)
-        ->firstOrFail();
-
-    $itemByDetail = $invoice->items->keyBy('id_penawaran_detail');
-
-    $details = $penawaran->penawaranDetail->map(function ($d) use ($itemByDetail) {
-        $keteranganHtml = $itemByDetail[$d->id_detail]->keterangan_html ?? null;
-
-        // Bersihkan semua <img> webp yang tidak didukung Dompdf di server
-        if ($keteranganHtml) {
-            // Hapus tag <img> dengan src webp
-            $keteranganHtml = preg_replace('/<img[^>]+src=["\'][^"\']*\.webp[^"\']*["\'][^>]*\/?>/i', '', $keteranganHtml);
-            // Hapus juga img webp yang srcnya pakai URL encode
-            $keteranganHtml = preg_replace('/<img[^>]+src=["\'][^"\']*webp[^"\']*["\'][^>]*\/?>/i', '', $keteranganHtml);
+    {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
+            abort(403, 'Akses ditolak.');
         }
 
-        return [
-            'id_detail'       => $d->id_detail,
-            'nama_barang'     => $d->nama_barang,
-            'qty'             => $d->qty,
-            'satuan'          => $d->satuan,
-            'harga_satuan'    => $d->harga_satuan,
-            'subtotal'        => $d->subtotal,
-            'keterangan_html' => $keteranganHtml,
-        ];
-    });
+        $proyek = Proyek::with([
+            'semuaPenawaran' => function ($q) {
+                $q->where('status', 'ACC')->latest('id_penawaran');
+            },
+            'semuaPenawaran.penawaranDetail'
+        ])->where('id_proyek', $proyekId)->firstOrFail();
 
-    $total = (float)$penawaran->penawaranDetail->sum('subtotal');
+        $penawaran = $proyek->semuaPenawaran->first();
+        if (!$penawaran) {
+            abort(404, 'Penawaran ACC tidak ditemukan.');
+        }
 
-    return compact('proyek', 'penawaran', 'invoice', 'details', 'total');
+        $invoice = InvoiceProyek::with(['items', 'items.penawaranDetail'])
+            ->where('id_proyek', $proyek->id_proyek)
+            ->where('id_penawaran', $penawaran->id_penawaran)
+            ->firstOrFail();
+
+        $itemByDetail = $invoice->items->keyBy('id_penawaran_detail');
+
+        $details = $penawaran->penawaranDetail->map(function ($d) use ($itemByDetail) {
+            return [
+                'id_detail' => $d->id_detail,
+                'nama_barang' => $d->nama_barang,
+                'qty' => $d->qty,
+                'satuan' => $d->satuan,
+                'harga_satuan' => $d->harga_satuan,
+                'subtotal' => $d->subtotal,
+                'keterangan_html' => $itemByDetail[$d->id_detail]->keterangan_html ?? null,
+            ];
+        });
+
+        $total = (float)$penawaran->penawaranDetail->sum('subtotal');
+
+        return compact('proyek', 'penawaran', 'invoice', 'details', 'total');
     }
 }
