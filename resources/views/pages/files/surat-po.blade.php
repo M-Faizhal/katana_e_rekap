@@ -379,14 +379,7 @@
             <td class="middle"><strong>{{ $item->barang->nama_barang ?? '-' }}</strong></td>
             <td>
               @if(!empty($item->spec_html))
-                @php
-                  $specSafe = (string) $item->spec_html;
-                  $specSafe = preg_replace('~<img\b[^>]*\bsrc\s*=\s*(["\"])\s*[^"\']*?\.webp(?:\?[^"\']*)?\1[^>]*>~i', '', $specSafe);
-                  $specSafe = preg_replace('~\ssrcset\s*=\s*(["\"]).*?webp.*?\1~i', '', $specSafe);
-                  $specSafe = preg_replace('~url\(([^)]*?\.webp[^)]*)\)~i', 'url()', $specSafe);
-                  $specSafe = preg_replace('~background(?:-image)?\s*:\s*[^;]*?\.webp[^;]*;?~i', '', $specSafe);
-                @endphp
-                {!! $specSafe !!}
+                {!! $item->spec_html !!}
               @else
                 <span style="color:#666;">-</span>
               @endif
@@ -408,14 +401,7 @@
             <div class="comments-header">COMMENTS Or SPECIAL INTRUCTIONS</div>
             <div class="comments-body">
               @if(!empty($suratPo->comments_html))
-                @php
-                  $commentsSafe = (string) $suratPo->comments_html;
-                  $commentsSafe = preg_replace('~<img\b[^>]*\bsrc\s*=\s*(["\"])\s*[^"\']*?\.webp(?:\?[^"\']*)?\1[^>]*>~i', '', $commentsSafe);
-                  $commentsSafe = preg_replace('~\ssrcset\s*=\s*(["\"]).*?webp.*?\1~i', '', $commentsSafe);
-                  $commentsSafe = preg_replace('~url\(([^)]*?\.webp[^)]*)\)~i', 'url()', $commentsSafe);
-                  $commentsSafe = preg_replace('~background(?:-image)?\s*:\s*[^;]*?\.webp[^;]*;?~i', '', $commentsSafe);
-                @endphp
-                {!! $commentsSafe !!}
+                {!! $suratPo->comments_html !!}
               @else
                 <div style="color:#666;">-</div>
               @endif
@@ -517,5 +503,3 @@
 </table>
 
   </main>
-</body>
-</html>

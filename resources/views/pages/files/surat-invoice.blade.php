@@ -513,15 +513,7 @@
             <td>
               <div class="item-name">{{ $d['nama_barang'] ?? '-' }}</div>
               @if(!empty($keteranganHtml))
-                @php
-                  // Sanitasi ringan di Blade: cegah Dompdf crash jika HTML mengandung WEBP
-                  $keteranganSafe = (string) $keteranganHtml;
-                  $keteranganSafe = preg_replace('~<img\b[^>]*\bsrc\s*=\s*(["\"])\s*[^"\']*?\.webp(?:\?[^"\']*)?\1[^>]*>~i', '', $keteranganSafe);
-                  $keteranganSafe = preg_replace('~\ssrcset\s*=\s*(["\"]).*?webp.*?\1~i', '', $keteranganSafe);
-                  $keteranganSafe = preg_replace('~url\(([^)]*?\.webp[^)]*)\)~i', 'url()', $keteranganSafe);
-                  $keteranganSafe = preg_replace('~background(?:-image)?\s*:\s*[^;]*?\.webp[^;]*;?~i', '', $keteranganSafe);
-                @endphp
-                <div class="item-desc">{!! $keteranganSafe !!}</div>
+                <div class="item-desc">{!! $keteranganHtml !!}</div>
               @endif
             </td>
             <td class="center">{{ $d['qty'] ?? '-' }}</td>
