@@ -23,7 +23,7 @@
   }
 
   /* ============================================================
-   * CORNER DECORATIONS — fixed, tampil di semua halaman
+   * CORNER DECORATIONS
    * ============================================================ */
   .corner-tl {
     position: fixed;
@@ -48,7 +48,7 @@
   }
 
   /* ============================================================
-   * HEADER — fixed (TIDAK DIUBAH)
+   * HEADER
    * ============================================================ */
   header {
     position: fixed;
@@ -93,7 +93,7 @@
   }
 
   /* ============================================================
-   * 1. DO HEADER ROW — sejajar horizontal: company info & DO title
+   * 1. DO HEADER ROW
    * ============================================================ */
   .do-header-row {
     display: table;
@@ -155,7 +155,7 @@
   }
 
   /* ============================================================
-   * 2. SHIP FROM / SHIP TO — sejajar horizontal, tanpa border luar
+   * 2. SHIP FROM / SHIP TO
    * ============================================================ */
   .address-row {
     display: table;
@@ -167,12 +167,12 @@
     overflow-wrap: break-word;
   }
   .address-box {
-  display: table-cell;
-  width: 50%;
-  max-width: 0;  /* ← tambah ini */
-  border: none;
-  vertical-align: top;
-}
+    display: table-cell;
+    width: 50%;
+    max-width: 0;
+    border: none;
+    vertical-align: top;
+  }
   .box-header {
     background: #BDBDBD;
     font-weight: bold;
@@ -181,8 +181,16 @@
     border: none;
     display: block;
   }
-  .box-body { padding: 8px 10px; font-size: 10pt; line-height: 1.6; min-height: 80px; border: none; display: block; word-break: break-word; overflow-wrap: break-word; }
-
+  .box-body {
+    padding: 8px 10px;
+    font-size: 10pt;
+    line-height: 1.6;
+    min-height: 80px;
+    border: none;
+    display: block;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
   .box-body .party-name {
     font-weight: bold;
     text-decoration: underline;
@@ -214,8 +222,15 @@
     font-weight: bold;
     font-size: 9.5pt;
   }
-  .do-table td { padding: 1px 6px; border: 1px solid #000; vertical-align: middle; font-size: 9.5pt; line-height: 1.2; word-break: break-word; overflow-wrap: break-word; }
-
+  .do-table td {
+    padding: 1px 6px;
+    border: 1px solid #000;
+    vertical-align: middle;
+    font-size: 9.5pt;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
   .do-table td.center { text-align: center; }
   .do-table tr:nth-child(even) td { background: transparent; }
 
@@ -267,7 +282,7 @@
   }
 
   /* ============================================================
-   * 3. SIGNATURE ROW — Pengirim & Penerima sejajar horizontal
+   * 3. SIGNATURE ROW
    * ============================================================ */
   .signature-row {
     display: table;
@@ -306,7 +321,7 @@
   }
 
   /* ============================================================
-   * FOOTER — fixed (TIDAK DIUBAH)
+   * FOOTER
    * ============================================================ */
   footer {
     position: fixed;
@@ -316,7 +331,7 @@
     background: white;
     color: #000;
     padding: 6px 30px 14px 100px;
-    font-size: 10pt;
+    font-size: 9pt;
     z-index: 10;
     box-sizing: border-box;
   }
@@ -333,6 +348,7 @@
     float: left;
     width: 32px;
     height: 32px;
+    line-height: 30px;
     text-align: center;
     border: 1.5px solid #c0392b;
     border-radius: 50%;
@@ -348,13 +364,13 @@
   }
   .footer-label {
     color: #000;
-    font-size: 10pt;
+    font-size: 9pt;
     margin-bottom: 1px;
   }
   .footer-value {
     color: #c0392b;
     line-height: 1.3;
-    font-size: 10pt;
+    font-size: 9pt;
   }
 
   @media print {
@@ -413,7 +429,7 @@
     <img class="corner-img" src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/kiri-bawah.png'))) }}" alt="">
   </div>
 
-  <!-- Header FIXED — tidak diubah -->
+  <!-- Header FIXED -->
   <header>
     <table class="header-table">
       <tr>
@@ -429,22 +445,28 @@
     </table>
   </header>
 
-  <!-- Footer FIXED — tidak diubah -->
+  <!-- Footer FIXED -->
   <footer>
     <table class="footer-table">
       <tr>
+        <!-- Address Head Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Head Office</div>
               <div class="footer-value">Magersari Permai Blok AW-23 RT. 024 RW. 007,<br>Sidoarjo, Jawa Timur</div>
             </div>
           </div>
         </td>
+        <!-- Email -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTIwIDRIMGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCA0bC04IDUtOC01VjZsOCA1IDgtNXYyeiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/email.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Email</div>
               <div class="footer-value">kamiltrianiaga@gmail.com</div>
@@ -453,18 +475,24 @@
         </td>
       </tr>
       <tr>
+        <!-- Address Branch Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Branch Office</div>
               <div class="footer-value">Jl. H. Abu No.57 3, RT.3/RW.7, Cipete Sel,<br>Kec. Cilandak, DKI Jakarta</div>
             </div>
           </div>
         </td>
+        <!-- Phone -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTYuNjIgMTAuNzljMS40NCAyLjgzIDMuNzYgNS4xNCA2LjU5IDYuNTlsMi4yLTIuMmMuMjctLjI3LjY3LS4zNiAxLjAyLS4yNCAxLjEyLjM3IDIuMzMuNTcgMy41Ny41Ny41NSAwIDEgLjQ1IDEgMVYyMGMwIC41NS0uNDUgMS0xIDEtOS4zOSAwLTE3LTcuNjEtMTctMTcgMC0uNTUuNDUtMSAxLTFoMy41Yy41NSAwIDEgLjQ1IDEgMSAwIDEuMjUuMiAyLjQ1LjU3IDMuNTcuMTEuMzUuMDMuNzQtLjI1IDEuMDJsLTIuMiAyLjJWMTAuNzl6Ii8+PC9zdmc+" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/telephone.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Phone</div>
               <div class="footer-value">0851-5523-2320</div>
@@ -480,7 +508,7 @@
   <!-- ============================================================ -->
   <main class="content">
 
-    <!-- 1. DO Header: Company Info (kiri) sejajar horizontal dengan DO Title (kanan) -->
+    <!-- 1. DO Header -->
     <div class="do-header-row">
       <div class="do-company-block">
         <div class="company-title">PT. KAMIL TRIA NIAGA</div>
@@ -504,7 +532,7 @@
       </div>
     </div>
 
-    <!-- 2. Ship From & Ship To — sejajar horizontal, tanpa border luar -->
+    <!-- 2. Ship From & Ship To -->
     <div class="address-row">
       <div class="address-box">
         <div class="box-header">SHIP FROM</div>
@@ -568,28 +596,28 @@
 
     <!-- Kota & Tanggal -->
     <div style="break-inside: avoid;">
-    <div class="kota-tanggal">{{ $tempatTgl }}</div>
+      <div class="kota-tanggal">{{ $tempatTgl }}</div>
 
-    <!-- 3. Signature — Pengirim & Penerima sejajar horizontal -->
-    <div class="signature-row">
-      <div class="sig-block">
-        <div class="sig-label">Pengirim</div>
-        <div class="sig-space"></div>
-        <br>
-        <div>
-          <span class="sig-name-line">(      {{ $pengirimNama }}      )</span>
+      <!-- 3. Signature -->
+      <div class="signature-row">
+        <div class="sig-block">
+          <div class="sig-label">Pengirim</div>
+          <div class="sig-space"></div>
+          <br>
+          <div>
+            <span class="sig-name-line">(      {{ $pengirimNama }}      )</span>
+          </div>
+          <div class="sig-sub">PT. Kamil Tria Niaga</div>
         </div>
-        <div class="sig-sub">PT. Kamil Tria Niaga</div>
-      </div>
-      <div class="sig-block">
-        <div class="sig-label">Penerima</div>
-        <div class="sig-space"></div>
-        <br>
-        <div>
-          <span class="sig-name-line">( _________________________ )</span>
+        <div class="sig-block">
+          <div class="sig-label">Penerima</div>
+          <div class="sig-space"></div>
+          <br>
+          <div>
+            <span class="sig-name-line">( _________________________ )</span>
+          </div>
         </div>
       </div>
-    </div>
     </div>
 
   </main>

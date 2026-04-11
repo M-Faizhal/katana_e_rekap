@@ -20,9 +20,6 @@
     background: #fff;
   }
 
-  /* ============================================================
-   * CORNER DECORATIONS
-   * ============================================================ */
   .corner-tl {
     position: fixed; top: -130px; right: 0;
     width: 140px; height: 100px; z-index: 20;
@@ -33,9 +30,6 @@
   }
   .corner-img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* ============================================================
-   * HEADER — fixed
-   * ============================================================ */
   header {
     position: fixed; top: -130px; left: 0; right: 0;
     padding: 14px 0 14px 50px;
@@ -54,16 +48,10 @@
     letter-spacing: 1px; margin-left: 10px;
   }
 
-  /* ============================================================
-   * CONTENT
-   * ============================================================ */
   .content {
     padding: 0px 60px 0px 60px;
   }
 
-  /* ============================================================
-   * PO HEADER — table-based (dompdf safe)
-   * ============================================================ */
   .po-header-outer {
     width: 100%;
     border-collapse: collapse;
@@ -90,9 +78,6 @@
   .po-meta-table .meta-label { font-weight: bold; background: #f0f0f0; white-space: nowrap; min-width: 55px; }
   .po-meta-table .meta-value { min-width: 120px; text-align: left; }
 
-  /* ============================================================
-   * VENDOR / SHIP TO — full width, stacked, table-based
-   * ============================================================ */
   .section-box {
     width: 100%;
     border-collapse: collapse;
@@ -112,9 +97,6 @@
   }
   .box-body .vendor-name { font-weight: bold; margin-bottom: 2px; }
 
-  /* ============================================================
-   * MAIN TABLE — dompdf safe, word-wrap on spec col
-   * ============================================================ */
   .po-table {
     width: 100%;
     border-collapse: collapse;
@@ -156,9 +138,6 @@
   }
   .spec-list li { margin-bottom: 1px; }
 
-  /* ============================================================
-   * BOTTOM SECTION — table-based (dompdf safe)
-   * ============================================================ */
   .bottom-outer {
     width: 100%;
     border-collapse: collapse;
@@ -171,10 +150,9 @@
   .td-comments { width: 58%; padding-right: 8px !important; }
   .td-totals   { width: 42%; }
 
-  /* Comments */
   .comments-block { border: 1px solid #999; font-size: 9.5pt; line-height: 1.6; width: 100%; }
   .comments-header { background: #BDBDBD; font-weight: bold; padding: 4px 8px; border-bottom: 1px solid #999; font-size: 10pt; }
-  .comments-body { padding: 8px 10px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word;}
+  .comments-body { padding: 8px 10px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; }
   .comments-section-title { font-weight: bold; margin-top: 7px; margin-bottom: 2px; font-size: 10pt; }
   .comments-section-title:first-child { margin-top: 0; }
   .comments-list { list-style: disc; padding-left: 14px; margin: 0; line-height: 1.6; }
@@ -182,7 +160,6 @@
   .comments-sublist { list-style: none; padding-left: 10px; margin: 2px 0; line-height: 1.6; }
   .comments-sublist li::before { content: "- "; }
 
-  /* Totals */
   .totals-table {
     width: 100%;
     border-collapse: collapse;
@@ -199,17 +176,11 @@
   .dp-table .dp-pct   { width: 20%; text-align: center; font-weight: bold; }
   .dp-table .dp-value { text-align: right; }
 
-  /* ============================================================
-   * SIGNATURE
-   * ============================================================ */
   .sig-dept { font-size: 10pt; font-weight: bold; margin-bottom: 2px; }
-  .sig-company-name { font-size: 10pt; font-weight: bold;  letter-spacing: 0.5px; margin-bottom: 4px; }
+  .sig-company-name { font-size: 10pt; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 4px; }
   .sig-space { height: 70px; }
   .sig-name-line { border-bottom: 1px solid #333; padding-top: 3px; font-size: 10pt; font-weight: bold; }
 
-  /* ============================================================
-   * FOOTER — fixed
-   * ============================================================ */
   footer {
     position: fixed; bottom: -135px; left: 0; right: 0;
     background: white; color: #000;
@@ -220,7 +191,7 @@
   .footer-table td { width: 50%; vertical-align: top; padding-bottom: 6px; }
   .footer-icon {
     float: left; width: 32px; height: 32px;
-    text-align: center;
+    line-height: 30px; text-align: center;
     border: 1.5px solid #c0392b; border-radius: 50%; background: #fff;
   }
   .footer-icon img { width: 16px; height: 16px; margin-top: 7px; }
@@ -261,18 +232,24 @@
   <footer>
     <table class="footer-table">
       <tr>
+        <!-- Address Head Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Head Office</div>
               <div class="footer-value">Magersari Permai Blok AW-23 RT. 024 RW. 007,<br>Sidoarjo, Jawa Timur</div>
             </div>
           </div>
         </td>
+        <!-- Email -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTIwIDRIMGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCA0bC04IDUtOC01VjZsOCA1IDgtNXYyeiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/email.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Email</div>
               <div class="footer-value">kamiltrianiaga@gmail.com</div>
@@ -281,18 +258,24 @@
         </td>
       </tr>
       <tr>
+        <!-- Address Branch Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjIgMi41LTIuNSAyLjV6Ii8+PC9zdmc+" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Branch Office</div>
               <div class="footer-value">Jl. H. Abu No.57 3, RT.3/RW.7, Cipete Sel,<br>Kec. Cilandak, DKI Jakarta</div>
             </div>
           </div>
         </td>
+        <!-- Phone -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTYuNjIgMTAuNzljMS40NCAyLjgzIDMuNzYgNS4xNCA2LjU5IDYuNTlsMi4yLTIuMmMuMjctLjI3LjY3LS4zNiAxLjAyLS4yNCAxLjEyLjM3IDIuMzMuNTcgMy41Ny41Ny41NSAwIDEgLjQ1IDEgMVYyMGMwIC41NS0uNDUgMS0xIDEtOS4zOSAwLTE3LTcuNjEtMTctMTcgMC0uNTUuNDUtMSAxLTFoMy41Yy41NSAwIDEgLjQ1IDEgMSAwIDEuMjUuMiAyLjQ1LjU3IDMuNTcuMTEuMzUuMDMuNzQtLjI1IDEuMDJsLTIuMiAyLjJWMTAuNzl6Ii8+PC9zdmc+" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/telephone.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Phone</div>
               <div class="footer-value">0851-5523-2320</div>
@@ -303,12 +286,10 @@
     </table>
   </footer>
 
-  <!-- ============================================================ -->
-  <!-- CONTENT                                                       -->
-  <!-- ============================================================ -->
+  <!-- CONTENT -->
   <main class="content">
 
-    <!-- PO HEADER: company kiri | title+meta kanan (TABLE BASED) -->
+    <!-- PO HEADER -->
     <table class="po-header-outer">
       <tr>
         <td style="width:55%;">
@@ -336,11 +317,10 @@
       </tr>
     </table>
 
-    <!-- VENDOR & SHIP TO — side by side, no outer border -->
-    <table style="width:100%;  margin-bottom:12px;">
+    <!-- VENDOR & SHIP TO -->
+    <table style="width:100%; margin-bottom:12px;">
       <tr>
-        <!-- VENDOR kiri -->
-        <td style="width:50%; vertical-align:top; padding:0;  ">
+        <td style="width:50%; vertical-align:top; padding:0;">
           <div class="box-header">VENDOR</div>
           <div class="box-body">
             <div class="vendor-name">{{ $vendor->nama_vendor ?? '-' }}</div>
@@ -349,8 +329,7 @@
             @endif
           </div>
         </td>
-        <!-- SHIP TO kanan -->
-        <td style="width:50%; vertical-align:top; padding:0;  border-left:none;">
+        <td style="width:50%; vertical-align:top; padding:0; border-left:none;">
           <div class="box-header">SHIP TO</div>
           <div class="box-body">
             <div class="vendor-name">{{ $suratPo->ship_to_instansi ?? ($proyek->instansi ?? '-') }}</div>
@@ -392,10 +371,9 @@
       </tbody>
     </table>
 
-    <!-- BOTTOM SECTION (TABLE BASED — dompdf safe) -->
+    <!-- BOTTOM SECTION -->
     <table class="bottom-outer">
       <tr>
-        <!-- Comments kiri -->
         <td class="td-comments">
           <div class="comments-block">
             <div class="comments-header">COMMENTS Or SPECIAL INTRUCTIONS</div>
@@ -408,8 +386,6 @@
             </div>
           </div>
         </td>
-
-        <!-- Totals kanan -->
         <td class="td-totals">
           <table class="totals-table">
             <tr>
@@ -456,50 +432,33 @@
     </table>
 
     <!-- SIGNATURE -->
-<table style="width:100%; border-collapse:collapse; margin-top:20px; break-inside: avoid;">
-  <tr>
-    <td style="width:100%; text-align:right; vertical-align:top;">
-
-      <table style="border-collapse:collapse; display:inline-table;">
-        <tr>
-          <td style="text-align:center; min-width:200px; padding:0 20px;">
-
-            <!-- DEPT -->
-            <div style="font-weight:bold; font-size:12px;">
-              PURCHASING
-            </div>
-
-            <!-- COMPANY -->
-            <div style="font-weight:bold; font-size:12px;">
-              PT. KAMIL TRIA NIAGA
-            </div>
-
-            <!-- SIGNATURE IMAGE -->
-            @if(!empty($suratPo->ttd_purchasing))
-            <div style="margin-top:10px;">
-              <img src="{{ public_path('storage/'.$suratPo->ttd_purchasing) }}"
-                   style="height:80px;">
-            </div>
-            @else
-            <div style="height:80px;"></div>
-            @endif
-
-            <!-- NAME LINE -->
-            <div style="margin-top:5px;">
-              ( ........................................ )
-            </div>
-
-            <!-- NAME -->
-            <div style="font-weight:bold;">
-              {{ $proyek->adminPurchasing->nama ?? $suratPo->purchasing->name ?? 'ARISTO R.' }}
-            </div>
-
-          </td>
-        </tr>
-      </table>
-
-    </td>
-  </tr>
-</table>
+    <table style="width:100%; border-collapse:collapse; margin-top:20px; break-inside: avoid;">
+      <tr>
+        <td style="width:100%; text-align:right; vertical-align:top;">
+          <table style="border-collapse:collapse; display:inline-table;">
+            <tr>
+              <td style="text-align:center; min-width:200px; padding:0 20px;">
+                <div style="font-weight:bold; font-size:12px;">PURCHASING</div>
+                <div style="font-weight:bold; font-size:12px;">PT. KAMIL TRIA NIAGA</div>
+                @if(!empty($suratPo->ttd_purchasing))
+                <div style="margin-top:10px;">
+                  <img src="{{ public_path('storage/'.$suratPo->ttd_purchasing) }}" style="height:80px;">
+                </div>
+                @else
+                <div style="height:80px;"></div>
+                @endif
+                <div style="margin-top:5px;">( ........................................ )</div>
+                <div style="font-weight:bold;">
+                  {{ $proyek->adminPurchasing->nama ?? $suratPo->purchasing->name ?? 'ARISTO R.' }}
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
 
   </main>
+
+</body>
+</html>

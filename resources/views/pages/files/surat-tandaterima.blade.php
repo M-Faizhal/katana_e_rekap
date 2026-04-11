@@ -6,7 +6,6 @@
 <title>Tanda Terima - PT. Kamil Tria Niaga</title>
 <style>
 
-
   @page {
     size: A4;
     margin-top: 130px;
@@ -23,9 +22,6 @@
     background: #fff;
   }
 
-  /* ============================================================
-   * CORNER DECORATIONS — fixed, tampil di semua halaman
-   * ============================================================ */
   .corner-tl {
     position: fixed;
     top: -130px;
@@ -48,9 +44,6 @@
     object-fit: cover;
   }
 
-  /* ============================================================
-   * HEADER — fixed, tinggi HARUS konsisten dan terukur
-   * ============================================================ */
   header {
     position: fixed;
     top: -130px;
@@ -84,18 +77,12 @@
     margin-left: 10px;
   }
 
-  /* ============================================================
-   * CONTENT
-   * ============================================================ */
   .content {
     padding: 0px 60px 0px 60px;
     position: relative;
     z-index: 0;
   }
 
-  /* ============================================================
-   * TANDA TERIMA STYLES (disesuaikan agar mirip contoh)
-   * ============================================================ */
   .tt-title {
     text-align: center;
     font-size: 12pt;
@@ -134,14 +121,11 @@
   .tt-info-colon { width: 10px; }
   .tt-info-value { width: calc(100% - 95px); }
 
-  /* Table */
   .tt-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 6px;
     font-size: 10pt;
-
-    /* DomPDF multi-page */
     page-break-inside: auto;
   }
   .tt-table thead {
@@ -153,10 +137,6 @@
   .tt-table tr {
     page-break-inside: avoid;
   }
-
-  /* Hindari properti yang sering diabaikan DomPDF */
-  /* break-inside: avoid;  <-- dihilangkan */
-
   .tt-table th,
   .tt-table td {
     border: 1px solid #000;
@@ -168,13 +148,10 @@
   }
   .tt-table td.center { text-align: center; }
 
-  /* Signature Section */
   .sig-section {
     width: 100%;
     margin-top: 70px;
     font-size: 10pt;
-
-    /* jangan sampai kepotong halaman */
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -202,15 +179,12 @@
     font-weight: bold;
   }
 
-  /* ============================================================
-   * FOOTER — fixed, tampil di semua halaman
-   * ============================================================ */
   footer {
     position: fixed;
     bottom: -135px;
     left: 0;
     right: 0;
-    background: white;     
+    background: white;
     color: #000;
     padding: 6px 30px 14px 100px;
     font-size: 9pt;
@@ -230,6 +204,7 @@
     float: left;
     width: 32px;
     height: 32px;
+    line-height: 30px;
     text-align: center;
     border: 1.5px solid #c0392b;
     border-radius: 50%;
@@ -264,7 +239,7 @@
   @php
     $nomorSurat  = $surat['nomor_surat'] ?? null;
     $tempatSurat = $surat['tempat_surat'] ?? null;
-    $tanggalRaw  = $surat['tanggal_surat'] ?? null; // Y-m-d (string)
+    $tanggalRaw  = $surat['tanggal_surat'] ?? null;
 
     $tanggalSurat = '-';
     if (!empty($tanggalRaw)) {
@@ -275,13 +250,11 @@
       }
     }
 
-    $penerima = $surat['penerima'] ?? ($proyek->instansi ?? '-');
-    $wilayah = $surat['wilayah'] ?? ($proyek->kab_kota ?? null);
+    $penerima     = $surat['penerima'] ?? ($proyek->instansi ?? '-');
+    $wilayah      = $surat['wilayah'] ?? ($proyek->kab_kota ?? null);
     $pengirimNama = $surat['pengirim'] ?? '-';
 
-    // Default tempat surat mengikuti footer (Sidoarjo) jika kosong
-    $tempatTgl = trim(($tempatSurat ?: 'Sidoarjo') . ', ' . $tanggalSurat);
-
+    $tempatTgl   = trim(($tempatSurat ?: 'Sidoarjo') . ', ' . $tanggalSurat);
     $penerimaFull = trim($penerima . (empty($wilayah) ? '' : (' ' . $wilayah)));
   @endphp
 
@@ -310,21 +283,27 @@
   </header>
 
   <!-- Footer FIXED -->
- <footer>
+  <footer>
     <table class="footer-table">
       <tr>
+        <!-- Address Head Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Head Office</div>
               <div class="footer-value">Magersari Permai Blok AW-23 RT. 024 RW. 007,<br>Sidoarjo, Jawa Timur</div>
             </div>
           </div>
         </td>
+        <!-- Email -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTIwIDRIMGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCA0bC04IDUtOC01VjZsOCA1IDgtNXYyeiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/email.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Email</div>
               <div class="footer-value">kamiltrianiaga@gmail.com</div>
@@ -333,18 +312,24 @@
         </td>
       </tr>
       <tr>
+        <!-- Address Branch Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Branch Office</div>
               <div class="footer-value">Jl. H. Abu No.57 3, RT.3/RW.7, Cipete Sel,<br>Kec. Cilandak, DKI Jakarta</div>
             </div>
           </div>
         </td>
+        <!-- Phone -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTYuNjIgMTAuNzljMS40NCAyLjgzIDMuNzYgNS4xNCA2LjU5IDYuNTlsMi4yLTIuMmMuMjctLjI3LjY3LS4zNiAxLjAyLS4yNCAxLjEyLjM3IDIuMzMuNTcgMy41Ny41Ny41NSAwIDEgLjQ1IDEgMVYyMGMwIC41NS0uNDUgMS0xIDEtOS4zOSAwLTE3LTcuNjEtMTctMTcgMC0uNTUuNDUtMSAxLTFoMy41Yy41NSAwIDEgLjQ1IDEgMSAwIDEuMjUuMiAyLjQ1LjU3IDMuNTcuMTEuMzUuMDMuNzQtLjI1IDEuMDJsLTIuMiAyLjJWMTAuNzl6Ii8+PC9zdmc+" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/telephone.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Phone</div>
               <div class="footer-value">0851-5523-2320</div>
@@ -355,21 +340,13 @@
     </table>
   </footer>
 
-  <!-- ============================================================ -->
-  <!-- CONTENT                                                       -->
-  <!-- ============================================================ -->
+  <!-- CONTENT -->
   <main class="content">
 
-    <!-- Judul -->
     <div class="tt-title">TANDA TERIMA</div>
-
-    <!-- Nomor Surat -->
     <div class="tt-nomor">{{ $nomorSurat ?: '-' }}</div>
-
-    <!-- Tanggal -->
     <div class="tt-tanggal">{{ $tempatTgl }}</div>
 
-    <!-- Info Penerima -->
     <div class="tt-info-row">
       <span class="tt-info-label">Terima Oleh</span>
       <span class="tt-info-value">: {{ $penerima }} {{ $wilayah }}</span>
@@ -380,7 +357,6 @@
       <span class="tt-info-value"></span>
     </div>
 
-    <!-- Tabel Barang -->
     <table class="tt-table">
       <thead>
         <tr>
@@ -409,7 +385,6 @@
       </tbody>
     </table>
 
-    <!-- Tanda Tangan (disusun seperti contoh menggunakan table) -->
     <div class="sig-section" style="break-inside: avoid;">
       <table class="sig-table">
         <tr>

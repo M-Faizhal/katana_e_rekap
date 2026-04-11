@@ -6,7 +6,6 @@
 <title>Surat Penawaran - PT. Kamil Tria Niaga</title>
 <style>
 
-
   @page {
     size: A4;
     margin-top: 130px;
@@ -23,9 +22,6 @@
     background: #fff;
   }
 
-  /* ============================================================
-   * CORNER DECORATIONS — fixed, tampil di semua halaman
-   * ============================================================ */
   .corner-tl {
     position: fixed;
     top: -130px;
@@ -48,16 +44,11 @@
     object-fit: cover;
   }
 
-  /* ============================================================
-   * HEADER — fixed, tinggi HARUS konsisten dan terukur
-   * Pastikan tinggi totalnya ≤ margin-top @page di atas
-   * ============================================================ */
   header {
     position: fixed;
     top: -130px;
     left: 0;
     right: 0;
-
     padding: 14px 0 14px 50px;
     border-bottom: 5px solid #C62828;
     background: white;
@@ -86,34 +77,26 @@
     margin-left: 10px;
   }
 
-
   .content {
-    /* Untuk preview di browser: */
     padding: 0px 60px 0px 60px;
     position: relative;
     z-index: 0;
   }
 
-  /* ============================================================
-   * TABEL — pastikan tidak ada page-break di tengah baris
-   * ============================================================ */
   .product-table {
     width: 100%;
     border-collapse: collapse;
     margin: 8px 0;
     font-size: 10pt;
-    /* Cegah tabel terpotong sembarangan */
     page-break-inside: auto;
   }
   .product-table thead {
-    /* Header tabel diulang di setiap halaman baru */
     display: table-header-group;
   }
   .product-table tbody {
     display: table-row-group;
   }
   .product-table tr {
-    /* Cegah satu baris terpotong di tengah */
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -139,9 +122,6 @@
   }
   .product-table tr:nth-child(even) td { background: #f9f9f9; }
 
-  /* ============================================================
-   * ELEMEN LAIN
-   * ============================================================ */
   .surat-title {
     text-align: center;
     font-size: 10pt;
@@ -199,7 +179,6 @@
   }
   .bullet-list li { margin-bottom: 4px; }
 
-  /* Tanda tangan — jangan dipotong halaman */
   .signature-table {
     width: 100%;
     margin-top: 10px;
@@ -211,15 +190,12 @@
   .sig-name     { font-weight: bold; font-size: 10pt; text-decoration: underline; margin-top: 50px; }
   .sig-title    { font-size: 10pt; }
 
-  /* ============================================================
-   * FOOTER — fixed, tampil di semua halaman
-   * ============================================================ */
   footer {
     position: fixed;
     bottom: -135px;
     left: 0;
     right: 0;
-    background: white;     
+    background: white;
     color: #000;
     padding: 6px 30px 14px 100px;
     font-size: 9pt;
@@ -239,6 +215,7 @@
     float: left;
     width: 32px;
     height: 32px;
+    line-height: 30px;
     text-align: center;
     border: 1.5px solid #c0392b;
     border-radius: 50%;
@@ -263,17 +240,9 @@
     font-size: 9pt;
   }
 
-  /* ============================================================
-   * PRINT OVERRIDES
-   * Saat dicetak/@media print, padding .content diatur ulang
-   * supaya pas dengan @page margin (tidak double-padding).
-   * ============================================================ */
   @media print {
     body { background: none; padding: 0; margin: 0; }
-    .content {
-      /* @page sudah atur margin, jadi padding kiri-kanan saja */
-      padding: 20px 80px;
-    }
+    .content { padding: 20px 80px; }
   }
 </style>
 </head>
@@ -307,18 +276,24 @@
   <footer>
     <table class="footer-table">
       <tr>
+        <!-- Address Head Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Head Office</div>
               <div class="footer-value">Magersari Permai Blok AW-23 RT. 024 RW. 007,<br>Sidoarjo, Jawa Timur</div>
             </div>
           </div>
         </td>
+        <!-- Email -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTIwIDRIMGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCA0bC04IDUtOC01VjZsOCA1IDgtNXYyeiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/email.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Email</div>
               <div class="footer-value">kamiltrianiaga@gmail.com</div>
@@ -327,18 +302,24 @@
         </td>
       </tr>
       <tr>
+        <!-- Address Branch Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Branch Office</div>
               <div class="footer-value">Jl. H. Abu No.57 3, RT.3/RW.7, Cipete Sel,<br>Kec. Cilandak, DKI Jakarta</div>
             </div>
           </div>
         </td>
+        <!-- Phone -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTYuNjIgMTAuNzljMS40NCAyLjgzIDMuNzYgNS4xNCA2LjU5IDYuNTlsMi4yLTIuMmMuMjctLjI3LjY3LS4zNiAxLjAyLS4yNCAxLjEyLjM3IDIuMzMuNTcgMy41Ny41Ny41NSAwIDEgLjQ1IDEgMVYyMGMwIC41NS0uNDUgMS0xIDEtOS4zOSAwLTE3LTcuNjEtMTctMTcgMC0uNTUuNDUtMSAxLTFoMy41Yy41NSAwIDEgLjQ1IDEgMSAwIDEuMjUuMiAyLjQ1LjU3IDMuNTcuMTEuMzUuMDMuNzQtLjI1IDEuMDJsLTIuMiAyLjJWMTAuNzl6Ii8+PC9zdmc+" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/telephone.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Phone</div>
               <div class="footer-value">0851-5523-2320</div>
@@ -349,9 +330,7 @@
     </table>
   </footer>
 
-  <!-- ============================================================ -->
-  <!-- CONTENT                                                       -->
-  <!-- ============================================================ -->
+  <!-- CONTENT -->
   <main class="content">
 
     <div class="surat-title">SURAT PENAWARAN</div>
@@ -408,10 +387,6 @@
       kebutuhan. Kami lampirkan rincian penawaran:
     </p>
 
-    <!-- ============================================================ -->
-    <!-- PRODUCT TABLE                                                 -->
-    <!-- thead pakai display:table-header-group → diulang tiap halaman -->
-    <!-- ============================================================ -->
     <table class="product-table">
       <thead>
         <tr>

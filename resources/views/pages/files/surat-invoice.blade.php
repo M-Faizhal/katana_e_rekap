@@ -125,7 +125,7 @@
     font-size: 9.5pt;
   }
 
-  .inv-right-block { text-align: right; justify-content: space-between;  }
+  .inv-right-block { text-align: right; justify-content: space-between; }
   .inv-date {
     font-size: 10pt;
     font-weight: bold;
@@ -137,14 +137,13 @@
     margin-top: 70px;
   }
 
-  /* Divider line under company block */
   .inv-divider {
     border: none;
     border-top: 1px solid #aaa;
     margin-bottom: 12px;
   }
 
-  /* BILL TO / SHIP TO (use table for DomPDF stability) */
+  /* BILL TO / SHIP TO */
   .bill-ship-table { width: 100%; border-collapse: collapse; margin-top: 12px; margin-bottom: 14px; table-layout: fixed; }
   .bill-ship-table td { vertical-align: top; width: 50%; padding-right: 18px; }
   .bill-ship-table td:last-child { padding-right: 0; padding-left: 18px; }
@@ -168,73 +167,39 @@
     font-size: 10pt;
     line-height: 1.3;
   }
-  .inv-table td { padding: 6px 8px; border: 1px solid #999; vertical-align: top; font-size: 10pt;   overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; break-inside: avoid;}
-
+  .inv-table td {
+    padding: 6px 8px;
+    border: 1px solid #999;
+    vertical-align: top;
+    font-size: 10pt;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    break-inside: avoid;
+  }
   .inv-table td.center { text-align: center; vertical-align: middle; }
   .inv-table td.right { text-align: right; vertical-align: middle; }
 
-  .item-name {
-    margin-bottom: 2px;
-  }
-  .item-sub {
-    font-weight: bold;
-    margin-bottom: 6px;
-  }
-  .item-desc-title {
-    font-weight: bold;
-    margin-bottom: 2px;
-  }
-  .item-desc {
-    margin-bottom: 2px;
-    line-height: 1.5;
-  }
-  .item-note-title {
-    font-weight: bold;
-    margin-top: 6px;
-    margin-bottom: 2px;
-  }
+  .item-name { margin-bottom: 2px; }
+  .item-sub { font-weight: bold; margin-bottom: 6px; }
+  .item-desc-title { font-weight: bold; margin-bottom: 2px; }
+  .item-desc { margin-bottom: 2px; line-height: 1.5; }
+  .item-note-title { font-weight: bold; margin-top: 6px; margin-bottom: 2px; }
 
   /* Terbilang + Total row */
-  .terbilang-row td {
-    background: #fff;
-    vertical-align: middle;
-  }
-  .terbilang-label {
-    font-size: 9pt;
-    color: #555;
-    margin-bottom: 2px;
-  }
-  .terbilang-value {
-    font-weight: bold;
-    font-size: 10pt;
-  }
+  .terbilang-row td { background: #fff; vertical-align: middle; }
+  .terbilang-label { font-size: 9pt; color: #555; margin-bottom: 2px; }
+  .terbilang-value { font-weight: bold; font-size: 10pt; }
   .total-label {
     text-align: center;
     font-weight: bold;
     font-size: 10pt;
     border-right: 1px solid #999;
   }
-  .total-label span {
-    font-size: 9pt;
-    font-weight: normal;
-    display: block;
-  }
-  .total-value {
-    text-align: right;
-    font-weight: bold;
-    font-size: 10pt;
-    white-space: nowrap;
-  }
+  .total-label span { font-size: 9pt; font-weight: normal; display: block; }
+  .total-value { text-align: right; font-weight: bold; font-size: 10pt; white-space: nowrap; }
 
-  /* Bottom Section: Payment + Signature */
-  .bottom-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-top: 18px;
-    gap: 20px;
-  }
-
+  /* Bottom Section */
   .payment-box {
     border: 1px solid #aaa;
     padding: 10px 14px;
@@ -243,26 +208,11 @@
     min-width: 220px;
     max-width: 260px;
   }
-  .payment-box div {
-    font-size: 10pt;
-  }
+  .payment-box div { font-size: 10pt; }
 
-  .approved-block {
-    display: inline-block;
-    text-align: center;
-    font-size: 10pt;
-    margin-left: auto;
-  }
-  .approved-label {
-    font-size: 10pt;
-    margin-bottom: 4px;
-  }
   .approved-sig-space {
     width: 120px;
     height: 90px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     margin: 0 auto 4px auto;
   }
   .approved-name {
@@ -271,22 +221,21 @@
     text-decoration: underline;
     margin-bottom: 2px;
   }
-  .approved-title {
-    font-size: 10pt;
-  }
+  .approved-title { font-size: 10pt; }
 
-  /* Make right info block stable in DomPDF */
+  /* Top table */
   .inv-top-table { width: 100%; border-collapse: collapse; }
   .inv-top-table td { vertical-align: top; }
   .inv-top-left { width: 70%; }
   .inv-top-right { width: 30%; text-align: right; }
 
-  /* Bottom (payment left + approved right) using table for DomPDF */
-  .bottom-table { width: 100%; border-collapse: collapse; margin-top: 18px; break-inside: avoid;}
+  /* Bottom table */
+  .bottom-table { width: 100%; border-collapse: collapse; margin-top: 18px; break-inside: avoid; }
   .bottom-table td { vertical-align: top; }
   .bottom-left { width: 60%; }
   .bottom-right { width: 40%; text-align: right; }
   .approved-block { display: inline-block; text-align: center; font-size: 10pt; }
+  .approved-label { font-size: 10pt; margin-bottom: 4px; }
 
   /* ============================================================
    * FOOTER
@@ -316,6 +265,7 @@
     float: left;
     width: 32px;
     height: 32px;
+    line-height: 30px;
     text-align: center;
     border: 1.5px solid #c0392b;
     border-radius: 50%;
@@ -375,18 +325,24 @@
   <footer>
     <table class="footer-table">
       <tr>
+        <!-- Address Head Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Head Office</div>
               <div class="footer-value">Magersari Permai Blok AW-23 RT. 024,<br>Sidoarjo, Jawa Timur</div>
             </div>
           </div>
         </td>
+        <!-- Email -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTIwIDRIMGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCA0bC04IDUtOC01VjZsOCA1IDgtNXYyeiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/email.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Email</div>
               <div class="footer-value">kamiltrianiaga@gmail.com</div>
@@ -395,18 +351,24 @@
         </td>
       </tr>
       <tr>
+        <!-- Address Branch Office -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTEyIDJDOC4xNCAyIDUgNS4xNCA1IDljMCA1LjI1IDcgMTMgNyAxM3M3LTcuNzUgNy0xM2MwLTMuODYtMy4xNC03LTctN3ptMCA5LjVjLTEuMzggMC0yLjUtMS4xMi0yLjUtMi41czEuMTItMi41IDIuNS0yLjUgMi41IDEuMTIgMi41IDIuNS0xLjEyIDIuNS0yLjUgMi41eiIvPjwvc3ZnPg==" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/maps.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Address Branch Office</div>
               <div class="footer-value">Jl. H. Abu No.57 3, RT.3/RW.7, Cipete Sel,<br>Kec. Cilandak, DKI Jakarta</div>
             </div>
           </div>
         </td>
+        <!-- Phone -->
         <td>
           <div>
-            <div class="footer-icon"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MwMzkyYiI+PHBhdGggZD0iTTYuNjIgMTAuNzljMS40NCAyLjgzIDMuNzYgNS4xNCA2LjU5IDYuNTlsMi4yLTIuMmMuMjctLjI3LjY3LS4zNiAxLjAyLS4yNCAxLjEyLjM3IDIuMzMuNTcgMy41Ny41Ny41NSAwIDEgLjQ1IDEgMVYyMGMwIC41NS0uNDUgMS0xIDEtOS4zOSAwLTE3LTcuNjEtMTctMTcgMC0uNTUuNDUtMSAxLTFoMy41Yy41NSAwIDEgLjQ1IDEgMSAwIDEuMjUuMiAyLjQ1LjU3IDMuNTcuMTEuMzUuMDMuNzQtLjI1IDEuMDJsLTIuMiAyLjJWMTAuNzl6Ii8+PC9zdmc+" alt=""></div>
+            <div class="footer-icon">
+              <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('images/telephone.png'))) }}" alt="">
+            </div>
             <div class="footer-text-block">
               <div class="footer-label">Phone</div>
               <div class="footer-value">0851-5523-2320</div>
@@ -429,9 +391,9 @@
       $nomor = $invoice->nomor_surat ?? '';
 
       $billInstansi = $invoice->bill_to_instansi ?? '';
-      $billAlamat = $invoice->bill_to_alamat ?? '';
+      $billAlamat   = $invoice->bill_to_alamat ?? '';
       $shipInstansi = $invoice->ship_to_instansi ?? '';
-      $shipAlamat = $invoice->ship_to_alamat ?? '';
+      $shipAlamat   = $invoice->ship_to_alamat ?? '';
 
       $splitLines = function ($text) {
           $text = trim((string)$text);
@@ -504,7 +466,7 @@
       <tbody>
         @foreach(($details ?? []) as $i => $d)
           @php
-            $harga = (float)($d['harga_satuan'] ?? 0);
+            $harga    = (float)($d['harga_satuan'] ?? 0);
             $subtotal = (float)($d['subtotal'] ?? 0);
             $keteranganHtml = $d['keterangan_html'] ?? null;
           @endphp
@@ -553,11 +515,11 @@
               );
           @endphp
           <div class="payment-box">
-              <div>Pembayaran transfer ke :</div>
-              <div>&nbsp;</div>
-              @foreach($rekeningLines as $line)
-                  <div>{{ $line }}</div>
-              @endforeach
+            <div>Pembayaran transfer ke :</div>
+            <div>&nbsp;</div>
+            @foreach($rekeningLines as $line)
+              <div>{{ $line }}</div>
+            @endforeach
           </div>
         </td>
         <td class="bottom-right">
