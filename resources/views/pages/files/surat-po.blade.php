@@ -447,9 +447,9 @@
                 @else
                 <div style="height:80px;"></div>
                 @endif
-                <div style="margin-top:5px;">( ........................................ )</div>
-                <div style="font-weight:bold;">
-                  {{ $proyek->adminPurchasing->nama ?? $suratPo->purchasing->name ?? 'ARISTO R.' }}
+                <br>
+                <div style="font-weight:bold;">(
+                  {{ $proyek->adminPurchasing->nama ?? $suratPo->purchasing->name ?? 'ARISTO R.' }})
                 </div>
               </td>
             </tr>
