@@ -1758,10 +1758,12 @@ public function exportTSV(Request $request)
     private function getYearRange()
     {
         $yearRange = DB::table('proyek')
-            ->selectRaw('MIN(YEAR(tanggal)) as min_year, MAX(YEAR(tanggal)) as max_year')
-            ->where('status', '!=', 'Gagal') // Exclude failed projects
-            ->first();
-
+        ->selectRaw('
+            MIN(LEAST(YEAR(tanggal), COALESCE(tahun_potensi, YEAR(tanggal)))) as min_year,
+            MAX(GREATEST(YEAR(tanggal), COALESCE(tahun_potensi, YEAR(tanggal)))) as max_year
+        ')
+        ->where('status', '!=', 'Gagal')
+        ->first();
         // Set defaults if no projects exist
         $currentYear = Carbon::now()->year;
         $minYear = $yearRange->min_year ?? $currentYear;

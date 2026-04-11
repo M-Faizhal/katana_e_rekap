@@ -26,6 +26,8 @@ use App\Http\Controllers\ProjectChatController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\keuangan\InvoiceProyekController;
+use App\Http\Controllers\NotificationController;
 
 // Health check endpoint for Docker
 Route::get('/health', function () {
@@ -189,9 +191,27 @@ Route::middleware('auth')->group(function () {
         Route::get('/pembayaran/history/{id_proyek}', [PembayaranController::class, 'history'])->name('purchasing.pembayaran.history');
         Route::get('/pembayaran/suggestion/{id_proyek}', [PembayaranController::class, 'calculateSuggestion'])->name('purchasing.pembayaran.suggestion');
         Route::post('/pembayaran/cleanup-files', [PembayaranController::class, 'cleanupOrphanedFiles'])->name('purchasing.pembayaran.cleanup');
+        Route::get('/pembayaran/pembuatan-surat-po/{id_proyek}/{id_vendor}', [PembayaranController::class, 'pembuatanSuratPo'])->name('purchasing.pembayaran.pembuatan-surat-po');
+
+        // Surat PO (Draft + Preview)
+        Route::post('/pembayaran/pembuatan-surat-po/{id_proyek}/{id_vendor}', [PembayaranController::class, 'simpanSuratPo'])->name('purchasing.pembayaran.pembuatan-surat-po.simpan');
+        Route::get('/pembayaran/pembuatan-surat-po/{id_proyek}/{id_vendor}/preview', [PembayaranController::class, 'previewSuratPoPdf'])->name('purchasing.pembayaran.pembuatan-surat-po.preview');
+        Route::delete('/pembayaran/pembuatan-surat-po/{id_proyek}/{id_vendor}/lampiran', [PembayaranController::class, 'deleteSuratPoLampiran'])->name('purchasing.pembayaran.pembuatan-surat-po.lampiran.delete');
 
         // Pengiriman Routes
         Route::get('/pengiriman', [PengirimanController::class, 'index'])->name('purchasing.pengiriman');
+        Route::get('/pengiriman/surat/{proyekId}', [PengirimanController::class, 'surat'])->name('purchasing.pengiriman.surat');
+
+        // Surat Tanda Terima (PDF + metadata + lampiran)
+        Route::get('/pengiriman/surat/{proyekId}/tanda-terima/preview', [PengirimanController::class, 'previewTandaTerima'])
+            ->name('purchasing.pengiriman.tanda-terima.preview');
+        Route::get('/pengiriman/surat/{proyekId}/tanda-terima/download', [PengirimanController::class, 'downloadTandaTerima'])
+            ->name('purchasing.pengiriman.tanda-terima.download');
+        Route::post('/pengiriman/surat/{proyekId}/tanda-terima', [PengirimanController::class, 'storeTandaTerima'])
+            ->name('purchasing.pengiriman.tanda-terima.store');
+        Route::delete('/pengiriman/surat/{proyekId}/tanda-terima/lampiran', [PengirimanController::class, 'deleteTandaTerimaLampiran'])
+            ->name('purchasing.pengiriman.tanda-terima.lampiran.delete');
+
         Route::get('/pengiriman/{id}/detail', [PengirimanController::class, 'getDetailWithFiles'])->name('purchasing.pengiriman.detail');
         Route::post('/pengiriman', [PengirimanController::class, 'store'])->name('purchasing.pengiriman.store');
         Route::get('/pengiriman/{id}/edit', [PengirimanController::class, 'edit'])->name('purchasing.pengiriman.edit');
@@ -200,6 +220,16 @@ Route::middleware('auth')->group(function () {
         Route::put('/pengiriman/{id}/verify', [PengirimanController::class, 'verify'])->name('purchasing.pengiriman.verify');
         Route::delete('/pengiriman/{id}', [PengirimanController::class, 'destroy'])->name('purchasing.pengiriman.destroy');
         Route::post('/pengiriman/cleanup-files', [PengirimanController::class, 'cleanupOrphanedFiles'])->name('purchasing.pengiriman.cleanup');
+
+        // Surat Jalan (PDF + metadata + lampiran)
+        Route::get('/pengiriman/surat/{proyekId}/surat-jalan/preview', [PengirimanController::class, 'previewSuratJalan'])
+            ->name('purchasing.pengiriman.surat-jalan.preview');
+        Route::get('/pengiriman/surat/{proyekId}/surat-jalan/download', [PengirimanController::class, 'downloadSuratJalan'])
+            ->name('purchasing.pengiriman.surat-jalan.download');
+        Route::post('/pengiriman/surat/{proyekId}/surat-jalan', [PengirimanController::class, 'storeSuratJalan'])
+            ->name('purchasing.pengiriman.surat-jalan.store');
+        Route::delete('/pengiriman/surat/{proyekId}/surat-jalan/lampiran', [PengirimanController::class, 'deleteSuratJalanLampiran'])
+            ->name('purchasing.pengiriman.surat-jalan.lampiran.delete');
     });
 
     // Keuangan Routes
@@ -295,4 +325,29 @@ Route::middleware('auth')->group(function () {
         $pdf = Pdf::loadView('pages.files.surat-penawaran');
         return $pdf->download('surat-penawaran.pdf');
     });
+
+    // Surat Penawaran dinamis (berdasarkan proyek) - preview & download PDF
+    Route::get('/marketing/penawaran/{proyekId}/surat-penawaran', [PenawaranController::class, 'previewSuratPenawaran'])
+        ->name('marketing.penawaran.surat-penawaran.preview');
+    Route::get('/marketing/penawaran/{proyekId}/surat-penawaran/download', [PenawaranController::class, 'downloadSuratPenawaran'])
+        ->name('marketing.penawaran.surat-penawaran.download');
+    Route::post('/marketing/penawaran/{proyekId}/surat-penawaran', [PenawaranController::class, 'storeSuratPenawaran'])
+        ->name('marketing.penawaran.surat-penawaran.store');
+    Route::delete('/marketing/penawaran/{proyekId}/surat-penawaran/lampiran', [PenawaranController::class, 'deleteSuratPenawaranLampiran'])
+        ->name('marketing.penawaran.surat-penawaran.lampiran.delete');
+
+    // Invoice Proyek (form + PDF)
+    Route::get('/pembuatan-invoice/{proyekId}', [InvoiceProyekController::class, 'create'])
+        ->name('keuangan.pembuatan-invoice-proyek');
+    Route::post('/pembuatan-invoice/{proyekId}', [InvoiceProyekController::class, 'store'])
+        ->name('keuangan.pembuatan-invoice-proyek.store');
+    Route::get('/pembuatan-invoice/{proyekId}/preview', [InvoiceProyekController::class, 'preview'])
+        ->name('keuangan.pembuatan-invoice-proyek.preview');
+    Route::get('/pembuatan-invoice/{proyekId}/download', [InvoiceProyekController::class, 'download'])
+        ->name('keuangan.pembuatan-invoice-proyek.download');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });

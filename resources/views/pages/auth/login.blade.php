@@ -174,7 +174,7 @@
         <!-- Footer -->
         <div class="mt-8 text-center">
           <p class="text-xs text-gray-500">
-            © 2025 PT. Kamil Tria Niaga. All rights reserved.
+            © 2026 PT. Kamil Tria Niaga. All rights reserved.
           </p>
          
         </div>

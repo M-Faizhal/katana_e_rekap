@@ -87,6 +87,126 @@
             </div>
         </div>
 
+        <!-- Buat Surat Penawaran -->
+        @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-file-pdf text-red-600 mr-2"></i>
+                    Buat Surat Penawaran
+                </h3>
+            </div>
+
+            @php
+                $suratDb = \App\Models\SuratPenawaran::where('id_proyek', $proyek->id_proyek)->first();
+            @endphp
+
+            <form id="suratPenawaranForm" class="space-y-4">
+                @csrf
+                <input type="hidden" name="id_penawaran" value="{{ $penawaran->id_penawaran }}">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Surat</label>
+                        <input type="text" name="nomor_surat" value="{{ $suratDb->nomor_surat ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tempat Surat</label>
+                        <input type="text" name="tempat_surat" value="{{ $suratDb->tempat_surat ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Surat</label>
+                        {{-- FIX: use nullsafe operator instead of optional() to avoid null property access --}}
+                        <input type="date" name="tanggal_surat" value="{{ $suratDb?->tanggal_surat?->format('Y-m-d') ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Lampiran</label>
+                        <input type="text" name="lampiran" value="{{ $suratDb->lampiran ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kepada Yth</label>
+                        <input type="text" name="kepada" value="{{ $suratDb->kepada ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Klien</label>
+                        <input type="text" name="alamat_klien" value="{{ $suratDb->alamat_klien ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Wilayah Klien</label>
+                        <input type="text" name="wilayah_klien" value="{{ $suratDb->wilayah_klien ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Perihal</label>
+                        <input type="text" name="perihal" value="{{ $suratDb->perihal ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jangka Waktu Pengerjaan</label>
+                        <input type="text" name="jangka_waktu_pengerjaan" value="{{ $suratDb->jangka_waktu_pengerjaan ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Masa Berlaku Penawaran</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            {{-- FIX: use nullsafe operator for both date fields --}}
+                            <input type="date" name="berlaku_sejak" value="{{ $suratDb?->berlaku_sejak?->format('Y-m-d') ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" title="Sejak">
+                            <input type="date" name="berlaku_sampai" value="{{ $suratDb?->berlaku_sampai?->format('Y-m-d') ?? '' }}" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500" title="Sampai">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">File Lampiran</label>
+                    <input type="file" name="lampiran_pdfs[]" id="lampiranPdfs" multiple accept="application/pdf" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <p class="text-xs text-gray-500 mt-1">Maks 10MB per file. File akan diupload saat klik Simpan.</p>
+
+                    <div id="lampiranList" class="mt-3 space-y-2">
+                        @php
+                            $lampiranFiles = $suratDb?->lampiran_files_list ?? [];
+                        @endphp
+                        @if(!empty($lampiranFiles))
+                            @foreach($lampiranFiles as $f)
+                                <div class="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm">
+                                    <div class="min-w-0">
+                                        <div class="font-medium text-gray-800 truncate">{{ $f['original_name'] ?? ($f['path'] ?? '-') }}</div>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        @if(!empty($f['path']))
+                                            <a class="text-blue-600 hover:underline" target="_blank" href="{{ asset('storage/' . $f['path']) }}">Lihat</a>
+                                        @endif
+                                        <button type="button" class="text-red-600 hover:underline" onclick="deleteSuratPenawaranLampiran({{ $proyek->id_proyek }}, '{{ $f['path'] ?? '' }}')">Hapus</button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="text-sm text-gray-500">Belum ada lampiran.</div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-2 pt-2">
+                    <button type="button" onclick="saveSuratPenawaran({{ $proyek->id_proyek }})" class="inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-save mr-2"></i>
+                        Simpan
+                    </button>
+                    <button type="button" onclick="previewSuratPenawaran({{ $proyek->id_proyek }})" class="inline-flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-eye mr-2"></i>
+                        Preview
+                    </button>
+                    <button type="button" onclick="downloadSuratPenawaran({{ $proyek->id_proyek }})" class="inline-flex items-center justify-center bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-download mr-2"></i>
+                        Download PDF
+                    </button>
+                </div>
+
+            </form>
+        </div>
+        @endif
+
         <!-- Penawaran Details -->
         @if($proyek->status !== 'Menunggu')
         <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
@@ -141,7 +261,6 @@
 
                 {{-- File Spesifikasi dari Proyek --}}
                 @php
-                    // Cari proyek barang yang sesuai dengan nama barang di penawaran detail
                     $matchingProyekBarang = null;
                     if(isset($proyekBarangWithFiles)) {
                         $matchingProyekBarang = $proyekBarangWithFiles->where('nama_barang', $detail->nama_barang)->first();
@@ -165,7 +284,6 @@
                                         $extension = strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION));
                                         $iconClass = 'fas fa-file text-gray-500';
                                         $iconColor = 'text-gray-500';
-
                                         switch($extension) {
                                             case 'pdf':
                                                 $iconClass = 'fas fa-file-pdf';
@@ -321,7 +439,6 @@
                                             $extension = strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION));
                                             $iconClass = 'fas fa-file text-gray-500';
                                             $iconColor = 'text-gray-500';
-
                                             switch($extension) {
                                                 case 'pdf':
                                                     $iconClass = 'fas fa-file-pdf';
@@ -592,14 +709,12 @@
 document.getElementById('uploadForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Check if project status is "menunggu" - prevent submission
     const projectStatus = '{{ strtolower($proyek->status) }}';
     if (projectStatus === 'menunggu') {
         alert('Tidak dapat menyimpan penawaran. Status proyek masih "Menunggu".');
         return false;
     }
 
-    // Check if surat_penawaran file is uploaded (if not already exists)
     const fileInput = this.querySelector('input[name="surat_penawaran"]');
     const hasExistingFile = {{ $penawaran->surat_penawaran ? 'true' : 'false' }};
 
@@ -609,10 +724,9 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
         return false;
     }
 
-    // Validate file size (5MB = 5 * 1024 * 1024 bytes)
     if (fileInput.files && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        const maxSize = 5 * 1024 * 1024; // 5MB
+        const maxSize = 5 * 1024 * 1024;
 
         if (file.size > maxSize) {
             alert('Ukuran file terlalu besar! Maksimal 5MB.');
@@ -620,7 +734,6 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
             return false;
         }
 
-        // Validate file type
         const allowedTypes = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
         const fileName = file.name.toLowerCase();
         const fileExtension = fileName.split('.').pop();
@@ -636,57 +749,41 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     const submitButton = this.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
 
-    // Show loading state
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
     submitButton.disabled = true;
 
-    // Get penawaran ID for the endpoint
     const penawaranId = formData.get('id_penawaran');
     const url = penawaranId && penawaranId !== '' ? `/marketing/penawaran/${penawaranId}` : '/marketing/penawaran';
-    const method = penawaranId && penawaranId !== '' ? 'POST' : 'POST';
 
-    // Add method override for PUT if updating
     if (penawaranId && penawaranId !== '') {
         formData.append('_method', 'PUT');
     }
 
     fetch(url, {
-        method: method,
+        method: 'POST',
         body: formData,
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         }
     })
     .then(response => {
-        // Debug: Log response status and headers
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-
-        // Check if response is ok
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        // Check content type
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             throw new Error('Response bukan JSON yang valid. Content-Type: ' + contentType);
         }
-
         return response.json();
     })
     .then(data => {
-        console.log('Response data:', data); // Debug log
-
         if (data.success) {
-            // Show success message
             if (typeof showSuccessModal === 'function') {
                 showSuccessModal(data.message);
             } else {
                 alert(data.message);
             }
 
-            // Show additional info if status changed
             if (data.status_changed) {
                 setTimeout(() => {
                     if (typeof showSuccessModal === 'function') {
@@ -697,7 +794,6 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
                 }, 2000);
             }
 
-            // Reload page after short delay
             setTimeout(() => {
                 window.location.reload();
             }, data.status_changed ? 3500 : 1500);
@@ -707,9 +803,7 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
     })
     .catch(error => {
         console.error('Error detail:', error);
-
         let errorMessage = 'Terjadi kesalahan saat menyimpan data';
-
         if (error.message.includes('HTTP error')) {
             errorMessage = 'Server error: ' + error.message;
         } else if (error.message.includes('JSON')) {
@@ -717,43 +811,18 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
         } else if (error.message) {
             errorMessage = error.message;
         }
-
         alert(errorMessage);
     })
     .finally(() => {
-        // Reset button state
         submitButton.innerHTML = originalText;
         submitButton.disabled = false;
     });
 });
 
-// Calculate total from proyek harga_total
-function calculateTotal() {
-    const calculatedTotal = {{ $proyek->harga_total ?? 0 }};
-    
-    // Update total_nilai field if it exists
-    const totalField = document.getElementById('total_nilai');
-    if (totalField) {
-        totalField.value = calculatedTotal;
-    }
-
-    // Show notification
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-    notification.innerHTML = '<i class="fas fa-check mr-2"></i>Total berhasil dihitung: Rp ' + new Intl.NumberFormat('id-ID').format(calculatedTotal);
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-// Placeholder for edit penawaran modal
 function openEditPenawaranModal() {
     alert('Fitur edit detail penawaran akan segera tersedia');
 }
 
-// Functions for image preview modal
 function showImagePreview(imageUrl, fileName) {
     const modal = document.getElementById('imagePreviewModal');
     document.getElementById('previewImage').src = imageUrl;
@@ -769,7 +838,6 @@ function closeImagePreview() {
     document.getElementById('previewImage').src = '';
 }
 
-// Close modal when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('imagePreviewModal');
     if (modal) {
@@ -780,28 +848,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Close modal with ESC key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeImagePreview();
         }
     });
 
-    // Add file input validation and preview
     const fileInput = document.querySelector('input[name="surat_penawaran"]');
     if (fileInput) {
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                // Validate file size
-                const maxSize = 5 * 1024 * 1024; // 5MB
+                const maxSize = 5 * 1024 * 1024;
                 if (file.size > maxSize) {
                     alert('Ukuran file terlalu besar! Maksimal 5MB.');
                     this.value = '';
                     return;
                 }
 
-                // Validate file type
                 const allowedTypes = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
                 const fileName = file.name.toLowerCase();
                 const fileExtension = fileName.split('.').pop();
@@ -812,28 +876,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Show file info
-                const fileInfo = document.createElement('div');
-                fileInfo.className = 'mt-2 text-sm text-green-600 bg-green-50 p-2 rounded';
-                fileInfo.innerHTML = `
-                    <i class="fas fa-check-circle mr-1"></i>
-                    File dipilih: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
-                `;
-
-                // Remove existing file info
                 const existingInfo = this.parentNode.querySelector('.file-info');
                 if (existingInfo) {
                     existingInfo.remove();
                 }
 
-                fileInfo.classList.add('file-info');
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'mt-2 text-sm text-green-600 bg-green-50 p-2 rounded file-info';
+                fileInfo.innerHTML = `<i class="fas fa-check-circle mr-1"></i>File dipilih: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
                 this.parentNode.appendChild(fileInfo);
             }
         });
     }
 });
 
-// Functions for specification file handling
 function downloadSpecFile(filename) {
     const url = `{{ url('/marketing/proyek/file') }}/${filename}`;
     window.open(url, '_blank');
@@ -842,6 +898,95 @@ function downloadSpecFile(filename) {
 function previewSpecFile(filename) {
     const url = `{{ url('/marketing/proyek/file') }}/${filename}/preview`;
     window.open(url, '_blank');
+}
+
+function buildSuratPenawaranUrl(baseUrl) {
+    const form = document.getElementById('suratPenawaranForm');
+    if (!form) return baseUrl;
+    const params = new URLSearchParams(new FormData(form));
+    const qs = params.toString();
+    return qs ? (baseUrl + '?' + qs) : baseUrl;
+}
+
+function previewSuratPenawaran(proyekId) {
+    const baseUrl = `{{ url('/marketing/penawaran') }}/${proyekId}/surat-penawaran`;
+    window.open(buildSuratPenawaranUrl(baseUrl), '_blank');
+}
+
+function downloadSuratPenawaran(proyekId) {
+    const baseUrl = `{{ url('/marketing/penawaran') }}/${proyekId}/surat-penawaran/download`;
+    window.open(buildSuratPenawaranUrl(baseUrl), '_blank');
+}
+
+async function saveSuratPenawaran(proyekId) {
+    const form = document.getElementById('suratPenawaranForm');
+    if (!form) return;
+
+    const url = `{{ url('/marketing/penawaran') }}/${proyekId}/surat-penawaran`;
+    const formData = new FormData(form);
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+        },
+        body: formData
+    });
+
+    const data = await res.json().catch(() => null);
+    if (res.ok && data && data.success) {
+        alert(data.message || 'Tersimpan');
+        const list = document.getElementById('lampiranList');
+        renderLampiranList(list, data.lampiran_files);
+        const inEl = document.getElementById('lampiranPdfs');
+        if (inEl) inEl.value = '';
+    } else {
+        alert((data && data.message) ? data.message : 'Gagal menyimpan surat penawaran');
+    }
+}
+
+function renderLampiranList(container, files) {
+    if (!container) return;
+    if (!files || files.length === 0) {
+        container.innerHTML = '<div class="text-sm text-gray-500">Belum ada lampiran.</div>';
+        return;
+    }
+    container.innerHTML = files.map(f => `
+        <div class="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm">
+            <div class="min-w-0">
+                <div class="font-medium text-gray-800 truncate">${f.original_name ?? (f.path ?? '-')}</div>
+                <div class="text-xs text-gray-500 truncate">${f.path ?? ''}</div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                ${f.path ? `<a class="text-blue-600 hover:underline" target="_blank" href="/storage/${f.path}">Lihat</a>` : ''}
+                <button type="button" class="text-red-600 hover:underline"
+                    onclick="deleteSuratPenawaranLampiran({{ $proyek->id_proyek }}, '${f.path ?? ''}')">Hapus</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function deleteSuratPenawaranLampiran(proyekId, path) {
+    if (!confirm('Hapus lampiran ini?')) return;
+
+    const res = await fetch(`{{ url('/marketing/penawaran') }}/${proyekId}/surat-penawaran/lampiran`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ path })
+    });
+
+    const data = await res.json().catch(() => null);
+    if (res.ok && data && data.success) {
+        const list = document.getElementById('lampiranList');
+        renderLampiranList(list, data.lampiran_files);
+    } else {
+        alert((data && data.message) ? data.message : 'Gagal menghapus lampiran');
+    }
 }
 </script>
 

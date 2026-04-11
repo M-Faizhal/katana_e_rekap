@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\NotificationService;
 
 class VerifikasiKostController extends Controller
 {
@@ -154,6 +155,10 @@ class VerifikasiKostController extends Controller
             ]);
 
             DB::commit();
+
+            // Notifikasi: pengajuan perlu revisi (ke pengaju)
+            app(NotificationService::class)->pengajuanKostRevisionRequested($pengajuan->fresh());
+
             return response()->json([
                 'success' => true,
                 'message' => "Pengajuan {$pengajuan->kode_pengajuan} dikembalikan untuk direvisi.",

@@ -32,34 +32,49 @@
 <!-- Tabs Navigation -->
 <div class="bg-white rounded-lg shadow-lg mb-6">
     <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-2 sm:space-x-8" aria-label="Tabs">
-            <button type="button" 
-                class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
-                data-tab="belum-bayar">
-                <div class="flex items-center space-x-1 sm:space-x-2">
-                    <i class="fas fa-clock text-yellow-500 text-xs sm:text-sm md:text-base"></i>
-                    <span>Belum Bayar</span>
-                    <span class="bg-yellow-100 text-yellow-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekBelumBayar->count() }}</span>
-                </div>
-            </button>
-            <button type="button" 
-                class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
-                data-tab="dp">
-                <div class="flex items-center space-x-1 sm:space-x-2">
-                    <i class="fas fa-hand-holding-usd text-blue-500 text-xs sm:text-sm md:text-base"></i>
-                    <span>DP</span>
-                    <span class="bg-blue-100 text-blue-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekDp->count() }}</span>
-                </div>
-            </button>
-            <button type="button" 
-                class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
-                data-tab="lunas">
-                <div class="flex items-center space-x-1 sm:space-x-2">
-                    <i class="fas fa-check-circle text-green-500 text-xs sm:text-sm md:text-base"></i>
-                    <span>Lunas</span>
-                    <span class="bg-green-100 text-green-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekLunas->count() }}</span>
-                </div>
-            </button>
+        <nav class="-mb-px flex items-center justify-between" aria-label="Tabs">
+            <!-- Left tabs -->
+            <div class="flex space-x-2 sm:space-x-8">
+                <button type="button" 
+                    class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
+                    data-tab="belum-bayar">
+                    <div class="flex items-center space-x-1 sm:space-x-2">
+                        <i class="fas fa-clock text-yellow-500 text-xs sm:text-sm md:text-base"></i>
+                        <span>Belum Bayar</span>
+                        <span class="bg-yellow-100 text-yellow-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekBelumBayar->count() }}</span>
+                    </div>
+                </button>
+                <button type="button" 
+                    class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
+                    data-tab="dp">
+                    <div class="flex items-center space-x-1 sm:space-x-2">
+                        <i class="fas fa-hand-holding-usd text-blue-500 text-xs sm:text-sm md:text-base"></i>
+                        <span>DP</span>
+                        <span class="bg-blue-100 text-blue-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekDp->count() }}</span>
+                    </div>
+                </button>
+                <button type="button" 
+                    class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
+                    data-tab="lunas">
+                    <div class="flex items-center space-x-1 sm:space-x-2">
+                        <i class="fas fa-check-circle text-green-500 text-xs sm:text-sm md:text-base"></i>
+                        <span>Lunas</span>
+                        <span class="bg-green-100 text-green-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekLunas->count() }}</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Right tab -->
+            <div class="pr-2 sm:pr-6">
+                <button type="button" 
+                    class="tab-button py-2 sm:py-4 px-2 sm:px-6 text-center border-b-2 font-medium text-xs sm:text-sm md:text-base focus:outline-none transition-colors duration-200"
+                    data-tab="pembuatan-invoice">
+                    <div class="flex items-center space-x-1 sm:space-x-2">
+                        <i class="fas fa-file-invoice text-red-600 text-xs sm:text-sm md:text-base"></i>
+                        <span>Pembuatan Invoice</span>
+                    </div>
+                </button>
+            </div>
         </nav>
     </div>
 </div>
@@ -134,7 +149,6 @@
                                     <div class="text-sm font-semibold text-gray-900">
                                         {{ $proyek->kode_proyek ?? 'PRJ-' . str_pad($proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}
                                     </div>
-                                    <div class="text-sm text-gray-600">{{ $proyek->instansi }}</div>
                                     <div class="text-xs text-gray-500 mt-1">
                                         <i class="fas fa-calendar mr-1"></i>
                                         {{ \Carbon\Carbon::parse($proyek->tanggal)->format('d M Y') }}
@@ -143,7 +157,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <div class="text-sm font-medium text-gray-900">{{ $proyek->kode_proyek }}</div>
+                                    <div class="text-sm text-gray-600">{{ $proyek->instansi }}</div>
                                     @if($proyek->kontak_klien)
                                     <div class="text-sm text-gray-500">{{ $proyek->kontak_klien }}</div>
                                     @endif
@@ -298,12 +312,11 @@
                                 <div class="flex flex-col">
                                     <div class="text-sm font-medium text-gray-900">{{ $penagihan->proyek->kode_proyek ?? 'PRJ-' . str_pad($penagihan->proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
                                     <div class="text-sm text-gray-600">{{ $penagihan->proyek->nama_barang }}</div>
-                                    <div class="text-xs text-gray-500">{{ $penagihan->proyek->instansi }}</div>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <div class="text-sm font-medium text-gray-900">{{ $penagihan->proyek->kode_proyek }}</div>
+                                    <div class="text-xs text-gray-500">{{ $penagihan->proyek->instansi }}</div>
                                     <div class="text-xs text-gray-500">
                                         <i class="fas fa-map-marker-alt mr-1"></i>
                                         {{ $penagihan->proyek->kab_kota }}
@@ -464,12 +477,11 @@
                                 <div class="flex flex-col">
                                     <div class="text-sm font-medium text-gray-900">{{ $penagihan->proyek->kode_proyek ?? 'PRJ-' . str_pad($penagihan->proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}</div>
                                     <div class="text-sm text-gray-600">{{ $penagihan->proyek->nama_barang }}</div>
-                                    <div class="text-xs text-gray-500">{{ $penagihan->proyek->instansi }}</div>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <div class="text-sm font-medium text-gray-900">{{ $penagihan->proyek->kode_proyek }}</div>
+                                    <div class="text-xs text-gray-500">{{ $penagihan->proyek->instansi }}</div>
                                     <div class="text-xs text-gray-500">
                                         <i class="fas fa-map-marker-alt mr-1"></i>
                                         {{ $penagihan->proyek->kab_kota }}
@@ -556,6 +568,158 @@
             @endif
         </div>
     </div>
+
+    <!-- Pembuatan Invoice Tab -->
+    <div id="pembuatan-invoice" class="tab-pane hidden">
+        <div class="bg-white rounded-lg shadow-lg">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-file-invoice text-red-600 mr-2"></i>
+                            Pembuatan Invoice
+                        </h2>
+                        <p class="text-gray-600 mt-1">Daftar proyek dengan penawaran status ACC untuk dibuatkan invoice</p>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <form method="GET" action="{{ route('keuangan.penagihan') }}">
+                        <input type="hidden" name="tab" value="pembuatan-invoice">
+                        <div class="flex items-center space-x-2">
+                            <div class="relative">
+                                <input type="text" 
+                                       name="search" 
+                                       value="{{ request('search') }}" 
+                                       placeholder="Cari proyek, instansi..." 
+                                       class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 w-64 text-sm">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            @if(request('search'))
+                                <a href="{{ route('keuangan.penagihan') }}?tab=pembuatan-invoice" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proyek</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instansi/Klien</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barang</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse($proyekAccInvoice as $proyek)
+                            @php
+                                // Ambil penawaran ACC pertama untuk ditampilkan
+                                $penawaran = $proyek->semuaPenawaran?->first();
+
+                                // Ambil penagihan terbaru (jika ada) untuk status pembayaran
+                                $penagihanTerbaru = $proyek->penagihanDinas?->first();
+                                $statusPembayaran = $penagihanTerbaru?->status_pembayaran; // dp | lunas | belum_bayar | null
+
+                                $statusLabel = match($statusPembayaran) {
+                                    'dp' => 'DP',
+                                    'lunas' => 'Lunas',
+                                    'belum_bayar' => 'Belum Bayar',
+                                    default => 'Belum Bayar',
+                                };
+
+                                $statusClass = match($statusPembayaran) {
+                                    'dp' => 'bg-blue-100 text-blue-800',
+                                    'lunas' => 'bg-green-100 text-green-800',
+                                    'belum_bayar' => 'bg-yellow-100 text-yellow-800',
+                                    default => 'bg-yellow-100 text-yellow-800',
+                                };
+
+                                $statusIcon = match($statusPembayaran) {
+                                    'dp' => 'fa-hand-holding-usd',
+                                    'lunas' => 'fa-check-circle',
+                                    'belum_bayar' => 'fa-file-invoice',
+                                    default => 'fa-file-invoice',
+                                };
+                            @endphp
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <div class="text-sm font-semibold text-gray-900">
+                                            {{ $proyek->kode_proyek ?? 'PRJ-' . str_pad($proyek->id_proyek, 3, '0', STR_PAD_LEFT) }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <div class="text-sm text-gray-600">{{ $proyek->instansi }}</div>
+                                        @if($proyek->kontak_klien)
+                                            <div class="text-sm text-gray-500">{{ $proyek->kontak_klien }}</div>
+                                        @endif
+                                        <div class="text-xs text-gray-500">
+                                            <i class="fas fa-map-marker-alt mr-1"></i>
+                                            {{ $proyek->kab_kota }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <div class="text-sm font-medium text-gray-900">{{ $proyek->nama_barang }}</div>
+                                        <div class="text-sm text-gray-600">{{ $proyek->jumlah }} {{ $proyek->satuan }}</div>
+                                        <div class="text-xs text-gray-500">{{ $proyek->jenis_pengadaan }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">
+                                        <i class="fas {{ $statusIcon }} mr-1"></i>
+                                        {{ $statusLabel }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-medium">
+                                    <a href="{{ route('keuangan.pembuatan-invoice-proyek', $proyek->id_proyek) }}"
+                                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                                        <i class="fas fa-plus mr-2"></i>
+                                        Buat Invoice
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <div class="text-gray-500">
+                                        <i class="fas fa-inbox text-4xl mb-4"></i>
+                                        <p class="text-lg">Tidak ada proyek ACC</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination untuk Pembuatan Invoice -->
+            @if($proyekAccInvoice->hasPages())
+                <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">Menampilkan {{ $proyekAccInvoice->firstItem() ?? 0 }} - {{ $proyekAccInvoice->lastItem() ?? 0 }}</span>
+                            dari <span class="font-semibold text-gray-800">{{ $proyekAccInvoice->total() }}</span> proyek
+                        </div>
+                        <div class="flex justify-center">
+                            {{ $proyekAccInvoice->appends(request()->query())->links() }}
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
 </div>
 
 @push('scripts')
@@ -584,6 +748,7 @@ document.addEventListener('DOMContentLoaded', function() {
             newUrl.searchParams.delete('belum_bayar_page');
             newUrl.searchParams.delete('dp_page');
             newUrl.searchParams.delete('lunas_page');
+            newUrl.searchParams.delete('acc_invoice_page');
             window.history.pushState({}, '', newUrl);
         });
     });

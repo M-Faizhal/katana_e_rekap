@@ -10,6 +10,12 @@ use App\Models\KalkulasiHps;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Vendor;
+use App\Models\SuratPo;
+use App\Models\SuratPoItem;
+use Barryvdh\DomPDF\Facade\Pdf;
+use iio\libmergepdf\Merger;
+use App\Services\NotificationService;
 
 class PembayaranController extends Controller
 {
@@ -63,21 +69,18 @@ class PembayaranController extends Controller
     {
         if (empty($proyekIds)) return [];
 
-        // Flatten all penawaran IDs we need
         $penawaranIds = [];
         foreach ($penawaranByProyek as $pid => $penawaranId) {
             if ($penawaranId) $penawaranIds[] = $penawaranId;
         }
         if (empty($penawaranIds)) return [];
 
-        // Single query: total approved per (penawaran, vendor)
         $rows = Pembayaran::whereIn('id_penawaran', $penawaranIds)
             ->where('status_verifikasi', 'Approved')
             ->select('id_penawaran', 'id_vendor', DB::raw('SUM(nominal_bayar) as total'))
             ->groupBy('id_penawaran', 'id_vendor')
             ->get();
 
-        // Build reverse map penawaran_id -> proyek_id
         $penawaranToProyek = array_flip($penawaranByProyek);
 
         $map = [];
@@ -102,10 +105,10 @@ class PembayaranController extends Controller
             ->filter();
 
         $proyek->vendors_data = $vendors->map(function ($vendor) use ($proyek, $hpsMap, $bayarMap) {
-            $totalVendor         = $hpsMap[$proyek->id_proyek][$vendor->id_vendor] ?? 0;
+            $totalVendor          = $hpsMap[$proyek->id_proyek][$vendor->id_vendor] ?? 0;
             $totalDibayarApproved = $bayarMap[$proyek->id_proyek][$vendor->id_vendor] ?? 0;
-            $sisaBayar           = $totalVendor - $totalDibayarApproved;
-            $warningHps          = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
+            $sisaBayar            = $totalVendor - $totalDibayarApproved;
+            $warningHps           = $totalVendor == 0 ? 'Data kalkulasi HPS belum diisi' : null;
 
             return (object) [
                 'vendor'                 => $vendor,
@@ -124,11 +127,10 @@ class PembayaranController extends Controller
             );
         }
 
-        // Aggregate totals on the proyek object
-        $proyek->total_modal_vendor      = $proyek->vendors_data->sum('total_vendor');
-        $proyek->total_dibayar_approved  = $proyek->vendors_data->sum('total_dibayar_approved');
-        $proyek->sisa_bayar              = $proyek->vendors_data->sum('sisa_bayar');
-        $proyek->persen_bayar            = $proyek->total_modal_vendor > 0
+        $proyek->total_modal_vendor     = $proyek->vendors_data->sum('total_vendor');
+        $proyek->total_dibayar_approved = $proyek->vendors_data->sum('total_dibayar_approved');
+        $proyek->sisa_bayar             = $proyek->vendors_data->sum('sisa_bayar');
+        $proyek->persen_bayar           = $proyek->total_modal_vendor > 0
             ? ($proyek->total_dibayar_approved / $proyek->total_modal_vendor) * 100
             : 0;
         $proyek->status_lunas = $proyek->sisa_bayar <= 0;
@@ -141,12 +143,12 @@ class PembayaranController extends Controller
      */
     public function index()
     {
-        // Ambil parameter filter dan search
         $search             = request()->get('search');
         $statusFilter       = request()->get('status_filter');
         $proyekStatusFilter = request()->get('proyek_status_filter');
         $sortBy             = request()->get('sort_by', 'desc');
         $activeTab          = request()->get('tab', 'perlu-bayar');
+        $poSearch           = request()->get('po_search');
 
         // ----------------------------------------------------------------
         // TAB "Perlu Bayar"
@@ -169,11 +171,10 @@ class PembayaranController extends Controller
 
         $proyekPerluBayarAll = $proyekPerluBayarQuery->get();
 
-        // Batch KalkulasiHps + approved Pembayaran for all relevant proyek (single query each)
-        $proyekIds1          = $proyekPerluBayarAll->pluck('id_proyek')->all();
-        $penawaranByProyek1  = $proyekPerluBayarAll->pluck('penawaranAktif.id_penawaran', 'id_proyek')->all();
-        $hpsMap1             = $this->batchHpsMap($proyekIds1);
-        $bayarMap1           = $this->batchBayarMap($proyekIds1, $penawaranByProyek1);
+        $proyekIds1         = $proyekPerluBayarAll->pluck('id_proyek')->all();
+        $penawaranByProyek1 = $proyekPerluBayarAll->pluck('penawaranAktif.id_penawaran', 'id_proyek')->all();
+        $hpsMap1            = $this->batchHpsMap($proyekIds1);
+        $bayarMap1          = $this->batchBayarMap($proyekIds1, $penawaranByProyek1);
 
         $proyekPerluBayarCollection = $proyekPerluBayarAll
             ->map(fn($p) => $this->attachVendorsData($p, $hpsMap1, $bayarMap1, filterUnpaid: true))
@@ -181,9 +182,8 @@ class PembayaranController extends Controller
             ->sortByDesc('created_at')
             ->values();
 
-        // Manual paginate
-        $currentPage     = (int) request()->get('page', 1);
-        $perPage         = 10;
+        $currentPage      = (int) request()->get('page', 1);
+        $perPage          = 10;
         $proyekPerluBayar = new \Illuminate\Pagination\LengthAwarePaginator(
             $proyekPerluBayarCollection->slice(($currentPage - 1) * $perPage, $perPage)->values(),
             $proyekPerluBayarCollection->count(),
@@ -215,7 +215,6 @@ class PembayaranController extends Controller
             ? $semuaProyekQuery->orderBy('created_at', 'asc')
             : $semuaProyekQuery->orderBy('created_at', 'desc');
 
-        // Paginate DB query first, then batch only for current-page IDs
         $semuaProyek        = $semuaProyekQuery->paginate(10, ['*'], 'proyek_page');
         $proyekIds2         = $semuaProyek->pluck('id_proyek')->all();
         $penawaranByProyek2 = $semuaProyek->pluck('penawaranAktif.id_penawaran', 'id_proyek')->all();
@@ -226,7 +225,6 @@ class PembayaranController extends Controller
             fn($p) => $this->attachVendorsData($p, $hpsMap2, $bayarMap2, filterUnpaid: false)
         );
 
-        // In-memory filter by lunas/belum_lunas after transform
         if ($proyekStatusFilter && $proyekStatusFilter !== 'all') {
             $filtered = $semuaProyek->getCollection()->filter(function ($proyek) use ($proyekStatusFilter) {
                 return $proyekStatusFilter === 'lunas' ? $proyek->status_lunas : !$proyek->status_lunas;
@@ -241,6 +239,37 @@ class PembayaranController extends Controller
                 ['path' => request()->url(), 'pageName' => 'proyek_page']
             );
         }
+
+        // ----------------------------------------------------------------
+        // TAB "Pembuatan Surat PO"
+        // ----------------------------------------------------------------
+        $proyekPoQuery = Proyek::with([
+            'penawaranAktif.penawaranDetail.barang.vendor',
+            'adminMarketing',
+            'pembayaran',
+        ])
+            ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
+            ->whereHas('penawaranAktif', fn($q) => $q->where('status', 'ACC'));
+
+        if ($poSearch) {
+            $proyekPoQuery->where(function ($q) use ($poSearch) {
+                $q->where('instansi', 'like', "%{$poSearch}%")
+                  ->orWhere('kode_proyek', 'like', "%{$poSearch}%")
+                  ->orWhereHas('proyekBarang', fn($sq) => $sq->where('nama_barang', 'like', "%{$poSearch}%"));
+            });
+        }
+
+        $proyekPoQuery->orderBy('created_at', 'desc');
+
+        $proyekPo            = $proyekPoQuery->paginate(10, ['*'], 'po_page');
+        $proyekIdsPo         = $proyekPo->pluck('id_proyek')->all();
+        $penawaranByProyekPo = $proyekPo->pluck('penawaranAktif.id_penawaran', 'id_proyek')->all();
+        $hpsMapPo            = $this->batchHpsMap($proyekIdsPo);
+        $bayarMapPo          = $this->batchBayarMap($proyekIdsPo, $penawaranByProyekPo);
+
+        $proyekPo->getCollection()->transform(
+            fn($p) => $this->attachVendorsData($p, $hpsMapPo, $bayarMapPo, filterUnpaid: false)
+        );
 
         // ----------------------------------------------------------------
         // TAB "Semua Pembayaran"
@@ -276,7 +305,9 @@ class PembayaranController extends Controller
             'statusFilter',
             'proyekStatusFilter',
             'sortBy',
-            'activeTab'
+            'activeTab',
+            'proyekPo',
+            'poSearch'
         ))->with('currentUser', Auth::user());
     }
 
@@ -285,7 +316,6 @@ class PembayaranController extends Controller
      */
     public function create($id_proyek, $id_vendor = null)
     {
-        // --- SUPERADMIN ACCESS FOR PEMBAYARAN ---
         $user = Auth::user();
         if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
             return redirect()->route('purchasing.pembayaran')
@@ -300,13 +330,11 @@ class PembayaranController extends Controller
                 ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk menginput pembayaran pada proyek ini.');
         }
 
-        // Pastikan proyek memiliki penawaran yang sudah di-ACC
         if (!$proyek->penawaranAktif || $proyek->penawaranAktif->status !== 'ACC') {
             return redirect()->route('purchasing.pembayaran')
                 ->with('error', 'Proyek ini belum memiliki penawaran yang di-ACC');
         }
 
-        // Ambil vendor yang terlibat dalam proyek ini
         $hpsMapCreate  = $this->batchHpsMap([$proyek->id_proyek]);
         $bayarMapCreate = $this->batchBayarMap(
             [$proyek->id_proyek],
@@ -335,7 +363,6 @@ class PembayaranController extends Controller
                 ->with('error', 'Semua vendor dalam proyek ini sudah lunas');
         }
 
-        // Jika vendor specific dipilih
         $selectedVendor = null;
         if ($id_vendor) {
             $selectedVendor = $vendors->firstWhere('id_vendor', $id_vendor);
@@ -345,25 +372,21 @@ class PembayaranController extends Controller
             }
         }
 
-        // Calculate total dibayar untuk vendor yang dipilih atau semua vendor (hanya yang approved)
         if ($selectedVendor) {
             $totalDibayar     = $bayarMapCreate[$proyek->id_proyek][$selectedVendor->id_vendor] ?? 0;
             $totalModalVendor = $selectedVendor->total_vendor;
             $sisaBayar        = $totalModalVendor - $totalDibayar;
         } else {
-            // Untuk semua vendor combined (use pre-loaded maps)
             $totalModalVendor = array_sum($hpsMapCreate[$proyek->id_proyek] ?? []);
             $totalDibayar     = array_sum($bayarMapCreate[$proyek->id_proyek] ?? []);
             $sisaBayar        = $totalModalVendor - $totalDibayar;
         }
 
-        // Ambil breakdown modal per barang jika vendor dipilih
         $breakdownBarang = null;
-        $ppnDataTerakhir  = [];   // map: id_kalkulasi → item ppn dari pembayaran terakhir
+        $ppnDataTerakhir  = [];
         if ($selectedVendor) {
             $breakdownBarang = $this->buildBreakdownBarang($proyek->id_proyek, $selectedVendor->id_vendor);
 
-            // Ambil ppn_data dari pembayaran terakhir untuk vendor+penawaran ini
             $pembayaranTerakhir = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
                 ->where('id_vendor', $selectedVendor->id_vendor)
                 ->whereNotNull('ppn_data')
@@ -371,14 +394,16 @@ class PembayaranController extends Controller
                 ->first();
 
             if ($pembayaranTerakhir && !empty($pembayaranTerakhir->ppn_data['items'])) {
-                // Buat map id_kalkulasi_hps → item untuk lookup cepat di blade
                 foreach ($pembayaranTerakhir->ppn_data['items'] as $item) {
                     $ppnDataTerakhir[$item['id_kalkulasi_hps']] = $item;
                 }
             }
         }
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-form', compact('proyek', 'vendors', 'selectedVendor', 'totalDibayar', 'sisaBayar', 'totalModalVendor', 'breakdownBarang', 'ppnDataTerakhir'));
+        return view('pages.purchasing.pembayaran-components.pembayaran-form', compact(
+            'proyek', 'vendors', 'selectedVendor', 'totalDibayar',
+            'sisaBayar', 'totalModalVendor', 'breakdownBarang', 'ppnDataTerakhir'
+        ));
     }
 
     /**
@@ -399,30 +424,28 @@ class PembayaranController extends Controller
         }
 
         $request->validate([
-            'id_proyek' => 'required|exists:proyek,id_proyek',
-            'id_vendor' => 'required|exists:vendor,id_vendor',
-            'jenis_bayar' => 'required|in:Lunas,DP,Cicilan',
-            'nominal_bayar' => 'required|numeric|min:0.01',
-            'metode_bayar' => 'required|string',
-            'bukti_bayar' => 'required|array|min:1',
-            'bukti_bayar.*' => 'file|mimes:jpg,jpeg,png,pdf|max:5120', // max 5MB per file
-            'catatan' => 'nullable|string',
-            'ppn_items' => 'nullable|array',
-            'ppn_items.*.id_barang' => 'nullable|string',
-            'ppn_items.*.nama_barang' => 'nullable|string',
-            'ppn_items.*.harga' => 'nullable|numeric|min:0',
-            'ppn_items.*.ada_ppn' => 'nullable|in:1',
-            'ppn_items.*.persen_ppn' => 'nullable|numeric|min:0|max:100',
+            'id_proyek'                  => 'required|exists:proyek,id_proyek',
+            'id_vendor'                  => 'required|exists:vendor,id_vendor',
+            'jenis_bayar'                => 'required|in:Lunas,DP,Cicilan',
+            'nominal_bayar'              => 'required|numeric|min:0.01',
+            'metode_bayar'               => 'required|string',
+            'bukti_bayar'                => 'required|array|min:1',
+            'bukti_bayar.*'              => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'catatan'                    => 'nullable|string',
+            'ppn_items'                  => 'nullable|array',
+            'ppn_items.*.id_barang'      => 'nullable|string',
+            'ppn_items.*.nama_barang'    => 'nullable|string',
+            'ppn_items.*.harga'          => 'nullable|numeric|min:0',
+            'ppn_items.*.ada_ppn'        => 'nullable|in:1',
+            'ppn_items.*.persen_ppn'     => 'nullable|numeric|min:0|max:100',
         ]);
 
         $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor'])->findOrFail($request->id_proyek);
 
-        // Hitung total untuk vendor yang dipilih (menggunakan total_harga_hpp dari kalkulasi_hps)
         $totalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
             ->where('id_vendor', $request->id_vendor)
             ->sum('total_harga_hpp');
 
-        // Validasi nominal pembayaran untuk vendor ini (hanya yang sudah approved)
         $totalDibayar = Pembayaran::where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
             ->where('id_vendor', $request->id_vendor)
             ->where('status_verifikasi', 'Approved')
@@ -436,7 +459,6 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
-            // Upload satu atau lebih bukti pembayaran
             $buktiPaths = [];
             if ($request->hasFile('bukti_bayar')) {
                 foreach ($request->file('bukti_bayar') as $buktiFile) {
@@ -446,79 +468,74 @@ class PembayaranController extends Controller
                 }
             }
 
-            // Proses data PPN per item
             $ppnData = null;
             if ($request->has('ppn_items') && is_array($request->ppn_items)) {
-                $ppnItems = [];
-                $totalPpn = 0;
+                $ppnItems        = [];
+                $totalPpn        = 0;
                 $totalSebelumPpn = 0;
 
                 foreach ($request->ppn_items as $idKalkulasi => $item) {
-                    $harga      = floatval($item['harga'] ?? 0);
-                    $adaPpn     = isset($item['ada_ppn']) && $item['ada_ppn'] == '1';
-                    $persenPpn  = $adaPpn ? floatval($item['persen_ppn'] ?? 11) : 0;
+                    $harga     = floatval($item['harga'] ?? 0);
+                    $adaPpn    = isset($item['ada_ppn']) && $item['ada_ppn'] == '1';
+                    $persenPpn = $adaPpn ? floatval($item['persen_ppn'] ?? 11) : 0;
 
-                    // Ekstrak PPN dari harga yang sudah include PPN
-                    // harga_include_ppn = harga_sebelum_ppn * (1 + persen/100)
-                    // harga_sebelum_ppn = harga / (1 + persen/100)
                     $hargaSebelumPpn = $adaPpn && $persenPpn > 0
                         ? $harga / (1 + $persenPpn / 100)
                         : $harga;
                     $nominalPpn = $harga - $hargaSebelumPpn;
 
                     $ppnItems[] = [
-                        'id_kalkulasi_hps' => $idKalkulasi,
-                        'id_barang'        => $item['id_barang'] ?? $idKalkulasi,
-                        'nama_barang'      => $item['nama_barang'] ?? '',
-                        'harga_total'      => $harga,
-                        'ada_ppn'          => $adaPpn,
-                        'persen_ppn'       => $adaPpn ? $persenPpn : null,
-                        'harga_sebelum_ppn'=> $adaPpn ? round($hargaSebelumPpn, 2) : null,
-                        'nominal_ppn'      => $adaPpn ? round($nominalPpn, 2) : null,
+                        'id_kalkulasi_hps'  => $idKalkulasi,
+                        'id_barang'         => $item['id_barang'] ?? $idKalkulasi,
+                        'nama_barang'       => $item['nama_barang'] ?? '',
+                        'harga_total'       => $harga,
+                        'ada_ppn'           => $adaPpn,
+                        'persen_ppn'        => $adaPpn ? $persenPpn : null,
+                        'harga_sebelum_ppn' => $adaPpn ? round($hargaSebelumPpn, 2) : null,
+                        'nominal_ppn'       => $adaPpn ? round($nominalPpn, 2) : null,
                     ];
 
                     if ($adaPpn) {
-                        $totalPpn       += $nominalPpn;
+                        $totalPpn        += $nominalPpn;
                         $totalSebelumPpn += $hargaSebelumPpn;
                     }
                 }
 
                 $ppnData = [
-                    'items'            => $ppnItems,
-                    'total_ppn'        => round($totalPpn, 2),
-                    'total_sebelum_ppn'=> round($totalSebelumPpn, 2),
-                    'ada_ppn'          => $totalPpn > 0,
+                    'items'             => $ppnItems,
+                    'total_ppn'         => round($totalPpn, 2),
+                    'total_sebelum_ppn' => round($totalSebelumPpn, 2),
+                    'ada_ppn'           => $totalPpn > 0,
                 ];
             }
 
-            // Simpan pembayaran
             $pembayaran = Pembayaran::create([
-                'id_penawaran' => $proyek->penawaranAktif->id_penawaran,
-                'id_vendor' => $request->id_vendor,
-                'jenis_bayar' => $request->jenis_bayar,
-                'nominal_bayar' => $request->nominal_bayar,
-                'tanggal_bayar' => now()->toDateString(),
-                'metode_bayar' => $request->metode_bayar,
-                'bukti_bayar' => $buktiPaths, // Model accessor will JSON-encode this
-                'catatan' => $request->catatan,
-                'status_verifikasi' => 'Pending', // Menunggu verifikasi admin keuangan
-                'ppn_data' => $ppnData,
+                'id_penawaran'      => $proyek->penawaranAktif->id_penawaran,
+                'id_vendor'         => $request->id_vendor,
+                'jenis_bayar'       => $request->jenis_bayar,
+                'nominal_bayar'     => $request->nominal_bayar,
+                'tanggal_bayar'     => now()->toDateString(),
+                'metode_bayar'      => $request->metode_bayar,
+                'bukti_bayar'       => $buktiPaths,
+                'catatan'           => $request->catatan,
+                'status_verifikasi' => 'Pending',
+                'ppn_data'          => $ppnData,
             ]);
 
-            // Check apakah semua vendor sudah lunas untuk update status proyek
+            // Notifikasi: pembayaran diajukan (keuangan)
+            app(NotificationService::class)->pembayaranSubmitted($pembayaran->fresh(['penawaran.proyek']));
+
             $allVendorsData = $proyek->penawaranAktif->penawaranDetail
                 ->groupBy('barang.id_vendor')
                 ->map(function ($details, $vendorId) use ($proyek, $request) {
-                    // Hitung total vendor menggunakan harga modal
-                    $totalVendor = $details->sum(function($detail) {
-                        return $detail->qty * $detail->barang->harga_vendor; // harga modal
+                    $totalVendor = $details->sum(function ($detail) {
+                        return $detail->qty * $detail->barang->harga_vendor;
                     });
                     $totalDibayarVendor = $proyek->pembayaran
                         ->where('id_vendor', $vendorId)
                         ->where('status_verifikasi', 'Approved')
                         ->sum('nominal_bayar');
-                    
-                    // Tambahkan pembayaran yang baru dibuat jika untuk vendor ini
+
                     if ($vendorId == $request->id_vendor) {
                         $totalDibayarVendor += $request->nominal_bayar;
                     }
@@ -526,26 +543,22 @@ class PembayaranController extends Controller
                     return $totalVendor <= $totalDibayarVendor;
                 });
 
-            // Update status proyek jika semua vendor sudah lunas
-            if ($allVendorsData->every(function($isLunas) {
-                return $isLunas;
-            })) {
+            if ($allVendorsData->every(fn($isLunas) => $isLunas)) {
                 $proyek->update(['status' => 'Pengiriman']);
             }
 
             DB::commit();
-            
+
             return redirect()->route('purchasing.pembayaran')
                 ->with('success', 'Pembayaran berhasil disimpan dan menunggu verifikasi admin keuangan');
 
         } catch (\Exception $e) {
             DB::rollback();
-            
-            // Hapus file yang sudah diupload jika terjadi error
+
             foreach ($buktiPaths ?? [] as $uploadedFile) {
                 $this->deleteFileIfExists($uploadedFile);
             }
-            
+
             return back()->with('error', 'Terjadi kesalahan saat menyimpan pembayaran');
         }
     }
@@ -555,26 +568,26 @@ class PembayaranController extends Controller
      */
     public function show($id_pembayaran)
     {
-        $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor'])->findOrFail($id_pembayaran);
-        
-        // Hitung total modal untuk vendor ini saja (menggunakan total_harga_hpp dari kalkulasi_hps)
+        $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor'])
+            ->findOrFail($id_pembayaran);
+
         $totalModalVendor = KalkulasiHps::where('id_proyek', $pembayaran->penawaran->proyek->id_proyek)
             ->where('id_vendor', $pembayaran->id_vendor)
             ->sum('total_harga_hpp');
 
-        // Hitung total yang sudah dibayar untuk vendor ini saja (hanya approved)
         $totalDibayarVendor = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
             ->where('id_vendor', $pembayaran->id_vendor)
             ->where('status_verifikasi', 'Approved')
             ->sum('nominal_bayar');
 
-        // Ambil breakdown modal per barang untuk vendor ini
         $breakdownBarang = $this->buildBreakdownBarang(
             $pembayaran->penawaran->proyek->id_proyek,
             $pembayaran->id_vendor
         );
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-detail', compact('pembayaran', 'totalModalVendor', 'totalDibayarVendor', 'breakdownBarang'));
+        return view('pages.purchasing.pembayaran-components.pembayaran-detail', compact(
+            'pembayaran', 'totalModalVendor', 'totalDibayarVendor', 'breakdownBarang'
+        ));
     }
 
     /**
@@ -582,56 +595,44 @@ class PembayaranController extends Controller
      */
     public function history($id_proyek)
     {
-        $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing'])->findOrFail($id_proyek);
-        
+        $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminMarketing'])
+            ->findOrFail($id_proyek);
+
         $riwayatPembayaran = Pembayaran::with(['penawaran', 'vendor'])
             ->where('id_penawaran', $proyek->penawaranAktif->id_penawaran)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Hitung total modal vendor untuk proyek ini
         $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
             ->sum('total_harga_hpp');
 
-        // --- PPN Rekap per vendor ---
-        // Semua vendor yang ada di proyek ini ditampilkan, baik yang ada PPN maupun tidak.
-        $ppnRekap = [];  // [ id_vendor => [...] ]
+        $ppnRekap = [];
 
-        // Pre-load semua barang per vendor dari KalkulasiHps (untuk fallback vendor tanpa ppn_data)
         $kalkulasiPerVendor = KalkulasiHps::with('barang')
             ->where('id_proyek', $proyek->id_proyek)
             ->get()
             ->groupBy('id_vendor');
 
-        // Gabungkan vendor dari riwayat pembayaran + vendor dari KalkulasiHps
-        $vendorIds = $riwayatPembayaran->pluck('id_vendor')->merge($kalkulasiPerVendor->keys())->unique();
-
-        // Kelompokkan pembayaran per vendor
+        $vendorIds       = $riwayatPembayaran->pluck('id_vendor')->merge($kalkulasiPerVendor->keys())->unique();
         $riwayatByVendor = $riwayatPembayaran->groupBy('id_vendor');
 
         foreach ($vendorIds as $vendorId) {
-            $payments   = $riwayatByVendor->get($vendorId, collect());
-
-            // Cari pembayaran terbaru yang punya ppn_data
+            $payments      = $riwayatByVendor->get($vendorId, collect());
             $latestWithPpn = $payments->filter(fn($p) => !empty($p->ppn_data['items']))->sortByDesc('id_pembayaran')->first();
 
-            // Nama vendor: dari pembayaran atau dari kalkulasi
             $vendorNama = $payments->first()?->vendor?->nama_vendor
                 ?? optional($kalkulasiPerVendor->get($vendorId)?->first()?->barang?->vendor)->nama_vendor
                 ?? "Vendor #{$vendorId}";
 
-            // Kalkulasi akumulasi PPN hanya dari pembayaran Approved per vendor
             $approvedPayments        = $payments->where('status_verifikasi', 'Approved');
             $totalPpnApproved        = $approvedPayments->sum(fn($p) => floatval($p->ppn_data['total_ppn'] ?? 0));
             $totalSebelumPpnApproved = $approvedPayments->sum(fn($p) => floatval($p->ppn_data['total_sebelum_ppn'] ?? 0));
 
             if ($latestWithPpn) {
-                // Vendor punya data PPN dari pembayaran terakhir
-                $ppnItems = $latestWithPpn->ppn_data['items'];
+                $ppnItems        = $latestWithPpn->ppn_data['items'];
                 $snapshotTanggal = $latestWithPpn->tanggal_bayar;
                 $snapshotId      = $latestWithPpn->id_pembayaran;
             } else {
-                // Vendor belum pernah menyimpan ppn_data — fallback ke data barang dari KalkulasiHps
                 $kalkRows = $kalkulasiPerVendor->get($vendorId, collect());
                 $ppnItems = $kalkRows->map(fn($k) => [
                     'id_kalkulasi_hps'  => $k->id_kalkulasi,
@@ -649,14 +650,14 @@ class PembayaranController extends Controller
             }
 
             $ppnRekap[$vendorId] = [
-                'vendor_nama'          => $vendorNama,
-                'items'                => $ppnItems,
-                'total_ppn_approved'   => round($totalPpnApproved, 2),
-                'total_sebelum_ppn'    => round($totalSebelumPpnApproved, 2),
-                'ada_ppn'              => ($totalPpnApproved > 0),
-                'has_snapshot'         => $latestWithPpn !== null,
-                'snapshot_tanggal'     => $snapshotTanggal,
-                'snapshot_id'          => $snapshotId,
+                'vendor_nama'        => $vendorNama,
+                'items'              => $ppnItems,
+                'total_ppn_approved' => round($totalPpnApproved, 2),
+                'total_sebelum_ppn'  => round($totalSebelumPpnApproved, 2),
+                'ada_ppn'            => ($totalPpnApproved > 0),
+                'has_snapshot'       => $latestWithPpn !== null,
+                'snapshot_tanggal'   => $snapshotTanggal,
+                'snapshot_id'        => $snapshotId,
             ];
         }
 
@@ -670,31 +671,27 @@ class PembayaranController extends Controller
      */
     public function calculateSuggestion(Request $request)
     {
-        // Role-based access control: Only allow assigned admin_purchasing
         if (Auth::user()->role !== 'admin_purchasing' && Auth::user()->role !== 'superadmin') {
             return response()->json([
-                'error' => 'Tidak memiliki akses untuk fitur ini. Hanya admin purchasing/superadmin yang dapat menggunakan kalkulator saran pembayaran.'
+                'error' => 'Tidak memiliki akses untuk fitur ini.'
             ], 403);
         }
 
         $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor'])->findOrFail($request->id_proyek);
-        
-        // Check if current user is assigned to this project
-        if ($proyek->id_admin_purchasing != Auth::user()->id_user) {
+
+        if (Auth::user()->role !== 'superadmin' && $proyek->id_admin_purchasing != Auth::user()->id_user) {
             return response()->json([
-                'error' => 'Tidak memiliki akses untuk proyek ini. Hanya admin purchasing yang ditugaskan yang dapat menggunakan kalkulator saran pembayaran.'
+                'error' => 'Tidak memiliki akses untuk proyek ini.'
             ], 403);
         }
 
         $id_vendor = $request->id_vendor;
-        
+
         if ($id_vendor) {
-            // Hitung total modal untuk vendor yang dipilih
             $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
                 ->where('id_vendor', $id_vendor)
                 ->sum('total_harga_hpp');
         } else {
-            // Jika tidak ada vendor dipilih, gunakan total semua vendor
             $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
                 ->sum('total_harga_hpp');
         }
@@ -714,33 +711,31 @@ class PembayaranController extends Controller
      */
     public function edit($id_pembayaran)
     {
-        // Check if user is admin_purchasing and assigned to this project
         $user = Auth::user();
         if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
             return redirect()->route('purchasing.pembayaran')
                 ->with('error', 'Akses ditolak. Hanya admin purchasing/superadmin yang dapat mengedit pembayaran.');
         }
 
-        $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor'])->findOrFail($id_pembayaran);
+        $pembayaran = Pembayaran::with(['penawaran.proyek.penawaranAktif.penawaranDetail.barang.vendor', 'vendor'])
+            ->findOrFail($id_pembayaran);
+
         if ($user->role !== 'superadmin' && $pembayaran->penawaran->proyek->id_admin_purchasing != $user->id_user) {
             return redirect()->route('purchasing.pembayaran')
                 ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk mengedit pembayaran pada proyek ini.');
         }
-        
-        // Hanya bisa edit jika status masih pending
+
         if ($pembayaran->status_verifikasi !== 'Pending') {
             return redirect()->route('purchasing.pembayaran')
                 ->with('error', 'Pembayaran yang sudah diverifikasi tidak dapat diubah');
         }
 
         $proyek = $pembayaran->penawaran->proyek;
-        
-        // Hitung total modal untuk vendor ini (menggunakan total_harga_hpp dari kalkulasi_hps)
+
         $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
             ->where('id_vendor', $pembayaran->id_vendor)
             ->sum('total_harga_hpp');
-        
-        // Hitung total yang sudah dibayar untuk vendor ini (exclude pembayaran ini, hanya approved)
+
         $totalDibayar = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
             ->where('id_vendor', $pembayaran->id_vendor)
             ->where('id_pembayaran', '!=', $id_pembayaran)
@@ -749,10 +744,8 @@ class PembayaranController extends Controller
 
         $sisaBayar = $totalModalVendor - $totalDibayar;
 
-        // Ambil breakdown modal per barang untuk vendor ini
         $breakdownBarang = $this->buildBreakdownBarang($proyek->id_proyek, $pembayaran->id_vendor);
 
-        // Ambil ppn_data: dari pembayaran ini sendiri, atau fallback dari pembayaran lain
         $ppnDataExisting = $pembayaran->ppn_data;
         if (empty($ppnDataExisting)) {
             $pembayaranDenganPpn = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
@@ -764,7 +757,6 @@ class PembayaranController extends Controller
             $ppnDataExisting = $pembayaranDenganPpn?->ppn_data;
         }
 
-        // Buat map id_kalkulasi_hps => item ppn untuk lookup di blade
         $ppnMapExisting = [];
         if (!empty($ppnDataExisting['items'])) {
             foreach ($ppnDataExisting['items'] as $item) {
@@ -772,7 +764,10 @@ class PembayaranController extends Controller
             }
         }
 
-        return view('pages.purchasing.pembayaran-components.pembayaran-edit', compact('pembayaran', 'proyek', 'totalDibayar', 'sisaBayar', 'totalModalVendor', 'breakdownBarang', 'ppnDataExisting', 'ppnMapExisting'));
+        return view('pages.purchasing.pembayaran-components.pembayaran-edit', compact(
+            'pembayaran', 'proyek', 'totalDibayar', 'sisaBayar',
+            'totalModalVendor', 'breakdownBarang', 'ppnDataExisting', 'ppnMapExisting'
+        ));
     }
 
     /**
@@ -780,7 +775,6 @@ class PembayaranController extends Controller
      */
     public function update(Request $request, $id_pembayaran)
     {
-        // Check if user is admin_purchasing and assigned to this project
         $user = Auth::user();
         if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
             return redirect()->route('purchasing.pembayaran')
@@ -792,38 +786,35 @@ class PembayaranController extends Controller
             return redirect()->route('purchasing.pembayaran')
                 ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk mengupdate pembayaran pada proyek ini.');
         }
-        
-        // Hanya bisa update jika status masih pending
+
         if ($pembayaran->status_verifikasi !== 'Pending') {
             return redirect()->route('purchasing.pembayaran')
                 ->with('error', 'Pembayaran yang sudah diverifikasi tidak dapat diubah');
         }
 
         $request->validate([
-            'jenis_bayar' => 'required|in:Lunas,DP,Cicilan',
-            'nominal_bayar' => 'required|numeric|min:0.01',
-            'metode_bayar' => 'required|string',
-            'bukti_bayar' => 'nullable|array',
-            'bukti_bayar.*' => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
-            'delete_files' => 'nullable|array',
-            'delete_files.*' => 'string',
-            'catatan' => 'nullable|string',
-            'ppn_items' => 'nullable|array',
-            'ppn_items.*.id_barang' => 'nullable|string',
-            'ppn_items.*.nama_barang' => 'nullable|string',
-            'ppn_items.*.harga' => 'nullable|numeric|min:0',
-            'ppn_items.*.ada_ppn' => 'nullable|in:1',
+            'jenis_bayar'            => 'required|in:Lunas,DP,Cicilan',
+            'nominal_bayar'          => 'required|numeric|min:0.01',
+            'metode_bayar'           => 'required|string',
+            'bukti_bayar'            => 'nullable|array',
+            'bukti_bayar.*'          => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'delete_files'           => 'nullable|array',
+            'delete_files.*'         => 'string',
+            'catatan'                => 'nullable|string',
+            'ppn_items'              => 'nullable|array',
+            'ppn_items.*.id_barang'  => 'nullable|string',
+            'ppn_items.*.nama_barang'=> 'nullable|string',
+            'ppn_items.*.harga'      => 'nullable|numeric|min:0',
+            'ppn_items.*.ada_ppn'    => 'nullable|in:1',
             'ppn_items.*.persen_ppn' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $proyek = $pembayaran->penawaran->proyek;
-        
-        // Hitung total modal untuk vendor ini (menggunakan total_harga_hpp dari kalkulasi_hps)
+
         $totalModalVendor = KalkulasiHps::where('id_proyek', $proyek->id_proyek)
             ->where('id_vendor', $pembayaran->id_vendor)
             ->sum('total_harga_hpp');
 
-        // Validasi nominal pembayaran untuk vendor ini (hanya hitung yang Approved, exclude current)
         $totalDibayar = Pembayaran::where('id_penawaran', $pembayaran->id_penawaran)
             ->where('id_vendor', $pembayaran->id_vendor)
             ->where('id_pembayaran', '!=', $id_pembayaran)
@@ -838,22 +829,18 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
-            $existingFiles = $pembayaran->bukti_bayar_array; // semua file lama
-            $filesToDelete = $request->input('delete_files', []); // file lama yang ingin dihapus
+            $existingFiles = $pembayaran->bukti_bayar_array;
+            $filesToDelete = $request->input('delete_files', []);
 
-            // Hapus file yang dipilih untuk dihapus
             foreach ($filesToDelete as $fileToDelete) {
-                // Pastikan hanya menghapus file milik pembayaran ini (security check)
                 if (in_array($fileToDelete, $existingFiles)) {
                     $this->deleteFileIfExists($fileToDelete);
                 }
             }
 
-            // File lama yang masih tersisa (tidak dihapus)
-            $remainingFiles = array_values(array_diff($existingFiles, $filesToDelete));
-
-            // Upload file baru jika ada
+            $remainingFiles     = array_values(array_diff($existingFiles, $filesToDelete));
             $newlyUploadedFiles = [];
+
             if ($request->hasFile('bukti_bayar')) {
                 foreach ($request->file('bukti_bayar') as $buktiFile) {
                     $fileName = time() . '_' . uniqid() . '_bukti_' . $buktiFile->getClientOriginalName();
@@ -862,14 +849,12 @@ class PembayaranController extends Controller
                 }
             }
 
-            // Gabungkan file lama yang tersisa + file baru
             $finalFiles = array_merge($remainingFiles, $newlyUploadedFiles);
 
-            // Proses data PPN per item
             $ppnData = null;
             if ($request->has('ppn_items') && is_array($request->ppn_items)) {
-                $ppnItems    = [];
-                $totalPpn    = 0;
+                $ppnItems     = [];
+                $totalPpn     = 0;
                 $totalSebelum = 0;
 
                 foreach ($request->ppn_items as $idKalkulasi => $item) {
@@ -894,7 +879,7 @@ class PembayaranController extends Controller
                     ];
 
                     if ($adaPpn) {
-                        $totalPpn    += $nominalPpn;
+                        $totalPpn     += $nominalPpn;
                         $totalSebelum += $hargaSebelumPpn;
                     }
                 }
@@ -907,14 +892,13 @@ class PembayaranController extends Controller
                 ];
             }
 
-            // Update pembayaran
             $pembayaran->update([
-                'jenis_bayar'  => $request->jenis_bayar,
-                'nominal_bayar'=> $request->nominal_bayar,
-                'metode_bayar' => $request->metode_bayar,
-                'bukti_bayar'  => $finalFiles,
-                'catatan'      => $request->catatan,
-                'ppn_data'     => $ppnData,
+                'jenis_bayar'   => $request->jenis_bayar,
+                'nominal_bayar' => $request->nominal_bayar,
+                'metode_bayar'  => $request->metode_bayar,
+                'bukti_bayar'   => $finalFiles,
+                'catatan'       => $request->catatan,
+                'ppn_data'      => $ppnData,
             ]);
 
             DB::commit();
@@ -924,12 +908,11 @@ class PembayaranController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            
-            // Hapus file baru yang sudah terupload jika terjadi error
+
             foreach ($newlyUploadedFiles ?? [] as $newFile) {
                 $this->deleteFileIfExists($newFile);
             }
-            
+
             return back()->with('error', 'Terjadi kesalahan saat mengupdate pembayaran');
         }
     }
@@ -939,7 +922,6 @@ class PembayaranController extends Controller
      */
     public function destroy($id_pembayaran)
     {
-        // Check if user is admin_purchasing and assigned to this project
         $user = Auth::user();
         if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
             return redirect()->route('purchasing.pembayaran')
@@ -951,8 +933,7 @@ class PembayaranController extends Controller
             return redirect()->route('purchasing.pembayaran')
                 ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk menghapus pembayaran pada proyek ini.');
         }
-        
-        // Hanya bisa hapus jika status masih pending
+
         if ($pembayaran->status_verifikasi !== 'Pending') {
             return redirect()->route('purchasing.pembayaran')
                 ->with('error', 'Pembayaran yang sudah diverifikasi tidak dapat dihapus');
@@ -960,12 +941,9 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
-            $buktiPaths = $pembayaran->bukti_bayar_array; // get all files as array
-            
-            // Hapus record dari database
+            $buktiPaths = $pembayaran->bukti_bayar_array;
             $pembayaran->delete();
-            
-            // Hapus semua file bukti pembayaran
+
             foreach ($buktiPaths as $filePath) {
                 $this->deleteFileIfExists($filePath);
             }
@@ -991,7 +969,7 @@ class PembayaranController extends Controller
                 Storage::disk('public')->delete($filePath);
             }
         } catch (\Exception $e) {
-            // Silent fail untuk cleanup
+            // Silent fail
         }
     }
 
@@ -1000,31 +978,360 @@ class PembayaranController extends Controller
      */
     public function cleanupOrphanedFiles()
     {
-        // Ambil semua file di root storage/app/public yang berkaitan dengan pembayaran (berdasarkan prefix)
-        $allFiles = collect(Storage::disk('public')->files(''))->filter(function($file) {
+        $allFiles = collect(Storage::disk('public')->files(''))->filter(function ($file) {
             return strpos($file, '_bukti_') !== false;
         });
-        
-        // Ambil semua path file yang masih digunakan di database
+
         $usedFiles = Pembayaran::whereNotNull('bukti_bayar')
             ->pluck('bukti_bayar')
             ->toArray();
 
         $orphanedFiles = $allFiles->diff($usedFiles);
-        $deletedCount = 0;
+        $deletedCount  = 0;
 
         foreach ($orphanedFiles as $file) {
             try {
                 Storage::disk('public')->delete($file);
                 $deletedCount++;
             } catch (\Exception $e) {
-                // Silent fail untuk file yang tidak bisa dihapus
+                // Silent fail
             }
         }
 
         return response()->json([
-            'message' => "Cleanup completed. {$deletedCount} orphaned files deleted.",
-            'deleted_count' => $deletedCount
+            'message'       => "Cleanup completed. {$deletedCount} orphaned files deleted.",
+            'deleted_count' => $deletedCount,
         ]);
+    }
+
+    /**
+     * Placeholder page: Pembuatan Surat PO (per proyek + vendor)
+     */
+    public function pembuatanSuratPo($id_proyek, $id_vendor)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak. Hanya admin purchasing/superadmin yang dapat membuat Surat PO.');
+        }
+
+        $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminPurchasing'])
+            ->findOrFail($id_proyek);
+        $vendor = Vendor::findOrFail($id_vendor);
+
+        if ($user->role !== 'superadmin' && $proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran', ['tab' => 'pembuatan-surat-po'])
+                ->with('error', 'Akses ditolak. Anda tidak memiliki akses untuk proyek ini.');
+        }
+
+        $kalkulasiItems = KalkulasiHps::with('barang')
+            ->where('id_proyek', $proyek->id_proyek)
+            ->where('id_vendor', $vendor->id_vendor)
+            ->orderBy('id_barang')
+            ->get();
+
+        $suratPo = SuratPo::with('items')
+            ->where('id_proyek', $proyek->id_proyek)
+            ->where('id_vendor', $vendor->id_vendor)
+            ->first();
+
+        if (!$suratPo) {
+            $suratPo = SuratPo::create([
+                'id_proyek'           => $proyek->id_proyek,
+                'id_vendor'           => $vendor->id_vendor,
+                'id_user_purchasing'  => $proyek->id_admin_purchasing,
+                'tanggal_surat'       => now()->toDateString(),
+                'po_number'           => $proyek->kode_proyek,
+                'ship_to_instansi'    => $proyek->instansi ?? '',
+                'ship_to_alamat'      => $proyek->kab_kota ?? '',
+                'comments_html'       => null,
+                'tax'                 => 0,
+                'shipping'            => 0,
+                'other'               => 0,
+                'dp_percent'          => 30,
+                'termin2_percent'     => 30,
+                'pelunasan_percent'   => 40,
+            ]);
+        }
+
+        $existingByKalkulasi = $suratPo->items->keyBy('id_kalkulasi_hps');
+        foreach ($kalkulasiItems as $k) {
+            if (!$existingByKalkulasi->has($k->id_kalkulasi)) {
+                SuratPoItem::create([
+                    'id_surat_po'      => $suratPo->id_surat_po,
+                    'id_barang'        => $k->id_barang,
+                    'id_kalkulasi_hps' => $k->id_kalkulasi,
+                    'qty'              => (int) $k->qty,
+                    'unit_price'       => (float) ($k->harga_akhir ?? 0),
+                    'spec_html'        => null,
+                ]);
+            }
+        }
+
+        $suratPo->load('items.barang');
+
+        $dpp             = (float) $suratPo->dpp;
+        $total           = (float) $suratPo->total;
+        $dpAmount        = (float) $suratPo->dp_amount;
+        $termin2Amount   = (float) $suratPo->termin2_amount;
+        $pelunasanAmount = (float) $suratPo->pelunasan_amount;
+
+        return view('pages.purchasing.pembayaran-components.pembuatan-surat-po', compact(
+            'proyek', 'vendor', 'suratPo', 'kalkulasiItems',
+            'dpp', 'total', 'dpAmount', 'termin2Amount', 'pelunasanAmount'
+        ));
+    }
+
+    /**
+     * Simpan / update draft Surat PO beserta lampiran PDF.
+     */
+    public function simpanSuratPo(Request $request, $id_proyek, $id_vendor)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak.');
+        }
+
+        $proyek = Proyek::with('adminPurchasing')->findOrFail($id_proyek);
+        $vendor = Vendor::findOrFail($id_vendor);
+
+        if ($user->role !== 'superadmin' && $proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran', ['tab' => 'pembuatan-surat-po'])
+                ->with('error', 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'tanggal_surat'                => ['nullable', 'date'],
+            'ship_to_instansi'             => ['nullable', 'string', 'max:255'],
+            'ship_to_alamat'               => ['nullable', 'string'],
+            'comments_html'                => ['nullable', 'string'],
+            'tax'                          => ['nullable', 'numeric', 'min:0'],
+            'shipping'                     => ['nullable', 'numeric', 'min:0'],
+            'other'                        => ['nullable', 'numeric', 'min:0'],
+            'dp_percent'                   => ['required', 'numeric', 'min:0', 'max:100'],
+            'termin2_percent'              => ['required', 'numeric', 'min:0', 'max:100'],
+            'pelunasan_percent'            => ['required', 'numeric', 'min:0', 'max:100'],
+            'items'                        => ['required', 'array'],
+            'items.*.id_surat_po_item'     => ['required', 'integer'],
+            'items.*.spec_html'            => ['nullable', 'string'],
+            'lampiran_pdfs'                => ['nullable'],
+            'lampiran_pdfs.*'              => ['file', 'mimes:pdf', 'max:10240'],
+        ]);
+
+        DB::transaction(function () use ($request, $proyek, $vendor) {
+            $suratPo = SuratPo::firstOrCreate(
+                ['id_proyek' => $proyek->id_proyek, 'id_vendor' => $vendor->id_vendor],
+                [
+                    'id_user_purchasing' => $proyek->id_admin_purchasing,
+                    'tanggal_surat'      => now()->toDateString(),
+                    'po_number'          => $proyek->kode_proyek,
+                    'ship_to_instansi'   => $proyek->instansi ?? '',
+                    'ship_to_alamat'     => $proyek->kab_kota ?? '',
+                ]
+            );
+
+            $suratPo->update([
+                'tanggal_surat'    => $request->tanggal_surat,
+                'po_number'        => $proyek->kode_proyek,
+                'ship_to_instansi' => $request->ship_to_instansi,
+                'ship_to_alamat'   => $request->ship_to_alamat,
+                'comments_html'    => $request->comments_html,
+                'tax'              => $request->tax ?? 0,
+                'shipping'         => $request->shipping ?? 0,
+                'other'            => $request->other ?? 0,
+                'dp_percent'       => $request->dp_percent,
+                'termin2_percent'  => $request->termin2_percent,
+                'pelunasan_percent'=> $request->pelunasan_percent,
+            ]);
+
+            foreach ($request->items as $itemPayload) {
+                SuratPoItem::where('id_surat_po_item', $itemPayload['id_surat_po_item'])
+                    ->where('id_surat_po', $suratPo->id_surat_po)
+                    ->update([
+                        'spec_html' => $itemPayload['spec_html'] ?? null,
+                    ]);
+            }
+
+            // Upload lampiran PDF (append ke lampiran_files JSON)
+            if ($request->hasFile('lampiran_pdfs')) {
+                $rawRow   = DB::table('surat_po')->where('id_surat_po', $suratPo->id_surat_po)->value('lampiran_files');
+                $existing = [];
+                if ($rawRow) {
+                    $decoded  = json_decode($rawRow, true);
+                    $existing = is_array($decoded) ? $decoded : [];
+                }
+
+                foreach ($request->file('lampiran_pdfs') as $file) {
+                    if (!$file || !$file->isValid()) continue;
+
+                    $safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', $file->getClientOriginalName());
+                    $filename = time() . '_' . uniqid() . '_' . $safeName;
+                    $path     = $file->storeAs('surat-po/lampiran', $filename, 'public');
+
+                    $existing[] = [
+                        'path'          => $path,
+                        'original_name' => $file->getClientOriginalName(),
+                        'uploaded_at'   => now()->toDateTimeString(),
+                        'size'          => $file->getSize(),
+                    ];
+                }
+
+                DB::table('surat_po')
+                    ->where('id_surat_po', $suratPo->id_surat_po)
+                    ->update(['lampiran_files' => json_encode(array_values($existing))]);
+            }
+        });
+
+        return redirect()->route('purchasing.pembayaran.pembuatan-surat-po', [$proyek->id_proyek, $vendor->id_vendor])
+            ->with('success', 'Draft Surat PO berhasil disimpan.');
+    }
+
+    /**
+     * Hapus 1 lampiran dari Surat PO.
+     */
+    public function deleteSuratPoLampiran(Request $request, $id_proyek, $id_vendor)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate(['path' => 'required|string']);
+
+        $proyek = Proyek::findOrFail($id_proyek);
+        if ($user->role !== 'superadmin' && $proyek->id_admin_purchasing != $user->id_user) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $suratPo = SuratPo::where('id_proyek', $id_proyek)->where('id_vendor', $id_vendor)->firstOrFail();
+        $path    = $request->input('path');
+
+        $rawRow = DB::table('surat_po')->where('id_surat_po', $suratPo->id_surat_po)->value('lampiran_files');
+        $files  = [];
+        if ($rawRow) {
+            $decoded = json_decode($rawRow, true);
+            $files   = is_array($decoded) ? $decoded : [];
+        }
+
+        $newFiles = [];
+        foreach ($files as $f) {
+            if (($f['path'] ?? null) === $path) {
+                if ($path && Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+                continue;
+            }
+            $newFiles[] = $f;
+        }
+
+        DB::table('surat_po')
+            ->where('id_surat_po', $suratPo->id_surat_po)
+            ->update(['lampiran_files' => json_encode(array_values($newFiles))]);
+
+        $suratPo = SuratPo::find($suratPo->id_surat_po);
+
+        return response()->json([
+            'success'        => true,
+            'message'        => 'Lampiran berhasil dihapus.',
+            'lampiran_files' => $suratPo->lampiran_files_list,
+        ]);
+    }
+
+    /**
+     * Merge generated Surat PO PDF with any uploaded lampiran PDFs.
+     */
+    private function mergeSuratPoWithLampiran(string $poPdfContent, ?SuratPo $suratPo = null): string
+    {
+        $lampiranList = [];
+
+        try {
+            if ($suratPo) {
+                $rawRow = DB::table('surat_po')
+                    ->where('id_surat_po', $suratPo->id_surat_po)
+                    ->value('lampiran_files');
+
+                if ($rawRow) {
+                    $decoded      = json_decode($rawRow, true);
+                    $lampiranList = is_array($decoded) ? $decoded : [];
+                }
+            }
+        } catch (\Throwable $e) {
+            // silent
+        }
+
+        if (empty($lampiranList)) {
+            return $poPdfContent;
+        }
+
+        try {
+            $merger = new Merger();
+            $merger->addRaw($poPdfContent);
+
+            foreach ($lampiranList as $f) {
+                $path = $f['path'] ?? null;
+                if (!$path) continue;
+
+                $absolutePath = storage_path('app/public/' . ltrim($path, '/\\'));
+                if (!file_exists($absolutePath)) continue;
+
+                $raw = file_get_contents($absolutePath);
+                if (!$raw || strlen($raw) === 0) continue;
+
+                $merger->addRaw($raw);
+            }
+
+            return $merger->merge();
+        } catch (\Throwable $e) {
+            return $poPdfContent;
+        }
+    }
+
+    /**
+     * Preview Surat PO as PDF (merged with lampiran if any).
+     */
+    public function previewSuratPoPdf($id_proyek, $id_vendor)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin_purchasing' && $user->role !== 'superadmin') {
+            return redirect()->route('purchasing.pembayaran')
+                ->with('error', 'Akses ditolak.');
+        }
+
+        $proyek = Proyek::with(['penawaranAktif.penawaranDetail.barang.vendor', 'adminPurchasing'])
+            ->findOrFail($id_proyek);
+        $vendor = Vendor::findOrFail($id_vendor);
+
+        if ($user->role !== 'superadmin' && $proyek->id_admin_purchasing != $user->id_user) {
+            return redirect()->route('purchasing.pembayaran', ['tab' => 'pembuatan-surat-po'])
+                ->with('error', 'Akses ditolak.');
+        }
+
+        $suratPo = SuratPo::with(['items.barang', 'purchasing'])
+            ->where('id_proyek', $proyek->id_proyek)
+            ->where('id_vendor', $vendor->id_vendor)
+            ->firstOrFail();
+
+        // Jika DomPDF tersedia, preview sebagai PDF + merge lampiran
+        try {
+            $pdf     = Pdf::loadView('pages.files.surat-po', [
+                'proyek'  => $proyek,
+                'vendor'  => $vendor,
+                'suratPo' => $suratPo,
+            ]);
+            $content = $this->mergeSuratPoWithLampiran($pdf->output(), $suratPo);
+
+            return response($content, 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="surat-po-preview.pdf"',
+            ]);
+        } catch (\Throwable $e) {
+            // fallback: HTML preview
+            return view('pages.files.surat-po', [
+                'proyek'  => $proyek,
+                'vendor'  => $vendor,
+                'suratPo' => $suratPo,
+            ]);
+        }
     }
 }

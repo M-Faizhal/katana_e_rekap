@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Services\NotificationService;
 
 class PengajuanKostController extends Controller
 {
@@ -110,6 +111,9 @@ class PengajuanKostController extends Controller
             }
 
             DB::commit();
+
+            // Notifikasi: pengajuan cost baru (keuangan)
+            app(NotificationService::class)->pengajuanKostSubmitted($pengajuan->fresh());
 
             return response()->json([
                 'success' => true,

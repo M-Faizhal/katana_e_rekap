@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\NotificationService;
 
 class ApprovalController extends Controller
 {
@@ -208,6 +209,9 @@ class ApprovalController extends Controller
                 'tanggal_verifikasi' => now(),
                 'catatan' => $request->catatan
             ]);
+
+            // Notifikasi: pembayaran approved (ke purchasing PIC)
+            app(NotificationService::class)->pembayaranApproved($pembayaran->fresh(['penawaran.proyek']));
 
             // Ambil data proyek
             $proyek = $pembayaran->penawaran->proyek;
