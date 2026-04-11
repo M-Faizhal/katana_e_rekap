@@ -555,7 +555,14 @@
       <div class="comments-header">Comments Or Special Instructions</div>
       <div class="comments-body">
         @if(!empty($special))
-          {!! $special !!}
+          @php
+            $specialSafe = (string) $special;
+            $specialSafe = preg_replace('~<img\b[^>]*\bsrc\s*=\s*(["\"])\s*[^"\']*?\.webp(?:\?[^"\']*)?\1[^>]*>~i', '', $specialSafe);
+            $specialSafe = preg_replace('~\ssrcset\s*=\s*(["\"]).*?webp.*?\1~i', '', $specialSafe);
+            $specialSafe = preg_replace('~url\(([^)]*?\.webp[^)]*)\)~i', 'url()', $specialSafe);
+            $specialSafe = preg_replace('~background(?:-image)?\s*:\s*[^;]*?\.webp[^;]*;?~i', '', $specialSafe);
+          @endphp
+          {!! $specialSafe !!}
         @else
           <div class="comments-section-title">Pengiriman</div>
           <ul class="comments-list">

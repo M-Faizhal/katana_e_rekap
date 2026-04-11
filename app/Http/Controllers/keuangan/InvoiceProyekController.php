@@ -133,56 +133,79 @@ class InvoiceProyekController extends Controller
         return $pdf->download('invoice-' . $no . '.pdf');
     }
 
-    private function buildPdfData($proyekId): array
-{
-    $user = Auth::user();
-    if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
-        abort(403, 'Akses ditolak.');
-    }
-
-    $proyek = Proyek::with([
-        'semuaPenawaran' => function ($q) {
-            $q->where('status', 'ACC')->latest('id_penawaran');
-        },
-        'semuaPenawaran.penawaranDetail'
-    ])->where('id_proyek', $proyekId)->firstOrFail();
-
-    $penawaran = $proyek->semuaPenawaran->first();
-    if (!$penawaran) {
-        abort(404, 'Penawaran ACC tidak ditemukan.');
-    }
-
-    $invoice = InvoiceProyek::with(['items', 'items.penawaranDetail'])
-        ->where('id_proyek', $proyek->id_proyek)
-        ->where('id_penawaran', $penawaran->id_penawaran)
-        ->firstOrFail();
-
-    $itemByDetail = $invoice->items->keyBy('id_penawaran_detail');
-
-    $details = $penawaran->penawaranDetail->map(function ($d) use ($itemByDetail) {
-        $keteranganHtml = $itemByDetail[$d->id_detail]->keterangan_html ?? null;
-
-        // Bersihkan semua <img> webp yang tidak didukung Dompdf di server
-        if ($keteranganHtml) {
-            // Hapus tag <img> dengan src webp
-            $keteranganHtml = preg_replace('/<img[^>]+src=["\'][^"\']*\.webp[^"\']*["\'][^>]*\/?>/i', '', $keteranganHtml);
-            // Hapus juga img webp yang srcnya pakai URL encode
-            $keteranganHtml = preg_replace('/<img[^>]+src=["\'][^"\']*webp[^"\']*["\'][^>]*\/?>/i', '', $keteranganHtml);
+    /**
+     * Sanitasi HTML agar aman dirender oleh Dompdf di server yang tidak mendukung WEBP.
+     * - Menghapus <img> dengan src webp
+     * - Menghapus srcset yang mengandung webp
+     * - Menghapus style/background-image url(...) yang mengandung webp
+     */
+    private function sanitizeHtmlForDompdf(?string $html): ?string
+    {
+        if ($html === null || $html === '') {
+            return $html;
         }
 
-        return [
-            'id_detail'       => $d->id_detail,
-            'nama_barang'     => $d->nama_barang,
-            'qty'             => $d->qty,
-            'satuan'          => $d->satuan,
-            'harga_satuan'    => $d->harga_satuan,
-            'subtotal'        => $d->subtotal,
-            'keterangan_html' => $keteranganHtml,
-        ];
-    });
+        $out = $html;
 
-    $total = (float)$penawaran->penawaranDetail->sum('subtotal');
+        // Hapus tag <img> yang src mengandung .webp (jaga-jaga variasi querystring)
+        $out = preg_replace('~<img\b[^>]*\bsrc\s*=\s*(["\"])\s*[^"\']*?\.webp(?:\?[^"\']*)?\1[^>]*>~i', '', $out);
 
-    return compact('proyek', 'penawaran', 'invoice', 'details', 'total');
+        // Hapus atribut srcset yang mengandung webp (beberapa editor WYSIWYG menambah ini)
+        $out = preg_replace('~\ssrcset\s*=\s*(["\"]).*?webp.*?\1~i', '', $out);
+
+        // Hapus background-image / background url(...webp...)
+        $out = preg_replace('~url\(([^)]*?\.webp[^)]*)\)~i', 'url()', $out);
+        $out = preg_replace('~background(?:-image)?\s*:\s*[^;]*?\.webp[^;]*;?~i', '', $out);
+
+        return $out;
+    }
+
+    private function buildPdfData($proyekId): array
+    {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin_keuangan', 'superadmin'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $proyek = Proyek::with([
+            'semuaPenawaran' => function ($q) {
+                $q->where('status', 'ACC')->latest('id_penawaran');
+            },
+            'semuaPenawaran.penawaranDetail'
+        ])->where('id_proyek', $proyekId)->firstOrFail();
+
+        $penawaran = $proyek->semuaPenawaran->first();
+        if (!$penawaran) {
+            abort(404, 'Penawaran ACC tidak ditemukan.');
+        }
+
+        $invoice = InvoiceProyek::with(['items', 'items.penawaranDetail'])
+            ->where('id_proyek', $proyek->id_proyek)
+            ->where('id_penawaran', $penawaran->id_penawaran)
+            ->firstOrFail();
+
+        $itemByDetail = $invoice->items->keyBy('id_penawaran_detail');
+
+        $details = $penawaran->penawaranDetail->map(function ($d) use ($itemByDetail) {
+            // Hindari undefined index jika item invoice belum dibuat untuk detail ini
+            $keteranganHtml = optional($itemByDetail->get($d->id_detail))->keterangan_html;
+
+            // Bersihkan semua image webp yang tidak didukung Dompdf di server
+            $keteranganHtml = $this->sanitizeHtmlForDompdf($keteranganHtml);
+
+            return [
+                'id_detail'       => $d->id_detail,
+                'nama_barang'     => $d->nama_barang,
+                'qty'             => $d->qty,
+                'satuan'          => $d->satuan,
+                'harga_satuan'    => $d->harga_satuan,
+                'subtotal'        => $d->subtotal,
+                'keterangan_html' => $keteranganHtml,
+            ];
+        });
+
+        $total = (float)$penawaran->penawaranDetail->sum('subtotal');
+
+        return compact('proyek', 'penawaran', 'invoice', 'details', 'total');
     }
 }
