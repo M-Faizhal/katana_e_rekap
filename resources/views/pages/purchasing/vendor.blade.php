@@ -772,9 +772,9 @@ function submitEditVendor() {
         showToast('Anda tidak memiliki izin untuk mengedit vendor', 'error');
         return;
     }
-    
+
     const vendorId = document.getElementById('editVendorId').value;
-    
+
     // Validate required fields before sending
     const requiredFields = {
         'nama_vendor': document.getElementById('editNamaVendor').value,
@@ -889,33 +889,37 @@ function submitEditVendor() {
     // Estimate total form variables to avoid max_input_vars limit
     const estimatedVars = 6 + (validProductCount * 7); // 6 vendor fields + 7 fields per product
     console.log(`Estimated form variables: ${estimatedVars}`);
-    
+
     let requestBody;
     let headers = {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
         'Accept': 'application/json',
     };
-    
+
+    // IMPORTANT:
+    // - JSON request TIDAK bisa membawa file.
+    // - Kalau user update foto/spesifikasi_file, kita WAJIB pakai FormData.
+    // - Jika data terlalu banyak (estimatedVars tinggi), tetap sarankan user kurangi produk (limit max_input_vars)
+    const mustUseFormDataBecauseHasFiles = hasFiles === true;
+
     // Always use JSON for large datasets to avoid max_input_vars limit
     // Only use FormData for small datasets with files
-    if (estimatedVars > 100 || (!hasFiles && validProductCount > 0)) {
+    if (!mustUseFormDataBecauseHasFiles && (estimatedVars > 100 || (!hasFiles && validProductCount > 0))) {
         console.log('Using JSON submission to avoid max_input_vars limit');
-        
-        // For JSON requests, we can't send files, so we'll skip files for now
-        // Files will need to be handled separately if needed
-        if (hasFiles) {
-            console.warn('Files detected but using JSON submission - files will be skipped');
-            showToast('Perhatian: File akan diabaikan untuk menghindari error. Silakan edit produk satu per satu untuk menambah file.', 'warning');
-        }
-        
+
         requestBody = JSON.stringify(vendorData);
         headers['Content-Type'] = 'application/json';
-        
+
     } else {
-        console.log('Using FormData submission for small dataset with files');
-        // Use FormData for small datasets with file uploads
+        console.log('Using FormData submission (files present OR small dataset)');
+
+        if (estimatedVars > 100) {
+            // Ini warning saja (biar user paham kenapa bisa gagal di server)
+            console.warn('Large dataset with FormData may hit max_input_vars on server. Consider reducing product count.');
+        }
+
         const formData = new FormData();
-        
+
         // Add vendor data
         formData.append('_method', vendorData._method);
         formData.append('nama_vendor', vendorData.nama_vendor);
@@ -923,8 +927,14 @@ function submitEditVendor() {
         formData.append('jenis_perusahaan', vendorData.jenis_perusahaan);
         formData.append('kontak', vendorData.kontak);
         formData.append('alamat', vendorData.alamat);
-        
-        // Add product data (only for small datasets)
+
+        // Missing fields (sebelumnya tidak ikut terkirim saat FormData)
+        formData.append('pkp', vendorData.pkp);
+        formData.append('keterangan', vendorData.keterangan);
+        formData.append('online_shop', vendorData.online_shop);
+        formData.append('nama_online_shop', vendorData.nama_online_shop);
+
+        // Add product data
         vendorData.barang.forEach((product, index) => {
             if (product.id_barang) {
                 formData.append(`barang[${index}][id_barang]`, product.id_barang);
@@ -935,8 +945,7 @@ function submitEditVendor() {
             formData.append(`barang[${index}][satuan]`, product.satuan);
             formData.append(`barang[${index}][spesifikasi]`, product.spesifikasi);
             formData.append(`barang[${index}][harga_vendor]`, product.harga_vendor);
-            
-            // Add new fields
+
             if (product.harga_pasaran_inaproc) {
                 formData.append(`barang[${index}][harga_pasaran_inaproc]`, product.harga_pasaran_inaproc);
             }
@@ -961,20 +970,20 @@ function submitEditVendor() {
             if (product.link_produk) {
                 formData.append(`barang[${index}][link_produk]`, product.link_produk);
             }
-            
+
             // Add files from original products array
             const originalProduct = editVendorProducts[index];
-            if (originalProduct.foto_barang && originalProduct.foto_barang instanceof File) {
+            if (originalProduct?.foto_barang && originalProduct.foto_barang instanceof File) {
                 formData.append(`barang[${index}][foto_barang]`, originalProduct.foto_barang);
             }
-            if (originalProduct.spesifikasi_file && originalProduct.spesifikasi_file instanceof File) {
+            if (originalProduct?.spesifikasi_file && originalProduct.spesifikasi_file instanceof File) {
                 formData.append(`barang[${index}][spesifikasi_file]`, originalProduct.spesifikasi_file);
             }
         });
-        
+
         requestBody = formData;
     }
-    
+
     fetch(`/purchasing/vendor/${vendorId}`, {
         method: 'POST',
         headers: headers,
