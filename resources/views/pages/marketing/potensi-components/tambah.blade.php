@@ -203,6 +203,16 @@
                             <input type="number" name="tahun_potensi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="{{ date('Y') }}" value="{{ date('Y') }}" min="2020" max="2030">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Triwulan</label>
+                            <select name="triwulan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Pilih triwulan</option>
+                                <option value="1">Triwulan 1</option>
+                                <option value="2">Triwulan 2</option>
+                                <option value="3">Triwulan 3</option>
+                                <option value="4">Triwulan 4</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-calendar-alt text-red-500 mr-1"></i>
                                 Deadline
@@ -1206,6 +1216,8 @@ function collectTambahFormData() {
     data.potensi = formData.get('potensi') || 'tidak';
     data.tahun_potensi = parseInt(formData.get('tahun_potensi')) || new Date().getFullYear();
     data.deadline = formData.get('deadline') || '';
+    data.triwulan = formData.get('triwulan') || null;
+
 
     // Kumpulkan data SEMUA barang, bukan hanya yang pertama
     const daftarBarang = [];

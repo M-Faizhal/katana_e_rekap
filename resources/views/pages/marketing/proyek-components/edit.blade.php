@@ -120,6 +120,16 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Potensi</label>
                             <input type="number" id="editTahunPotensi" name="tahun_potensi" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="2024" min="2020" max="2030">
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Triwulan</label>
+                            <select id="editTriwulan" name="triwulan" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                <option value="">Pilih triwulan</option>
+                                <option value="1">Triwulan 1</option>
+                                <option value="2">Triwulan 2</option>
+                                <option value="3">Triwulan 3</option>
+                                <option value="4">Triwulan 4</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Catatan -->
@@ -224,6 +234,8 @@ async function loadEditData(data) {
             console.warn(`Element ${id} not found`);
         }
     };
+    setElementValue('editTriwulan', data.triwulan ? data.triwulan.toString() : '');
+
 
     // Set semua data dasar
     setElementValue('editId', data.id);
@@ -776,6 +788,8 @@ function collectEditFormData() {
     formData.catatan = document.getElementById('editCatatan')?.value || '';
     formData.potensi = document.getElementById('editPotensiValue')?.value || 'tidak';
     formData.tahun_potensi = document.getElementById('editTahunPotensi')?.value || '';
+    formData.triwulan = document.getElementById('editTriwulan')?.value || null;
+
     
     // Collect barang data
     const barangItems = document.querySelectorAll('.barang-item-edit');

@@ -73,6 +73,10 @@
                         <p id="detailTahunPotensi" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
                     <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-500">Triwulan</label>
+                        <p id="detailTriwulan" class="text-lg font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
                         <label class="text-sm font-medium text-gray-500">Deadline</label>
                         <p id="detailDeadline" class="text-lg font-semibold text-gray-800">-</p>
                     </div>
@@ -346,6 +350,7 @@ function loadDetailData(data) {
     document.getElementById('detailAdminPurchasing').textContent = data.admin_purchasing_nama || data.pic_purchasing || '-';
     document.getElementById('detailPotensi').textContent = data.potensi === 'ya' ? 'Ya' : 'Tidak';
     document.getElementById('detailTahunPotensi').textContent = data.tahun_potensi || '-';
+    document.getElementById('detailTriwulan').textContent = data.triwulan || '-';
 
     // Load catatan
     const catatanSection = document.getElementById('detailCatatanSection');
