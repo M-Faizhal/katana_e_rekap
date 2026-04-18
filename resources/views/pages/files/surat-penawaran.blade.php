@@ -429,7 +429,26 @@
           </td>
           <td>
             @if(!empty($row['link']))
-              <a href="{{ $row['link'] }}" target="_blank">Link</a>
+              <div style="text-align: center;">
+                @if($row['link'] && $row['link'] !== '-')
+                    <a href="{{ $row['link'] }}" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style="
+                          color: #1a56db; 
+                          text-decoration: underline; 
+                          font-size: 10px;
+                          word-break: break-all;
+                          overflow-wrap: break-word;
+                          display: inline-block;
+                          max-width: 150px;
+                      ">
+                        {{ $row['link'] }}
+                    </a>
+                @else
+                    <span style="color: #6b7280;">-</span>
+                @endif
+            </div>
             @else
               -
             @endif
