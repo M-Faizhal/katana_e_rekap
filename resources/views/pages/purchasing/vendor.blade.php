@@ -1381,7 +1381,6 @@ function updateEditVendorProductList() {
     
     if (!container) return;
     
-    // Show/hide search container based on product count
     if (searchContainer) {
         if (editVendorProducts.length > 3) {
             searchContainer.style.display = 'flex';
@@ -1390,19 +1389,17 @@ function updateEditVendorProductList() {
         }
     }
     
-    // Get search and filter values
     const searchTerm = document.getElementById('searchProducts')?.value.toLowerCase() || '';
     const selectedCategory = document.getElementById('filterProductCategory')?.value || '';
     
-    // Filter products based on search and category
     let filteredProducts = editVendorProducts;
     if (searchTerm || selectedCategory) {
-        filteredProducts = editVendorProducts.filter((product, index) => {
+        filteredProducts = editVendorProducts.filter((product) => {
             const matchesSearch = !searchTerm || 
                 product.nama_barang.toLowerCase().includes(searchTerm) ||
                 product.brand.toLowerCase().includes(searchTerm) ||
                 product.kategori.toLowerCase().includes(searchTerm) ||
-                product.spesifikasi.toLowerCase().includes(searchTerm);
+                (product.spesifikasi || '').toLowerCase().includes(searchTerm);
             
             const matchesCategory = !selectedCategory || product.kategori === selectedCategory;
             
@@ -1410,7 +1407,6 @@ function updateEditVendorProductList() {
         });
     }
     
-    // Update counter (show filtered count if filtering)
     if (counterElement) {
         if (filteredProducts.length !== editVendorProducts.length) {
             counterElement.textContent = `${filteredProducts.length} dari ${editVendorProducts.length} produk`;
@@ -1419,7 +1415,6 @@ function updateEditVendorProductList() {
         }
     }
     
-    // Update warning display if function exists
     if (typeof updateEditProductCountDisplay === 'function') {
         updateEditProductCountDisplay();
     }
@@ -1446,7 +1441,6 @@ function updateEditVendorProductList() {
     }
 
     container.innerHTML = filteredProducts.map((product) => {
-        // Find original index in the full array
         const originalIndex = editVendorProducts.findIndex(p => 
             p.nama_barang === product.nama_barang && 
             p.brand === product.brand && 
@@ -1454,54 +1448,130 @@ function updateEditVendorProductList() {
             p.harga_vendor === product.harga_vendor
         );
         
+        // ============================================
+        // BAGIAN BARU: Deteksi & tampilkan info foto
+        // ============================================
+        let fotoInfoHtml = '';
+
+        const hasFotoFile = product.foto_barang && product.foto_barang instanceof File;
+        const hasFotoDb   = product.foto_barang && typeof product.foto_barang === 'string' && product.foto_barang.trim() !== '';
+
+        if (hasFotoFile) {
+            // Foto baru dipilih user (File object)
+            fotoInfoHtml = `
+                <div class="flex items-center space-x-2 mt-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                        <i class="fas fa-image mr-1"></i>
+                        Foto baru: ${product.foto_barang.name}
+                    </span>
+                </div>
+            `;
+        } else if (hasFotoDb) {
+            // Foto lama dari database (string path)
+            const fotoUrl = '/storage/' + product.foto_barang;
+            fotoInfoHtml = `
+                <div class="flex items-center space-x-2 mt-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 cursor-pointer hover:bg-green-200 transition-colors"
+                          onclick="toggleFotoPreview(${originalIndex})" title="Klik untuk lihat foto">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Sudah ada foto &nbsp;
+                        <i class="fas fa-eye text-green-600"></i>
+                    </span>
+                    <button onclick="hapusFotoProduct(${originalIndex})" 
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                            title="Hapus foto ini">
+                        <i class="fas fa-trash mr-1"></i>Hapus Foto
+                    </button>
+                </div>
+                <div id="fotoPreview_${originalIndex}" class="hidden mt-2">
+                    <img src="${fotoUrl}" 
+                         alt="Foto ${product.nama_barang}"
+                         class="h-24 w-auto rounded-lg border border-gray-200 object-contain shadow-sm"
+                         onerror="this.parentElement.innerHTML='<span class=\'text-xs text-red-500\'><i class=\'fas fa-exclamation-triangle mr-1\'></i>Foto tidak ditemukan di server</span>'">
+                </div>
+            `;
+        } else {
+            // Tidak ada foto sama sekali
+            fotoInfoHtml = `
+                <div class="flex items-center space-x-2 mt-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                        <i class="fas fa-image mr-1"></i>
+                        Belum ada foto
+                    </span>
+                </div>
+            `;
+        }
+        // ============================================
+
         return `
-        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200 ${editProductIndex === originalIndex ? 'border-yellow-400 bg-yellow-50' : ''}">
+        <div class="flex items-start justify-between p-4 bg-gradient-to-r from-white to-gray-50 rounded-xl border ${editProductIndex === originalIndex ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'} hover:shadow-md transition-all duration-200">
             <div class="flex-1">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 ${editProductIndex === originalIndex ? 'bg-yellow-100' : 'bg-blue-100'} rounded-lg flex items-center justify-center">
+                <div class="flex items-start space-x-3">
+                    <div class="w-12 h-12 ${editProductIndex === originalIndex ? 'bg-yellow-100' : 'bg-blue-100'} rounded-lg flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-box ${editProductIndex === originalIndex ? 'text-yellow-600' : 'text-blue-600'}"></i>
                     </div>
-                    <div>
-                        <div class="flex items-center space-x-2 mb-1">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center flex-wrap gap-2 mb-1">
                             ${editProductIndex === originalIndex ? '<span class="text-xs font-medium text-yellow-600"><i class="fas fa-edit mr-1"></i>SEDANG DIEDIT</span>' : ''}
-                            ${product.id_barang ? '<span class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full"><i class="fas fa-database mr-1"></i>DATABASE</span>' : '<span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full"><i class="fas fa-plus mr-1"></i>BARU</span>'}
+                            ${product.id_barang 
+                                ? '<span class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded-full"><i class="fas fa-database mr-1"></i>DATABASE</span>' 
+                                : '<span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full"><i class="fas fa-plus mr-1"></i>BARU</span>'
+                            }
                         </div>
-                        <p class="font-semibold text-gray-800" id="productName_${originalIndex}">${product.nama_barang}</p>
-                        <p class="text-sm text-gray-500" id="productInfo_${originalIndex}">
-                            <span class="inline-flex items-center">
-                                <i class="fas fa-tag mr-1"></i>${product.brand}
-                            </span>
+                        <p class="font-semibold text-gray-800">${product.nama_barang}</p>
+                        <p class="text-sm text-gray-500">
+                            <i class="fas fa-tag mr-1"></i>${product.brand}
                             <span class="mx-2">•</span>
-                            <span class="inline-flex items-center">
-                                <i class="fas fa-layer-group mr-1"></i>${product.kategori}
-                            </span>
+                            <i class="fas fa-layer-group mr-1"></i>${product.kategori}
                             <span class="mx-2">•</span>
-                            <span class="inline-flex items-center">
-                                <i class="fas fa-weight mr-1"></i>${product.satuan}
-                            </span>
+                            <i class="fas fa-weight mr-1"></i>${product.satuan}
                         </p>
-                        <p class="text-lg font-bold text-green-600 mt-1" id="productPrice_${originalIndex}">
+                        <p class="text-base font-bold text-green-600 mt-1">
                             <i class="fas fa-money-bill-wave mr-1"></i>
                             Rp ${Number(product.harga_vendor).toLocaleString('id-ID')}
                         </p>
-                        ${product.spesifikasi ? `<p class="text-xs text-gray-600 mt-1" id="productSpec_${originalIndex}">${product.spesifikasi}</p>` : ''}
+                        ${product.spesifikasi ? `<p class="text-xs text-gray-600 mt-1 line-clamp-2"><i class="fas fa-file-alt mr-1"></i>${product.spesifikasi}</p>` : ''}
+                        
+                        <!-- INFO FOTO -->
+                        ${fotoInfoHtml}
                     </div>
                 </div>
             </div>
-            <div class="flex items-center space-x-2">
-                <button onclick="duplicateProductInVendor(${originalIndex})" class="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all duration-200 transform hover:scale-105" title="Duplikat produk">
+            <div class="flex items-center space-x-2 ml-3 flex-shrink-0">
+                <button onclick="duplicateProductInVendor(${originalIndex})" 
+                        class="px-3 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all duration-200" 
+                        title="Duplikat produk">
                     <i class="fas fa-copy"></i>
                 </button>
-                <button onclick="editProductInVendor(${originalIndex})" class="px-3 py-2 ${editProductIndex === originalIndex ? 'bg-yellow-200 text-yellow-700' : 'bg-yellow-100 text-yellow-600'} rounded-lg hover:bg-yellow-200 transition-all duration-200 transform hover:scale-105" title="${editProductIndex === originalIndex ? 'Sedang diedit' : 'Edit produk'}">
+                <button onclick="editProductInVendor(${originalIndex})" 
+                        class="px-3 py-2 ${editProductIndex === originalIndex ? 'bg-yellow-200 text-yellow-700' : 'bg-yellow-100 text-yellow-600'} rounded-lg hover:bg-yellow-200 transition-all duration-200" 
+                        title="${editProductIndex === originalIndex ? 'Sedang diedit' : 'Edit produk'}">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button onclick="removeProductFromEditVendor(${originalIndex})" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all duration-200 transform hover:scale-105" title="${product.id_barang ? 'Hapus dari database' : 'Hapus produk'}" ${editProductIndex === originalIndex ? 'disabled' : ''}>
+                <button onclick="removeProductFromEditVendor(${originalIndex})" 
+                        class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all duration-200" 
+                        title="Hapus produk"
+                        ${editProductIndex === originalIndex ? 'disabled' : ''}>
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
         </div>
-    `;
+        `;
     }).join('');
+}
+function toggleFotoPreview(index) {
+    const previewEl = document.getElementById(`fotoPreview_${index}`);
+    if (!previewEl) return;
+    previewEl.classList.toggle('hidden');
+}
+function hapusFotoProduct(index) {
+    if (!confirm('Hapus foto produk ini? Foto akan dihapus saat Anda menyimpan perubahan.')) return;
+    
+    editVendorProducts[index].foto_barang = null;
+    editVendorProducts[index]._deleteFoto = true; // flag untuk backend
+    
+    updateEditVendorProductList();
+    showToast('Foto akan dihapus saat disimpan', 'info');
 }
 
 function removeProductFromVendor(index) {
