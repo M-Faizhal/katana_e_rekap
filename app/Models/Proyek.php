@@ -35,14 +35,16 @@ class Proyek extends Model
         'harga_total',
         'status',
         'potensi',
-        'tahun_potensi'
+        'tahun_potensi',
+        'triwulan'
     ];
 
     protected $casts = [
         'tanggal' => 'date',
         'deadline' => 'date',
         'harga_total' => 'decimal:2',
-        'tahun_potensi' => 'integer'
+        'tahun_potensi' => 'integer',
+        'triwulan' => 'integer'
     ];
 
     /**

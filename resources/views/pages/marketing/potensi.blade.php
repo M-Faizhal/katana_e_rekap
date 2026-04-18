@@ -138,6 +138,13 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <option value="{{ $marketing }}">{{ $marketing }}</option>
                     @endforeach
                 </select>
+                 <select id="triwulanFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">Semua Triwulan</option>
+                    <option value="1">Triwulan 1</option>
+                    <option value="2">Triwulan 2</option>
+                    <option value="3">Triwulan 3</option>
+                    <option value="4">Triwulan 4</option>
+                </select>
                 <select id="prioritasFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Prioritas</option>
                     <option value="tinggi">Prioritas Tinggi (&lt;7 hari)</option>
@@ -192,6 +199,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             @endphp
             <div class="proyek-card bg-white border-2 {{ $borderClass }} rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 cursor-pointer relative"
                  data-status="{{ $potensi['status'] }}"
+                 data-triwulan="{{ $potensi['triwulan'] ?? '' }}"
                  data-kabupaten="{{ strtolower($potensi['kabupaten']) }}"
                  data-instansi="{{ strtolower($potensi['instansi']) }}"
                  data-tanggal="{{ $potensi['tanggal'] }}"
@@ -259,6 +267,16 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <p class="font-medium text-gray-800 text-sm sm:text-base">
                             @if(isset($potensi['tahun_potensi']) && $potensi['tahun_potensi'])
                                 {{ $potensi['tahun_potensi'] }}
+                            @else
+                                <span class="text-gray-400 italic">Belum diisi</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Triwulan</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">
+                            @if(isset($potensi['triwulan']) && $potensi['triwulan'])
+                                Triwulan {{ $potensi['triwulan'] }}
                             @else
                                 <span class="text-gray-400 italic">Belum diisi</span>
                             @endif
@@ -675,6 +693,8 @@ const sortByFilter = document.getElementById('sortByFilter');
 const potensiContainer = document.getElementById('proyekContainer');
 const noResults = document.getElementById('noResults');
 const paginationInfo = document.getElementById('paginationInfo');
+const triwulanFilter = document.getElementById('triwulanFilter');
+
 
 // Event Listeners untuk filter dan search
 if (searchInput) {
@@ -692,7 +712,9 @@ if (prioritasFilter) {
 if (sortByFilter) {
     sortByFilter.addEventListener('change', filterAndSort);
 }
-
+if (triwulanFilter) {
+    triwulanFilter.addEventListener('change', filterAndSort);
+}
 // Debounce function untuk search
 function debounce(func, wait) {
     let timeout;
@@ -781,6 +803,13 @@ function filterAndSort() {
         console.log('After prioritas filter:', filtered.length, 'items remaining');
     }
 
+    //triwulan
+    const selectedTriwulan = triwulanFilter ? triwulanFilter.value : '';
+    if (selectedTriwulan) {
+        filtered = filtered.filter(proyek => {
+            return proyek.triwulan && proyek.triwulan.toString() === selectedTriwulan;
+        });
+    }
     // Sorting
     const selectedSort = sortByFilter ? sortByFilter.value : '';
     if (selectedSort) {
@@ -845,6 +874,7 @@ function resetFilters() {
     }
     if (prioritasFilter) prioritasFilter.value = '';
     if (sortByFilter) sortByFilter.value = '';
+    if (triwulanFilter) triwulanFilter.value = '';
 
     // Reset data to original
     console.log('Resetting currentData from', currentData.length, 'to', potensiData.length, 'items');
@@ -1182,7 +1212,9 @@ function viewDetail(id) {
         potensi: data.potensi === 'ya' ? 'Ya' : 'Tidak',
         tahun_potensi: data.tahun_potensi,
         total_nilai: data.total_nilai,
-        daftar_barang: data.daftar_barang || []
+        daftar_barang: data.daftar_barang || [],
+        triwulan: data.triwulan,
+
     };
 
     // Populate detail modal elements
@@ -1207,6 +1239,7 @@ function viewDetail(id) {
     setElementText('detailPotensi', formattedData.potensi);
     setElementText('detailTahunPotensi', formattedData.tahun_potensi);
     setElementText('detailTotalKeseluruhan', formatRupiah(formattedData.total_nilai));
+    setElementText('detailTriwulan', formattedData.triwulan ? 'Triwulan ' + formattedData.triwulan : '-');
 
     // Set deadline & prioritas badge di detail modal
     const detailDeadlineEl = document.getElementById('detailDeadline');

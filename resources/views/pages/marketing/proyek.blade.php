@@ -81,6 +81,13 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                     <option value="selesai">Selesai</option>
                     <option value="gagal">Gagal</option>
                 </select>
+                <select id="triwulanFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    <option value="">Semua Triwulan</option>
+                    <option value="1">Triwulan 1</option>
+                    <option value="2">Triwulan 2</option>
+                    <option value="3">Triwulan 3</option>
+                    <option value="4">Triwulan 4</option>
+                </select>
                 <select id="prioritasFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Prioritas</option>
                     <option value="tinggi">Prioritas Tinggi (&lt;7 hari)</option>
@@ -273,6 +280,16 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <p class="font-medium text-gray-800 text-sm sm:text-base">
                             @if(isset($proyek['tahun_potensi']) && $proyek['tahun_potensi'])
                                 {{ $proyek['tahun_potensi'] }}
+                            @else
+                                <span class="text-gray-400 italic">Belum diisi</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Triwulan</p>
+                        <p class="font-medium text-gray-800 text-sm sm:text-base">
+                            @if(isset($proyek['triwulan']) && $proyek['triwulan'])
+                                Triwulan {{ $proyek['triwulan'] }}
                             @else
                                 <span class="text-gray-400 italic">Belum diisi</span>
                             @endif
@@ -699,6 +716,8 @@ const quickRangeButtons = document.querySelectorAll('.quick-range');
 const proyekContainer = document.getElementById('proyekContainer');
 const noResults = document.getElementById('noResults');
 const paginationInfo = document.getElementById('paginationInfo');
+const triwulanFilter = document.getElementById('triwulanFilter');
+
 
 // Event Listeners untuk filter dan search
 if (searchInput) {
@@ -713,6 +732,9 @@ if (prioritasFilter) {
         updateQuickPrioritasActiveState(prioritasFilter.value);
         filterAndSort();
     });
+}
+if (triwulanFilter) {
+    triwulanFilter.addEventListener('change', () => { hasInteracted = true; filterAndSort(); });
 }
 if (sortBy) {
     sortBy.addEventListener('change', () => { hasInteracted = true; filterAndSort(); });
@@ -901,7 +923,13 @@ function filterAndSort() {
             return level === selectedPrioritas;
         });
     }
-
+    //triwulan
+    const selectedTriwulan = triwulanFilter ? triwulanFilter.value : '';
+    if (selectedTriwulan) {
+        filtered = filtered.filter(proyek => {
+            return proyek.triwulan && proyek.triwulan.toString() === selectedTriwulan;
+        });
+    }
     // Apply date range filter (pakai field tanggal proyek, format 'YYYY-MM-DD')
     const fromVal = dateFrom ? dateFrom.value : '';
     const toVal = dateTo ? dateTo.value : '';
@@ -967,6 +995,8 @@ function resetFilters() {
     if (sortBy) sortBy.value = '';
     if (dateFrom) dateFrom.value = '';
     if (dateTo) dateTo.value = '';
+    if (triwulanFilter) triwulanFilter.value = '';
+
 
     // Reset active state quick prioritas buttons
     updateQuickPrioritasActiveState('');
@@ -1286,7 +1316,9 @@ function viewDetail(id) {
         potensi: data.potensi === 'ya' ? 'Ya' : 'Tidak',
         tahun_potensi: data.tahun_potensi,
         total_nilai: data.total_nilai,
-        daftar_barang: data.daftar_barang || []
+        daftar_barang: data.daftar_barang || [],
+        triwulan: data.triwulan,
+
     };
 
     // Populate detail modal elements
@@ -1311,6 +1343,8 @@ function viewDetail(id) {
     setElementText('detailPotensi', formattedData.potensi);
     setElementText('detailTahunPotensi', formattedData.tahun_potensi);
     setElementText('detailTotalKeseluruhan', formatRupiah(formattedData.total_nilai));
+    setElementText('detailTriwulan', formattedData.triwulan ? 'Triwulan ' + formattedData.triwulan : '-');
+
 
     // Set deadline + badge prioritas
     const deadlineEl  = document.getElementById('detailDeadline');

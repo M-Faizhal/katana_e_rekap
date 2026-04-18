@@ -4,7 +4,6 @@ namespace App\Http\Controllers\marketing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Proyek;
-use App\Models\ProyekBarang;
 use App\Models\Penawaran;
 use App\Models\User;
 use App\Models\Wilayah;
@@ -12,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Exception;
@@ -24,7 +22,7 @@ class PotensiController extends Controller
         // Ambil data proyek potensi:
         // - Status Menunggu
         // - Status Penawaran yang penawarannya masih Menunggu (belum ACC)
-        $proyekData = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
+        $proyekQuery = Proyek::with(['adminMarketing', 'adminPurchasing', 'wilayah', 'proyekBarang'])
             ->where('potensi', 'ya')
             ->where(function ($query) {
                 $query->where('status', 'Menunggu')
@@ -37,7 +35,15 @@ class PotensiController extends Controller
                                 $p->where('status', 'ACC');
                             });
                       });
-            })
+            });
+
+        // Filter triwulan (1-4)
+        $triwulan = request()->query('triwulan');
+        if ($triwulan !== null && $triwulan !== '') {
+            $proyekQuery->where('triwulan', (int) $triwulan);
+        }
+
+        $proyekData = $proyekQuery
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -116,6 +122,7 @@ class PotensiController extends Controller
                 'catatan' => $proyek->catatan,
                 'potensi' => $proyek->potensi ?? 'ya',
                 'tahun_potensi' => $proyek->tahun_potensi ?? Carbon::now()->year,
+                'triwulan' => $proyek->triwulan,
                 'daftar_barang' => $daftarBarang,
                 'penawaran' => $latestPenawaran ? [
                     'no_penawaran' => $latestPenawaran->no_penawaran,
@@ -174,7 +181,8 @@ class PotensiController extends Controller
             'id_admin_marketing' => 'required|exists:users,id_user',
             'id_admin_purchasing' => 'required|exists:users,id_user',
             'catatan' => 'nullable|string',
-            'tahun_potensi' => 'nullable|integer|min:2020|max:2030',
+            'tahun_potensi' => 'nullable|integer|min:2020|max:2100',
+            'triwulan' => 'nullable|integer|in:1,2,3,4',
             // Support single atau multiple barang
             'nama_barang' => 'required_without:daftar_barang|string|max:255',
             'jumlah' => 'required_without:daftar_barang|integer|min:1',
@@ -209,6 +217,7 @@ class PotensiController extends Controller
             'catatan' => $request->catatan,
             'potensi' => 'ya', // Set sebagai potensi
             'tahun_potensi' => $request->tahun_potensi ?? Carbon::now()->year,
+            'triwulan' => $request->triwulan,
             'status' => 'Menunggu'
         ]);
 
@@ -342,7 +351,8 @@ class PotensiController extends Controller
                 'id_admin_marketing' => 'required|exists:users,id_user',
                 'id_admin_purchasing' => 'required|exists:users,id_user',
                 'catatan' => 'nullable|string',
-                'tahun_potensi' => 'nullable|integer|min:2020|max:2030',
+                'tahun_potensi' => 'nullable|integer|min:2020|max:2100',
+                'triwulan' => 'nullable|integer|in:1,2,3,4',
                 // Support single atau multiple barang
                 'nama_barang' => 'required_without:daftar_barang|string|max:255',
                 'jumlah' => 'required_without:daftar_barang|integer|min:1',
@@ -385,7 +395,8 @@ class PotensiController extends Controller
                 'id_admin_purchasing' => $request->id_admin_purchasing,
                 'catatan' => $request->catatan,
                 'potensi' => 'ya', // Pastikan tetap sebagai potensi
-                'tahun_potensi' => $request->tahun_potensi ?? Carbon::now()->year
+                'tahun_potensi' => $request->tahun_potensi ?? Carbon::now()->year,
+                'triwulan' => $request->triwulan
             ]);
 
             // Hapus semua barang lama
