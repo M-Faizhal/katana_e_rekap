@@ -182,7 +182,6 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Foto Produk</label>
-                                <div id="editFotoExistingInfo" class="mb-2 hidden"></div>
                                 <input type="file" id="editNewProductFoto" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" accept="image/*">
                                 <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF (Max: 2MB)</p>
                             </div>
@@ -426,78 +425,35 @@ function updateEditProductCountDisplay() {
 // Fix untuk mencegah form submission yang tidak diinginkan
 function editProductInVendor(index) {
     if (event) {
-        event.preventDefault();
-        event.stopPropagation();
+        event.preventDefault(); // Mencegah default behavior
+        event.stopPropagation(); // Mencegah event bubbling
     }
     
     const product = editVendorProducts[index];
     if (!product) return;
     
+    // Store the index being edited
     editProductIndex = index;
     
-    // Isi form seperti biasa
+    // Fill form with product data
     document.getElementById('editNewProductName').value = product.nama_barang || '';
     document.getElementById('editNewProductBrand').value = product.brand || '';
     document.getElementById('editNewProductKategori').value = product.kategori || '';
     document.getElementById('editNewProductSatuan').value = product.satuan || '';
     document.getElementById('editNewProductSpesifikasi').value = product.spesifikasi || '';
     document.getElementById('editNewProductHarga').value = product.harga_vendor || '';
-    document.getElementById('editNewProductHargaPasaran').value = product.harga_pasaran_inaproc || '';
-    document.getElementById('editNewProductSpesifikasiKunci').value = product.spesifikasi_kunci || '';
-    document.getElementById('editNewProductGaransi').value = product.garansi || '';
-    document.getElementById('editNewProductPdnTkdnImpor').value = product.pdn_tkdn_impor || '';
-    document.getElementById('editNewProductSkorTkdn').value = product.skor_tkdn || '';
-    document.getElementById('editNewProductLinkTkdn').value = product.link_tkdn || '';
-    document.getElementById('editNewProductEstimasiKetersediaan').value = product.estimasi_ketersediaan || '';
-    document.getElementById('editNewProductLinkProduk').value = product.link_produk || '';
     
-    toggleEditTkdnFields();
-    
-    // ============================================
-    // BAGIAN BARU: Tampilkan info foto existing di form
-    // ============================================
-    const fotoInfoContainer = document.getElementById('editFotoExistingInfo');
-    if (fotoInfoContainer) {
-        const hasFotoDb = product.foto_barang && typeof product.foto_barang === 'string';
-        const hasFotoFile = product.foto_barang && product.foto_barang instanceof File;
-
-        if (hasFotoDb) {
-            fotoInfoContainer.innerHTML = `
-                <div class="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <img src="/storage/${product.foto_barang}" 
-                         alt="Foto existing"
-                         class="w-16 h-16 object-contain rounded-lg border border-green-200 bg-white"
-                         onerror="this.src=''; this.className='hidden'">
-                    <div>
-                        <p class="text-sm font-medium text-green-700">
-                            <i class="fas fa-check-circle mr-1"></i>Sudah ada foto
-                        </p>
-                        <p class="text-xs text-green-600 mt-0.5">Upload foto baru untuk mengganti</p>
-                    </div>
-                </div>
-            `;
-            fotoInfoContainer.classList.remove('hidden');
-        } else if (hasFotoFile) {
-            fotoInfoContainer.innerHTML = `
-                <div class="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <i class="fas fa-image text-blue-600 mr-2"></i>
-                    <p class="text-sm text-blue-700">Foto baru dipilih: <strong>${product.foto_barang.name}</strong></p>
-                </div>
-            `;
-            fotoInfoContainer.classList.remove('hidden');
-        } else {
-            fotoInfoContainer.innerHTML = '';
-            fotoInfoContainer.classList.add('hidden');
-        }
-    }
-    // ============================================
-
-    // Update form title dan button
+    // Update form title and hint
     const formTitle = document.getElementById('productFormTitle');
     const formHint = document.getElementById('productFormHint');
-    if (formTitle) formTitle.innerHTML = '<i class="fas fa-edit text-yellow-600 mr-2"></i>Edit Produk';
-    if (formHint) formHint.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Ubah data produk yang diperlukan';
+    if (formTitle) {
+        formTitle.innerHTML = '<i class="fas fa-edit text-yellow-600 mr-2"></i>Edit Produk';
+    }
+    if (formHint) {
+        formHint.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Ubah data produk yang diperlukan';
+    }
     
+    // Change button text and behavior to indicate edit mode
     const addButton = document.querySelector('button[onclick="addProductToEditVendor()"]');
     if (addButton) {
         addButton.innerHTML = '<i class="fas fa-save mr-2"></i>Update Produk';
@@ -505,9 +461,13 @@ function editProductInVendor(index) {
         addButton.className = 'px-6 py-3 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-lg hover:from-yellow-700 hover:to-yellow-800 transition-all duration-200 transform hover:scale-105 shadow-lg';
     }
     
+    // Show cancel button
     const cancelButton = document.getElementById('cancelEditProductBtn');
-    if (cancelButton) cancelButton.classList.remove('hidden');
+    if (cancelButton) {
+        cancelButton.classList.remove('hidden');
+    }
     
+    // Scroll to form
     document.querySelector('.bg-gradient-to-br.from-blue-50').scrollIntoView({ behavior: 'smooth' });
 }
 
