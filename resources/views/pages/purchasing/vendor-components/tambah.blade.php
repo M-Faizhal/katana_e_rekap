@@ -29,6 +29,8 @@
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nama Vendor <span class="text-red-500">*</span></label>
                             <input type="text" id="namaVendor" name="nama_vendor" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Masukkan nama vendor" required>
+                            <p id="namaVendorFeedback" class="text-xs mt-1 h-4"></p>
+
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Vendor <span class="text-red-500">*</span></label>

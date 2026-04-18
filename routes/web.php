@@ -150,6 +150,7 @@ Route::middleware('auth')->group(function () {
         // Vendor Routes
         Route::get('/vendor', [VendorController::class, 'index'])->name('purchasing.vendor');
         Route::post('/vendor', [VendorController::class, 'store'])->name('vendor.store');
+        Route::get('/vendor/check-nama', [VendorController::class, 'checkNama'])->name('vendor.checkNama');
         Route::get('/vendor/{id}', [VendorController::class, 'show'])->name('vendor.show');
         Route::put('/vendor/{id}', [VendorController::class, 'update'])->name('vendor.update');
         Route::delete('/vendor/{id}', [VendorController::class, 'destroy'])->name('vendor.destroy');

@@ -443,6 +443,8 @@ let vendorProducts = [];
 let editVendorProducts = [];
 let productIdCounter = 1;
 let userRole = @json(auth()->user()->role ?? 'guest');
+let isSubmitting = false;
+
 
 // Modal functions
 function tambahVendor() {
@@ -450,11 +452,20 @@ function tambahVendor() {
         showToast('Anda tidak memiliki izin untuk menambah vendor', 'error');
         return;
     }
-    
+
     // Reset form
     document.getElementById('formTambahVendor').reset();
     vendorProducts = [];
     updateVendorProductList();
+
+    // Reset flag dan feedback
+    isSubmitting = false;
+    const feedback = document.getElementById('namaVendorFeedback');
+    if (feedback) {
+        feedback.textContent = '';
+        feedback.className = 'text-xs mt-1 h-4';
+    }
+
     showModal('modalTambahVendor');
 }
 
@@ -622,11 +633,15 @@ function closeModal(modalId) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         document.body.style.overflow = 'auto';
-        
-        // Reset edit mode when closing edit vendor modal
+
         if (modalId === 'modalEditVendor') {
             resetProductEditMode();
             clearEditProductForm();
+        }
+
+        // Reset flag anti double submit saat modal ditutup
+        if (modalId === 'modalTambahVendor') {
+            isSubmitting = false;
         }
     }
 }
@@ -643,23 +658,47 @@ function submitTambahVendor() {
         showToast('Anda tidak memiliki izin untuk menambah vendor', 'error');
         return;
     }
-    
+
+    // Cek anti double submit
+    if (isSubmitting) {
+        showToast('Sedang memproses, harap tunggu...', 'info');
+        return;
+    }
+
+    // Cek feedback nama vendor
+    const feedback = document.getElementById('namaVendorFeedback');
+    if (feedback && feedback.textContent.includes('sudah terdaftar')) {
+        showToast('Nama vendor sudah terdaftar, gunakan nama lain!', 'error');
+        return;
+    }
+
+    // Cek apakah nama vendor masih dalam proses pengecekan
+    if (feedback && feedback.textContent.includes('Memeriksa')) {
+        showToast('Sedang memeriksa nama vendor, harap tunggu...', 'info');
+        return;
+    }
+
     console.log('=== SUBMITTING VENDOR ===');
     console.log('User role:', userRole);
     console.log('Vendor products:', vendorProducts);
-    
+
+    // Set flag dan disable tombol
+    isSubmitting = true;
+    const submitBtn = document.querySelector('button[onclick="submitTambahVendor()"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...';
+    }
+
     const form = document.getElementById('formTambahVendor');
     const formData = new FormData(form);
-    
-    // Handle PKP checkbox
+
     const pkpCheckbox = document.getElementById('pkpVendor');
     formData.set('pkp', pkpCheckbox && pkpCheckbox.checked ? 'ya' : 'tidak');
-    
-    // Handle Online Shop checkbox
+
     const onlineShopCheckbox = document.getElementById('onlineShopVendor');
     formData.set('online_shop', onlineShopCheckbox && onlineShopCheckbox.checked ? 'ya' : 'tidak');
-    
-    // Add barang data
+
     vendorProducts.forEach((product, index) => {
         console.log(`Adding product ${index}:`, product);
         formData.append(`barang[${index}][nama_barang]`, product.nama_barang);
@@ -668,81 +707,56 @@ function submitTambahVendor() {
         formData.append(`barang[${index}][satuan]`, product.satuan);
         formData.append(`barang[${index}][spesifikasi]`, product.spesifikasi);
         formData.append(`barang[${index}][harga_vendor]`, product.harga_vendor);
-        
-        // Add new fields
-        if (product.harga_pasaran_inaproc) {
-            formData.append(`barang[${index}][harga_pasaran_inaproc]`, product.harga_pasaran_inaproc);
-        }
-        if (product.spesifikasi_kunci) {
-            formData.append(`barang[${index}][spesifikasi_kunci]`, product.spesifikasi_kunci);
-        }
-        if (product.garansi) {
-            formData.append(`barang[${index}][garansi]`, product.garansi);
-        }
-        if (product.pdn_tkdn_impor) {
-            formData.append(`barang[${index}][pdn_tkdn_impor]`, product.pdn_tkdn_impor);
-        }
-        if (product.skor_tkdn) {
-            formData.append(`barang[${index}][skor_tkdn]`, product.skor_tkdn);
-        }
-        if (product.link_tkdn) {
-            formData.append(`barang[${index}][link_tkdn]`, product.link_tkdn);
-        }
-        if (product.estimasi_ketersediaan) {
-            formData.append(`barang[${index}][estimasi_ketersediaan]`, product.estimasi_ketersediaan);
-        }
-        if (product.link_produk) {
-            formData.append(`barang[${index}][link_produk]`, product.link_produk);
-        }
-        
+
+        if (product.harga_pasaran_inaproc) formData.append(`barang[${index}][harga_pasaran_inaproc]`, product.harga_pasaran_inaproc);
+        if (product.spesifikasi_kunci) formData.append(`barang[${index}][spesifikasi_kunci]`, product.spesifikasi_kunci);
+        if (product.garansi) formData.append(`barang[${index}][garansi]`, product.garansi);
+        if (product.pdn_tkdn_impor) formData.append(`barang[${index}][pdn_tkdn_impor]`, product.pdn_tkdn_impor);
+        if (product.skor_tkdn) formData.append(`barang[${index}][skor_tkdn]`, product.skor_tkdn);
+        if (product.link_tkdn) formData.append(`barang[${index}][link_tkdn]`, product.link_tkdn);
+        if (product.estimasi_ketersediaan) formData.append(`barang[${index}][estimasi_ketersediaan]`, product.estimasi_ketersediaan);
+        if (product.link_produk) formData.append(`barang[${index}][link_produk]`, product.link_produk);
+
         if (product.foto_barang && product.foto_barang instanceof File) {
             console.log(`Adding photo for product ${index}:`, product.foto_barang.name);
             formData.append(`barang[${index}][foto_barang]`, product.foto_barang);
         }
-        
         if (product.spesifikasi_file && product.spesifikasi_file instanceof File) {
             console.log(`Adding spesifikasi file for product ${index}:`, product.spesifikasi_file.name);
             formData.append(`barang[${index}][spesifikasi_file]`, product.spesifikasi_file);
         }
     });
-    
+
     fetch('/purchasing/vendor', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json', // Ensure JSON response
+            'Accept': 'application/json',
         },
         body: formData,
         credentials: 'same-origin'
     })
     .then(response => {
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        // For 422 errors, we still want to parse the JSON to see validation errors
+
         if (response.status === 422) {
             return response.json().then(data => {
                 console.error('Validation failed:', data);
                 throw new Error(`Validation Error: ${data.message}`);
             });
         }
-        
-        // Check content type for other errors
+
         const contentType = response.headers.get('content-type');
-        console.log('Content-Type:', contentType);
-        
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
-        // Check if response is JSON
         if (!contentType || !contentType.includes('application/json')) {
             return response.text().then(text => {
                 console.error('Expected JSON but received:', text.substring(0, 500));
                 throw new Error('Server returned non-JSON response. Check server logs.');
             });
         }
-        
+
         return response.json();
     })
     .then(data => {
@@ -752,10 +766,16 @@ function submitTambahVendor() {
             closeModal('modalTambahVendor');
             location.reload();
         } else {
+            // Re-enable tombol kalau gagal
+            isSubmitting = false;
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Simpan Vendor';
+            }
+
             showToast(data.message || 'Gagal menambahkan vendor', 'error');
             if (data.errors) {
                 console.error('Validation errors:', data.errors);
-                // Show first validation error
                 const firstError = Object.values(data.errors)[0][0];
                 showToast(firstError, 'error');
             }
@@ -763,10 +783,17 @@ function submitTambahVendor() {
     })
     .catch(error => {
         console.error('Full error object:', error);
+
+        // Re-enable tombol kalau error
+        isSubmitting = false;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Simpan Vendor';
+        }
+
         showToast(error.message || 'Terjadi kesalahan saat menambahkan vendor', 'error');
     });
 }
-
 function submitEditVendor() {
     if (userRole !== 'admin_purchasing' && userRole !== 'superadmin') {
         showToast('Anda tidak memiliki izin untuk mengedit vendor', 'error');
@@ -1826,7 +1853,50 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize filter functionality
     const searchInput = document.getElementById('searchVendor');
     const filterSelect = document.getElementById('filterJenis');
-    
+    const namaVendorInput = document.getElementById('namaVendor');
+    if (namaVendorInput) {
+        let checkNamaTimeout;
+        namaVendorInput.addEventListener('input', function () {
+            clearTimeout(checkNamaTimeout);
+            const nama = this.value.trim();
+            const feedbackEl = document.getElementById('namaVendorFeedback');
+            if (!feedbackEl) return;
+
+            if (!nama) {
+                feedbackEl.textContent = '';
+                feedbackEl.className = 'text-xs mt-1 h-4';
+                return;
+            }
+
+            feedbackEl.textContent = 'Memeriksa ketersediaan nama...';
+            feedbackEl.className = 'text-gray-400 text-xs mt-1 h-4';
+
+            checkNamaTimeout = setTimeout(() => {
+                fetch(`/purchasing/vendor/check-nama?nama=${encodeURIComponent(nama)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.exists) {
+                            feedbackEl.textContent = '⚠️ Nama vendor sudah terdaftar!';
+                            feedbackEl.className = 'text-red-500 text-xs mt-1 h-4';
+                            // Highlight input merah
+                            namaVendorInput.classList.add('border-red-500', 'focus:ring-red-500');
+                            namaVendorInput.classList.remove('border-gray-300');
+                        } else {
+                            feedbackEl.textContent = '✓ Nama vendor tersedia';
+                            feedbackEl.className = 'text-green-500 text-xs mt-1 h-4';
+                            // Kembalikan border normal
+                            namaVendorInput.classList.remove('border-red-500', 'focus:ring-red-500');
+                            namaVendorInput.classList.add('border-gray-300');
+                        }
+                    })
+                    .catch(() => {
+                        feedbackEl.textContent = '';
+                        feedbackEl.className = 'text-xs mt-1 h-4';
+                    });
+            }, 500);
+        });
+    }
+
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             debounceSearch();
