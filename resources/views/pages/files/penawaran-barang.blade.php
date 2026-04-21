@@ -197,9 +197,9 @@
     font-weight: bold;
     font-family: Arial, sans-serif;
   }
-  .tkdn-pdn  { background: white; }
-  .tkdn-impor { background: white; }
-  .tkdn-other { background: white; }
+  .tkdn-pdn  { background: transparent; }
+  .tkdn-impor { background: transparent; }
+  .tkdn-other { background: transparent; }
 
   /* Footer (same as surat-penawaran) */
   footer {
