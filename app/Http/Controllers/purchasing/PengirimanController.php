@@ -34,6 +34,7 @@ class PengirimanController extends Controller
     {
         $search    = request()->get('search');
         $activeTab = request()->get('tab', 'ready');
+        $tahun     = (int) request()->get('tahun', now()->year);
 
         // ----------------------------------------------------------------
         // TAB: Ready Kirim
@@ -46,7 +47,8 @@ class PengirimanController extends Controller
                 'kalkulasiHps.barang', // for barang_vendor list (in-memory)
             ])
             ->whereIn('status', ['Pengiriman', 'Selesai'])
-            ->whereHas('penawaranAktif', fn($q) => $q->where('status', 'ACC'));
+            ->whereHas('penawaranAktif', fn($q) => $q->where('status', 'ACC')->whereYear('tanggal_penawaran', $tahun));
+
 
         if ($search) {
             $proyekReadyQuery->where(function ($q) use ($search) {
@@ -147,7 +149,9 @@ class PengirimanController extends Controller
                 'penawaran.proyek.kalkulasiHps.barang',
                 'vendor',
             ])
-            ->whereIn('status_verifikasi', ['Pending', 'Dalam_Proses']);
+            ->whereIn('status_verifikasi', ['Pending', 'Dalam_Proses'])
+            ->whereHas('penawaran', fn($q) => $q->whereYear('tanggal_penawaran', $tahun));
+
 
         if ($search) {
             $pengirimanBerjalanQuery->where(function ($q) use ($search) {
@@ -175,11 +179,13 @@ class PengirimanController extends Controller
                 'vendor',
                 'verifiedBy',
             ])
-            ->where(function ($q) {
-                $q->where('status_verifikasi', 'Verified')
-                  ->whereHas('penawaran.proyek', fn($sq) => $sq->where('status', 'Selesai'));
+            ->where(function ($q) use ($tahun) {
+                $q->where(function ($inner) {
+                    $inner->where('status_verifikasi', 'Verified')
+                        ->whereHas('penawaran.proyek', fn($sq) => $sq->where('status', 'Selesai'));
+                })->orWhere('status_verifikasi', 'Sampai_Tujuan');
             })
-            ->orWhere('status_verifikasi', 'Sampai_Tujuan');
+            ->whereHas('penawaran', fn($q) => $q->whereYear('tanggal_penawaran', $tahun));
 
         if ($search) {
             $pengirimanSelesaiQuery->where(function ($q) use ($search) {
@@ -225,7 +231,8 @@ class PengirimanController extends Controller
             'pengirimanSelesai',
             'suratPengirimanList',
             'search',
-            'activeTab'
+            'activeTab',
+            'tahun'
         ));
     }
 

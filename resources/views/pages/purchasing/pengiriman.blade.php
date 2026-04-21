@@ -93,6 +93,28 @@
 
 <!-- Content Card -->
 <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
+    {{-- Filter Tahun --}}
+    <div class="flex items-center gap-3 mb-6">
+        <form method="GET" id="formFilterTahun" class="flex items-center gap-3">
+            <input type="hidden" name="tab" value="{{ $activeTab }}">
+            @if(request('search'))
+                <input type="hidden" name="search" value="{{ request('search') }}">
+            @endif
+            <label class="text-sm font-medium text-gray-700 whitespace-nowrap">
+                <i class="fas fa-calendar-alt mr-1 text-red-600"></i>Filter Tahun:
+            </label>
+            <select name="tahun" onchange="this.form.submit()"
+                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
+                @for($y = now()->year; $y >= now()->year - 5; $y--)
+                    <option value="{{ $y }}" {{ (int)$tahun === $y ? 'selected' : '' }}>
+                        {{ $y }}
+                    </option>
+                @endfor
+            </select>
+            <span class="text-xs text-gray-500">
+            </span>
+        </form>
+    </div>
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white">
@@ -175,6 +197,7 @@
             <!-- Search Bar -->
             <div class="flex gap-2">
                 <form method="GET" class="flex gap-2">
+                    <input type="hidden" name="tahun" value="{{ $tahun }}">
                     <input type="hidden" name="tab" value="ready">
                     <div class="relative">
                         <input type="text" 
@@ -187,7 +210,7 @@
                         </button>
                     </div>
                     @if(request('search'))
-                    <a href="{{ route('purchasing.pengiriman') }}?tab=ready" 
+                    <a href="{{ route('purchasing.pengiriman') }}?tab=ready&tahun={{ $tahun }}" 
                        class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 whitespace-nowrap">
                         <i class="fas fa-times mr-1"></i>
                         Reset
@@ -398,7 +421,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $proyekReadyPaginated->total() }}</span> vendor siap kirim
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekReadyPaginated->appends(request()->query())->links() }}
+                        {{ $proyekReadyPaginated->appends(array_merge(request()->query(), ['tab' => 'ready']))->links() }}
                     </div>
                 </div>
             </div>
@@ -423,6 +446,7 @@
             <!-- Search Bar -->
             <div class="flex gap-2">
                 <form method="GET" class="flex gap-2">
+                    <input type="hidden" name="tahun" value="{{ $tahun }}">
                     <input type="hidden" name="tab" value="proses">
                     <div class="relative">
                         <input type="text" 
@@ -435,7 +459,7 @@
                         </button>
                     </div>
                     @if(request('search'))
-                    <a href="{{ route('purchasing.pengiriman') }}?tab=proses" 
+                    <a href="{{ route('purchasing.pengiriman') }}?tab=proses&tahun={{ $tahun }}" 
                        class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 whitespace-nowrap">
                         <i class="fas fa-times mr-1"></i>
                         Reset
@@ -625,7 +649,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $pengirimanBerjalan->total() }}</span> pengiriman dalam proses
                     </div>
                     <div class="flex justify-center">
-                        {{ $pengirimanBerjalan->appends(request()->query())->links() }}
+                        {{ $pengirimanBerjalan->appends(array_merge(request()->query(), ['tab' => 'proses']))->links() }}
                     </div>
                 </div>
             </div>
@@ -649,6 +673,7 @@
             <!-- Search Bar -->
             <div class="flex gap-2">
                 <form method="GET" class="flex gap-2">
+                    <input type="hidden" name="tahun" value="{{ $tahun }}">
                     <input type="hidden" name="tab" value="selesai">
                     <div class="relative">
                         <input type="text" 
@@ -661,7 +686,7 @@
                         </button>
                     </div>
                     @if(request('search'))
-                    <a href="{{ route('purchasing.pengiriman') }}?tab=selesai" 
+                    <a href="{{ route('purchasing.pengiriman') }}?tab=selesai&tahun={{ $tahun }}" 
                        class="px-3 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 whitespace-nowrap">
                         <i class="fas fa-times mr-1"></i>
                         Reset
@@ -853,8 +878,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $pengirimanSelesai->total() }}</span> pengiriman selesai
                     </div>
                     <div class="flex justify-center">
-                        {{ $pengirimanSelesai->appends(request()->query())->links() }}
-                    </div>
+                    {{ $pengirimanSelesai->appends(array_merge(request()->query(), ['tab' => 'selesai']))->links() }}                    </div>
                 </div>
             </div>
             @endif
@@ -950,7 +974,8 @@
             </div>
 
             <div class="mt-4">
-                {{ $suratPengirimanList->appends(request()->query())->links() }}
+                {{ $suratPengirimanList->appends(array_merge(request()->query(), ['tab' => 'surat']))->links() }}
+
             </div>
         @else
             <div class="text-center py-10 text-gray-500">
@@ -1207,6 +1232,9 @@
     </div>
 </div>
 
+<!-- Include Edit Pengiriman Component -->
+@include('pages.purchasing.pengiriman-components.edit')
+
 <script>
 // Global variables for access control
 window.currentUserId = {{ $currentUser->id_user }};
@@ -1232,6 +1260,21 @@ function switchTab(tabName) {
     const activeTab = document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
     activeTab.classList.remove('border-transparent', 'text-gray-500');
     activeTab.classList.add('border-red-500', 'text-red-600', 'tab-active');
+
+    // Update URL supaya pagination tahu tab mana yang aktif
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tabName);
+    // Reset semua page parameter saat pindah tab agar tidak cross-tab
+    url.searchParams.delete('ready_page');
+    url.searchParams.delete('proses_page');
+    url.searchParams.delete('selesai_page');
+    url.searchParams.delete('surat_page');
+    history.pushState({ tab: tabName }, '', url.toString());
+
+    // Sync semua hidden input[name="tab"] di search forms
+    document.querySelectorAll('input[type="hidden"][name="tab"]').forEach(input => {
+        input.value = tabName;
+    });
 }
 
 // Buat pengiriman
@@ -1354,7 +1397,7 @@ function updateDokumentasi(pengirimanId) {
     document.getElementById('formUpdateDokumentasi').action = `/purchasing/pengiriman/${pengirimanId}/update-dokumentasi`;
     
     // Find pengiriman data - perbaiki untuk handle pagination
-    const pengirimanData = @json($pengirimanBerjalan->items()); // Ambil items() dari paginated data
+    const pengirimanData = @json($pengirimanBerjalan->items());
     const pengiriman = pengirimanData.find(p => p.id_pengiriman == pengirimanId);
     
     // Check if current user is assigned to this project or is superadmin
@@ -1407,13 +1450,6 @@ function updateDokumentasi(pengirimanId) {
         `;
 
         // Build dokumentasi fields dengan status file + checklist
-        const checklistKeys = {
-            foto_berangkat:  'berangkat',
-            foto_perjalanan: 'perjalanan',
-            foto_sampai:     'sampai',
-            tanda_terima:    'terima',
-        };
-
         const dokumentasiFields = [
             { 
                 name: 'foto_berangkat', 
@@ -1467,10 +1503,8 @@ function updateDokumentasi(pengirimanId) {
 
         const fieldsHtml = dokumentasiFields.map(field => {
             const hasFile    = field.current && field.current.trim() !== '';
-            const hasChecked  = field.checkKey ? !!checklistData[field.checkKey] : false;
-            const isDone     = hasFile || hasChecked;
+            const hasChecked = field.checkKey ? !!checklistData[field.checkKey] : false;
 
-            // Status badge
             let statusBadge = '';
             if (hasFile) {
                 statusBadge = `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-2">
@@ -1490,7 +1524,6 @@ function updateDokumentasi(pengirimanId) {
                 </span>`;
             }
 
-            // Info file saat ini
             const currentFileInfo = hasFile ? 
                 `<div class="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
                     <div class="flex items-center justify-between">
@@ -1505,10 +1538,8 @@ function updateDokumentasi(pengirimanId) {
                     </div>
                 </div>` : '';
 
-            // Checkbox — hanya tampil jika bukan field required DAN belum ada file
             let checkboxHtml = '';
             if (field.required) {
-                // Field wajib: tidak ada checkbox, file input wajib diisi jika belum ada file
                 checkboxHtml = '';
             } else if (!hasFile && field.checkName) {
                 checkboxHtml = `<label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
@@ -1524,7 +1555,6 @@ function updateDokumentasi(pengirimanId) {
                 checkboxHtml = `<input type="hidden" name="${field.checkName}" value="${hasChecked ? '1' : '0'}">`;
             }
 
-            // Hint text bawah input
             let hintText = '';
             if (hasFile) {
                 hintText = 'Upload baru untuk mengganti';
@@ -1558,8 +1588,7 @@ function updateDokumentasi(pengirimanId) {
 
 // Lihat detail pengiriman selesai
 function lihatDetailSelesai(pengirimanId) {
-    // Find pengiriman data - perbaiki untuk handle pagination
-    const pengirimanData = @json($pengirimanSelesai->items()); // Ambil items() dari paginated data
+    const pengirimanData = @json($pengirimanSelesai->items());
     const pengiriman = pengirimanData.find(p => p.id_pengiriman == pengirimanId);
     
     if (pengiriman) {
@@ -1686,9 +1715,7 @@ function fillDokumentasiSelesai(pengiriman) {
                             </p>
                         </div>
                     </div>
-                    <div>
-                        ${actionButton}
-                    </div>
+                    <div>${actionButton}</div>
                 </div>
             </div>
         `;
@@ -1740,7 +1767,7 @@ function fillTimelineSelesai(pengiriman) {
     const timelineHtml = timelineData.map((item, index) => {
         const isCompleted = item.status === 'completed';
         const statusClass = isCompleted ? 'bg-green-500' : 'bg-gray-300';
-        const lineClass = index < timelineData.length - 1 ? (isCompleted ? 'bg-green-500' : 'bg-gray-300') : '';
+        const lineClass = isCompleted ? 'bg-green-500' : 'bg-gray-300';
         
         return `
             <div class="flex">
@@ -1764,27 +1791,22 @@ function fillTimelineSelesai(pengiriman) {
     document.getElementById('timelineSelesaiContent').innerHTML = `
         <div class="bg-white p-6 rounded-lg border border-gray-200">
             <h4 class="font-semibold text-gray-900 mb-6">Timeline Pengiriman</h4>
-            <div class="space-y-0">
-                ${timelineHtml}
-            </div>
+            <div class="space-y-0">${timelineHtml}</div>
         </div>
     `;
 }
 
 // Switch detail modal tabs
 function switchDetailTab(tabName) {
-    // Hide all detail tab contents
     document.querySelectorAll('.detail-tab-content').forEach(content => {
         content.classList.add('hidden');
     });
 
-    // Remove active class from all detail tabs
     document.querySelectorAll('#modalDetailSelesai nav button').forEach(tab => {
         tab.classList.remove('border-green-500', 'text-green-600', 'detail-tab-active');
         tab.classList.add('border-transparent', 'text-gray-500');
     });
 
-    // Show selected tab content
     const contentMap = {
         'info': 'contentInfo',
         'dokumentasi': 'contentDokumentasi', 
@@ -1795,7 +1817,6 @@ function switchDetailTab(tabName) {
         document.getElementById(contentMap[tabName]).classList.remove('hidden');
     }
 
-    // Add active class to selected tab
     const tabButton = document.querySelector(`#modalDetailSelesai button[onclick="switchDetailTab('${tabName}')"]`);
     if (tabButton) {
         tabButton.classList.remove('border-transparent', 'text-gray-500');
@@ -1807,31 +1828,29 @@ function switchDetailTab(tabName) {
 function viewFile(filePath) {
     if (filePath) {
         let fullUrl;
-        // Tentukan path berdasarkan jenis file
         if (filePath.includes('_surat_jalan_')) {
             fullUrl = `/storage/pengiriman/surat_jalan/${filePath}`;
         } else if (filePath.includes('_foto_') || filePath.includes('_tanda_terima_')) {
             fullUrl = `/storage/pengiriman/dokumentasi/${filePath}`;
         } else {
-            // Fallback untuk kompatibilitas file lama
             fullUrl = `/storage/${filePath}`;
         }
         window.open(fullUrl, '_blank');
     }
 }
 
-// Print and download functions
-function printDetailSelesai() {
-    alert('Fitur cetak laporan akan membuat dokumen PDF lengkap dengan semua dokumentasi pengiriman untuk keperluan arsip dan audit.');
-}
-
-function downloadDetailSelesai() {
-    alert('Fitur download PDF akan mengunduh laporan lengkap pengiriman dalam format PDF yang dapat disimpan sebagai dokumentasi.');
-}
-
 // Tutup modal
 function tutupModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
+    
+    // Reset search jika menutup modal barang
+    if (modalId === 'modalDetailBarang') {
+        document.getElementById('searchBarang').value = '';
+        if (window.currentBarangList) {
+            renderBarangList(window.currentBarangList, '');
+            document.getElementById('totalBarangCount').textContent = window.currentBarangList.length;
+        }
+    }
 }
 
 // Close modals when clicking outside
@@ -1843,29 +1862,18 @@ document.addEventListener('click', function(e) {
 
 // Show barang detail modal
 function showBarangDetail(vendorId, barangList, vendorName, subtitle = '') {
-    // Set title and subtitle
     document.getElementById('modalBarangTitle').textContent = `Detail Barang - ${vendorName}`;
     document.getElementById('modalBarangSubtitle').textContent = subtitle || 'Daftar lengkap barang untuk vendor ini';
-    
-    // Set total count
     document.getElementById('totalBarangCount').textContent = barangList.length;
-    
-    // Store original list for searching
+
     window.currentBarangList = barangList;
-    
-    // Render barang list
+
     renderBarangList(barangList, '');
-    
-    // Clear search
     document.getElementById('searchBarang').value = '';
-    
-    // Setup search functionality
     setupBarangSearch();
-    
-    // Show modal
+
     document.getElementById('modalDetailBarang').classList.remove('hidden');
-    
-    // Focus on search input after a short delay
+
     setTimeout(() => {
         document.getElementById('searchBarang').focus();
     }, 100);
@@ -1887,7 +1895,6 @@ function renderBarangList(barangList, searchTerm = '') {
     const html = barangList.map((barang, index) => {
         let displayName = barang;
         
-        // Highlight search term
         if (searchTerm && searchTerm.length > 0) {
             const regex = new RegExp(`(${searchTerm})`, 'gi');
             displayName = barang.replace(regex, '<span class="search-highlight font-semibold">$1</span>');
@@ -1920,11 +1927,10 @@ function renderBarangList(barangList, searchTerm = '') {
 function setupBarangSearch() {
     const searchInput = document.getElementById('searchBarang');
     
-    // Remove existing event listeners
+    // Remove existing event listeners by cloning
     const newSearchInput = searchInput.cloneNode(true);
     searchInput.parentNode.replaceChild(newSearchInput, searchInput);
     
-    // Add new event listener
     document.getElementById('searchBarang').addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase().trim();
         
@@ -1939,28 +1945,11 @@ function setupBarangSearch() {
         );
         
         renderBarangList(filteredList, searchTerm);
-        
-        // Update count with search indicator
         document.getElementById('totalBarangCount').textContent = 
             `${filteredList.length} / ${window.currentBarangList.length}`;
     });
     
-    // Reset count display
     document.getElementById('totalBarangCount').textContent = window.currentBarangList.length;
-}
-
-// Enhanced modal closing
-function tutupModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
-    
-    // Reset search if closing barang modal
-    if (modalId === 'modalDetailBarang') {
-        document.getElementById('searchBarang').value = '';
-        if (window.currentBarangList) {
-            renderBarangList(window.currentBarangList, '');
-            document.getElementById('totalBarangCount').textContent = window.currentBarangList.length;
-        }
-    }
 }
 
 // Keyboard shortcuts
@@ -1975,7 +1964,7 @@ document.addEventListener('keydown', function(e) {
         });
     }
     
-    // Quick search with Ctrl+F when barang modal is open
+    // Quick search dengan Ctrl+F saat modal barang terbuka
     if (e.ctrlKey && e.key === 'f' && !document.getElementById('modalDetailBarang').classList.contains('hidden')) {
         e.preventDefault();
         document.getElementById('searchBarang').focus();
@@ -1994,7 +1983,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Include Edit Pengiriman Component -->
-@include('pages.purchasing.pengiriman-components.edit')
 
 @endsection
