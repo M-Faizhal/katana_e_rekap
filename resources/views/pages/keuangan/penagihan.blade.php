@@ -31,6 +31,24 @@
 
 <!-- Tabs Navigation -->
 <div class="bg-white rounded-lg shadow-lg mb-6">
+    <!-- Filter Tahun -->
+    <div class="px-4 sm:px-6 pt-4 flex items-center gap-3">
+        <form method="GET" action="{{ route('keuangan.penagihan') }}" class="flex items-center gap-3">
+            <input type="hidden" name="tab" id="filterTahunTab" value="{{ request('tab', 'belum-bayar') }}">
+            @if(request('search'))
+                <input type="hidden" name="search" value="{{ request('search') }}">
+            @endif
+            <label class="text-sm font-medium text-gray-700 whitespace-nowrap">
+                <i class="fas fa-calendar-alt mr-1 text-red-600"></i>Filter Tahun:
+            </label>
+            <select name="tahun" onchange="this.form.submit()"
+                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
+                @for($y = now()->year; $y >= now()->year - 5; $y--)
+                    <option value="{{ $y }}" {{ (int)$tahun === $y ? 'selected' : '' }}>{{ $y }}</option>
+                @endfor
+            </select>
+        </form>
+    </div>
     <div class="border-b border-gray-200">
         <nav class="-mb-px flex items-center justify-between" aria-label="Tabs">
             <!-- Left tabs -->
@@ -41,7 +59,6 @@
                     <div class="flex items-center space-x-1 sm:space-x-2">
                         <i class="fas fa-clock text-yellow-500 text-xs sm:text-sm md:text-base"></i>
                         <span>Belum Bayar</span>
-                        <span class="bg-yellow-100 text-yellow-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekBelumBayar->count() }}</span>
                     </div>
                 </button>
                 <button type="button" 
@@ -50,7 +67,6 @@
                     <div class="flex items-center space-x-1 sm:space-x-2">
                         <i class="fas fa-hand-holding-usd text-blue-500 text-xs sm:text-sm md:text-base"></i>
                         <span>DP</span>
-                        <span class="bg-blue-100 text-blue-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekDp->count() }}</span>
                     </div>
                 </button>
                 <button type="button" 
@@ -59,7 +75,6 @@
                     <div class="flex items-center space-x-1 sm:space-x-2">
                         <i class="fas fa-check-circle text-green-500 text-xs sm:text-sm md:text-base"></i>
                         <span>Lunas</span>
-                        <span class="bg-green-100 text-green-800 py-0.5 px-1.5 rounded-full text-xs">{{ $proyekLunas->count() }}</span>
                     </div>
                 </button>
             </div>
@@ -96,6 +111,7 @@
                     <div class="flex items-center gap-2">
                         <!-- Search Bar -->
                         <form method="GET" action="{{ route('keuangan.penagihan') }}" class="flex-1 md:flex-none">
+                            <input type="hidden" name="tahun" value="{{ $tahun }}">
                             <input type="hidden" name="tab" value="belum-bayar">
                             <div class="flex items-center space-x-2">
                                 <div class="relative">
@@ -110,7 +126,7 @@
                                     <i class="fas fa-search"></i>
                                 </button>
                                 @if(request('search'))
-                                <a href="{{ route('keuangan.penagihan') }}?tab=belum-bayar" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                                <a href="{{ route('keuangan.penagihan') }}?tab=belum-bayar&tahun={{ $tahun }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
                                     <i class="fas fa-times"></i>
                                 </a>
                                 @endif
@@ -235,7 +251,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $proyekBelumBayar->total() }}</span> proyek
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekBelumBayar->appends(request()->query())->links() }}
+                            {{ $proyekBelumBayar->appends(array_merge(request()->query(), ['tab' => 'belum-bayar']))->links() }}
                     </div>
                 </div>
             </div>
@@ -257,6 +273,7 @@
                     </div>
                     <!-- Search Bar -->
                     <form method="GET" action="{{ route('keuangan.penagihan') }}">
+                        <input type="hidden" name="tahun" value="{{ $tahun }}">
                         <input type="hidden" name="tab" value="dp">
                         <div class="flex items-center space-x-2">
                             <div class="relative">
@@ -271,7 +288,7 @@
                                 <i class="fas fa-search"></i>
                             </button>
                             @if(request('search'))
-                            <a href="{{ route('keuangan.penagihan') }}?tab=dp" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                            <a href="{{ route('keuangan.penagihan') }}?tab=dp&tahun={{ $tahun }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
                                 <i class="fas fa-times"></i>
                             </a>
                             @endif
@@ -401,7 +418,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $proyekDp->total() }}</span> pembayaran DP
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekDp->appends(request()->query())->links() }}
+                        {{ $proyekDp->appends(array_merge(request()->query(), ['tab' => 'dp']))->links() }}
                     </div>
                 </div>
             </div>
@@ -423,6 +440,7 @@
                     </div>
                     <!-- Search Bar -->
                     <form method="GET" action="{{ route('keuangan.penagihan') }}">
+                        <input type="hidden" name="tahun" value="{{ $tahun }}">
                         <input type="hidden" name="tab" value="lunas">
                         <div class="flex items-center space-x-2">
                             <div class="relative">
@@ -437,7 +455,7 @@
                                 <i class="fas fa-search"></i>
                             </button>
                             @if(request('search'))
-                            <a href="{{ route('keuangan.penagihan') }}?tab=lunas" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                            <a href="{{ route('keuangan.penagihan') }}?tab=lunas&tahun={{ $tahun }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
                                 <i class="fas fa-times"></i>
                             </a>
                             @endif
@@ -561,7 +579,7 @@
                         dari <span class="font-semibold text-gray-800">{{ $proyekLunas->total() }}</span> pembayaran lunas
                     </div>
                     <div class="flex justify-center">
-                        {{ $proyekLunas->appends(request()->query())->links() }}
+                        {{ $proyekLunas->appends(array_merge(request()->query(), ['tab' => 'lunas']))->links() }}
                     </div>
                 </div>
             </div>
@@ -713,7 +731,7 @@
                             dari <span class="font-semibold text-gray-800">{{ $proyekAccInvoice->total() }}</span> proyek
                         </div>
                         <div class="flex justify-center">
-                            {{ $proyekAccInvoice->appends(request()->query())->links() }}
+                            {{ $proyekAccInvoice->appends(array_merge(request()->query(), ['tab' => 'pembuatan-invoice']))->links() }}
                         </div>
                     </div>
                 </div>
@@ -725,50 +743,51 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Tab functionality
     const tabButtons = document.querySelectorAll('.tab-button');
-    const tabPanes = document.querySelectorAll('.tab-pane');
-    
-    // Get active tab from URL parameter or default to 'belum-bayar'
+    const tabPanes   = document.querySelectorAll('.tab-pane');
+
     const urlParams = new URLSearchParams(window.location.search);
     const activeTab = urlParams.get('tab') || 'belum-bayar';
-    
-    // Set initial active tab
+
     setActiveTab(activeTab);
-    
+
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
             setActiveTab(tabId);
-            
-            // Update URL with tab parameter
-            const newUrl = new URL(window.location);
-            newUrl.searchParams.set('tab', tabId);
-            // Remove pagination parameters when switching tabs
-            newUrl.searchParams.delete('belum_bayar_page');
-            newUrl.searchParams.delete('dp_page');
-            newUrl.searchParams.delete('lunas_page');
-            newUrl.searchParams.delete('acc_invoice_page');
-            window.history.pushState({}, '', newUrl);
+
+            // Update URL agar pagination dan reload tahu tab yang aktif
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', tabId);
+            // Reset semua page params saat pindah tab
+            url.searchParams.delete('belum_bayar_page');
+            url.searchParams.delete('dp_page');
+            url.searchParams.delete('lunas_page');
+            url.searchParams.delete('acc_invoice_page');
+            history.pushState({ tab: tabId }, '', url.toString());
+
+            // Sync hidden input tab di filter tahun form
+            const filterTahunTab = document.getElementById('filterTahunTab');
+            if (filterTahunTab) filterTahunTab.value = tabId;
+
+            // Sync semua hidden input[name="tab"] di search forms
+            document.querySelectorAll('input[type="hidden"][name="tab"]').forEach(input => {
+                input.value = tabId;
+            });
         });
     });
-    
+
     function setActiveTab(tabId) {
-        // Remove active classes from all tabs
         tabButtons.forEach(btn => {
             btn.classList.remove('border-red-500', 'text-red-600');
             btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
         });
-        
-        // Hide all tab panes
-        tabPanes.forEach(pane => {
-            pane.classList.add('hidden');
-        });
-        
-        // Activate selected tab
+
+        tabPanes.forEach(pane => pane.classList.add('hidden'));
+
         const activeButton = document.querySelector(`[data-tab="${tabId}"]`);
-        const activePane = document.getElementById(tabId);
-        
+        const activePane   = document.getElementById(tabId);
+
         if (activeButton && activePane) {
             activeButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
             activeButton.classList.add('border-red-500', 'text-red-600');

@@ -20,6 +20,8 @@ class PenagihanDinasController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $tahun  = (int) $request->input('tahun', now()->year);
+
 
         // --- Belum Bayar tab: batch-optimized, no N+1 ---
 
@@ -41,14 +43,16 @@ class PenagihanDinasController extends Controller
 
         // Step 3: Load all ACC proyek with their penawaran and vendor info (eager load)
         $proyekAccQuery = Proyek::with([
-            'semuaPenawaran' => function ($query) {
-                $query->where('status', 'ACC');
+            'semuaPenawaran' => function ($query) use ($tahun) {
+                $query->where('status', 'ACC')->whereYear('tanggal_penawaran', $tahun);
             },
             'semuaPenawaran.penawaranDetail.barang' => function ($query) {
                 $query->select('id_barang', 'id_vendor');
             },
         ])->whereHas('semuaPenawaran', function ($query) {
             $query->where('status', 'ACC');
+        })->whereHas('semuaPenawaran', function ($query) use ($tahun) {
+            $query->where('status', 'ACC')->whereYear('tanggal_penawaran', $tahun);
         });
 
         if ($search) {
@@ -184,7 +188,9 @@ class PenagihanDinasController extends Controller
 
         // Pagination untuk DP with search
         $proyekDpQuery = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
-            ->where('status_pembayaran', 'dp');
+            ->where('status_pembayaran', 'dp')
+            ->whereHas('penawaran', fn($q) => $q->whereYear('tanggal_penawaran', $tahun));
+
 
         if ($search) {
             $proyekDpQuery->where(function($q) use ($search) {
@@ -204,7 +210,8 @@ class PenagihanDinasController extends Controller
 
         // Pagination untuk Lunas with search
         $proyekLunasQuery = PenagihanDinas::with(['proyek', 'penawaran', 'buktiPembayaran'])
-            ->where('status_pembayaran', 'lunas');
+            ->where('status_pembayaran', 'lunas')
+            ->whereHas('penawaran', fn($q) => $q->whereYear('tanggal_penawaran', $tahun));
 
         if ($search) {
             $proyekLunasQuery->where(function($q) use ($search) {
@@ -226,7 +233,8 @@ class PenagihanDinasController extends Controller
             'proyekBelumBayar', 
             'proyekDp', 
             'proyekLunas',
-            'proyekAccInvoice'
+            'proyekAccInvoice',
+            'tahun'
         ));
     }
 
