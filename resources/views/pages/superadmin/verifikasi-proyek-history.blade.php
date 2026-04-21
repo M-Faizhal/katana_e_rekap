@@ -28,19 +28,36 @@
 
     <!-- Filter Tabs -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="flex space-x-1">
-            <button id="btnAll" onclick="filterHistory('all')" 
-                    class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-blue-500 text-white">
-                <i class="fas fa-list mr-2"></i>Semua
-            </button>
-            <button id="btnSelesai" onclick="filterHistory('selesai')" 
-                    class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-gray-500 hover:text-gray-700">
-                <i class="fas fa-check mr-2"></i>Selesai
-            </button>
-            <button id="btnGagal" onclick="filterHistory('gagal')" 
-                    class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-gray-500 hover:text-gray-700">
-                <i class="fas fa-times mr-2"></i>Gagal
-            </button>
+        <div class="flex flex-wrap items-center gap-3">
+            {{-- Filter Status --}}
+            <div class="flex space-x-1">
+                <a href="{{ route('superadmin.verifikasi-proyek.history', array_merge(request()->query(), ['filter' => 'all'])) }}"
+                class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 {{ $filterStatus === 'all' ? 'bg-blue-500 text-white' : 'text-gray-500 hover:text-gray-700' }}">
+                    <i class="fas fa-list mr-2"></i>Semua
+                </a>
+                <a href="{{ route('superadmin.verifikasi-proyek.history', array_merge(request()->query(), ['filter' => 'selesai'])) }}"
+                class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 {{ $filterStatus === 'selesai' ? 'bg-green-500 text-white' : 'text-gray-500 hover:text-gray-700' }}">
+                    <i class="fas fa-check mr-2"></i>Selesai
+                </a>
+                <a href="{{ route('superadmin.verifikasi-proyek.history', array_merge(request()->query(), ['filter' => 'gagal'])) }}"
+                class="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 {{ $filterStatus === 'gagal' ? 'bg-red-500 text-white' : 'text-gray-500 hover:text-gray-700' }}">
+                    <i class="fas fa-times mr-2"></i>Gagal
+                </a>
+            </div>
+
+            {{-- Filter Tahun --}}
+            <form method="GET" action="{{ route('superadmin.verifikasi-proyek.history') }}" class="flex items-center gap-2 ml-auto">
+                <input type="hidden" name="filter" value="{{ $filterStatus }}">
+                <label class="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    <i class="fas fa-calendar-alt mr-1 text-purple-600"></i>Tahun:
+                </label>
+                <select name="tahun" onchange="this.form.submit()"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white">
+                    @for($y = now()->year; $y >= now()->year - 5; $y--)
+                        <option value="{{ $y }}" {{ (int)$tahun === $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+            </form>
         </div>
     </div>
 
@@ -68,8 +85,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @foreach($historyVerifikasi as $history)
-                    <tr class="hover:bg-gray-50 transition-colors duration-200 history-row" 
-                        data-status="{{ strtolower($history->status) }}">
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
                         <td class="px-6 py-4">
                             <div>
                                 <div class="text-sm font-medium text-gray-900">{{ $history->nama_barang }}</div>
@@ -147,7 +163,8 @@
                 dari <span class="font-semibold text-gray-800">{{ $historyVerifikasi->total() }}</span> history verifikasi
             </div>
             <div class="flex justify-center">
-                {{ $historyVerifikasi->links() }}
+                {{ $historyVerifikasi->appends(request()->query())->links() }}
+
             </div>
         </div>
     </div>
@@ -157,24 +174,26 @@
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @php
-            // Calculate statistics from current page data
-            $totalSelesai = $historyVerifikasi->where('status', 'Selesai')->count();
-            $totalGagal = $historyVerifikasi->where('status', 'Gagal')->count();
-            $totalValue = $historyVerifikasi->where('status', 'Selesai')->sum('total_penawaran');
-            
-            // For total counts, we need to show actual database totals, not just current page
-            $totalSelesaiAll = \App\Models\Proyek::where('status', 'Selesai')->count();
-            $totalGagalAll = \App\Models\Proyek::where('status', 'Gagal')->count();
+            $totalSelesaiAll = \App\Models\Proyek::where('status', 'Selesai')
+                ->whereHas('semuaPenawaran', fn($q) => $q->where('status', 'ACC')
+                    ->whereYear('tanggal_penawaran', $tahun))
+                ->count();
+
+            $totalGagalAll = \App\Models\Proyek::where('status', 'Gagal')
+                ->whereHas('semuaPenawaran', fn($q) => $q->where('status', 'ACC')
+                    ->whereYear('tanggal_penawaran', $tahun))
+                ->count();
+
             $totalValueAll = \App\Models\Proyek::with(['semuaPenawaran.penawaranDetail'])
                 ->where('status', 'Selesai')
+                ->whereHas('semuaPenawaran', fn($q) => $q->where('status', 'ACC')
+                    ->whereYear('tanggal_penawaran', $tahun))
                 ->get()
                 ->sum(function($proyek) {
                     $total = 0;
-                    if ($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty()) {
-                        foreach ($proyek->semuaPenawaran->where('status', 'ACC') as $penawaran) {
-                            if ($penawaran->penawaranDetail) {
-                                $total += $penawaran->penawaranDetail->sum('subtotal');
-                            }
+                    foreach ($proyek->semuaPenawaran->where('status', 'ACC') as $penawaran) {
+                        if ($penawaran->penawaranDetail) {
+                            $total += $penawaran->penawaranDetail->sum('subtotal');
                         }
                     }
                     return $total;
@@ -186,7 +205,7 @@
                 <i class="fas fa-check-circle text-green-500 mr-3 text-2xl"></i>
                 <div>
                     <h4 class="text-green-800 font-bold text-xl">{{ $totalSelesaiAll }}</h4>
-                    <p class="text-green-700 text-sm">Proyek Selesai</p>
+                    <p class="text-green-700 text-sm">Proyek Selesai {{ $tahun }}</p>
                 </div>
             </div>
         </div>
@@ -196,7 +215,7 @@
                 <i class="fas fa-times-circle text-red-500 mr-3 text-2xl"></i>
                 <div>
                     <h4 class="text-red-800 font-bold text-xl">{{ $totalGagalAll }}</h4>
-                    <p class="text-red-700 text-sm">Proyek Gagal</p>
+                    <p class="text-red-700 text-sm">Proyek Gagal {{ $tahun }}</p>
                 </div>
             </div>
         </div>
@@ -206,66 +225,12 @@
                 <i class="fas fa-money-bill-wave text-blue-500 mr-3 text-2xl"></i>
                 <div>
                     <h4 class="text-blue-800 font-bold text-lg">Rp {{ number_format($totalValueAll, 0, ',', '.') }}</h4>
-                    <p class="text-blue-700 text-sm">Total Nilai Selesai</p>
+                    <p class="text-blue-700 text-sm">Total Nilai Selesai {{ $tahun }}</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-function filterHistory(status) {
-    // Reset semua tombol
-    const buttons = ['btnAll', 'btnSelesai', 'btnGagal'];
-    buttons.forEach(btnId => {
-        const btn = document.getElementById(btnId);
-        btn.classList.remove('bg-blue-500', 'bg-green-500', 'bg-red-500', 'text-white');
-        btn.classList.add('text-gray-500', 'hover:text-gray-700');
-    });
-    
-    // Set active button
-    let activeBtn = document.getElementById('btnAll');
-    let activeColor = 'bg-blue-500';
-    
-    if (status === 'selesai') {
-        activeBtn = document.getElementById('btnSelesai');
-        activeColor = 'bg-green-500';
-    } else if (status === 'gagal') {
-        activeBtn = document.getElementById('btnGagal');
-        activeColor = 'bg-red-500';
-    }
-    
-    activeBtn.classList.remove('text-gray-500', 'hover:text-gray-700');
-    activeBtn.classList.add(activeColor, 'text-white');
-    
-    // Filter rows
-    const rows = document.querySelectorAll('.history-row');
-    rows.forEach(row => {
-        const rowStatus = row.getAttribute('data-status');
-        
-        if (status === 'all') {
-            row.style.display = '';
-        } else {
-            if (rowStatus === status) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        }
-    });
-    
-    // Update counts in summary
-    updateSummaryDisplay(status);
-}
 
-function updateSummaryDisplay(activeFilter) {
-    // Optional: Update summary cards based on active filter
-    // This can be implemented later if needed
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    filterHistory('all');
-});
-</script>
 @endsection

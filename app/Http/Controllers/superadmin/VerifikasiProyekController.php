@@ -217,7 +217,7 @@ class VerifikasiProyekController extends Controller
         }
     }
 
-    public function history()
+    public function history(Request $request)
     {
         // Check authorization
         $user = Auth::user();
@@ -225,7 +225,10 @@ class VerifikasiProyekController extends Controller
             abort(403, 'Access denied. Only Superadmin and Manager Marketing can access this resource.');
         }
 
-        $historyVerifikasi = Proyek::with([
+        $tahun       = (int) $request->input('tahun', now()->year);
+        $filterStatus = $request->input('filter', 'all'); // all | selesai | gagal
+
+        $query = Proyek::with([
             'semuaPenawaran' => function($query) {
                 $query->where('status', 'ACC')->with(['penawaranDetail']);
             },
@@ -233,26 +236,36 @@ class VerifikasiProyekController extends Controller
             'adminPurchasing:id_user,nama,email'
         ])
         ->whereIn('status', ['Selesai', 'Gagal'])
-        ->orderBy('updated_at', 'desc')
-        ->paginate(10)
-        ->through(function($proyek) {
-            // Calculate total penawaran
-            $totalPenawaran = 0;
-            if ($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty()) {
-                foreach ($proyek->semuaPenawaran as $penawaran) {
-                    if ($penawaran->penawaranDetail) {
-                        $totalPenawaran += $penawaran->penawaranDetail->sum('subtotal');
+        ->whereHas('semuaPenawaran', fn($q) => $q->where('status', 'ACC')
+            ->whereYear('tanggal_penawaran', $tahun));
+
+        if ($filterStatus === 'selesai') {
+            $query->where('status', 'Selesai');
+        } elseif ($filterStatus === 'gagal') {
+            $query->where('status', 'Gagal');
+        }
+
+        $historyVerifikasi = $query
+            ->orderBy('updated_at', 'desc')
+            ->paginate(10)
+            ->through(function($proyek) {
+                $totalPenawaran = 0;
+                if ($proyek->semuaPenawaran && $proyek->semuaPenawaran->isNotEmpty()) {
+                    foreach ($proyek->semuaPenawaran as $penawaran) {
+                        if ($penawaran->penawaranDetail) {
+                            $totalPenawaran += $penawaran->penawaranDetail->sum('subtotal');
+                        }
                     }
                 }
-            }
-            $proyek->total_penawaran = $totalPenawaran;
-            
-            // Set nomor penawaran
-            $proyek->no_penawaran = $proyek->semuaPenawaran->first()->no_penawaran ?? 'N/A';
-            
-            return $proyek;
-        });
+                $proyek->total_penawaran = $totalPenawaran;
+                $proyek->no_penawaran    = $proyek->semuaPenawaran->first()->no_penawaran ?? 'N/A';
+                return $proyek;
+            });
 
-        return view('pages.superadmin.verifikasi-proyek-history', compact('historyVerifikasi'));
+        return view('pages.superadmin.verifikasi-proyek-history', compact(
+            'historyVerifikasi',
+            'tahun',
+            'filterStatus'
+        ));
     }
 }
