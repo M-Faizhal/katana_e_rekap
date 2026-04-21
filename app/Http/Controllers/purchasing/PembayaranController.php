@@ -151,6 +151,28 @@ class PembayaranController extends Controller
         $poSearch           = request()->get('po_search');
 
         // ----------------------------------------------------------------
+        // Filter Tahun untuk Tab "Semua Proyek" - default tahun saat ini (2026)
+        // ----------------------------------------------------------------
+        $currentYear        = (int) date('Y');
+        $tahunFilter        = (int) request()->get('tahun_filter', $currentYear);
+
+        // Ambil daftar tahun yang tersedia dari tanggal penawaran
+        $availableYears = DB::table('penawaran')
+            ->join('proyek', 'penawaran.id_proyek', '=', 'proyek.id_proyek')
+            ->whereIn('proyek.status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
+            ->where('penawaran.status', 'ACC')
+            ->selectRaw('YEAR(penawaran.tanggal_penawaran) as tahun')
+            ->groupBy('tahun')
+            ->orderByDesc('tahun')
+            ->pluck('tahun')
+            ->toArray();
+
+        // Jika tahun filter tidak ada di list yang tersedia, fallback ke tahun terbaru
+        if (!empty($availableYears) && !in_array($tahunFilter, $availableYears)) {
+            $tahunFilter = $availableYears[0];
+        }
+
+        // ----------------------------------------------------------------
         // TAB "Perlu Bayar"
         // ----------------------------------------------------------------
         $proyekPerluBayarQuery = Proyek::with([
@@ -193,7 +215,7 @@ class PembayaranController extends Controller
         );
 
         // ----------------------------------------------------------------
-        // TAB "Semua Proyek"
+        // TAB "Semua Proyek" - dengan filter tahun dari tanggal_penawaran
         // ----------------------------------------------------------------
         $semuaProyekQuery = Proyek::with([
             'penawaranAktif.penawaranDetail.barang.vendor',
@@ -201,7 +223,10 @@ class PembayaranController extends Controller
             'pembayaran',
         ])
         ->whereIn('status', ['Pembayaran', 'Pengiriman', 'Selesai', 'Gagal'])
-        ->whereHas('penawaranAktif', fn($q) => $q->where('status', 'ACC'));
+        ->whereHas('penawaranAktif', function ($q) use ($tahunFilter) {
+            $q->where('status', 'ACC')
+              ->whereYear('tanggal_penawaran', $tahunFilter);
+        });
 
         if ($search) {
             $semuaProyekQuery->where(function ($q) use ($search) {
@@ -307,7 +332,9 @@ class PembayaranController extends Controller
             'sortBy',
             'activeTab',
             'proyekPo',
-            'poSearch'
+            'poSearch',
+            'tahunFilter',
+            'availableYears'
         ))->with('currentUser', Auth::user());
     }
 
