@@ -140,15 +140,13 @@ class PenawaranController extends Controller
                 $penawaran->status = 'ACC';
                 $penawaran->save();
 
-                // Notifikasi: Penawaran ACC (ke semua role)
                 try {
                     app(\App\Services\NotificationService::class)->penawaranAcc($penawaran->fresh(['proyek']));
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::error('Notification penawaranAcc failed: ' . $e->getMessage(), [
+                    Log::error('Notification penawaranAcc failed: ' . $e->getMessage(), [
                         'id_penawaran' => $penawaran->id_penawaran,
-                        'id_proyek' => $penawaran->id_proyek,
+                        'id_proyek'    => $penawaran->id_proyek,
                     ]);
-                    // Jangan gagalkan proses upload/ACC hanya karena notifikasi gagal
                 }
             }
 
@@ -224,15 +222,13 @@ class PenawaranController extends Controller
                 $penawaran->status = 'ACC';
                 $penawaran->save();
 
-                // Notifikasi: Penawaran ACC (ke semua role)
                 try {
                     app(\App\Services\NotificationService::class)->penawaranAcc($penawaran->fresh(['proyek']));
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::error('Notification penawaranAcc failed: ' . $e->getMessage(), [
+                    Log::error('Notification penawaranAcc failed: ' . $e->getMessage(), [
                         'id_penawaran' => $penawaran->id_penawaran,
-                        'id_proyek' => $penawaran->id_proyek,
+                        'id_proyek'    => $penawaran->id_proyek,
                     ]);
-                    // Jangan gagalkan proses upload/ACC hanya karena notifikasi gagal
                 }
             }
 
@@ -334,7 +330,6 @@ class PenawaranController extends Controller
         );
 
         if ($request->hasFile('lampiran_pdfs')) {
-            // Baca raw JSON langsung dari DB — hindari masalah getter/accessor
             $rawRow   = DB::table('surat_penawaran')->where('id_surat_penawaran', $surat->id_surat_penawaran)->value('lampiran_files');
             $existing = [];
             if ($rawRow) {
@@ -349,13 +344,6 @@ class PenawaranController extends Controller
                 $filename = time() . '_' . uniqid() . '_' . $safeName;
                 $path     = $file->storeAs('surat-penawaran/lampiran', $filename, 'public');
 
-                Log::info('Lampiran diupload', [
-                    'path'          => $path,
-                    'exists_check'  => Storage::disk('public')->exists($path),
-                    'original_name' => $file->getClientOriginalName(),
-                    'size'          => $file->getSize(),
-                ]);
-
                 $existing[] = [
                     'path'          => $path,
                     'original_name' => $file->getClientOriginalName(),
@@ -364,13 +352,11 @@ class PenawaranController extends Controller
                 ];
             }
 
-            // Simpan langsung ke DB via query builder — bypass getter/setter Eloquent
             DB::table('surat_penawaran')
                 ->where('id_surat_penawaran', $surat->id_surat_penawaran)
                 ->update(['lampiran_files' => json_encode(array_values($existing))]);
         }
 
-        // Fresh dari DB
         $surat = SuratPenawaran::find($surat->id_surat_penawaran);
 
         return response()->json([
@@ -390,7 +376,6 @@ class PenawaranController extends Controller
         $surat = SuratPenawaran::where('id_proyek', $proyekId)->firstOrFail();
         $path  = $request->input('path');
 
-        // Baca raw dari DB
         $rawRow = DB::table('surat_penawaran')->where('id_surat_penawaran', $surat->id_surat_penawaran)->value('lampiran_files');
         $files  = [];
         if ($rawRow) {
@@ -422,11 +407,22 @@ class PenawaranController extends Controller
         ]);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // PREVIEW — surat penawaran + halaman tabel barang + lampiran PDF
+    // ─────────────────────────────────────────────────────────────────────────
+
     public function previewSuratPenawaran(Request $request, $proyekId)
     {
         $payload = $this->buildSuratPenawaranPayload($request, $proyekId, true);
-        $pdf     = Pdf::loadView('pages.files.surat-penawaran', $payload);
-        $content = $this->mergeSuratWithLampiran($pdf->output(), $payload['suratDb'] ?? null);
+
+        // 1. Render surat penawaran utama
+        $suratPdf = Pdf::loadView('pages.files.surat-penawaran', $payload)->output();
+
+        // 2. Render halaman tabel penawaran barang (halaman baru)
+        $barangPdf = Pdf::loadView('pages.files.penawaran-barang', $payload)->output();
+
+        // 3. Merge: surat + tabel barang + lampiran PDF
+        $content = $this->mergeAllPages($suratPdf, $barangPdf, $payload['suratDb'] ?? null);
 
         return response($content, 200, [
             'Content-Type'        => 'application/pdf',
@@ -434,11 +430,22 @@ class PenawaranController extends Controller
         ]);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // DOWNLOAD — surat penawaran + halaman tabel barang + lampiran PDF
+    // ─────────────────────────────────────────────────────────────────────────
+
     public function downloadSuratPenawaran(Request $request, $proyekId)
     {
         $payload  = $this->buildSuratPenawaranPayload($request, $proyekId, true);
-        $pdf      = Pdf::loadView('pages.files.surat-penawaran', $payload);
-        $content  = $this->mergeSuratWithLampiran($pdf->output(), $payload['suratDb'] ?? null);
+
+        // 1. Render surat penawaran utama
+        $suratPdf = Pdf::loadView('pages.files.surat-penawaran', $payload)->output();
+
+        // 2. Render halaman tabel penawaran barang (halaman baru)
+        $barangPdf = Pdf::loadView('pages.files.penawaran-barang', $payload)->output();
+
+        // 3. Merge: surat + tabel barang + lampiran PDF
+        $content  = $this->mergeAllPages($suratPdf, $barangPdf, $payload['suratDb'] ?? null);
         $filename = 'surat-penawaran-' . ($payload['proyek']->kode_proyek ?? $proyekId) . '.pdf';
 
         return response($content, 200, [
@@ -447,89 +454,114 @@ class PenawaranController extends Controller
         ]);
     }
 
-    /**
-     * Merge PDF surat penawaran dengan file lampiran.
-     *
-     * PENTING: addRaw() dipanggil TANPA parameter Pages kedua.
-     * Library iio/libmergepdf versi ini tidak support Pages('all') —
-     * memanggil addRaw() tanpa Pages akan merge semua halaman secara default.
-     */
-    private function mergeSuratWithLampiran(string $suratPdfContent, $suratDb = null): string
-    {
-        $lampiranList = [];
+    // ─────────────────────────────────────────────────────────────────────────
+    // MERGE: surat utama + halaman tabel barang + lampiran
+    //
+    // Urutan halaman PDF akhir:
+    //   1. Surat Penawaran  (dari $suratPdfContent)
+    //   2. Tabel Penawaran Barang  (dari $barangPdfContent)
+    //   3. Lampiran PDF (opsional, dari surat_penawaran.lampiran_files di DB)
+    //
+    // addRaw() dipanggil TANPA parameter Pages kedua karena iio/libmergepdf
+    // versi ini tidak support Pages('all') — default-nya merge semua halaman.
+    // ─────────────────────────────────────────────────────────────────────────
 
-        try {
-            if ($suratDb) {
-                // Baca raw JSON langsung dari DB — paling aman, tidak lewat getter Eloquent
-                $rawRow = DB::table('surat_penawaran')
-                    ->where('id_surat_penawaran', $suratDb->id_surat_penawaran)
-                    ->value('lampiran_files');
+    private function mergeAllPages(
+    string  $suratPdfContent,
+    string  $barangPdfContent,
+    $suratDb = null
+): string {
+    $lampiranList = [];
 
-                if ($rawRow) {
-                    $decoded      = json_decode($rawRow, true);
-                    $lampiranList = is_array($decoded) ? $decoded : [];
-                }
+    try {
+        if ($suratDb) {
+            $rawRow = DB::table('surat_penawaran')
+                ->where('id_surat_penawaran', $suratDb->id_surat_penawaran)
+                ->value('lampiran_files');
+
+            if ($rawRow) {
+                $decoded      = json_decode($rawRow, true);
+                $lampiranList = is_array($decoded) ? $decoded : [];
             }
+        }
+    } catch (\Throwable $e) {
+        Log::warning('mergeAllPages — gagal baca lampiran_files: ' . $e->getMessage());
+    }
 
-            Log::info('mergeSuratWithLampiran — START', [
-                'suratDb_id'          => $suratDb?->id_surat_penawaran,
-                'lampiran_list_count' => count($lampiranList),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Gagal baca lampiran_files dari DB: ' . $e->getMessage());
+    try {
+        $merger = new Merger();
+
+        // Halaman 1: Surat Penawaran
+        $merger->addRaw($suratPdfContent);
+
+        // Halaman 2: Tabel Penawaran Barang — skip jika kosong
+        if (!empty($barangPdfContent)) {
+            $merger->addRaw($barangPdfContent);
+            Log::info('mergeAllPages — barangPdfContent ditambahkan, size: ' . strlen($barangPdfContent));
+        } else {
+            Log::warning('mergeAllPages — barangPdfContent KOSONG, dilewati');
         }
 
-        if (empty($lampiranList)) {
-            return $suratPdfContent;
-        }
+        // Halaman 3+: Lampiran PDF (opsional)
+        foreach ($lampiranList as $f) {
+            $path = $f['path'] ?? null;
+            if (!$path) continue;
 
-        try {
-            $merger = new Merger();
-
-            // Tambah surat utama — TANPA Pages parameter
-            $merger->addRaw($suratPdfContent);
-
-            foreach ($lampiranList as $f) {
-                $path = $f['path'] ?? null;
-
-                if (!$path) {
-                    Log::warning('Skip lampiran: path kosong', ['entry' => $f]);
-                    continue;
-                }
-
-                // Path di DB relatif terhadap disk 'public'
-                // File fisik: storage/app/public/surat-penawaran/lampiran/xxx.pdf
-                $absolutePath = storage_path('app/public/' . ltrim($path, '/\\'));
-
-                if (!file_exists($absolutePath)) {
-                    Log::warning('Skip lampiran: file tidak ditemukan', [
-                        'path'         => $path,
-                        'absolutePath' => $absolutePath,
-                    ]);
-                    continue;
-                }
-
-                $raw = file_get_contents($absolutePath);
-
-                if (!$raw || strlen($raw) === 0) {
-                    Log::warning('Skip lampiran: file kosong', ['path' => $path]);
-                    continue;
-                }
-
-                // Tambah lampiran — TANPA Pages parameter
-                $merger->addRaw($raw);
-                Log::info('Lampiran berhasil di-merge', ['path' => $path]);
+            $absolutePath = storage_path('app/public/' . ltrim($path, '/\\'));
+            if (!file_exists($absolutePath)) {
+                Log::warning('mergeAllPages — lampiran tidak ditemukan', ['path' => $path]);
+                continue;
             }
 
-            $merged = $merger->merge();
-            Log::info('mergeSuratWithLampiran — DONE', ['size' => strlen($merged)]);
-            return $merged;
+            $raw = file_get_contents($absolutePath);
+            if (!$raw || strlen($raw) === 0) {
+                Log::warning('mergeAllPages — lampiran kosong', ['path' => $path]);
+                continue;
+            }
 
-        } catch (\Throwable $e) {
-            Log::error('PDF merge gagal, fallback ke surat saja: ' . $e->getMessage());
+            $merger->addRaw($raw);
+            Log::info('mergeAllPages — lampiran ditambahkan', ['path' => $path]);
+        }
+
+        $result = $merger->merge();
+        Log::info('mergeAllPages — merge sukses, result size: ' . strlen($result));
+        return $result;
+
+    } catch (\Throwable $e) {
+        Log::error('mergeAllPages — merge gagal: ' . $e->getMessage() . ' | trace: ' . $e->getTraceAsString());
+
+        // Fallback: minimal merge hanya surat + tabel barang tanpa lampiran
+        try {
+            $fallbackMerger = new Merger();
+            $fallbackMerger->addRaw($suratPdfContent);
+            if (!empty($barangPdfContent)) {
+                $fallbackMerger->addRaw($barangPdfContent);
+            }
+            return $fallbackMerger->merge();
+        } catch (\Throwable $e2) {
+            Log::error('mergeAllPages — fallback merge juga gagal: ' . $e2->getMessage());
             return $suratPdfContent;
         }
     }
+}
+
+    /**
+     * Tetap ada untuk backward compatibility (dipakai method lama jika ada).
+     * Sekarang method ini memanggil mergeAllPages tanpa halaman barang.
+     */
+    private function mergeSuratWithLampiran(string $suratPdfContent, $suratDb = null): string
+    {
+        return $this->mergeAllPages($suratPdfContent, '', $suratDb);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // BUILD PAYLOAD
+    //
+    // Perubahan dari versi sebelumnya:
+    //   + Menambahkan $itemsDetail — enriched items dengan data dari tabel barang
+    //     (spesifikasi, pdn_tkdn_impor, foto_barang) yang digunakan oleh
+    //     view penawaran-barang.blade.php
+    // ─────────────────────────────────────────────────────────────────────────
 
     private function buildSuratPenawaranPayload(Request $request, $proyekId, bool $preferDb = false): array
     {
@@ -549,11 +581,13 @@ class PenawaranController extends Controller
 
         $penawaranDetails = PenawaranDetail::where('id_penawaran', $penawaran->id_penawaran)->get();
 
+        // ── Ambil data barang (untuk surat penawaran — link produk) ──────────
         $barangIds  = $penawaranDetails->pluck('id_barang')->filter()->unique()->values();
         $barangById = $barangIds->isNotEmpty()
             ? Barang::whereIn('id_barang', $barangIds)->get()->keyBy('id_barang')
             : collect();
 
+        // ── $items — dipakai oleh surat-penawaran.blade.php (existing) ───────
         $items = $penawaranDetails->map(function ($d) use ($barangById) {
             $barang = null;
             if (!empty($d->id_barang)) {
@@ -566,6 +600,43 @@ class PenawaranController extends Controller
                 'harga_satuan' => $d->harga_satuan,
                 'subtotal'     => $d->subtotal,
                 'link'         => $barang->link_produk ?? null,
+            ];
+        })->values();
+
+        // ── $itemsDetail — dipakai oleh penawaran-barang.blade.php (NEW) ─────
+        // Mengambil field tambahan dari tabel barang:
+        //   - spesifikasi      → barang.spesifikasi
+        //   - pdn_tkdn_impor   → barang.pdn_tkdn_impor
+        //   - foto_barang      → barang.foto_barang
+        //
+        // Jika penawaran_detail punya kolom spesifikasi sendiri, gunakan itu
+        // sebagai fallback ketika barang tidak ditemukan.
+        $itemsDetail = $penawaranDetails->map(function ($d) use ($barangById) {
+            $barang = null;
+            if (!empty($d->id_barang)) {
+                $barang = $barangById->get($d->id_barang);
+            }
+
+            return [
+                'nama_barang'    => $d->nama_barang,
+                'qty'            => $d->qty,
+                'satuan'         => $d->satuan ?? 'Unit',
+                'harga_satuan'   => $d->harga_satuan,
+                'subtotal'       => $d->subtotal,
+                'link'           => $barang->link_produk ?? null,
+
+                // ── Data khusus halaman tabel barang ─────────────────
+                // Prioritas: dari tabel barang (relasi id_barang)
+                // Fallback : dari kolom di penawaran_detail itu sendiri
+                'spesifikasi'    => $barang->spesifikasi
+                                    ?? $d->spesifikasi
+                                    ?? '',
+                'pdn_tkdn_impor' => $barang->pdn_tkdn_impor
+                                    ?? $d->pdn_tkdn_impor
+                                    ?? '',
+                'foto_barang'    => $barang->foto_barang
+                                    ?? $d->foto_barang
+                                    ?? '',
             ];
         })->values();
 
@@ -627,8 +698,9 @@ class PenawaranController extends Controller
                 'sejak'          => $sejak,
                 'sampai'         => $sampai,
             ],
-            'items'   => $items,
-            'suratDb' => $suratDb,
+            'items'       => $items,          // dipakai surat-penawaran.blade.php
+            'itemsDetail' => $itemsDetail,    // dipakai penawaran-barang.blade.php (NEW)
+            'suratDb'     => $suratDb,
         ];
     }
 }
