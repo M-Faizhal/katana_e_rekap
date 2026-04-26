@@ -36,6 +36,55 @@
             <!-- Notifications -->
             <div class="relative">
                 @auth
+                <script>
+                    (function () {
+                        'use strict';
+                    
+                        var POLL_INTERVAL = 15000; // 15 detik
+                        var ENDPOINT      = '{{ route('notifications.unread.count') }}';
+                        var badge         = null;
+                        var timer         = null;
+                    
+                        function updateBadge(count) {
+                            if (!badge) {
+                                badge = document.getElementById('notifBadge');
+                            }
+                            if (!badge) return; // badge belum ada di DOM, abaikan
+                    
+                            if (count > 0) {
+                                badge.textContent = count > 99 ? '99+' : count;
+                                badge.classList.remove('hidden');
+                            } else {
+                                badge.classList.add('hidden');
+                            }
+                        }
+                    
+                        async function fetchUnreadCount() {
+                            try {
+                                var res  = await fetch(ENDPOINT, {
+                                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                    credentials: 'same-origin',
+                                });
+                                if (!res.ok) return; // jangan crash jika 401/500
+                                var data = await res.json();
+                                updateBadge(data.unread || 0);
+                            } catch (_) {
+                                // Abaikan error network — jangan ganggu UX
+                            }
+                        }
+                    
+                        // Jalankan pertama kali saat DOM siap
+                        document.addEventListener('DOMContentLoaded', function () {
+                            fetchUnreadCount();
+                            timer = setInterval(fetchUnreadCount, POLL_INTERVAL);
+                        });
+                    
+                        // Bersihkan interval saat user navigasi pergi (SPA-friendly)
+                        window.addEventListener('beforeunload', function () {
+                            if (timer) clearInterval(timer);
+                        });
+                    }());
+                    </script>
                     @php
                         $unreadCount = auth()->user()->unreadNotifications()->count();
                         $recentNotifications = auth()->user()->notifications()->latest()->limit(5)->get();
