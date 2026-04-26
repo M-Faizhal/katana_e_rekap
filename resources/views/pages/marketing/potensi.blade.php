@@ -5,22 +5,8 @@
 @section('content')
 
 @php
-// Fungsi helper untuk menghitung statistik
-function countTotal($data) {
-    return count($data);
-}
-
-function calculateTotalNilai($data) {
-    return array_reduce($data, function($carry, $item) {
-        return $carry + ($item['total_nilai'] ?? 0);
-    }, 0);
-}
-
-// Hitung statistik
-$totalPotensi = countTotal($proyekData);
-$totalNilaiPotensi = calculateTotalNilai($proyekData);
-
-// Cek akses user
+$totalPotensi = count($proyekData);
+$totalNilaiPotensi = array_reduce($proyekData, fn($carry, $item) => $carry + ($item['total_nilai'] ?? 0), 0);
 $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing';
 @endphp
 
@@ -39,7 +25,7 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             </div>
             @endif
         </div>
-        <div class="hidden sm:block lg:block">
+        <div class="hidden sm:block">
             <i class="fas fa-lightbulb text-3xl sm:text-4xl lg:text-6xl"></i>
         </div>
     </div>
@@ -47,7 +33,6 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
 
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-    <!-- Total Potensi Card -->
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
         <div class="flex items-center">
             <div class="p-3 sm:p-4 rounded-xl bg-red-100 mr-4">
@@ -60,8 +45,6 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
             </div>
         </div>
     </div>
-
-    <!-- Total Nilai Card -->
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
         <div class="flex items-center">
             <div class="p-3 sm:p-4 rounded-xl bg-green-100 mr-4">
@@ -105,40 +88,31 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                            class="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                 </div>
             </div>
-            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-wrap">
                 <select id="tahunFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Tahun</option>
                     @php
                         $currentYear = date('Y');
-                        $futureYears = 5; // Tahun ke depan yang ditampilkan
-
-                        // Ambil tahun yang ada di data
                         $availableYears = collect($proyekData)
                             ->pluck('tahun_potensi')
                             ->filter()
                             ->unique()
                             ->sort()
-                            ->values();
-
-                        // Filter hanya tahun dari tahun ini ke depan
-                        $filteredYears = $availableYears->filter(function($year) use ($currentYear, $futureYears) {
-                            return $year >= $currentYear && $year <= ($currentYear + $futureYears);
-                        })->sortDesc();
+                            ->values()
+                            ->filter(fn($y) => $y >= $currentYear && $y <= ($currentYear + 5))
+                            ->sortDesc();
                     @endphp
-                    @foreach($filteredYears as $year)
+                    @foreach($availableYears as $year)
                         <option value="{{ $year }}">{{ $year }}</option>
                     @endforeach
                 </select>
                 <select id="picMarketingFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua PIC Marketing</option>
-                    @php
-                        $uniqueMarketing = collect($proyekData)->pluck('admin_marketing')->unique()->sort()->values();
-                    @endphp
-                    @foreach($uniqueMarketing as $marketing)
+                    @foreach(collect($proyekData)->pluck('admin_marketing')->unique()->sort()->values() as $marketing)
                         <option value="{{ $marketing }}">{{ $marketing }}</option>
                     @endforeach
                 </select>
-                 <select id="triwulanFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                <select id="triwulanFilter" class="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500">
                     <option value="">Semua Triwulan</option>
                     <option value="1">Triwulan 1</option>
                     <option value="2">Triwulan 2</option>
@@ -171,9 +145,8 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
 
     <!-- Cards Layout -->
     <div class="p-3 sm:p-4 lg:p-6">
-        <div id="proyekContainer" class="grid grid-cols-1 gap-4 sm:gap-6">
+        <div id="proyekContainer" class="flex flex-col gap-4 sm:gap-6">
             @foreach($proyekData as $index => $potensi)
-            <!-- Card {{ $index + 1 }} -->
             @php
                 $deadlineVal = $potensi['deadline'] ?? null;
                 $prioritasInfo = null;
@@ -197,149 +170,214 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                     }
                 }
             @endphp
-            <div class="proyek-card bg-white border-2 {{ $borderClass }} rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-red-200 cursor-pointer relative"
+
+            {{-- =====================================================================
+                 SPLIT CARD: kiri = info potensi | kanan = daftar barang (scrollable)
+                 Desktop: 2 kolom (grid-cols-[1fr_320px])
+                 Mobile: stacked (flex-col)
+                 ===================================================================== --}}
+            <div class="proyek-card bg-white border-2 {{ $borderClass }} rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300 hover:border-red-200 relative overflow-hidden"
                  data-status="{{ $potensi['status'] }}"
                  data-triwulan="{{ $potensi['triwulan'] ?? '' }}"
                  data-kabupaten="{{ strtolower($potensi['kabupaten']) }}"
                  data-instansi="{{ strtolower($potensi['instansi']) }}"
-                 data-tanggal="{{ $potensi['tanggal'] }}"
-                 onclick="window.location.href='{{ route('chat.proyek', $potensi['id']) }}'"
-                 title="Klik untuk membuka chat proyek">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
-                    <div class="flex items-center space-x-3 mb-3 sm:mb-0">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                            <span class="text-red-600 font-bold text-sm sm:text-lg">{{ $index + 1 }}</span>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-2 mb-2">
-                                <h3 class="text-base sm:text-lg font-bold text-gray-800">{{ $potensi['kode'] }}</h3>
+                 data-tanggal="{{ $potensi['tanggal'] }}">
+
+                <div class="flex flex-col lg:flex-row">
+
+                    {{-- ---- PANEL KIRI: Info Potensi ---- --}}
+                    <div class="flex-1 p-4 sm:p-6 cursor-pointer"
+                         onclick="window.location.href='{{ route('chat.proyek', $potensi['id']) }}'"
+                         title="Klik untuk membuka chat proyek">
+
+                        {{-- Header card: nomor + kode + status + actions --}}
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-3">
+                            <div class="flex items-start space-x-3">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span class="text-red-600 font-bold text-sm sm:text-lg">{{ $index + 1 }}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="text-base sm:text-lg font-bold text-gray-800 mb-2">{{ $potensi['kode'] }}</h3>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full
+                                            @if($potensi['status'] === 'selesai') bg-green-100 text-green-800
+                                            @elseif($potensi['status'] === 'pengiriman') bg-orange-100 text-orange-800
+                                            @elseif($potensi['status'] === 'pembayaran') bg-purple-100 text-purple-800
+                                            @elseif($potensi['status'] === 'penawaran') bg-blue-100 text-blue-800
+                                            @elseif($potensi['status'] === 'menunggu') bg-gray-100 text-gray-800
+                                            @else bg-red-100 text-red-800
+                                            @endif">
+                                            {{ ucfirst($potensi['status']) }}
+                                        </span>
+                                        @if($prioritasInfo)
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $prioritasInfo['badge'] }}">
+                                            {{ $prioritasInfo['label'] }}
+                                        </span>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="flex items-center gap-2">
-                                <span class="inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full
-                                    @if($potensi['status'] === 'selesai') bg-green-100 text-green-800
-                                    @elseif($potensi['status'] === 'pengiriman') bg-orange-100 text-orange-800
-                                    @elseif($potensi['status'] === 'pembayaran') bg-purple-100 text-purple-800
-                                    @elseif($potensi['status'] === 'penawaran') bg-blue-100 text-blue-800
-                                    @elseif($potensi['status'] === 'menunggu') bg-gray-100 text-gray-800
-                                    @else bg-red-100 text-red-800
-                                    @endif">
-                                    {{ ucfirst($potensi['status']) }}
-                                </span>
-                                @if($prioritasInfo)
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $prioritasInfo['badge'] }}">
-                                    {{ $prioritasInfo['label'] }}
-                                </span>
+                            {{-- Action buttons — stopPropagation agar tidak trigger onclick card --}}
+                            <div class="flex items-center space-x-1 sm:space-x-2 self-start flex-shrink-0" onclick="event.stopPropagation()">
+                                @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
+                                <button onclick="buatPenawaran({{ $potensi['id'] }})" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200" title="Buat Penawaran">
+                                    <i class="fas fa-file-invoice text-sm"></i>
+                                </button>
+                                @endif
+                                <button onclick="viewDetail({{ $potensi['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                                @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
+                                <button onclick="editProyek({{ $potensi['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </button>
+                                <button onclick="ubahStatusGagal({{ $potensi['id'] }})" class="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200" title="Ubah ke Gagal">
+                                    <i class="fas fa-times-circle text-sm"></i>
+                                </button>
+                                <button onclick="deleteProyek({{ $potensi['id'] }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
                                 @endif
                             </div>
                         </div>
-                    </div>
-                    <div class="flex items-center space-x-1 sm:space-x-2 self-start" onclick="event.stopPropagation()">
-                        @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
-                        <button onclick="buatPenawaran({{ $potensi['id'] }})" class="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200" title="Buat Penawaran">
-                            <i class="fas fa-file-invoice text-sm"></i>
-                        </button>
-                        @endif
-                        <button onclick="viewDetail({{ $potensi['id'] }})" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200" title="Lihat Detail">
-                            <i class="fas fa-eye text-sm"></i>
-                        </button>
-                        @if(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing')
-                        <button onclick="editProyek({{ $potensi['id'] }})" class="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200" title="Edit">
-                            <i class="fas fa-edit text-sm"></i>
-                        </button>
-                        <button onclick="ubahStatusGagal({{ $potensi['id'] }})" class="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200" title="Ubah ke Gagal">
-                            <i class="fas fa-times-circle text-sm"></i>
-                        </button>
-                        <button onclick="deleteProyek({{ $potensi['id'] }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" title="Hapus">
-                            <i class="fas fa-trash text-sm"></i>
-                        </button>
-                        @endif
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Tanggal</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ \Carbon\Carbon::parse($potensi['tanggal'])->format('d M Y') }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Tahun Potensi</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">
-                            @if(isset($potensi['tahun_potensi']) && $potensi['tahun_potensi'])
-                                {{ $potensi['tahun_potensi'] }}
-                            @else
-                                <span class="text-gray-400 italic">Belum diisi</span>
-                            @endif
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Triwulan</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">
-                            @if(isset($potensi['triwulan']) && $potensi['triwulan'])
-                                Triwulan {{ $potensi['triwulan'] }}
-                            @else
-                                <span class="text-gray-400 italic">Belum diisi</span>
-                            @endif
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Provinsi atau Kabupaten/Kota</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $potensi['kabupaten'] }}</p>
-                    </div>
-                    <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">Nama Instansi</p>
-                        <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $potensi['instansi'] }}</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
-                    <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">PIC Marketing</p>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-user text-red-600 text-xs sm:text-sm"></i>
+                        {{-- Info grid --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-3">
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-500 mb-1">Tanggal</p>
+                                <p class="font-medium text-gray-800 text-sm sm:text-base">{{ \Carbon\Carbon::parse($potensi['tanggal'])->format('d M Y') }}</p>
                             </div>
-                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ $potensi['admin_marketing'] }}</p>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-xs sm:text-sm text-gray-500 mb-1">PIC Purchasing</p>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-user text-blue-600 text-xs sm:text-sm"></i>
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-500 mb-1">Tahun Potensi</p>
+                                <p class="font-medium text-gray-800 text-sm sm:text-base">
+                                    @if(isset($potensi['tahun_potensi']) && $potensi['tahun_potensi'])
+                                        {{ $potensi['tahun_potensi'] }}
+                                    @else
+                                        <span class="text-gray-400 italic text-xs">Belum diisi</span>
+                                    @endif
+                                </p>
                             </div>
-                            <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ $potensi['admin_purchasing'] }}</p>
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-500 mb-1">Triwulan</p>
+                                <p class="font-medium text-gray-800 text-sm sm:text-base">
+                                    @if(isset($potensi['triwulan']) && $potensi['triwulan'])
+                                        Triwulan {{ $potensi['triwulan'] }}
+                                    @else
+                                        <span class="text-gray-400 italic text-xs">Belum diisi</span>
+                                    @endif
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-500 mb-1">Provinsi / Kab/Kota</p>
+                                <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $potensi['kabupaten'] }}</p>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <p class="text-xs sm:text-sm text-gray-500 mb-1">Nama Instansi</p>
+                                <p class="font-medium text-gray-800 text-sm sm:text-base">{{ $potensi['instansi'] }}</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Total Nilai -->
-                <div class="mt-4 pt-4 border-t border-gray-100">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-gray-500">Total Nilai Potensi:</span>
-                        <span class="text-lg font-bold text-red-600">Rp {{ number_format($potensi['total_nilai'], 2, ',', '.') }}</span>
-                    </div>
+                        {{-- PIC & Total Nilai --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-3 border-t border-gray-100">
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-500 mb-1">PIC Marketing</p>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 sm:w-7 sm:h-7 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-user text-red-600 text-xs"></i>
+                                    </div>
+                                    <p class="font-medium text-gray-800 text-sm truncate">{{ $potensi['admin_marketing'] }}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-500 mb-1">PIC Purchasing</p>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 sm:w-7 sm:h-7 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-user text-blue-600 text-xs"></i>
+                                    </div>
+                                    <p class="font-medium text-gray-800 text-sm truncate">{{ $potensi['admin_purchasing'] }}</p>
+                                </div>
+                            </div>
+                        </div>
 
-                    @if($deadlineVal)
-                    <div class="flex justify-between items-center text-sm mt-1">
-                        <span class="text-gray-500"><i class="fas fa-calendar-alt mr-1"></i>Deadline:</span>
-                        <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($deadlineVal)->format('d M Y') }}</span>
-                    </div>
-                    @endif
+                        {{-- Deadline & Total Nilai --}}
+                        <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                @if($deadlineVal)
+                                <p class="text-xs text-gray-500"><i class="fas fa-calendar-alt mr-1"></i>Deadline:
+                                    <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($deadlineVal)->format('d M Y') }}</span>
+                                </p>
+                                @else
+                                <p class="text-xs text-gray-400 italic">Tanpa deadline</p>
+                                @endif
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500 mb-0.5">Total Nilai</p>
+                                <span class="text-base sm:text-lg font-bold text-red-600">Rp {{ number_format($potensi['total_nilai'], 2, ',', '.') }}</span>
+                            </div>
+                        </div>
 
-                    <!-- Penawaran Info -->
-                    @if(isset($potensi['penawaran']))
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500">No. Penawaran:</span>
-                        <span class="font-medium text-blue-600">{{ $potensi['penawaran']['no_penawaran'] }}</span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm mt-1">
-                        <span class="text-gray-500">Tanggal Penawaran:</span>
-                        <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($potensi['penawaran']['tanggal_penawaran'])->format('d M Y') }}</span>
-                    </div>
-                    @endif
-                </div>
-            </div>
+                        {{-- Penawaran Info (jika ada) --}}
+                        @if(isset($potensi['penawaran']) && $potensi['penawaran'])
+                        <div class="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-4 text-xs text-gray-500">
+                            <span>No. Penawaran: <span class="font-medium text-blue-600">{{ $potensi['penawaran']['no_penawaran'] }}</span></span>
+                            @if($potensi['penawaran']['tanggal_penawaran'])
+                            <span>Tgl Penawaran: <span class="font-medium text-gray-700">{{ \Carbon\Carbon::parse($potensi['penawaran']['tanggal_penawaran'])->format('d M Y') }}</span></span>
+                            @endif
+                        </div>
+                        @endif
+                    </div>{{-- end panel kiri --}}
+
+                    {{-- ---- DIVIDER: vertical di desktop, horizontal di mobile ---- --}}
+                    <div class="hidden lg:block w-px bg-gray-200 my-4"></div>
+                    <div class="lg:hidden h-px bg-gray-200 mx-4"></div>
+
+                    {{-- ---- PANEL KANAN: Daftar Barang (scrollable) ---- --}}
+                    <div class="w-full lg:w-72 xl:w-80 flex-shrink-0 p-4 sm:p-5 bg-gray-50 lg:rounded-r-2xl"
+                         onclick="event.stopPropagation()">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                                <i class="fas fa-boxes text-red-500 text-xs"></i>
+                                Daftar Barang
+                            </h4>
+                            @php $jumlahBarang = count($potensi['daftar_barang'] ?? []); @endphp
+                            @if($jumlahBarang > 0)
+                            <span class="text-xs bg-red-100 text-red-700 font-semibold px-2 py-0.5 rounded-full">{{ $jumlahBarang }} item</span>
+                            @endif
+                        </div>
+
+                        @if(!empty($potensi['daftar_barang']))
+                        {{-- Scrollable list: max-h + overflow-y auto --}}
+                        <div class="space-y-2 max-h-80 overflow-y-auto pr-1 potensi-barang-scroll">
+                            @foreach($potensi['daftar_barang'] as $barang)
+                            <div class="bg-white border border-gray-200 rounded-lg p-2.5 text-xs">
+                                <p class="font-semibold text-gray-800 truncate mb-1.5" title="{{ $barang['nama_barang'] ?? '-' }}">
+                                    {{ $barang['nama_barang'] ?? '-' }}
+                                </p>
+                                <div class="flex flex-wrap gap-x-3 gap-y-1 text-gray-500">
+                                    <span><span class="font-medium text-gray-600">Qty:</span> {{ $barang['jumlah'] ?? 0 }} {{ $barang['satuan'] ?? '' }}</span>
+                                    @if(!empty($barang['harga_satuan']))
+                                    <span><span class="font-medium text-gray-600"></span> Rp {{ number_format($barang['harga_satuan'], 0, ',', '.') }}</span>
+                                    @endif
+                                    @if(!empty($barang['harga_total']))
+                                    <span class="w-full font-semibold text-red-600">= Rp {{ number_format($barang['harga_total'], 0, ',', '.') }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <div class="flex flex-col items-center justify-center py-6 text-center">
+                            <i class="fas fa-box-open text-gray-300 text-2xl mb-2"></i>
+                            <p class="text-xs text-gray-400">Tidak ada data barang</p>
+                        </div>
+                        @endif
+
+                      
+                    </div>{{-- end panel kanan --}}
+
+                </div>{{-- end flex kiri-kanan --}}
+            </div>{{-- end proyek-card --}}
             @endforeach
         </div>
 
@@ -358,8 +396,8 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                 <span id="paginationInfo">Menampilkan <span class="font-medium">1</span> sampai <span class="font-medium">10</span> dari <span class="font-medium">{{ $totalPotensi }}</span> potensi</span>
             </div>
             <div class="flex items-center justify-center sm:justify-end">
-                <!-- Mobile Pagination (Simple) -->
-                <div id="paginationMobile" class="flex items-center space-x-1 sm:hidden">
+                <!-- Mobile Pagination -->
+                <div class="flex items-center space-x-1 sm:hidden">
                     <button onclick="goToPage(currentPage - 1)" id="prevPageMobile" class="px-2 py-2 text-xs border border-gray-300 rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-chevron-left"></i>
                     </button>
@@ -370,11 +408,8 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
-
-                <!-- Tablet & Desktop Pagination (Full) -->
-                <div id="paginationDesktop" class="hidden sm:flex items-center space-x-1 md:space-x-2">
-                    <!-- Pagination buttons will be generated dynamically -->
-                </div>
+                <!-- Desktop Pagination -->
+                <div id="paginationDesktop" class="hidden sm:flex items-center space-x-1 md:space-x-2"></div>
             </div>
         </div>
     </div>
@@ -402,9 +437,10 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
 <!-- Include Modal Functions -->
 <script src="{{ asset('js/modal-functions.js') }}"></script>
 
-<!-- Styles -->
 <style>
-/* Modal Styling */
+/* ============================================================
+   Modal Styling
+   ============================================================ */
 .modal-container {
     display: flex;
     align-items: center;
@@ -412,1243 +448,684 @@ $hasEditAccess = auth()->user()->role === 'superadmin' || auth()->user()->role =
     min-height: 100vh;
     padding: 0.5rem;
 }
-
-@media (min-width: 640px) {
-    .modal-container {
-        padding: 1rem;
-    }
-}
-
+@media (min-width: 640px) { .modal-container { padding: 1rem; } }
 .modal-content {
     max-height: calc(100vh - 1rem);
     overflow-y: auto;
     width: 100%;
     max-width: 100%;
 }
-
-@media (min-width: 640px) {
-    .modal-content {
-        max-height: calc(100vh - 2rem);
-        max-width: 32rem;
-    }
-}
-
-@media (min-width: 768px) {
-    .modal-content {
-        max-width: 42rem;
-    }
-}
-
-@media (min-width: 1024px) {
-    .modal-content {
-        max-width: 48rem;
-    }
-}
-
-.modal-content::-webkit-scrollbar {
-    width: 4px;
-}
-
-@media (min-width: 768px) {
-    .modal-content::-webkit-scrollbar {
-        width: 6px;
-    }
-}
-
-.modal-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-}
-
-.modal-content::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-}
-
-.modal-content::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-.modal-open {
-    overflow: hidden;
-}
-
-.potensi-btn, .potensi-btn-edit {
-    transition: all 0.2s ease-in-out;
-}
-
-.potensi-btn:hover, .potensi-btn-edit:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
+@media (min-width: 640px)  { .modal-content { max-height: calc(100vh - 2rem); max-width: 32rem; } }
+@media (min-width: 768px)  { .modal-content { max-width: 42rem; } }
+@media (min-width: 1024px) { .modal-content { max-width: 48rem; } }
+.modal-content::-webkit-scrollbar       { width: 4px; }
+.modal-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+.modal-content::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+.modal-content::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+.modal-open { overflow: hidden; }
 
 @media (max-width: 639px) {
-    .modal-container {
-        padding: 0;
-        align-items: flex-start;
-    }
-
-    .modal-content {
-        max-height: 100vh;
-        border-radius: 0;
-        margin: 0;
-        min-height: 100vh;
-    }
-
-    .modal-header {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        background: white;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .modal-form .space-y-4 > * + * {
-        margin-top: 0.75rem;
-    }
-
-    .modal-form .space-y-6 > * + * {
-        margin-top: 1rem;
-    }
-
-    .modal-form input,
-    .modal-form select,
-    .modal-form textarea {
-        min-height: 44px;
-        font-size: 16px;
-    }
-
-    .modal-form button {
-        min-height: 44px;
-        padding: 0.75rem 1rem;
-    }
+    .modal-container { padding: 0; align-items: flex-start; }
+    .modal-content   { max-height: 100vh; border-radius: 0; margin: 0; min-height: 100vh; }
+    .modal-header    { position: sticky; top: 0; z-index: 10; background: white; border-bottom: 1px solid #e5e7eb; }
+    .modal-form input, .modal-form select, .modal-form textarea { min-height: 44px; font-size: 16px; }
+    .modal-form button { min-height: 44px; padding: 0.75rem 1rem; }
 }
 
-@media (min-width: 640px) and (max-width: 1023px) {
-    .modal-content {
-        margin: 1rem;
-        border-radius: 0.75rem;
-    }
+/* ============================================================
+   Barang scroll panel custom scrollbar
+   ============================================================ */
+.potensi-barang-scroll::-webkit-scrollbar       { width: 4px; }
+.potensi-barang-scroll::-webkit-scrollbar-track { background: #f3f4f6; border-radius: 4px; }
+.potensi-barang-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+.potensi-barang-scroll::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
-    .modal-form input,
-    .modal-form select,
-    .modal-form textarea {
-        min-height: 40px;
-    }
+/* ============================================================
+   Modal animations
+   ============================================================ */
+@keyframes modalFadeIn  { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes modalFadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+.modal-enter { animation: modalFadeIn  0.3s ease-out; }
+.modal-exit  { animation: modalFadeOut 0.3s ease-in; }
+.modal-backdrop { background-color: rgba(0, 0, 0, 0.5); }
+@media (max-width: 639px) { .modal-backdrop { background-color: rgba(0, 0, 0, 0.75); } }
 
-    .modal-form button {
-        min-height: 40px;
-    }
-}
-
-.modal-enter {
-    animation: modalFadeIn 0.3s ease-out;
-}
-
-.modal-exit {
-    animation: modalFadeOut 0.3s ease-in;
-}
-
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes modalFadeOut {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-}
-
-.modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-@media (max-width: 639px) {
-    .modal-backdrop {
-        background-color: rgba(0, 0, 0, 0.75);
-    }
-}
-
-/* Status Change Animations */
-.status-change-highlight {
-    animation: statusGlow 0.8s ease-in-out;
-}
-
-@keyframes statusGlow {
-    0%, 100% {
-        box-shadow: 0 0 0 rgba(239, 68, 68, 0);
-    }
-    50% {
-        box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-        transform: scale(1.02);
-    }
-}
-
-/* Dropdown styling */
-select.status-dropdown {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.5rem center;
-    background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
-    padding-right: 2rem;
-}
-
-/* Tooltip styling */
-.tooltip-wrapper {
-    position: relative;
-}
-
-.tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: 0.5rem;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease-in-out;
-    z-index: 10;
-}
-
-.tooltip-wrapper:hover .tooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(-2px);
-}
-
-/* Success notification animation */
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-.notification-enter {
-    animation: slideInRight 0.3s ease-out;
-}
-
-.notification-exit {
-    animation: slideOutRight 0.3s ease-in;
-}
-
-/* Flexbox container for card reordering */
-#proyekContainer.reordering {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1rem !important;
-}
-
-#proyekContainer.reordering .proyek-card {
-    width: 100% !important;
-    margin: 0 !important;
-}
+/* ============================================================
+   Notification animations
+   ============================================================ */
+@keyframes slideInRight  { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+.notification-enter { animation: slideInRight  0.3s ease-out; }
+.notification-exit  { animation: slideOutRight 0.3s ease-in; }
 </style>
 
 <script>
-// Data dari PHP untuk JavaScript
+/* ============================================================
+   DATA
+   ============================================================ */
 const potensiData = @json($proyekData);
-let filteredData = [...potensiData];
-let currentData = [...potensiData];
 
-// Pagination variables
-let currentPage = 1;
+/* ============================================================
+   PAGINATION STATE
+   ============================================================ */
+let currentData  = [...potensiData];
+let currentPage  = 1;
 const itemsPerPage = 10;
-let totalPages = 1;
+let totalPages   = 1;
 
-// DOM Elements
-const searchInput = document.getElementById('searchInput');
-const tahunFilter = document.getElementById('tahunFilter');
-const picMarketingFilter = document.getElementById('picMarketingFilter');
-const prioritasFilter = document.getElementById('prioritasFilter');
-const sortByFilter = document.getElementById('sortByFilter');
-const potensiContainer = document.getElementById('proyekContainer');
-const noResults = document.getElementById('noResults');
-const paginationInfo = document.getElementById('paginationInfo');
-const triwulanFilter = document.getElementById('triwulanFilter');
+/* ============================================================
+   DOM REFS
+   ============================================================ */
+const searchInput       = document.getElementById('searchInput');
+const tahunFilter       = document.getElementById('tahunFilter');
+const picMarketingFilter= document.getElementById('picMarketingFilter');
+const prioritasFilter   = document.getElementById('prioritasFilter');
+const sortByFilter      = document.getElementById('sortByFilter');
+const triwulanFilter    = document.getElementById('triwulanFilter');
+const paginationInfo    = document.getElementById('paginationInfo');
 
+/* ============================================================
+   UTILITY FUNCTIONS
+   ============================================================ */
 
-// Event Listeners untuk filter dan search
-if (searchInput) {
-    searchInput.addEventListener('input', debounce(filterAndSort, 300));
+/** Rupiah formatter */
+function formatRupiah(angka) {
+    const number = parseFloat(angka);
+    if (isNaN(number)) return 'Rp 0,00';
+    return 'Rp ' + number.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-if (tahunFilter) {
-    tahunFilter.addEventListener('change', filterAndSort);
+
+/** Date formatter */
+function formatTanggal(tanggal) {
+    if (!tanggal || tanggal === '-') return '-';
+    try {
+        const date = new Date(tanggal);
+        if (isNaN(date.getTime())) return '-';
+        return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (e) { return '-'; }
 }
-if (picMarketingFilter) {
-    picMarketingFilter.addEventListener('change', filterAndSort);
+
+/** Capitalize first letter */
+function ucfirst(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
-if (prioritasFilter) {
-    prioritasFilter.addEventListener('change', filterAndSort);
+
+/** Status badge color class */
+function getStatusColor(status) {
+    switch ((status || '').toLowerCase()) {
+        case 'selesai':    return 'bg-green-100 text-green-800';
+        case 'pengiriman': return 'bg-orange-100 text-orange-800';
+        case 'pembayaran': return 'bg-purple-100 text-purple-800';
+        case 'penawaran':  return 'bg-blue-100 text-blue-800';
+        case 'menunggu':   return 'bg-gray-100 text-gray-800';
+        case 'gagal':      return 'bg-red-100 text-red-800';
+        default:           return 'bg-gray-100 text-gray-800';
+    }
 }
-if (sortByFilter) {
-    sortByFilter.addEventListener('change', filterAndSort);
+
+/** Status text color class */
+function getStatusClass(status) {
+    switch ((status || '').toLowerCase()) {
+        case 'menunggu':   return 'text-yellow-600';
+        case 'penawaran':  return 'text-blue-600';
+        case 'pembayaran': return 'text-purple-600';
+        case 'pengiriman': return 'text-indigo-600';
+        case 'selesai':    return 'text-green-600';
+        case 'gagal':      return 'text-red-600';
+        default:           return 'text-gray-600';
+    }
 }
-if (triwulanFilter) {
-    triwulanFilter.addEventListener('change', filterAndSort);
+
+/**
+ * Kembalikan level prioritas deadline sebagai string.
+ * @returns {'expired'|'tinggi'|'sedang'|'rendah'|null}
+ */
+function getPrioritasLevelPotensi(deadline) {
+    if (!deadline) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dl    = new Date(deadline); dl.setHours(0, 0, 0, 0);
+    const hari  = Math.round((dl - today) / 86400000);
+    if (hari < 0)   return 'expired';
+    if (hari < 7)   return 'tinggi';
+    if (hari <= 14) return 'sedang';
+    return 'rendah';
 }
-// Debounce function untuk search
+
+/**
+ * Kembalikan objek prioritas dengan label & badge class untuk UI.
+ */
+function hitungPrioritasDeadline(deadline) {
+    if (!deadline) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dl    = new Date(deadline); dl.setHours(0, 0, 0, 0);
+    const hari  = Math.round((dl - today) / 86400000);
+    if (hari < 0)   return { level: 'expired', label: 'Expired',                          badgeClass: 'bg-black text-white',           borderClass: 'border-black',   hari };
+    if (hari < 7)   return { level: 'tinggi',  label: 'Prioritas Tinggi (' + hari + ' hari)', badgeClass: 'bg-red-100 text-red-800',   borderClass: 'border-red-500', hari };
+    if (hari <= 14) return { level: 'sedang',  label: 'Prioritas Sedang (' + hari + ' hari)', badgeClass: 'bg-yellow-100 text-yellow-800', borderClass: 'border-yellow-500', hari };
+    return              { level: 'rendah',  label: 'Prioritas Rendah (' + hari + ' hari)',  badgeClass: 'bg-green-100 text-green-800',  borderClass: 'border-green-500',  hari };
+}
+
+/** Format file size */
+function formatFileSize(bytes) {
+    if (!bytes) return '0 Bytes';
+    const k = 1024, sizes = ['Bytes','KB','MB','GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/** Debounce */
 function debounce(func, wait) {
     let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
+    return function(...args) {
         clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+        timeout = setTimeout(() => func(...args), wait);
     };
 }
 
-// Filter dan sort function
+/* ============================================================
+   NOTIFICATION HELPERS
+   ============================================================ */
+
+function showSuccessMessage(message) {
+    _showNotification(message, 'bg-green-500', 'fa-check-circle', 3000);
+}
+
+function showErrorMessage(message) {
+    _showNotification(message, 'bg-red-500', 'fa-exclamation-circle', 4000);
+}
+
+function _showNotification(message, bgClass, iconClass, duration) {
+    const el = document.createElement('div');
+    el.className = 'fixed top-4 right-4 ' + bgClass + ' text-white px-4 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+    el.innerHTML = '<div class="flex items-center"><i class="fas ' + iconClass + ' mr-2"></i><span>' + message + '</span></div>';
+    document.body.appendChild(el);
+    setTimeout(() => el.classList.remove('translate-x-full'), 100);
+    setTimeout(() => {
+        el.classList.add('translate-x-full');
+        setTimeout(() => el.parentNode && el.parentNode.removeChild(el), 300);
+    }, duration);
+}
+
+/* ============================================================
+   STATISTICS UPDATE
+   ============================================================ */
+
+function updateStatistics() {
+    const totalCount = currentData.length;
+    const totalNilai = currentData.reduce((s, i) => s + (i.total_nilai || 0), 0);
+
+    const countEl = document.getElementById('totalPotensiCount');
+    const nilaiEl = document.getElementById('totalNilaiPotensi');
+    const labelEl = document.getElementById('totalPotensiLabel');
+    const nilaiLabelEl = document.getElementById('totalNilaiLabel');
+
+    const selectedTahun = tahunFilter ? tahunFilter.value : '';
+
+    if (countEl) {
+        countEl.textContent = totalCount;
+        countEl.classList.add('animate-pulse');
+        setTimeout(() => countEl.classList.remove('animate-pulse'), 500);
+    }
+    if (nilaiEl) {
+        nilaiEl.textContent = formatRupiah(totalNilai);
+        nilaiEl.classList.add('animate-pulse');
+        setTimeout(() => nilaiEl.classList.remove('animate-pulse'), 500);
+    }
+    if (labelEl)      labelEl.textContent      = selectedTahun ? 'Potensi tahun ' + selectedTahun : 'Menunggu & Penawaran (belum ACC)';
+    if (nilaiLabelEl) nilaiLabelEl.textContent = selectedTahun ? 'Estimasi nilai tahun ' + selectedTahun : 'Estimasi nilai keseluruhan';
+}
+
+/* ============================================================
+   FILTER & SORT
+   ============================================================ */
+
 function filterAndSort() {
     let filtered = [...potensiData];
 
-    console.log('=== FILTER AND SORT DEBUG ===');
-    console.log('Starting filterAndSort with total data:', filtered.length);
-    console.log('Data sample:', filtered.slice(0, 2));
-
-    // Apply search filter
+    // Search
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    console.log('Search term:', searchTerm);
     if (searchTerm) {
-        console.log('Applying search filter for term:', searchTerm);
-        const beforeSearch = filtered.length;
-        filtered = filtered.filter(proyek => {
-            // Pastikan semua field ada dan bukan null/undefined
-            const instansi = proyek.instansi ? proyek.instansi.toLowerCase() : '';
-            const kabupaten = proyek.kabupaten ? proyek.kabupaten.toLowerCase() : '';
-            const namaProyek = proyek.nama_proyek ? proyek.nama_proyek.toLowerCase() : '';
-            const kode = proyek.kode ? proyek.kode.toLowerCase() : '';
-
-            const match = instansi.includes(searchTerm) ||
-                         kabupaten.includes(searchTerm) ||
-                         namaProyek.includes(searchTerm) ||
-                         kode.includes(searchTerm);
-
-            if (match) {
-                console.log('Match found in:', { instansi, kabupaten, namaProyek, kode });
-            }
-
-            return match;
+        filtered = filtered.filter(p => {
+            const instansi    = (p.instansi    || '').toLowerCase();
+            const kabupaten   = (p.kabupaten   || '').toLowerCase();
+            const namaProyek  = (p.nama_proyek || '').toLowerCase();
+            const kode        = (p.kode        || '').toLowerCase();
+            return instansi.includes(searchTerm) || kabupaten.includes(searchTerm) ||
+                   namaProyek.includes(searchTerm) || kode.includes(searchTerm);
         });
-        console.log('After search filter:', filtered.length, 'items remaining (was', beforeSearch, ')');
     }
 
-    // Apply tahun filter
+    // Tahun
     const selectedTahun = tahunFilter ? tahunFilter.value : '';
-    console.log('Selected tahun:', selectedTahun);
     if (selectedTahun) {
-        console.log('Applying tahun filter for:', selectedTahun);
-        const beforeTahunFilter = filtered.length;
-        filtered = filtered.filter(proyek => {
-            const tahunPotensi = proyek.tahun_potensi ? proyek.tahun_potensi.toString() : '';
-            const match = tahunPotensi === selectedTahun;
-            console.log('Tahun check:', tahunPotensi, '===', selectedTahun, '=', match);
-            return match;
-        });
-        console.log('After tahun filter:', filtered.length, 'items remaining (was', beforeTahunFilter, ')');
+        filtered = filtered.filter(p => p.tahun_potensi && p.tahun_potensi.toString() === selectedTahun);
     }
 
-    // Apply PIC Marketing filter
-    const selectedPicMarketing = picMarketingFilter ? picMarketingFilter.value : '';
-    console.log('Selected PIC Marketing:', selectedPicMarketing);
-    if (selectedPicMarketing) {
-        console.log('Applying PIC Marketing filter for:', selectedPicMarketing);
-        const beforePicFilter = filtered.length;
-        filtered = filtered.filter(proyek => {
-            const match = proyek.admin_marketing === selectedPicMarketing;
-            console.log('PIC Marketing check:', proyek.admin_marketing, '===', selectedPicMarketing, '=', match);
-            return match;
-        });
-        console.log('After PIC Marketing filter:', filtered.length, 'items remaining (was', beforePicFilter, ')');
+    // PIC Marketing
+    const selectedPic = picMarketingFilter ? picMarketingFilter.value : '';
+    if (selectedPic) {
+        filtered = filtered.filter(p => p.admin_marketing === selectedPic);
     }
 
-    // Apply prioritas deadline filter
+    // Prioritas
     const selectedPrioritas = prioritasFilter ? prioritasFilter.value : '';
     if (selectedPrioritas) {
-        filtered = filtered.filter(proyek => {
-            const level = getPrioritasLevelPotensi(proyek.deadline);
-            if (selectedPrioritas === 'none') return !proyek.deadline;
-            return level === selectedPrioritas;
+        filtered = filtered.filter(p => {
+            if (selectedPrioritas === 'none') return !p.deadline;
+            return getPrioritasLevelPotensi(p.deadline) === selectedPrioritas;
         });
-        console.log('After prioritas filter:', filtered.length, 'items remaining');
     }
 
-    //triwulan
+    // Triwulan
     const selectedTriwulan = triwulanFilter ? triwulanFilter.value : '';
     if (selectedTriwulan) {
-        filtered = filtered.filter(proyek => {
-            return proyek.triwulan && proyek.triwulan.toString() === selectedTriwulan;
-        });
+        filtered = filtered.filter(p => p.triwulan && p.triwulan.toString() === selectedTriwulan);
     }
-    // Sorting
+
+    // Sort
     const selectedSort = sortByFilter ? sortByFilter.value : '';
-    if (selectedSort) {
-        filtered.sort((a, b) => {
-            if (selectedSort === 'terbaru') {
-                return new Date(b.tanggal) - new Date(a.tanggal);
-            } else if (selectedSort === 'terlama') {
-                return new Date(a.tanggal) - new Date(b.tanggal);
-            } else if (selectedSort === 'deadline_asc') {
+    const prioritasOrder = { expired: 0, tinggi: 1, sedang: 2, rendah: 3 };
+    filtered.sort((a, b) => {
+        switch (selectedSort) {
+            case 'terbaru':      return new Date(b.tanggal) - new Date(a.tanggal);
+            case 'terlama':      return new Date(a.tanggal) - new Date(b.tanggal);
+            case 'deadline_asc':
                 if (!a.deadline && !b.deadline) return 0;
-                if (!a.deadline) return 1;
-                if (!b.deadline) return -1;
-                return a.deadline < b.deadline ? -1 : (a.deadline > b.deadline ? 1 : 0);
-            } else if (selectedSort === 'deadline_desc') {
+                if (!a.deadline) return 1; if (!b.deadline) return -1;
+                return a.deadline < b.deadline ? -1 : 1;
+            case 'deadline_desc':
                 if (!a.deadline && !b.deadline) return 0;
-                if (!a.deadline) return 1;
-                if (!b.deadline) return -1;
-                return a.deadline > b.deadline ? -1 : (a.deadline < b.deadline ? 1 : 0);
-            } else if (selectedSort === 'prioritas') {
-                const order = { expired: 0, tinggi: 1, sedang: 2, rendah: 3 };
-                const la = a.deadline ? (order[getPrioritasLevelPotensi(a.deadline)] ?? 3) : 4;
-                const lb = b.deadline ? (order[getPrioritasLevelPotensi(b.deadline)] ?? 3) : 4;
+                if (!a.deadline) return 1; if (!b.deadline) return -1;
+                return a.deadline > b.deadline ? -1 : 1;
+            case 'prioritas': {
+                const la = a.deadline ? (prioritasOrder[getPrioritasLevelPotensi(a.deadline)] ?? 3) : 4;
+                const lb = b.deadline ? (prioritasOrder[getPrioritasLevelPotensi(b.deadline)] ?? 3) : 4;
                 return la - lb;
             }
-            return 0;
-        });
-    } else {
-        // Sort by tanggal terbaru (default)
-        filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-    }
-
-    console.log('Final filtered data:', filtered.length, 'items');
-    console.log('Sample final data:', filtered.slice(0, 2).map(p => ({ kode: p.kode, instansi: p.instansi, status: p.status })));
-
-    currentData = filtered;
-    currentPage = 1; // Reset to first page when filtering
-    updateStatistics(); // Update summary statistics
-    displayResults();
-    updatePaginationInfo();
-    renderPagination();
-
-    console.log('=== END FILTER AND SORT DEBUG ===');
-}
-
-// Reset all filters
-function resetFilters() {
-    console.log('=== RESET FILTERS DEBUG ===');
-    console.log('Starting reset filters');
-
-    // Reset form elements
-    if (searchInput) {
-        console.log('Resetting search input from:', searchInput.value);
-        searchInput.value = '';
-    }
-    if (tahunFilter) {
-        console.log('Resetting tahun filter from:', tahunFilter.value);
-        tahunFilter.value = '';
-    }
-    if (picMarketingFilter) {
-        console.log('Resetting PIC Marketing filter from:', picMarketingFilter.value);
-        picMarketingFilter.value = '';
-    }
-    if (prioritasFilter) prioritasFilter.value = '';
-    if (sortByFilter) sortByFilter.value = '';
-    if (triwulanFilter) triwulanFilter.value = '';
-
-    // Reset data to original
-    console.log('Resetting currentData from', currentData.length, 'to', potensiData.length, 'items');
-    currentData = [...potensiData];
-    currentPage = 1; // Reset to first page
-
-    // Hide no results message
-    const noResults = document.getElementById('noResults');
-    const proyekContainer = document.getElementById('proyekContainer');
-    if (noResults) {
-        noResults.classList.add('hidden');
-        console.log('No results message hidden');
-    }
-    if (proyekContainer) {
-        proyekContainer.classList.remove('hidden');
-        proyekContainer.classList.remove('reordering');
-        console.log('Proyek container shown');
-    }
-
-    // Update pagination info and render - this will handle showing/hiding cards
-    updateStatistics(); // Update summary statistics
-    displayResults();
-    updatePaginationInfo();
-    renderPagination();
-
-    console.log('Reset complete - showing first page of', potensiData.length, 'items');
-    console.log('=== END RESET DEBUG ===');
-}
-
-// Display results
-function displayResults() {
-    console.log('=== DISPLAY RESULTS DEBUG ===');
-    const container = document.getElementById('proyekContainer');
-    const noResults = document.getElementById('noResults');
-
-    if (!container) {
-        console.error('Proyek container not found');
-        return;
-    }
-
-    // Calculate total pages
-    totalPages = Math.ceil(currentData.length / itemsPerPage);
-    console.log('Total pages:', totalPages, 'Current page:', currentPage);
-
-    // Get all cards
-    const cards = document.querySelectorAll('.proyek-card');
-    console.log('Found', cards.length, 'total cards');
-    console.log('Current data length:', currentData.length);
-
-    // If there's no filtered data, show no results
-    if (currentData.length === 0) {
-        console.log('No data to show - displaying no results message');
-        cards.forEach(card => card.style.display = 'none');
-        if (noResults) noResults.classList.remove('hidden');
-        if (container) container.classList.add('hidden');
-        return;
-    }
-
-    // Calculate start and end index for current page
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentPageData = currentData.slice(startIndex, endIndex);
-
-    console.log('Displaying items from', startIndex, 'to', endIndex);
-    console.log('Items on current page:', currentPageData.length);
-
-    // Create a set of current page potensi IDs
-    const currentPageIds = new Set(currentPageData.map(potensi => potensi.id));
-    console.log('Current page potensi IDs:', Array.from(currentPageIds));
-
-    // Show/hide cards based on current page data
-    let visibleCount = 0;
-
-    // Process each card
-    cards.forEach((card, cardIndex) => {
-        const originalPotensi = potensiData[cardIndex];
-        if (originalPotensi && currentPageIds.has(originalPotensi.id)) {
-            card.style.display = 'block';
-            visibleCount++;
-            console.log('Showing card for potensi:', originalPotensi.kode, 'at index', cardIndex);
-        } else {
-            card.style.display = 'none';
+            default: return new Date(b.tanggal) - new Date(a.tanggal);
         }
     });
 
-    console.log('Visible cards:', visibleCount);
-
-    // Show/hide appropriate messages
-    if (visibleCount === 0) {
-        if (noResults) noResults.classList.remove('hidden');
-        if (container) container.classList.add('hidden');
-        console.log('No cards visible - showing no results');
-    } else {
-        if (noResults) noResults.classList.add('hidden');
-        if (container) container.classList.remove('hidden');
-        console.log('Cards visible - hiding no results');
-    }
-
-    // Always reorder cards if we have filtered data (due to default date sorting)
-    if (currentData.length > 0) {
-        console.log('Reordering cards based on filter/sort');
-        reorderCards();
-    } else {
-        // Reset to original order if no data
-        console.log('No data - resetting card order');
-        const container = document.getElementById('proyekContainer');
-        if (container) {
-            container.classList.remove('reordering');
-        }
-    }
-
-    console.log('=== END DISPLAY RESULTS DEBUG ===');
+    currentData  = filtered;
+    currentPage  = 1;
+    updateStatistics();
+    displayResults();
+    updatePaginationInfo();
+    renderPagination();
 }
 
-// Function to reset card order to original
-function resetCardOrder() {
-    console.log('=== RESET CARD ORDER ===');
+function resetFilters() {
+    if (searchInput)        searchInput.value        = '';
+    if (tahunFilter)        tahunFilter.value        = '';
+    if (picMarketingFilter) picMarketingFilter.value = '';
+    if (prioritasFilter)    prioritasFilter.value    = '';
+    if (sortByFilter)       sortByFilter.value       = '';
+    if (triwulanFilter)     triwulanFilter.value     = '';
+
+    currentData = [...potensiData];
+    currentPage = 1;
+    updateStatistics();
+    displayResults();
+    updatePaginationInfo();
+    renderPagination();
+}
+
+/* ============================================================
+   DISPLAY / PAGINATION
+   ============================================================ */
+
+function displayResults() {
     const container = document.getElementById('proyekContainer');
+    const noResultsEl = document.getElementById('noResults');
     if (!container) return;
 
-    // Remove reordering class
-    container.classList.remove('reordering');
+    totalPages = Math.max(1, Math.ceil(currentData.length / itemsPerPage));
 
     const allCards = document.querySelectorAll('.proyek-card');
-    allCards.forEach((card, index) => {
-        card.style.order = '';
-        card.style.display = '';
-    });
 
-    console.log('Card order reset to original');
-    console.log('=== END RESET CARD ORDER ===');
-}
-
-// Function to reorder cards based on current sorted data
-function reorderCards() {
-    console.log('=== REORDER CARDS DEBUG ===');
-    const container = document.getElementById('proyekContainer');
-    if (!container) {
-        console.error('Container not found for reordering');
+    if (currentData.length === 0) {
+        allCards.forEach(c => c.style.display = 'none');
+        if (noResultsEl) noResultsEl.classList.remove('hidden');
         return;
     }
 
-    // Add reordering class to container for flexbox styling
-    container.classList.add('reordering');
+    if (noResultsEl) noResultsEl.classList.add('hidden');
 
-    const allCards = document.querySelectorAll('.proyek-card');
-    console.log('Reordering', allCards.length, 'cards using CSS order property');
-
-    // Calculate start and end index for current page
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentPageData = currentData.slice(startIndex, endIndex);
+    const pageData   = currentData.slice(startIndex, startIndex + itemsPerPage);
+    const pageIds    = new Set(pageData.map(p => p.id));
 
-    console.log('Reordering only current page data:', currentPageData.length, 'items');
+    // Hide all first, then set CSS order for current page items
+    allCards.forEach(card => { card.style.display = 'none'; card.style.order = '999'; });
 
-    // Reset all cards to default order first
-    allCards.forEach(card => {
-        card.style.order = '999';
-        card.style.display = 'none';
-    });
-
-    // Set order for visible cards based on current page data only
-    currentPageData.forEach((sortedPotensi, sortedIndex) => {
-        // Find the card that corresponds to this potensi
-        const cardIndex = potensiData.findIndex(p => p.id === sortedPotensi.id);
-        if (cardIndex !== -1 && allCards[cardIndex]) {
-            allCards[cardIndex].style.order = sortedIndex.toString();
-            allCards[cardIndex].style.display = 'block';
-            console.log('Set order', sortedIndex, 'for potensi:', sortedPotensi.kode);
+    pageData.forEach((sortedPotensi, sortedIndex) => {
+        const originalIndex = potensiData.findIndex(p => p.id === sortedPotensi.id);
+        if (originalIndex !== -1 && allCards[originalIndex]) {
+            allCards[originalIndex].style.display = 'block';
+            allCards[originalIndex].style.order   = sortedIndex.toString();
         }
     });
-
-    console.log('Cards reordered successfully - showing', currentPageData.length, 'items');
-    console.log('=== END REORDER CARDS DEBUG ===');
 }
 
-// Update pagination info
 function updatePaginationInfo() {
-    if (paginationInfo) {
-        const totalVisible = currentData.length;
-        const totalAll = potensiData.length;
-        const startItem = totalVisible === 0 ? 0 : ((currentPage - 1) * itemsPerPage) + 1;
-        const endItem = Math.min(currentPage * itemsPerPage, totalVisible);
-
-        if (totalVisible === 0) {
-            paginationInfo.innerHTML = 'Tidak ada potensi yang ditampilkan';
-        } else {
-            paginationInfo.innerHTML = 'Menampilkan <span class="font-medium">' + startItem + '</span> sampai <span class="font-medium">' + endItem + '</span> dari <span class="font-medium">' + totalVisible + '</span> potensi';
-        }
-    }
+    if (!paginationInfo) return;
+    const total    = currentData.length;
+    const startItem = total === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+    const endItem   = Math.min(currentPage * itemsPerPage, total);
+    paginationInfo.innerHTML = total === 0
+        ? 'Tidak ada potensi yang ditampilkan'
+        : 'Menampilkan <span class="font-medium">' + startItem + '</span> sampai <span class="font-medium">' + endItem + '</span> dari <span class="font-medium">' + total + '</span> potensi';
 }
 
-// Render pagination buttons
 function renderPagination() {
-    const paginationDesktop = document.getElementById('paginationDesktop');
-    const paginationMobile = document.getElementById('currentPageMobile');
-    const prevBtnMobile = document.getElementById('prevPageMobile');
-    const nextBtnMobile = document.getElementById('nextPageMobile');
+    const desktop    = document.getElementById('paginationDesktop');
+    const mobileText = document.getElementById('currentPageMobile');
+    const prevMobile = document.getElementById('prevPageMobile');
+    const nextMobile = document.getElementById('nextPageMobile');
 
-    if (!paginationDesktop) return;
+    if (!desktop) return;
+    desktop.innerHTML = '';
 
-    // Clear existing buttons
-    paginationDesktop.innerHTML = '';
+    if (mobileText) mobileText.textContent = currentPage + ' / ' + Math.max(1, totalPages);
+    if (prevMobile) prevMobile.disabled = currentPage === 1;
+    if (nextMobile) nextMobile.disabled = currentPage >= totalPages;
 
-    // Update mobile pagination
-    if (paginationMobile) {
-        paginationMobile.textContent = currentPage + ' / ' + Math.max(1, totalPages);
-    }
-
-    // Enable/disable mobile buttons
-    if (prevBtnMobile) {
-        prevBtnMobile.disabled = currentPage === 1;
-    }
-    if (nextBtnMobile) {
-        nextBtnMobile.disabled = currentPage >= totalPages;
-    }
-
-    // Previous button
-    const prevBtn = document.createElement('button');
+    // Prev
+    const prevBtn = _paginationBtn('<i class="fas fa-chevron-left mr-0 md:mr-1"></i><span class="hidden md:inline">Previous</span>', currentPage === 1);
     prevBtn.onclick = () => goToPage(currentPage - 1);
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed';
-    prevBtn.innerHTML = '<i class="fas fa-chevron-left mr-0 md:mr-1"></i><span class="hidden md:inline">Previous</span>';
-    paginationDesktop.appendChild(prevBtn);
+    desktop.appendChild(prevBtn);
 
     // Page numbers
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage   = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
 
-    // Adjust startPage if we're near the end
-    if (endPage - startPage < maxVisiblePages - 1) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    // First page button (if not in range)
     if (startPage > 1) {
-        const firstBtn = createPageButton(1);
-        paginationDesktop.appendChild(firstBtn);
-
-        if (startPage > 2) {
-            const dots = document.createElement('span');
-            dots.className = 'px-2 py-2 text-gray-500';
-            dots.textContent = '...';
-            paginationDesktop.appendChild(dots);
-        }
+        desktop.appendChild(_pageNumBtn(1));
+        if (startPage > 2) desktop.appendChild(_dotsEl());
     }
-
-    // Page number buttons
-    for (let i = startPage; i <= endPage; i++) {
-        const pageBtn = createPageButton(i);
-        paginationDesktop.appendChild(pageBtn);
-    }
-
-    // Last page button (if not in range)
+    for (let i = startPage; i <= endPage; i++) desktop.appendChild(_pageNumBtn(i));
     if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-            const dots = document.createElement('span');
-            dots.className = 'px-2 py-2 text-gray-500';
-            dots.textContent = '...';
-            paginationDesktop.appendChild(dots);
-        }
-
-        const lastBtn = createPageButton(totalPages);
-        paginationDesktop.appendChild(lastBtn);
+        if (endPage < totalPages - 1) desktop.appendChild(_dotsEl());
+        desktop.appendChild(_pageNumBtn(totalPages));
     }
 
-    // Next button
-    const nextBtn = document.createElement('button');
+    // Next
+    const nextBtn = _paginationBtn('<span class="hidden md:inline">Next</span><i class="fas fa-chevron-right ml-0 md:ml-1"></i>', currentPage >= totalPages);
     nextBtn.onclick = () => goToPage(currentPage + 1);
-    nextBtn.disabled = currentPage >= totalPages;
-    nextBtn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed';
-    nextBtn.innerHTML = '<span class="hidden md:inline">Next</span><i class="fas fa-chevron-right ml-0 md:ml-1"></i>';
-    paginationDesktop.appendChild(nextBtn);
+    desktop.appendChild(nextBtn);
 }
 
-// Create page button
-function createPageButton(pageNum) {
+function _paginationBtn(html, disabled) {
     const btn = document.createElement('button');
-    btn.onclick = () => goToPage(pageNum);
-    btn.textContent = pageNum;
-
-    if (pageNum === currentPage) {
-        btn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg';
-    } else {
-        btn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50';
-    }
-
+    btn.innerHTML = html;
+    btn.disabled  = disabled;
+    btn.className = 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed';
     return btn;
 }
 
-// Go to specific page
+function _pageNumBtn(pageNum) {
+    const btn = document.createElement('button');
+    btn.textContent = pageNum;
+    btn.onclick     = () => goToPage(pageNum);
+    btn.className   = pageNum === currentPage
+        ? 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg'
+        : 'px-2 md:px-3 py-2 text-xs md:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50';
+    return btn;
+}
+
+function _dotsEl() {
+    const s = document.createElement('span');
+    s.className   = 'px-2 py-2 text-gray-500';
+    s.textContent = '...';
+    return s;
+}
+
 function goToPage(page) {
     if (page < 1 || page > totalPages) return;
-
     currentPage = page;
     displayResults();
     updatePaginationInfo();
     renderPagination();
-
-    // Scroll to top of proyek container
     const container = document.getElementById('proyekContainer');
-    if (container) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Function to view detail potensi
+/* ============================================================
+   EVENT LISTENERS
+   ============================================================ */
+if (searchInput)        searchInput.addEventListener('input', debounce(filterAndSort, 300));
+if (tahunFilter)        tahunFilter.addEventListener('change', filterAndSort);
+if (picMarketingFilter) picMarketingFilter.addEventListener('change', filterAndSort);
+if (prioritasFilter)    prioritasFilter.addEventListener('change', filterAndSort);
+if (sortByFilter)       sortByFilter.addEventListener('change', filterAndSort);
+if (triwulanFilter)     triwulanFilter.addEventListener('change', filterAndSort);
+
+/* ============================================================
+   MODAL — VIEW DETAIL
+   ============================================================ */
+
 function viewDetail(id) {
-    console.log('viewDetail called with ID:', id);
-
     const data = potensiData.find(p => p.id == id);
+    if (!data) { alert('Data proyek tidak ditemukan!'); return; }
 
-    if (!data) {
-        console.error('Data proyek tidak ditemukan dengan ID:', id);
-        alert('Data proyek tidak ditemukan!');
-        return;
-    }
-
-    console.log('Data found:', data);
-
-    const formattedData = {
-        id: data.id,
-        kode: data.kode,
-        nama_proyek: data.nama_proyek,
-        instansi: data.instansi,
-        kabupaten: data.kabupaten,
-        jenis_pengadaan: data.jenis_pengadaan,
-        tanggal: formatTanggal(data.tanggal),
-        deadline: data.deadline || null,
-        status: data.status,
-        admin_marketing: data.admin_marketing,
-        admin_purchasing: data.admin_purchasing,
-        catatan: data.catatan,
-        potensi: data.potensi === 'ya' ? 'Ya' : 'Tidak',
-        tahun_potensi: data.tahun_potensi,
-        total_nilai: data.total_nilai,
-        daftar_barang: data.daftar_barang || [],
-        triwulan: data.triwulan,
-
+    const setText = (elId, text) => {
+        const el = document.getElementById(elId);
+        if (el) el.textContent = text || '-';
     };
 
-    // Populate detail modal elements
-    const setElementText = (id, text) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = text || '-';
-        } else {
-            console.warn('Element dengan ID ' + id + ' tidak ditemukan');
-        }
-    };
+    setText('detailIdProyek',       data.kode);
+    setText('detailNamaProyek',     data.nama_proyek);
+    setText('detailNamaInstansi',   data.instansi);
+    setText('detailKabupatenKota',  data.kabupaten);
+    setText('detailJenisPengadaan', data.jenis_pengadaan);
+    setText('detailTanggal',        formatTanggal(data.tanggal));
+    setText('detailAdminMarketing', data.admin_marketing);
+    setText('detailAdminPurchasing',data.admin_purchasing);
+    setText('detailPotensi',        data.potensi === 'ya' ? 'Ya' : 'Tidak');
+    setText('detailTahunPotensi',   data.tahun_potensi);
+    setText('detailTotalKeseluruhan', formatRupiah(data.total_nilai));
+    setText('detailTriwulan', data.triwulan ? 'Triwulan ' + data.triwulan : '-');
 
-    // Set basic info
-    setElementText('detailIdProyek', formattedData.kode);
-    setElementText('detailNamaProyek', formattedData.nama_proyek);
-    setElementText('detailNamaInstansi', formattedData.instansi);
-    setElementText('detailKabupatenKota', formattedData.kabupaten);
-    setElementText('detailJenisPengadaan', formattedData.jenis_pengadaan);
-    setElementText('detailTanggal', formattedData.tanggal);
-    setElementText('detailAdminMarketing', formattedData.admin_marketing);
-    setElementText('detailAdminPurchasing', formattedData.admin_purchasing);
-    setElementText('detailPotensi', formattedData.potensi);
-    setElementText('detailTahunPotensi', formattedData.tahun_potensi);
-    setElementText('detailTotalKeseluruhan', formatRupiah(formattedData.total_nilai));
-    setElementText('detailTriwulan', formattedData.triwulan ? 'Triwulan ' + formattedData.triwulan : '-');
+    // Deadline
+    const deadlineEl = document.getElementById('detailDeadline');
+    if (deadlineEl) deadlineEl.textContent = data.deadline ? formatTanggal(data.deadline) : '-';
 
-    // Set deadline & prioritas badge di detail modal
-    const detailDeadlineEl = document.getElementById('detailDeadline');
-    const detailPrioritasBadge = document.getElementById('detailPrioritasBadge');
-    if (detailDeadlineEl) {
-        if (formattedData.deadline) {
-            detailDeadlineEl.textContent = formatTanggal(formattedData.deadline);
+    // Prioritas badge
+    const badgeEl = document.getElementById('detailPrioritasBadge');
+    if (badgeEl) {
+        const p = hitungPrioritasDeadline(data.deadline);
+        if (p) {
+            badgeEl.textContent = p.label;
+            badgeEl.className   = 'inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ' + p.badgeClass;
+            badgeEl.classList.remove('hidden');
         } else {
-            detailDeadlineEl.textContent = '-';
-        }
-    }
-    if (detailPrioritasBadge) {
-        const prioritas = hitungPrioritasDeadline(formattedData.deadline);
-        if (prioritas) {
-            detailPrioritasBadge.textContent = prioritas.label;
-            detailPrioritasBadge.className = 'inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ' + prioritas.badgeClass;
-            detailPrioritasBadge.classList.remove('hidden');
-        } else {
-            detailPrioritasBadge.classList.add('hidden');
+            badgeEl.classList.add('hidden');
         }
     }
 
-    // Update status badge
+    // Status badge
     const statusBadge = document.getElementById('detailStatusBadge');
     if (statusBadge) {
-        statusBadge.textContent = ucfirst(formattedData.status);
-        statusBadge.className = 'inline-flex px-3 py-1 text-sm font-medium rounded-full';
+        statusBadge.textContent = ucfirst(data.status);
+        statusBadge.className   = 'inline-flex px-4 py-2 text-sm font-medium rounded-full ' + getStatusColor(data.status);
+    }
 
-        if (formattedData.status === 'berhasil') {
-            statusBadge.classList.add('bg-green-100', 'text-green-800');
-        } else if (formattedData.status === 'proses') {
-            statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
-        } else if (formattedData.status === 'gagal') {
-            statusBadge.classList.add('bg-red-100', 'text-red-800');
+    // Daftar Barang
+    const barangContainer = document.getElementById('detailDaftarBarang');
+    if (barangContainer) {
+        if (data.daftar_barang && data.daftar_barang.length > 0) {
+            barangContainer.innerHTML = '';
+            data.daftar_barang.forEach((item, idx) => {
+                const hargaTotal = item.harga_total ?? ((item.jumlah || 0) * (item.harga_satuan || 0));
+                let filesHtml = '';
+                if (item.spesifikasi_files && item.spesifikasi_files.length > 0) {
+                    filesHtml = '<div class="mt-3 pt-3 border-t border-gray-200"><div class="text-sm font-medium text-gray-700 mb-2"><i class="fas fa-paperclip mr-1 text-gray-500"></i>File Spesifikasi (' + item.spesifikasi_files.length + ' file)</div><div class="space-y-1">' +
+                        item.spesifikasi_files.map(function(file) {
+                            var ext = file.original_name.split('.').pop().toLowerCase();
+                            var icon = 'fas fa-file';
+                            if (ext === 'pdf') icon = 'fas fa-file-pdf text-red-500';
+                            else if (['jpg','jpeg','png','gif'].includes(ext)) icon = 'fas fa-file-image text-green-500';
+                            else if (['doc','docx'].includes(ext)) icon = 'fas fa-file-word text-blue-500';
+                            else if (['xls','xlsx'].includes(ext)) icon = 'fas fa-file-excel text-green-600';
+                            return '<div class="flex items-center justify-between bg-white border border-gray-200 rounded p-2"><div class="flex items-center space-x-2"><i class="' + icon + '"></i><span class="text-sm text-gray-700 truncate">' + file.original_name + '</span><span class="text-xs text-gray-500">(' + formatFileSize(file.file_size || file.size) + ')</span></div><div class="flex space-x-1">' +
+                                (['pdf','jpg','jpeg','png','gif'].includes(ext) ? '<button onclick="downloadDetailFile(\'' + file.stored_name + '\')" class="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50"><i class="fas fa-eye"></i></button>' : '') +
+                                '<button onclick="downloadDetailFile(\'' + file.stored_name + '\')" class="text-green-600 hover:text-green-800 text-xs px-2 py-1 rounded hover:bg-green-50"><i class="fas fa-download"></i></button></div></div>';
+                        }).join('') + '</div></div>';
+                }
+
+                const div = document.createElement('div');
+                div.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 mb-3';
+                div.innerHTML =
+                    '<div class="flex justify-between items-start mb-2">' +
+                        '<h5 class="font-medium text-gray-800">' + (item.nama_barang || '-') + '</h5>' +
+                        '<span class="text-lg font-bold text-red-600">' + formatRupiah(hargaTotal) + '</span>' +
+                    '</div>' +
+                    '<div class="grid grid-cols-3 gap-4 text-sm text-gray-600">' +
+                        '<div><span class="font-medium">Qty:</span> ' + (item.jumlah || 0) + '</div>' +
+                        '<div><span class="font-medium">Satuan:</span> ' + (item.satuan || '-') + '</div>' +
+                        '<div><span class="font-medium">Harga Satuan:</span> ' + formatRupiah(item.harga_satuan || 0) + '</div>' +
+                    '</div>' +
+                    (item.spesifikasi ? '<div class="mt-2 text-sm text-gray-600"><span class="font-medium">Spesifikasi:</span> ' + item.spesifikasi + '</div>' : '') +
+                    filesHtml;
+                barangContainer.appendChild(div);
+            });
+        } else {
+            barangContainer.innerHTML = '<p class="text-gray-500 text-sm">Tidak ada data barang</p>';
         }
     }
 
-    // Populate daftar barang
-    const daftarBarangContainer = document.getElementById('detailDaftarBarang');
-    if (daftarBarangContainer && formattedData.daftar_barang && formattedData.daftar_barang.length > 0) {
-        daftarBarangContainer.innerHTML = '';
-
-        formattedData.daftar_barang.forEach((item, index) => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 mb-3';
-
-            // Build spesifikasi files HTML
-            let filesHtml = '';
-            if (item.spesifikasi_files && Array.isArray(item.spesifikasi_files) && item.spesifikasi_files.length > 0) {
-                filesHtml = `
-                    <div class="mt-3 pt-3 border-t border-gray-200">
-                        <div class="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                            <i class="fas fa-paperclip mr-2 text-gray-500"></i>
-                            File Spesifikasi (${item.spesifikasi_files.length} file)
-                        </div>
-                        <div class="space-y-1">
-                            ${item.spesifikasi_files.map(file => {
-                                const fileExtension = file.original_name.split('.').pop().toLowerCase();
-                                let fileIcon = 'fas fa-file';
-                                if (['pdf'].includes(fileExtension)) {
-                                    fileIcon = 'fas fa-file-pdf text-red-500';
-                                } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-                                    fileIcon = 'fas fa-file-image text-green-500';
-                                } else if (['doc', 'docx'].includes(fileExtension)) {
-                                    fileIcon = 'fas fa-file-word text-blue-500';
-                                } else if (['xls', 'xlsx'].includes(fileExtension)) {
-                                    fileIcon = 'fas fa-file-excel text-green-600';
-                                }
-
-                                return `
-                                    <div class="flex items-center justify-between bg-white border border-gray-200 rounded p-2">
-                                        <div class="flex items-center space-x-2">
-                                            <i class="${fileIcon}"></i>
-                                            <span class="text-sm text-gray-700 truncate">${file.original_name}</span>
-                                            <span class="text-xs text-gray-500">(${formatFileSize(file.file_size)})</span>
-                                        </div>
-                                        <div class="flex space-x-1">
-                                            ${(['pdf', 'jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) ?
-                                                `<button onclick="previewFile('${file.stored_name}')" class="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50" title="Preview">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>` : ''
-                                            }
-                                            <button onclick="downloadFile('${file.stored_name}')" class="text-green-600 hover:text-green-800 text-xs px-2 py-1 rounded hover:bg-green-50" title="Download">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            itemDiv.innerHTML = [
-                '<div class="flex justify-between items-start mb-2">',
-                    '<h5 class="font-medium text-gray-800">' + (item.nama_barang || item.nama || 'Nama barang tidak tersedia') + '</h5>',
-                    '<span class="text-lg font-bold text-red-600">' + formatRupiah(item.harga_total || (item.jumlah * item.harga_satuan)) + '</span>',
-                '</div>',
-                '<div class="grid grid-cols-3 gap-4 text-sm text-gray-600">',
-                    '<div>',
-                        '<span class="font-medium">Qty:</span> ' + (item.jumlah || item.qty || 0),
-                    '</div>',
-                    '<div>',
-                        '<span class="font-medium">Satuan:</span> ' + (item.satuan || '-'),
-                    '</div>',
-                    '<div>',
-                        '<span class="font-medium">Harga Satuan:</span> ' + formatRupiah(item.harga_satuan || 0),
-                    '</div>',
-                '</div>',
-                '<div class="mt-2 text-sm text-gray-600">',
-                    '<span class="font-medium">Spesifikasi:</span> ' + (item.spesifikasi || 'Tidak ada spesifikasi'),
-                '</div>',
-                filesHtml
-            ].join('');
-            daftarBarangContainer.appendChild(itemDiv);
-        });
-    } else if (daftarBarangContainer) {
-        daftarBarangContainer.innerHTML = '<p class="text-gray-500 text-sm">Tidak ada data barang</p>';
-    }
-
-    // Handle catatan
-    const catatanElement = document.getElementById('detailCatatan');
+    // Catatan
+    const catatanEl = document.getElementById('detailCatatan');
     const catatanSection = document.getElementById('detailCatatanSection');
-    if (formattedData.catatan && formattedData.catatan.trim() !== '') {
-        if (catatanElement) catatanElement.textContent = formattedData.catatan;
+    if (data.catatan && data.catatan.trim()) {
+        if (catatanEl) catatanEl.textContent = data.catatan;
         if (catatanSection) catatanSection.style.display = 'block';
     } else {
         if (catatanSection) catatanSection.style.display = 'none';
     }
 
-    // Load documents for this project
     loadDetailDocuments(id);
-
-    // Show modal
     openModal('modalDetailProyek');
 }
 
-// Helper function untuk capitalize first letter
-function ucfirst(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
+/* ============================================================
+   MODAL — EDIT
+   ============================================================ */
 
-// Helper function untuk status color (for badges)
-function getStatusColor(status) {
-    switch(status.toLowerCase()) {
-        case 'selesai': return 'bg-green-100 text-green-800';
-        case 'pengiriman': return 'bg-orange-100 text-orange-800';
-        case 'pembayaran': return 'bg-purple-100 text-purple-800';
-        case 'penawaran': return 'bg-blue-100 text-blue-800';
-        case 'menunggu': return 'bg-gray-100 text-gray-800';
-        case 'gagal': return 'bg-red-100 text-red-800';
-        default: return 'bg-gray-100 text-gray-800';
-    }
-}
-
-// Helper function untuk class styling status
-function getStatusClass(status) {
-    switch (status.toLowerCase()) {
-        case 'menunggu':
-            return 'text-yellow-600';
-        case 'penawaran':
-            return 'text-blue-600';
-        case 'pembayaran':
-            return 'text-purple-600';
-        case 'pengiriman':
-            return 'text-indigo-600';
-        case 'selesai':
-            return 'text-green-600';
-        case 'gagal':
-            return 'text-red-600';
-        default:
-            return 'text-gray-600';
-    }
-}
-
-// Function to create penawaran (redirect to penawaran page)
-function buatPenawaran(id) {
-    // Check user role access
-    @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
-        alert('Tidak memiliki akses untuk membuat penawaran. Hanya superadmin dan PIC marketing yang dapat melakukan aksi ini.');
-        return;
-    @endif
-
-    console.log('buatPenawaran called with ID:', id);
-
-    const data = potensiData.find(p => p.id == id);
-
-    if (!data) {
-        console.error('Data potensi tidak ditemukan dengan ID:', id);
-        alert('Data potensi tidak ditemukan!');
-        return;
-    }
-
-    // Redirect to penawaran detail page
-    window.location.href = `/marketing/penawaran/${id}`;
-}
-
-// Function to edit potensi
 function editProyek(id) {
-    // Check user role access
     @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
-        alert('Tidak memiliki akses untuk mengedit potensi. Hanya superadmin dan PIC marketing yang dapat melakukan aksi ini.');
+        alert('Tidak memiliki akses untuk mengedit potensi.');
         return;
     @endif
 
-    console.log('editProyek called with ID:', id);
-
     const data = potensiData.find(p => p.id == id);
+    if (!data) { alert('Data potensi tidak ditemukan!'); return; }
 
-    if (!data) {
-        console.error('Data potensi tidak ditemukan dengan ID:', id);
-        alert('Data potensi tidak ditemukan!');
-        return;
-    }
-
-    console.log('Data found for edit:', data);
-
-    // Format data untuk edit modal
-    const editData = {
-        id: data.id,
-        kode: data.kode,
-        nama_proyek: data.nama_proyek,
-        kabupaten: data.kabupaten,
-        kabupaten_kota: data.kabupaten, // Mapping field
-        instansi: data.instansi,
-        nama_instansi: data.instansi, // Mapping field
-        jenis_pengadaan: data.jenis_pengadaan,
-        tanggal: data.tanggal,
-        deadline: data.deadline || '',
-        admin_marketing: data.admin_marketing,
-        admin_purchasing: data.admin_purchasing,
-        id_admin_marketing: data.id_admin_marketing,
-        id_admin_purchasing: data.id_admin_purchasing,
-        catatan: data.catatan,
-        potensi: data.potensi,
-        tahun_potensi: data.tahun_potensi,
-        status: data.status,
-        total_nilai: data.total_nilai,
-        spesifikasi: data.spesifikasi,
-        jumlah: data.jumlah,
-        satuan: data.satuan,
-        harga_satuan: data.harga_satuan,
-        daftar_barang: data.daftar_barang || []
-    };
-
-    // Load data into edit form
     setTimeout(() => {
-        // Set ID proyek untuk form submission
-        const editIdField = document.getElementById('editId');
-        if (editIdField) editIdField.value = editData.id;
-
-        // Set field values dengan mapping yang benar
-        const setFieldValue = (id, value) => {
-            const field = document.getElementById(id);
-            if (field) {
-                field.value = value || '';
-            }
+        const setVal = (elId, val) => {
+            const el = document.getElementById(elId);
+            if (el) el.value = val || '';
         };
 
-        setFieldValue('editIdProyek', editData.kode);
-        setFieldValue('editTanggal', editData.tanggal);
-        setFieldValue('editKabupatenKota', editData.kabupaten);
-        setFieldValue('editNamaInstansi', editData.instansi);
-        setFieldValue('editNamaProyek', editData.nama_proyek);
-        setFieldValue('editJenisPengadaan', editData.jenis_pengadaan);
-        setFieldValue('editAdminMarketing', editData.admin_marketing);
-        setFieldValue('editAdminPurchasing', editData.admin_purchasing);
-        setFieldValue('editStatus', editData.status);
-        setFieldValue('editCatatan', editData.catatan);
-        setFieldValue('editTahunPotensi', editData.tahun_potensi);
-        setFieldValue('editDeadline', editData.deadline);
+        setVal('editId',            data.id);
+        setVal('editIdProyek',      data.kode);
+        setVal('editTanggal',       data.tanggal);
+        setVal('editKabupatenKota', data.kabupaten);
+        setVal('editNamaInstansi',  data.instansi);
+        setVal('editNamaProyek',    data.nama_proyek);
+        setVal('editJenisPengadaan',data.jenis_pengadaan);
+        setVal('editAdminMarketing',data.admin_marketing);
+        setVal('editAdminPurchasing',data.admin_purchasing);
+        setVal('editStatus',        data.status);
+        setVal('editCatatan',       data.catatan);
+        setVal('editTahunPotensi',  data.tahun_potensi);
+        setVal('editDeadline',      data.deadline);
 
-        // Handle potensi buttons
-        if (typeof togglePotensiEdit === 'function') {
-            togglePotensiEdit(editData.potensi);
-        }
-
-        // Load data barang dan informasi lengkap menggunakan fungsi dari edit modal
-        if (typeof loadEditData === 'function') {
-            console.log('Loading edit data with items:', editData.daftar_barang);
-            loadEditData(editData);
-        } else {
-            console.error('loadEditData function not found');
-        }
-
-        console.log('Edit form populated successfully');
+        if (typeof togglePotensiEdit === 'function') togglePotensiEdit(data.potensi);
+        if (typeof loadEditData      === 'function') loadEditData(data);
     }, 100);
 
-    // Show modal
     openModal('modalEditProyek');
 }
 
-// Function to delete potensi
+/* ============================================================
+   MODAL — DELETE
+   ============================================================ */
+
 function deleteProyek(id) {
-    // Check user role access
     @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
-        alert('Tidak memiliki akses untuk menghapus potensi. Hanya superadmin dan PIC marketing yang dapat melakukan aksi ini.');
+        alert('Tidak memiliki akses untuk menghapus potensi.');
         return;
     @endif
 
-    console.log('deleteProyek called with ID:', id);
-
     const data = potensiData.find(p => p.id == id);
+    if (!data) { alert('Data potensi tidak ditemukan!'); return; }
 
-    if (!data) {
-        console.error('Data potensi tidak ditemukan dengan ID:', id);
-        alert('Data potensi tidak ditemukan!');
-        return;
+    window.hapusData = { id: data.id, kode: data.kode, instansi: data.instansi, kabupaten: data.kabupaten, status: data.status };
+
+    const setText = (elId, text) => { const el = document.getElementById(elId); if (el) el.textContent = text || '-'; };
+    setText('hapusKode',     data.kode);
+    setText('hapusInstansi', data.instansi);
+    setText('hapusKabupaten',data.kabupaten);
+
+    const statusEl = document.getElementById('hapusStatus');
+    if (statusEl) {
+        statusEl.textContent = ucfirst(data.status);
+        statusEl.className   = 'text-sm font-medium ' + getStatusClass(data.status);
     }
 
-    console.log('Data found for delete:', data);
-
-    // Store data globally for deletion process
-    window.hapusData = {
-        id: data.id,
-        kode: data.kode,
-        nama_proyek: data.nama_proyek,
-        nama_instansi: data.instansi, // Map untuk compatibility dengan hapus modal
-        instansi: data.instansi,
-        kabupaten_kota: data.kabupaten, // Map untuk compatibility dengan hapus modal
-        kabupaten: data.kabupaten,
-        status: data.status
-    };
-
-    // Populate hapus modal
-    const setElementText = (id, text) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = text || '-';
-        }
-    };
-
-    setElementText('hapusKode', window.hapusData.kode);
-    setElementText('hapusInstansi', window.hapusData.instansi);
-    setElementText('hapusKabupaten', window.hapusData.kabupaten);
-
-    // Set status dengan styling
-    const statusElement = document.getElementById('hapusStatus');
-    if (statusElement) {
-        statusElement.textContent = ucfirst(window.hapusData.status);
-        statusElement.className = 'text-sm font-medium ' + getStatusClass(window.hapusData.status);
-    }
-
-    // Also call loadHapusData if it exists for the hapus modal's internal functions
     if (typeof loadHapusData === 'function') {
-        loadHapusData({
-            id: data.id,
-            kode: data.kode,
-            nama_instansi: data.instansi,
-            kabupaten_kota: data.kabupaten,
-            status: data.status
-        });
+        loadHapusData({ id: data.id, kode: data.kode, nama_instansi: data.instansi, kabupaten_kota: data.kabupaten, status: data.status });
     }
 
-    // Show modal
     openModal('modalHapusProyek');
 }
 
-// Function to change status quickly via dropdown
-function changeStatusQuick(potensiId, newStatus, selectElement = null) {
-    // Stop event propagation to prevent card click
-    if (event) {
-        event.stopPropagation();
-        event.preventDefault();
-    }
+/* ============================================================
+   MODAL — BUAT PENAWARAN
+   ============================================================ */
 
-    if (!newStatus) return; // Jika tidak ada status yang dipilih
+function buatPenawaran(id) {
+    @if(!(auth()->user()->role === 'superadmin' || auth()->user()->role === 'admin_marketing'))
+        alert('Tidak memiliki akses untuk membuat penawaran.');
+        return;
+    @endif
+
+    const data = potensiData.find(p => p.id == id);
+    if (!data) { alert('Data potensi tidak ditemukan!'); return; }
+
+    window.location.href = '/marketing/penawaran/' + id;
+}
+
+/* ============================================================
+   STATUS CHANGE (quick change via API)
+   ============================================================ */
+
+function changeStatusQuick(potensiId, newStatus, selectElement) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    if (!newStatus) return;
 
     const potensi = potensiData.find(p => p.id == potensiId);
-    if (!potensi) {
-        showErrorMessage('Data potensi tidak ditemukan!');
-        if (selectElement) selectElement.value = '';
-        return;
-    }
+    if (!potensi) { showErrorMessage('Data potensi tidak ditemukan!'); return; }
 
-    // Validasi apakah status bisa diubah
     if (!validateDropdownChange(selectElement, potensiId)) {
         if (selectElement) selectElement.value = '';
         return;
     }
 
-    // Konfirmasi perubahan
-    const statusNames = {
-        'penawaran': 'Penawaran',
-        'pembayaran': 'Pembayaran',
-        'pengiriman': 'Pengiriman',
-        'selesai': 'Selesai',
-        'gagal': 'Gagal'
-    };
-
-    const confirmMessage = 'Apakah Anda yakin ingin mengubah status potensi "' + potensi.nama_proyek + '" menjadi "' + statusNames[newStatus] + '"?';
-    if (!confirm(confirmMessage)) {
-        // Reset dropdown ke nilai awal
+    const statusNames = { penawaran:'Penawaran', pembayaran:'Pembayaran', pengiriman:'Pengiriman', selesai:'Selesai', gagal:'Gagal' };
+    if (!confirm('Ubah status "' + potensi.nama_proyek + '" menjadi "' + (statusNames[newStatus] || newStatus) + '"?')) {
         if (selectElement) selectElement.value = '';
         return;
     }
 
-    // Show loading state
-    const originalOptions = selectElement ? selectElement.innerHTML : '';
-    if (selectElement) {
-        selectElement.innerHTML = '<option value="">⏳ Memproses...</option>';
-        selectElement.disabled = true;
-        selectElement.classList.add('opacity-50');
-    }
+    const originalHTML = selectElement ? selectElement.innerHTML : '';
+    if (selectElement) { selectElement.innerHTML = '<option>⏳ Memproses...</option>'; selectElement.disabled = true; }
 
-    // Update status via API
-    fetch(`/marketing/proyek/${potensiId}/status`, {
+    fetch('/marketing/proyek/' + potensiId + '/status', {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -1656,623 +1133,163 @@ function changeStatusQuick(potensiId, newStatus, selectElement = null) {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
         },
-        body: JSON.stringify({
-            status: newStatus
-        })
+        body: JSON.stringify({ status: newStatus })
     })
-    .then(async response => {
-        // Check if response is ok
-        if (!response.ok) {
-            // Try to get response text for debugging
-            const responseText = await response.text();
-            console.error('HTTP Error Response:', responseText);
-            throw new Error(`HTTP error! status: ${response.status}. Response: ${responseText.substring(0, 200)}...`);
-        }
-
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            // Get response text for debugging
-            const responseText = await response.text();
-            console.error('Non-JSON Response:', responseText);
-            throw new Error('Response bukan JSON yang valid. Content-Type: ' + (contentType || 'unknown') + '. Response: ' + responseText.substring(0, 200) + '...');
-        }
-
-        return response.json();
+    .then(async res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const ct = res.headers.get('content-type');
+        if (!ct || !ct.includes('application/json')) throw new Error('Response bukan JSON');
+        return res.json();
     })
     .then(data => {
         if (data.success) {
-            // Update data
             potensi.status = newStatus;
-
-            // Update UI
             updatePotensiStatusInUI(potensiId, newStatus);
-
-            // Reset dropdown
-            if (selectElement) {
-                selectElement.disabled = false;
-                selectElement.classList.remove('opacity-50');
-                selectElement.innerHTML = originalOptions;
-                selectElement.value = '';
-                selectElement.dataset.currentStatus = newStatus;
-            }
-
-            // Show success message
-            showSuccessMessage('Status potensi berhasil diubah menjadi "' + statusNames[newStatus] + '"!');
-
-            // Update statistics
+            if (selectElement) { selectElement.disabled = false; selectElement.innerHTML = originalHTML; selectElement.value = ''; selectElement.dataset.currentStatus = newStatus; }
+            showSuccessMessage('Status berhasil diubah menjadi "' + (statusNames[newStatus] || newStatus) + '"!');
             updateStatistics();
-
-            // Refresh filter if needed
             filterAndSort();
         } else {
             throw new Error(data.message || 'Gagal mengubah status');
         }
     })
-    .catch(error => {
-        console.error('Error updating status:', error);
-        showErrorMessage('Terjadi kesalahan saat mengubah status: ' + error.message);
-
-        // Reset dropdown on error
-        if (selectElement) {
-            selectElement.disabled = false;
-            selectElement.classList.remove('opacity-50');
-            selectElement.innerHTML = originalOptions;
-            selectElement.value = '';
-        }
+    .catch(err => {
+        showErrorMessage('Terjadi kesalahan: ' + err.message);
+        if (selectElement) { selectElement.disabled = false; selectElement.innerHTML = originalHTML; selectElement.value = ''; }
     });
 }
 
-// Function to show success message with animation
-function showSuccessMessage(message) {
-    // Create success notification
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
-    notification.innerHTML = [
-        '<div class="flex items-center">',
-            '<i class="fas fa-check-circle mr-2"></i>',
-            '<span>' + message + '</span>',
-        '</div>'
-    ].join('');
-
-    document.body.appendChild(notification);
-
-    // Animate in
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 100);
-
-    // Animate out and remove
-    setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
-}
-
-// Function to update potensi status in UI
 function updatePotensiStatusInUI(potensiId, newStatus) {
-    // Find the card element
-    const cards = document.querySelectorAll('.proyek-card');
-    cards.forEach(card => {
-        const cardData = potensiData.find(p => p.id == potensiId);
-        if (cardData) {
-            const cardIndex = potensiData.indexOf(cardData);
-            if (card === cards[cardIndex]) {
-                // Update status badge
-                const statusBadge = card.querySelector('span[class*="bg-"]');
-                if (statusBadge) {
-                    // Remove old classes
-                    statusBadge.classList.remove('bg-green-100', 'text-green-800', 'bg-orange-100', 'text-orange-800',
-                                              'bg-purple-100', 'text-purple-800', 'bg-blue-100', 'text-blue-800',
-                                              'bg-yellow-100', 'text-yellow-800', 'bg-red-100', 'text-red-800');
+    const allCards = document.querySelectorAll('.proyek-card');
+    const idx = potensiData.findIndex(p => p.id == potensiId);
+    if (idx === -1 || !allCards[idx]) return;
 
-                    // Add new classes based on status
-                    switch(newStatus) {
-                        case 'selesai':
-                            statusBadge.classList.add('bg-green-100', 'text-green-800');
-                            break;
-                        case 'kontrak':
-                            statusBadge.classList.add('bg-orange-100', 'text-orange-800');
-                            break;
-                        case 'persetujuan':
-                            statusBadge.classList.add('bg-purple-100', 'text-purple-800');
-                            break;
-                        case 'penawaran':
-                            statusBadge.classList.add('bg-blue-100', 'text-blue-800');
-                            break;
-                        case 'proses':
-                            statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
-                            break;
-                        default:
-                            statusBadge.classList.add('bg-red-100', 'text-red-800');
-                    }
-
-                    // Update text
-                    statusBadge.textContent = ucfirst(newStatus);
-                }
-
-                // Update data attribute
-                card.setAttribute('data-status', newStatus);
-            }
-        }
-    });
-}
-
-// Function to update statistics after status change
-function updateStatistics() {
-    // Recalculate statistics from current data
-    const totalPotensi = potensiData.length;
-    const penawaranCount = potensiData.filter(p => p.status === 'penawaran').length;
-    const persetujuanCount = potensiData.filter(p => p.status === 'persetujuan').length;
-    const kontrakCount = potensiData.filter(p => p.status === 'kontrak').length;
-    const selesaiCount = potensiData.filter(p => p.status === 'selesai').length;
-    const prosesCount = potensiData.filter(p => p.status === 'proses').length;
-    const gagalCount = potensiData.filter(p => p.status === 'gagal').length;
-
-    // Update stats cards by finding them more specifically
-    const statsContainer = document.querySelector('.grid.grid-cols-2.lg\\:grid-cols-6');
-    if (statsContainer) {
-        const statCards = statsContainer.querySelectorAll('.bg-white');
-
-        // Update each stat card
-        if (statCards[0]) { // Total
-            const countElement = statCards[0].querySelector('.font-bold');
-            if (countElement) countElement.textContent = totalPotensi;
-        }
-        if (statCards[1]) { // Penawaran
-            const countElement = statCards[1].querySelector('.font-bold');
-            if (countElement) countElement.textContent = penawaranCount;
-        }
-        if (statCards[2]) { // Persetujuan
-            const countElement = statCards[2].querySelector('.font-bold');
-            if (countElement) countElement.textContent = persetujuanCount;
-        }
-        if (statCards[3]) { // Kontrak
-            const countElement = statCards[3].querySelector('.font-bold');
-            if (countElement) countElement.textContent = kontrakCount;
-        }
-        if (statCards[4]) { // Selesai
-            const countElement = statCards[4].querySelector('.font-bold');
-            if (countElement) countElement.textContent = selesaiCount;
-        }
-        if (statCards[5]) { // Gagal
-            const countElement = statCards[5].querySelector('.font-bold');
-            if (countElement) countElement.textContent = gagalCount;
-        }
+    const badge = allCards[idx].querySelector('span[class*="rounded-full"]');
+    if (badge) {
+        badge.className = 'inline-flex px-2 sm:px-3 py-1 text-xs font-medium rounded-full ' + getStatusColor(newStatus);
+        badge.textContent = ucfirst(newStatus);
     }
-
-    // Add animation to updated stats
-    const allCountElements = document.querySelectorAll('.grid.grid-cols-2.lg\\:grid-cols-6 .font-bold');
-    allCountElements.forEach(element => {
-        element.classList.add('animate-pulse');
-        setTimeout(() => {
-            element.classList.remove('animate-pulse');
-        }, 1000);
-    });
-}
-
-// Function to update statistics based on current filtered data
-function updateStatistics() {
-    console.log('=== UPDATE STATISTICS DEBUG ===');
-    
-    // Calculate statistics from current filtered data
-    const totalCount = currentData.length;
-    const totalNilai = currentData.reduce((sum, item) => {
-        return sum + (item.total_nilai || 0);
-    }, 0);
-    
-    console.log('Filtered data count:', totalCount);
-    console.log('Filtered total nilai:', totalNilai);
-    
-    // Update Total Potensi card
-    const totalPotensiElement = document.getElementById('totalPotensiCount');
-    if (totalPotensiElement) {
-        // Add animation effect
-        totalPotensiElement.classList.add('animate-pulse');
-        totalPotensiElement.textContent = totalCount;
-        setTimeout(() => {
-            totalPotensiElement.classList.remove('animate-pulse');
-        }, 500);
-    }
-    
-    // Update label based on filter status
-    const totalPotensiLabel = document.getElementById('totalPotensiLabel');
-    const tahunFilter = document.getElementById('tahunFilter');
-    const selectedTahun = tahunFilter ? tahunFilter.value : '';
-    
-    if (totalPotensiLabel) {
-        if (selectedTahun) {
-            totalPotensiLabel.textContent = `Potensi tahun ${selectedTahun}`;
-        } else {
-            totalPotensiLabel.textContent = 'Menunggu & Penawaran (belum ACC)';
-        }
-    }
-    
-    // Update Total Nilai card
-    const totalNilaiElement = document.getElementById('totalNilaiPotensi');
-    if (totalNilaiElement) {
-        // Add animation effect
-        totalNilaiElement.classList.add('animate-pulse');
-        totalNilaiElement.textContent = formatRupiah(totalNilai);
-        setTimeout(() => {
-            totalNilaiElement.classList.remove('animate-pulse');
-        }, 500);
-    }
-    
-    // Update nilai label
-    const totalNilaiLabel = document.getElementById('totalNilaiLabel');
-    if (totalNilaiLabel) {
-        if (selectedTahun) {
-            totalNilaiLabel.textContent = `Estimasi nilai tahun ${selectedTahun}`;
-        } else {
-            totalNilaiLabel.textContent = 'Estimasi nilai keseluruhan';
-        }
-    }
-    
-    console.log('Statistics updated successfully');
-    console.log('=== END UPDATE STATISTICS DEBUG ===');
-}
-
-// Utility Functions
-function formatRupiah(angka) {
-    if (!angka && angka !== 0) return 'Rp 0,00';
-
-    let number = parseFloat(angka);
-
-    if (isNaN(number)) return 'Rp 0,00';
-
-    // Format dengan 2 desimal
-    let formatted = number.toLocaleString('id-ID', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-
-    return 'Rp ' + formatted;
-}
-
-function formatTanggal(tanggal) {
-    if (!tanggal || tanggal === '-') return '-';
-    try {
-        const date = new Date(tanggal);
-        if (isNaN(date.getTime())) return '-';
-        return date.toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
-    } catch (error) {
-        console.error('Error formatting date:', error);
-        return '-';
-    }
-}
-
-function ucfirst(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-/**
- * Hitung prioritas deadline
- * Tinggi  : < 7 hari
- * Sedang  : 7–14 hari
- * Rendah  : > 14 hari
- * Expired : sudah lewat
- */
-
-/**
- * Mengembalikan level prioritas deadline sebagai string:
- * 'expired' | 'tinggi' | 'sedang' | 'rendah' | null
- */
-function getPrioritasLevelPotensi(deadline) {
-    if (!deadline) return null;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const deadlineDate = new Date(deadline);
-    deadlineDate.setHours(0, 0, 0, 0);
-    const hari = Math.round((deadlineDate - today) / (1000 * 60 * 60 * 24));
-
-    if (hari < 0)       return 'expired';
-    if (hari < 7)       return 'tinggi';
-    if (hari <= 14)     return 'sedang';
-    return 'rendah';
-}
-
-function hitungPrioritasDeadline(deadline) {
-    if (!deadline) return null;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const deadlineDate = new Date(deadline);
-    deadlineDate.setHours(0, 0, 0, 0);
-    const diffMs = deadlineDate - today;
-    const hari = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-    if (hari < 0) {
-        return { level: 'expired', label: '💀 Expired', badgeClass: 'bg-black text-white', borderClass: 'border-black', hari };
-    } else if (hari < 7) {
-        return { level: 'tinggi', label: '🔴 Prioritas Tinggi (' + hari + ' hari)', badgeClass: 'bg-red-100 text-red-800', borderClass: 'border-red-500', hari };
-    } else if (hari <= 14) {
-        return { level: 'sedang', label: '🟡 Prioritas Sedang (' + hari + ' hari)', badgeClass: 'bg-yellow-100 text-yellow-800', borderClass: 'border-yellow-500', hari };
-    } else {
-        return { level: 'rendah', label: '🟢 Prioritas Rendah (' + hari + ' hari)', badgeClass: 'bg-green-100 text-green-800', borderClass: 'border-green-500', hari };
-    }
-}
-
-// Toggle potensi buttons for edit modal
-function togglePotensiEdit(value) {
-    const yaBtn = document.getElementById('editPotensiYa');
-    const tidakBtn = document.getElementById('editPotensiTidak');
-    const hiddenInput = document.getElementById('editPotensiValue');
-
-    if (yaBtn && tidakBtn) {
-        // Reset all buttons
-        yaBtn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
-        tidakBtn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
-        yaBtn.classList.add('border-gray-300', 'text-gray-700');
-        tidakBtn.classList.add('border-gray-300', 'text-gray-700');
-
-        if (value === 'ya') {
-            yaBtn.classList.remove('border-gray-300', 'text-gray-700');
-            yaBtn.classList.add('bg-green-500', 'text-white', 'border-green-500');
-            if (hiddenInput) hiddenInput.value = 'ya';
-        } else if (value === 'tidak') {
-            tidakBtn.classList.remove('border-gray-300', 'text-gray-700');
-            tidakBtn.classList.add('bg-red-500', 'text-white', 'border-red-500');
-            if (hiddenInput) hiddenInput.value = 'tidak';
-        }
-    }
-}
-
-// Modal Functions (Fallbacks)
-if (typeof openModal === 'undefined') {
-    function openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.classList.add('modal-open');
-            console.log('Opened modal: ' + modalId);
-        } else {
-            console.error('Modal dengan ID ' + modalId + ' tidak ditemukan');
-        }
-    }
-}
-
-if (typeof closeModal === 'undefined') {
-    function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.classList.remove('modal-open');
-            console.log('Closed modal: ' + modalId);
-        }
-    }
-}
-
-if (typeof showSuccessModal === 'undefined') {
-    function showSuccessModal(message) {
-        alert(message);
-    }
-}
-
-// Additional utility functions for better UX
-function showErrorMessage(message) {
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
-    notification.innerHTML = [
-        '<div class="flex items-center">',
-            '<i class="fas fa-exclamation-circle mr-2"></i>',
-            '<span>' + message + '</span>',
-        '</div>'
-    ].join('');
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 100);
-
-    setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 4000);
-}
-
-function showLoadingIndicator(element, show = true) {
-    if (show) {
-        element.disabled = true;
-        element.classList.add('opacity-50', 'cursor-not-allowed');
-        const originalText = element.textContent || element.value;
-        element.dataset.originalText = originalText;
-
-        if (element.tagName === 'SELECT') {
-            element.innerHTML = '<option value="">⏳ Memproses...</option>';
-        } else {
-            element.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Memproses...`;
-        }
-    } else {
-        element.disabled = false;
-        element.classList.remove('opacity-50', 'cursor-not-allowed');
-
-        if (element.dataset.originalText) {
-            if (element.tagName === 'SELECT') {
-                // For select elements, we need to restore options properly
-                // This should be handled in the specific context
-            } else {
-                element.textContent = element.dataset.originalText;
-            }
-            delete element.dataset.originalText;
-        }
-    }
-}
-
-function getStatusEmoji(status) {
-    const emojis = {
-        'penawaran': '📋',
-        'persetujuan': '✅',
-        'kontrak': '📄',
-        'selesai': '🎯',
-        'proses': '⚡',
-        'gagal': '❌'
-    };
-    return emojis[status] || '📋';
-}
-
-function getStatusLabel(status) {
-    const labels = {
-        'penawaran': 'Penawaran',
-        'persetujuan': 'Persetujuan',
-        'kontrak': 'Kontrak',
-        'selesai': 'Selesai',
-        'proses': 'Proses',
-        'gagal': 'Gagal'
-    };
-    return labels[status] || status;
-}
-
-// Helper function untuk format file size
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-// Function untuk download file
-function downloadFile(filename) {
-    window.open(`/marketing/proyek/file/${filename}`, '_blank');
-}
-
-// Function untuk preview file
-function previewFile(filename) {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
-    modal.innerHTML = `
-        <div class="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full mx-4 overflow-hidden">
-            <div class="flex items-center justify-between p-4 border-b">
-                <h3 class="text-lg font-semibold">Preview File: ${filename}</h3>
-                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <div class="p-4 h-96 overflow-auto">
-                <iframe src="/marketing/proyek/file/${filename}/preview"
-                        class="w-full h-full border-0"
-                        onload="this.style.height=this.contentWindow.document.body.scrollHeight+'px'">
-                </iframe>
-            </div>
-            <div class="flex justify-end space-x-2 p-4 border-t">
-                <button onclick="downloadFile('${filename}')" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                    <i class="fas fa-download mr-2"></i>Download
-                </button>
-                <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
-                    Tutup
-                </button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
+    allCards[idx].setAttribute('data-status', newStatus);
 }
 
 function validateDropdownChange(selectElement, proyekId) {
+    if (!selectElement) return false;
     const newStatus = selectElement.value;
     const currentStatus = selectElement.dataset.currentStatus;
-
-    if (!newStatus || newStatus === currentStatus) {
-        return false;
-    }
-
-    // Additional validation can be added here
-    // For example, checking if the user has permission to change status
-
-    return true;
+    return !!(newStatus && newStatus !== currentStatus);
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== DOM LOADED DEBUG ===');
-    console.log('DOM loaded, initializing...');
-    console.log('Potensi data loaded:', potensiData.length, 'items');
+/* ============================================================
+   TOGGLE POTENSI (edit modal)
+   ============================================================ */
 
-    // Debug: Show first item structure
-    if (potensiData.length > 0) {
-        console.log('Sample data structure:', {
-            id: potensiData[0].id,
-            kode: potensiData[0].kode,
-            instansi: potensiData[0].instansi,
-            kabupaten: potensiData[0].kabupaten,
-            status: potensiData[0].status,
-            tanggal: potensiData[0].tanggal,
-            nama_proyek: potensiData[0].nama_proyek
-        });
+function togglePotensiEdit(value) {
+    const yaBtn     = document.getElementById('editPotensiYa');
+    const tidakBtn  = document.getElementById('editPotensiTidak');
+    const hiddenInput = document.getElementById('editPotensiValue');
+    if (!yaBtn || !tidakBtn) return;
+
+    yaBtn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+    tidakBtn.classList.remove('bg-red-500', 'text-white', 'border-red-500');
+    yaBtn.classList.add('border-gray-300', 'text-gray-700');
+    tidakBtn.classList.add('border-gray-300', 'text-gray-700');
+
+    if (value === 'ya') {
+        yaBtn.classList.replace('border-gray-300', 'border-green-500');
+        yaBtn.classList.replace('text-gray-700', 'text-white');
+        yaBtn.classList.add('bg-green-500');
+        if (hiddenInput) hiddenInput.value = 'ya';
+    } else if (value === 'tidak') {
+        tidakBtn.classList.replace('border-gray-300', 'border-red-500');
+        tidakBtn.classList.replace('text-gray-700', 'text-white');
+        tidakBtn.classList.add('bg-red-500');
+        if (hiddenInput) hiddenInput.value = 'tidak';
     }
+}
 
-    // Check if input elements exist
-    console.log('Form elements check:');
-    console.log('searchInput:', searchInput ? 'found' : 'NOT FOUND');
-    console.log('statusFilter:', statusFilter ? 'found' : 'NOT FOUND');
-    console.log('sortBy:', sortBy ? 'found' : 'NOT FOUND');
+/* ============================================================
+   FILE HELPERS (untuk panel barang / detail modal)
+   ============================================================ */
 
-    // Initialize pagination
+function downloadFile(filename) {
+    window.open('/marketing/proyek/file/' + filename, '_blank');
+}
+
+function downloadDetailFile(filename) {
+    window.open('/marketing/potensi/file/' + filename, '_blank');
+}
+
+function previewFile(filename) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+    modal.innerHTML =
+        '<div class="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] w-full mx-4 overflow-hidden">' +
+            '<div class="flex items-center justify-between p-4 border-b">' +
+                '<h3 class="text-lg font-semibold">Preview File: ' + filename + '</h3>' +
+                '<button onclick="this.closest(\'.fixed\').remove()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times text-xl"></i></button>' +
+            '</div>' +
+            '<div class="p-4 h-96 overflow-auto">' +
+                '<iframe src="/marketing/proyek/file/' + filename + '/preview" class="w-full h-full border-0"></iframe>' +
+            '</div>' +
+            '<div class="flex justify-end space-x-2 p-4 border-t">' +
+                '<button onclick="downloadFile(\'' + filename + '\')" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"><i class="fas fa-download mr-2"></i>Download</button>' +
+                '<button onclick="this.closest(\'.fixed\').remove()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Tutup</button>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(modal);
+}
+
+/* ============================================================
+   MODAL FALLBACKS (jika modal-functions.js belum memuat)
+   ============================================================ */
+
+if (typeof openModal === 'undefined') {
+    window.openModal = function(modalId) {
+        const m = document.getElementById(modalId);
+        if (m) { m.classList.remove('hidden'); m.classList.add('flex'); document.body.classList.add('modal-open'); }
+    };
+}
+if (typeof closeModal === 'undefined') {
+    window.closeModal = function(modalId) {
+        const m = document.getElementById(modalId);
+        if (m) { m.classList.add('hidden'); m.classList.remove('flex'); document.body.classList.remove('modal-open'); }
+    };
+}
+if (typeof showSuccessModal === 'undefined') {
+    window.showSuccessModal = function(message) { alert(message); };
+}
+
+/* ============================================================
+   EXPORT EXCEL
+   ============================================================ */
+
+function exportToExcel() {
+    const params = new URLSearchParams();
+    if (tahunFilter && tahunFilter.value)               params.append('tahun', tahunFilter.value);
+    if (picMarketingFilter && picMarketingFilter.value) params.append('pic_marketing', picMarketingFilter.value);
+    if (searchInput && searchInput.value)               params.append('search', searchInput.value);
+
+    const exportUrl = '{{ route("marketing.potensi.export.excel") }}' + (params.toString() ? '?' + params.toString() : '');
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengekspor...';
+    window.location.href = exportUrl;
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = originalHTML; }, 2000);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+
+document.addEventListener('DOMContentLoaded', function () {
     currentData = [...potensiData];
-    totalPages = Math.ceil(currentData.length / itemsPerPage);
-    console.log('Initial pagination - Total pages:', totalPages, 'Items per page:', itemsPerPage);
-
-    // Initialize display
-    updateStatistics(); // Initialize statistics
+    totalPages  = Math.ceil(currentData.length / itemsPerPage);
+    updateStatistics();
     displayResults();
     updatePaginationInfo();
     renderPagination();
-
-    // Add event listeners for modal close buttons
-    document.querySelectorAll('[onclick*="closeModal"]').forEach(button => {
-        console.log('Found modal close button');
-    });
-
-    console.log('Initialization complete');
-    console.log('=== END DOM LOADED DEBUG ===');
 });
-
-// Function to export data to Excel based on current filters
-function exportToExcel() {
-    // Get current filter values
-    const tahun = tahunFilter ? tahunFilter.value : '';
-    const picMarketing = picMarketingFilter ? picMarketingFilter.value : '';
-    const search = searchInput ? searchInput.value : '';
-
-    // Build URL with query parameters
-    const params = new URLSearchParams();
-    if (tahun) params.append('tahun', tahun);
-    if (picMarketing) params.append('pic_marketing', picMarketing);
-    if (search) params.append('search', search);
-
-    // Create export URL
-    const exportUrl = '{{ route("marketing.potensi.export.excel") }}' + (params.toString() ? '?' + params.toString() : '');
-
-    // Show loading message
-    const originalBtn = event.target.closest('button');
-    const originalHTML = originalBtn.innerHTML;
-    originalBtn.disabled = true;
-    originalBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengekspor...';
-
-    // Open URL in new window to trigger download
-    window.location.href = exportUrl;
-
-    // Reset button after delay
-    setTimeout(() => {
-        originalBtn.disabled = false;
-        originalBtn.innerHTML = originalHTML;
-    }, 2000);
-}
 </script>
 
 @endsection

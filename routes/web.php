@@ -292,6 +292,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/proyek/{idProyek}', [ProjectChatController::class, 'index'])->name('chat.proyek');
     Route::post('/chat/proyek/{idProyek}/send', [ProjectChatController::class, 'send'])->name('chat.proyek.send');
     Route::get('/chat/file/{fileId}/download', [ProjectChatController::class, 'downloadFile'])->name('chat.file.download');
+    Route::get('/chat/users', [ProjectChatController::class, 'searchUsers'])->name('chat.users.search');
+    Route::get('/notifications/unread-count', [ProjectChatController::class, 'unreadCount'])->name('notifications.unread.count');
 
     Route::get('/produk/export', [ProdukController::class, 'export'])->name('produk.export');
     Route::get('/produk', [ProdukController::class, 'index_produk_marketing'])->name('produk.marketing');

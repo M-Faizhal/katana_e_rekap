@@ -39,7 +39,6 @@
             <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2 flex-wrap">
                     <h1 class="text-base font-bold leading-tight">{{ $proyek->kode_proyek }}</h1>
-                    
                 </div>
                 <p class="text-red-200 text-xs truncate">
                     {{ $proyek->instansi ?? '-' }}@if($proyek->kab_kota) · {{ $proyek->kab_kota }}@endif
@@ -47,7 +46,7 @@
             </div>
             <div class="flex-shrink-0 text-xs flex items-center gap-1">
                 <span class="text-xs px-2 py-0.5 rounded-full font-medium {{ $statusColor }}">
-                        {{ ucfirst($proyek->status ?? '-') }}
+                    {{ ucfirst($proyek->status ?? '-') }}
                 </span>
             </div>
         </div>
@@ -227,41 +226,53 @@
             <div id="filePreviewList" class="flex flex-wrap gap-2"></div>
         </div>
 
+        {{-- ── Mention dropdown (posisi di atas textarea) ────────────────── --}}
+        <div id="mentionDropdown"
+             class="hidden absolute z-50 bg-white border border-gray-200 rounded-xl shadow-lg
+                    overflow-hidden w-64 max-h-48 overflow-y-auto"
+             style="bottom: 0; left: 0;">
+            {{-- Diisi via JS --}}
+        </div>
+
         {{-- Form kirim --}}
-        <form id="chatForm"
-              action="{{ route('chat.proyek.send', $proyek->id_proyek) }}"
-              method="POST"
-              enctype="multipart/form-data"
-              class="flex items-end gap-2 px-3 py-3">
-            @csrf
-            <input type="hidden" name="reply_to_id" id="replyToId" value="">
+        {{-- Wrapper relatif agar dropdown bisa diposisikan relatif terhadap area input --}}
+        <div class="relative" id="chatInputWrapper">
 
-            <label for="fileInput"
-                   class="flex-shrink-0 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full
-                          flex items-center justify-center cursor-pointer transition"
-                   title="Lampirkan file">
-                <i class="fas fa-paperclip text-gray-500"></i>
-            </label>
-            <input type="file" id="fileInput" name="files[]" multiple class="hidden"
-                   onchange="handleFileSelect(this)">
+            <form id="chatForm"
+                  action="{{ route('chat.proyek.send', $proyek->id_proyek) }}"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  class="flex items-end gap-2 px-3 py-3">
+                @csrf
+                <input type="hidden" name="reply_to_id" id="replyToId" value="">
 
-            <div class="flex-1 bg-gray-100 rounded-2xl px-4 py-2.5">
-                <textarea id="messageInput" name="message"
-                          placeholder="Tulis pesan..."
-                          rows="1"
-                          class="w-full bg-transparent resize-none outline-none text-sm text-gray-800
-                                 placeholder-gray-400 max-h-32 leading-relaxed"
-                          oninput="autoResize(this)"
-                          onkeydown="handleKeyDown(event)"></textarea>
-            </div>
+                <label for="fileInput"
+                       class="flex-shrink-0 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full
+                              flex items-center justify-center cursor-pointer transition"
+                       title="Lampirkan file">
+                    <i class="fas fa-paperclip text-gray-500"></i>
+                </label>
+                <input type="file" id="fileInput" name="files[]" multiple class="hidden"
+                       onchange="handleFileSelect(this)">
 
-            <button type="button"
-                    onclick="submitChat()"
-                    class="flex-shrink-0 w-10 h-10 bg-red-600 hover:bg-red-700 rounded-full
-                           flex items-center justify-center transition shadow">
-                <i class="fas fa-paper-plane text-white text-sm"></i>
-            </button>
-        </form>
+                <div class="flex-1 bg-gray-100 rounded-2xl px-4 py-2.5">
+                    <textarea id="messageInput" name="message"
+                              placeholder="Tulis pesan... (ketik @ untuk mention)"
+                              rows="1"
+                              class="w-full bg-transparent resize-none outline-none text-sm text-gray-800
+                                     placeholder-gray-400 max-h-32 leading-relaxed"
+                              oninput="autoResize(this); handleMentionInput(this)"
+                              onkeydown="handleKeyDown(event)"></textarea>
+                </div>
+
+                <button type="button"
+                        onclick="submitChat()"
+                        class="flex-shrink-0 w-10 h-10 bg-red-600 hover:bg-red-700 rounded-full
+                               flex items-center justify-center transition shadow">
+                    <i class="fas fa-paper-plane text-white text-sm"></i>
+                </button>
+            </form>
+        </div>
     </div>
 
 </div>{{-- end wrapper --}}
@@ -284,7 +295,22 @@
 
 @push('scripts')
 <script>
+// ─────────────────────────────────────────────────────────────────────────────
+// SCROLL & ANCHOR
+// ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
+    // Jika ada anchor #chat-xxx di URL, scroll ke elemen tersebut
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#chat-')) {
+        const el = document.querySelector(hash);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Highlight sebentar
+            el.classList.add('ring-2', 'ring-red-400', 'ring-offset-1', 'rounded-2xl');
+            setTimeout(() => el.classList.remove('ring-2', 'ring-red-400', 'ring-offset-1', 'rounded-2xl'), 2500);
+            return;
+        }
+    }
     scrollToBottom();
 });
 
@@ -295,37 +321,245 @@ function scrollToBottom() {
     if (el) el.scrollTop = el.scrollHeight;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TEXTAREA HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
 function autoResize(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 128) + 'px';
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MENTION AUTOCOMPLETE
+// ─────────────────────────────────────────────────────────────────────────────
+const mentionState = {
+    active:        false,   // dropdown sedang terbuka?
+    query:         '',      // teks setelah @
+    startIndex:    -1,      // posisi @ di textarea
+    users:         [],      // hasil fetch
+    selectedIndex: -1,      // indeks item yang di-highlight
+    fetchTimer:    null,    // debounce timer
+};
+
+const MENTION_URL = '{{ route('chat.users.search') }}';
+
+/**
+ * Dipanggil setiap kali isi textarea berubah (oninput).
+ * Mendeteksi apakah kursor sedang setelah @ yang valid.
+ */
+function handleMentionInput(textarea) {
+    const val    = textarea.value;
+    const cursor = textarea.selectionStart;
+
+    // Cari @ terakhir sebelum kursor
+    const beforeCursor = val.slice(0, cursor);
+    // @ valid: di awal string atau setelah whitespace
+    const match = beforeCursor.match(/(?:^|(?<=\s))@(\S*)$/);
+
+    if (!match) {
+        closeMentionDropdown();
+        return;
+    }
+
+    const query      = match[1];           // teks setelah @
+    const atPosition = beforeCursor.lastIndexOf('@');
+
+    mentionState.startIndex = atPosition;
+    mentionState.query      = query;
+    mentionState.active     = true;
+
+    // Debounce fetch 200ms
+    clearTimeout(mentionState.fetchTimer);
+    mentionState.fetchTimer = setTimeout(() => fetchMentionUsers(query), 200);
+}
+
+async function fetchMentionUsers(query) {
+    try {
+        const res   = await fetch(MENTION_URL + '?q=' + encodeURIComponent(query));
+        const users = await res.json();
+        mentionState.users         = users;
+        mentionState.selectedIndex = users.length > 0 ? 0 : -1;
+        renderMentionDropdown();
+    } catch (e) {
+        // Jangan lempar error ke console — tutup saja dropdown
+        closeMentionDropdown();
+    }
+}
+
+function renderMentionDropdown() {
+    const dropdown = document.getElementById('mentionDropdown');
+    const wrapper  = document.getElementById('chatInputWrapper');
+    const textarea = document.getElementById('messageInput');
+
+    if (!mentionState.users.length) {
+        closeMentionDropdown();
+        return;
+    }
+
+    dropdown.innerHTML = '';
+
+    mentionState.users.forEach((user, idx) => {
+        const item = document.createElement('button');
+        item.type  = 'button';
+        item.className = [
+            'flex items-center gap-2 w-full px-3 py-2 text-left',
+            'hover:bg-gray-50 transition text-sm',
+            idx === mentionState.selectedIndex ? 'bg-red-50' : '',
+        ].join(' ');
+
+        // Avatar
+        const avatarWrap = document.createElement('div');
+        avatarWrap.className = 'w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-gray-200 flex items-center justify-center';
+        if (user.foto) {
+            const img  = document.createElement('img');
+            img.src    = user.foto;
+            img.alt    = user.nama;
+            img.className = 'w-full h-full object-cover';
+            avatarWrap.appendChild(img);
+        } else {
+            const span = document.createElement('span');
+            span.className   = 'text-xs font-bold text-gray-500';
+            span.textContent = user.nama.charAt(0).toUpperCase();
+            avatarWrap.appendChild(span);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'flex-1 min-w-0';
+        info.innerHTML = '<p class="font-medium text-gray-800 truncate">' + escapeHtml(user.nama) + '</p>'
+                       + '<p class="text-xs text-gray-400 truncate">@' + escapeHtml(user.username) + '</p>';
+
+        item.appendChild(avatarWrap);
+        item.appendChild(info);
+
+        item.addEventListener('mousedown', (e) => {
+            // mousedown bukan click agar blur textarea tidak menutup dulu
+            e.preventDefault();
+            insertMention(user.nama);
+        });
+
+        dropdown.appendChild(item);
+    });
+
+    // Posisikan dropdown di atas textarea
+    const textareaRect = textarea.getBoundingClientRect();
+    const wrapperRect  = wrapper.getBoundingClientRect();
+    const dropdownH    = Math.min(mentionState.users.length * 52, 192); // estimasi tinggi
+
+    dropdown.style.bottom = (wrapperRect.bottom - textareaRect.top + 4) + 'px';
+    dropdown.style.left   = '60px'; // sejajar dengan textarea (setelah icon clip)
+    dropdown.style.width  = (textareaRect.width) + 'px';
+
+    dropdown.classList.remove('hidden');
+}
+
+/**
+ * Sisipkan @Nama Lengkap  di posisi @ hingga cursor.
+ */
+function insertMention(nama) {
+    const textarea = document.getElementById('messageInput');
+    const val      = textarea.value;
+    const before   = val.slice(0, mentionState.startIndex);
+    const after    = val.slice(textarea.selectionStart);
+
+    // Sisipkan @Nama + spasi
+    textarea.value = before + '@' + nama + ' ' + after;
+
+    // Pindahkan kursor ke setelah mention
+    const newCursor = before.length + nama.length + 2; // +2: @ dan spasi
+    textarea.setSelectionRange(newCursor, newCursor);
+    textarea.focus();
+
+    autoResize(textarea);
+    closeMentionDropdown();
+}
+
+function closeMentionDropdown() {
+    mentionState.active        = false;
+    mentionState.users         = [];
+    mentionState.selectedIndex = -1;
+    mentionState.startIndex    = -1;
+    const dropdown = document.getElementById('mentionDropdown');
+    if (dropdown) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+    }
+}
+
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KEYBOARD HANDLER — mention-aware
+// ─────────────────────────────────────────────────────────────────────────────
 function handleKeyDown(e) {
+    // Jika dropdown mention terbuka, intercept navigasi
+    if (mentionState.active && mentionState.users.length > 0) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            mentionState.selectedIndex =
+                (mentionState.selectedIndex + 1) % mentionState.users.length;
+            renderMentionDropdown();
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            mentionState.selectedIndex =
+                (mentionState.selectedIndex - 1 + mentionState.users.length) % mentionState.users.length;
+            renderMentionDropdown();
+            return;
+        }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (mentionState.selectedIndex >= 0 && mentionState.users[mentionState.selectedIndex]) {
+                insertMention(mentionState.users[mentionState.selectedIndex].nama);
+            }
+            return;
+        }
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            closeMentionDropdown();
+            return;
+        }
+    }
+
+    // Dropdown tertutup: Enter (tanpa Shift) kirim chat
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         submitChat();
     }
 }
 
+// Tutup dropdown jika klik di luar
+document.addEventListener('click', function (e) {
+    const dropdown = document.getElementById('mentionDropdown');
+    const textarea = document.getElementById('messageInput');
+    if (dropdown && !dropdown.contains(e.target) && e.target !== textarea) {
+        closeMentionDropdown();
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBMIT
+// ─────────────────────────────────────────────────────────────────────────────
 function submitChat() {
     if (isSubmitting) return;
-    const form = document.getElementById('chatForm');
-    const msg  = document.getElementById('messageInput').value.trim();
+    const form  = document.getElementById('chatForm');
+    const msg   = document.getElementById('messageInput').value.trim();
     const files = document.getElementById('fileInput').files;
     if (!msg && files.length === 0) return;
 
     isSubmitting = true;
-
-    // Disable tombol kirim & input
-    const btn = form.querySelector('button[type="submit"]');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-white text-sm"></i>';
-    }
-
     form.submit();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// REPLY
+// ─────────────────────────────────────────────────────────────────────────────
 function setReply(id, user, text) {
     document.getElementById('replyToId').value       = id;
     document.getElementById('replyUser').textContent = user;
@@ -339,6 +573,9 @@ function clearReply() {
     document.getElementById('replyPreview').classList.add('hidden');
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// FILE PREVIEW
+// ─────────────────────────────────────────────────────────────────────────────
 function handleFileSelect(input) {
     const list  = document.getElementById('filePreviewList');
     const area  = document.getElementById('filePreviewArea');
@@ -369,13 +606,13 @@ function handleFileSelect(input) {
         }
 
         const name = document.createElement('span');
-        name.className = 'truncate flex-1 min-w-0';
-        name.title     = file.name;
+        name.className   = 'truncate flex-1 min-w-0';
+        name.title       = file.name;
         name.textContent = file.name.length > 16 ? file.name.slice(0, 14) + '…' : file.name;
         chip.appendChild(name);
 
         const sizeEl = document.createElement('span');
-        sizeEl.className = 'text-gray-400 flex-shrink-0';
+        sizeEl.className   = 'text-gray-400 flex-shrink-0';
         sizeEl.textContent = size;
         chip.appendChild(sizeEl);
 
@@ -383,6 +620,9 @@ function handleFileSelect(input) {
     });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// IMAGE PREVIEW MODAL
+// ─────────────────────────────────────────────────────────────────────────────
 function previewGambar(url, name) {
     document.getElementById('previewImg').src             = url;
     document.getElementById('previewImgName').textContent = name;
