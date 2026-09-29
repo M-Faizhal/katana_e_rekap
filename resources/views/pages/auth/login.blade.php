@@ -6,7 +6,10 @@
   <title>Login - Cyber KATANA</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
+
+{{-- reCAPTCHA dinonaktifkan sementara
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+--}}
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -37,10 +40,6 @@
             Selamat Datang!
             </h1>
 
-        
-      
-        
-        
       </div>
     </div>
 
@@ -139,8 +138,7 @@
             @enderror
           </div>
 
-          
-          <!-- reCAPTCHA -->
+          {{-- reCAPTCHA dinonaktifkan sementara
           <div class="flex justify-center">
             <div class="g-recaptcha" 
                  data-sitekey="{{ config('services.recaptcha.site_key') }}"
@@ -155,6 +153,7 @@
               <i class="fas fa-exclamation-triangle mr-1"></i>{{ $message }}
             </p>
           @enderror
+          --}}
 
           <!-- Submit Button -->
           <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -169,14 +168,11 @@
           <div class="flex-1 border-t border-gray-200"></div>
         </div>
 
-        
-
         <!-- Footer -->
         <div class="mt-8 text-center">
           <p class="text-xs text-gray-500">
             © 2026 PT. Kamil Tria Niaga. All rights reserved.
           </p>
-         
         </div>
       </div>
     </div>
@@ -210,7 +206,8 @@
           return false;
         }
 
-        // Check if reCAPTCHA is completed
+        // reCAPTCHA dinonaktifkan sementara
+        /*
         if (typeof grecaptcha !== 'undefined') {
           const recaptchaResponse = grecaptcha.getResponse();
           if (recaptchaResponse.length === 0) {
@@ -219,6 +216,7 @@
             return false;
           }
         }
+        */
 
         // Set submitting state
         isSubmitting = true;
@@ -246,7 +244,8 @@
       });
     });
 
-    // reCAPTCHA callback functions
+    // reCAPTCHA callback functions (dinonaktifkan sementara)
+    /*
     function onRecaptchaSuccess() {
       console.log('reCAPTCHA verified successfully');
     }
@@ -260,6 +259,7 @@
       console.log('reCAPTCHA error');
       alert('Terjadi kesalahan pada verifikasi reCAPTCHA. Mohon coba lagi.');
     }
+    */
   </script>
 </body>
 </html>

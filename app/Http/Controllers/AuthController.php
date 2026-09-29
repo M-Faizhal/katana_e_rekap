@@ -26,18 +26,18 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|string',
             'password' => 'required',
-            'g-recaptcha-response' => 'required',
+            // 'g-recaptcha-response' => 'required',
         ], [
-            'g-recaptcha-response.required' => 'Mohon selesaikan verifikasi reCAPTCHA.',
+            // 'g-recaptcha-response.required' => 'Mohon selesaikan verifikasi reCAPTCHA.',
         ]);
 
-        // Verify reCAPTCHA
-        $recaptchaResponse = $request->input('g-recaptcha-response');
-        if (!$this->verifyRecaptcha($recaptchaResponse)) {
-            return back()->withErrors([
-                'g-recaptcha-response' => 'Verifikasi reCAPTCHA gagal. Mohon coba lagi.',
-            ])->withInput($request->only('email'));
-        }
+        // Verify reCAPTCHA (dinonaktifkan sementara)
+        // $recaptchaResponse = $request->input('g-recaptcha-response');
+        // if (!$this->verifyRecaptcha($recaptchaResponse)) {
+        //     return back()->withErrors([
+        //         'g-recaptcha-response' => 'Verifikasi reCAPTCHA gagal. Mohon coba lagi.',
+        //     ])->withInput($request->only('email'));
+        // }
 
         $loginField = $request->input('email');
         $password = $request->input('password');
@@ -94,8 +94,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Verify reCAPTCHA response
+     * Verify reCAPTCHA response (dinonaktifkan sementara)
      */
+    /*
     private function verifyRecaptcha($recaptchaResponse)
     {
         $secretKey = config('services.recaptcha.secret_key');
@@ -130,4 +131,5 @@ class AuthController extends Controller
         
         return isset($result['success']) && $result['success'] === true;
     }
+    */
 }
